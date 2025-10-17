@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新井元気のUdemy講座 | AWS・React・Laravel実践講座のクーポン</title>
+    <title>新井元気のUdemy講座</title>
     <meta name="description"
         content="新井元気が教えるUdemy講座。AWS、React、Laravel、Difyを使った実践的なWeb開発を学べます。GPTsハッカソン3連覇の現役エンジニアによる講座をクーポン価格1500円で受講可能。">
     <!-- OGP（Twitter/Facebook等でシェアされた時の表示） -->
@@ -344,6 +344,7 @@
             }
         }
 
+
         /* 新講座バッジ */
         .new-badge {
             position: absolute;
@@ -443,9 +444,35 @@
     <!-- パーティクル背景 -->
     <div id="particles-container" class="fixed inset-0 overflow-hidden pointer-events-none z-0"></div>
 
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top" class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
     <div class="min-h-screen flex flex-col relative overflow-hidden">
+        <!-- ナビゲーションバー -->
+        <nav class="glass sticky top-0 z-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                        新井元気のUdemy講座
+                    </h1>
+                    <div class="flex space-x-6">
+                        <a href="index.html" class="text-primary-400 font-bold">
+                            クーポンリンク
+                        </a>
+                        <a href="laravel.html" class="hover:text-primary-400 transition-colors duration-300">
+                            Laravel講座資料
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
         <!-- ヘッダー部分 -->
-        <header class="relative py-16 overflow-hidden">
+        <header class="relative py-8 overflow-hidden">
             <!-- 背景アニメーション -->
             <div class="absolute inset-0">
                 <div class="absolute inset-0 bg-cyber-grid opacity-30"></div>
@@ -463,23 +490,21 @@
 
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="text-center">
-                    <h1 class="text-5xl md:text-5xl font-black mb-12 font-mont tracking-tight animate-fade-in-up">
-                        <span class="gradient-text">新井元気</span>のUdemy講座：
-                        <br class="md:hidden">
+                    <h1 class="text-3xl md:text-4xl font-black mb-4 font-mont tracking-tight animate-fade-in-up">
                         <span class="luxury-gradient-text text-glow">Udemyクーポンリンク</span>
                     </h1>
 
                     <!-- 警告ボックス変更 -->
                     <div
-                        class="max-w-4xl mx-auto mt-12 bg-red-900/30 border border-red-500/50 p-8 rounded-2xl shadow-2xl backdrop-blur-sm animate-slide-in-left">
-                        <p class="text-red-200 font-bold text-xl mb-4">⚠️ 定価で購入せず必ずクーポンをご使用ください！</p>
-                        <p class="text-gray-200 text-lg">最新のクーポンコードで1500円でご受講いただけます</p>
+                        class="max-w-3xl mx-auto mt-6 bg-red-900/30 border border-red-500/50 p-4 rounded-xl shadow-2xl backdrop-blur-sm animate-slide-in-left">
+                        <p class="text-red-200 font-bold text-base mb-2">⚠️ 定価で購入せず必ずクーポンをご使用ください！</p>
+                        <p class="text-gray-200 text-sm">最新のクーポンコードで1500円でご受講いただけます</p>
                     </div>
 
-                    <div class="mt-16 animate-slide-in-right">
+                    <div class="mt-6 animate-slide-in-right">
                         <a href="https://www.udemy.com/user/xin-jing-yuan-qi-3/" target="_blank"
-                            class="magnetic-button inline-flex items-center px-12 py-6 text-xl font-bold rounded-full shadow-2xl text-white btn-3d">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-4 icon-hover" fill="none"
+                            class="magnetic-button inline-flex items-center px-8 py-3 text-base font-bold rounded-full shadow-2xl text-white btn-3d">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 icon-hover" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -492,35 +517,39 @@
         </header>
 
         <!-- メインコンテンツ -->
-        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="max-w-5xl mx-auto">
-                <div class="mb-20">
-                    <h2 class="text-5xl font-black mb-16 text-center gradient-text text-glow animate-fade-in-up">コース一覧
+        <main class="flex-grow py-8 px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="max-w-4xl mx-auto">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-black mb-8 text-center gradient-text text-glow animate-fade-in-up">コース一覧
                     </h2>
 
                     <!-- コース一覧 -->
-                    <div class="space-y-16">
+                    <div class="space-y-8">
                         <!-- コース一覧 -->
-                        <div class="space-y-16">
+                        <div class="space-y-8">
                             <!-- コース1 - 最新講座 第三弾 -->
                             <div
                                 class="course-card hologram rounded-3xl overflow-hidden shadow-2xl border-l-4 border-neon-cyan transform transition-all relative animate-fade-in-up">
+                                <!-- サムネイル画像 -->
+                                <div class="relative overflow-hidden h-48">
+                                    <img src="img/5.png" alt="フルスタックエンジニアへの道" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                                </div>
 
-                                <div class="p-10">
+                                <div class="p-6">
                                     <!-- 最新講座バッジ -->
                                     <span
-                                        class="inline-flex items-center px-6 py-3 rounded-full text-xl font-black bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white mb-8 shadow-2xl animate-pulse-slow">
+                                        class="inline-flex items-center px-4 py-2 rounded-full text-sm font-black bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white mb-4 shadow-2xl animate-pulse-slow">
                                         🚀 最新講座 2025年10月登場
                                     </span>
-                                    <h3 class="text-3xl font-black mb-8 text-white text-glow-white">
+                                    <h3 class="text-xl font-black mb-4 text-white text-glow-white">
                                         <a href="https://www.udemy.com/course/fulllstackengineer/?couponCode=3F51870526E11A907599"
                                             target="_blank" class="hover:text-neon-cyan transition-colors duration-300">
                                             【第三弾】フルスタックエンジニアへの道 - 現場で必要なスキル全体像を公開
                                         </a>
                                     </h3>
 
-                                    <div class="glass p-8 rounded-2xl mb-10">
-                                        <ul class="space-y-6 text-lg">
+                                    <div class="glass p-4 rounded-xl mb-6">
+                                        <ul class="space-y-3 text-sm">
                                             <li class="flex items-start">
                                                 <div class="checkmark mr-4 mt-1"></div>
                                                 <span class="text-gray-200 font-semibold">React × Laravel
@@ -549,8 +578,8 @@
                                     <div class="text-center">
                                         <a href="https://www.udemy.com/course/fulllstackengineer/?couponCode=3F51870526E11A907599"
                                             target="_blank"
-                                            class="inline-flex items-center px-10 py-5 text-xl font-bold rounded-full text-white btn-3d shadow-2xl">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-4 icon-hover"
+                                            class="inline-flex items-center px-6 py-3 text-base font-bold rounded-full text-white btn-3d shadow-2xl">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 icon-hover"
                                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -564,21 +593,25 @@
                             <!-- コース2 - 第二弾 -->
                             <div
                                 class="course-card hologram rounded-3xl overflow-hidden shadow-2xl border-l-4 border-neon-pink transform transition-all relative animate-fade-in-up">
+                                <!-- サムネイル画像 -->
+                                <div class="relative overflow-hidden h-48">
+                                    <img src="img/4.png" alt="ゼロからはじめるAWSウェブ開発 EC2Linux" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                                </div>
 
-                                <div class="p-10">
+                                <div class="p-6">
                                     <span
-                                        class="inline-flex items-center px-6 py-2 rounded-full text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white mb-8 shadow-lg">
+                                        class="inline-flex items-center px-4 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white mb-4 shadow-lg">
                                         新講座 2025年8月登場
                                     </span>
-                                    <h3 class="text-3xl font-black mb-8 text-white text-glow-white">
+                                    <h3 class="text-xl font-black mb-4 text-white text-glow-white">
                                         <a href="https://www.udemy.com/course/aws-ec2linux/?couponCode=67551D22F36352F9BF94"
                                             target="_blank" class="hover:text-neon-cyan transition-colors duration-300">
                                             【第二弾】ゼロからはじめるAWSウェブ開発 - EC2上でLinuxを学習しウェブアプリを作るための知識を習得
                                         </a>
                                     </h3>
 
-                                    <div class="glass p-8 rounded-2xl mb-10">
-                                        <ul class="space-y-6 text-lg">
+                                    <div class="glass p-4 rounded-xl mb-6">
+                                        <ul class="space-y-3 text-sm">
                                             <li class="flex items-start">
                                                 <div class="checkmark mr-4 mt-1"></div>
                                                 <span class="text-gray-200">VM、セキュリティグループ、ポート番号などネットワークの基礎を習得</span>
@@ -612,20 +645,25 @@
                             <!-- コース2 -->
                             <div
                                 class="course-card hologram rounded-3xl overflow-hidden shadow-2xl border-l-4 border-primary-500 transform transition-all relative animate-fade-in-up">
-                                <div class="p-10">
+                                <!-- サムネイル画像 -->
+                                <div class="relative overflow-hidden h-48">
+                                    <img src="img/3.png" alt="ゼロからはじめるAWSウェブ開発 S3,Route53,CloudFront" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                                </div>
+
+                                <div class="p-6">
                                     <span
-                                        class="inline-flex items-center px-6 py-2 rounded-full text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white mb-8 shadow-lg">
+                                        class="inline-flex items-center px-4 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white mb-4 shadow-lg">
                                         名作講座 2025年5月登場
                                     </span>
-                                    <h3 class="text-3xl font-black mb-8 text-white text-glow-white">
+                                    <h3 class="text-xl font-black mb-4 text-white text-glow-white">
                                         <a href="https://www.udemy.com/course/aws-s3route53cloudfrontweb/?couponCode=9DC3D0C8D353FCBA3D89"
                                             target="_blank" class="hover:text-neon-cyan transition-colors duration-300">
                                             【第一弾】ゼロからはじめるAWSウェブ開発 - S3、Route53、CloudFrontでWebサイトを公開
                                         </a>
                                     </h3>
 
-                                    <div class="glass p-8 rounded-2xl mb-10">
-                                        <ul class="space-y-6 text-lg">
+                                    <div class="glass p-4 rounded-xl mb-6">
+                                        <ul class="space-y-3 text-sm">
                                             <li class="flex items-start">
                                                 <div class="checkmark mr-4 mt-1"></div>
                                                 <span class="text-gray-200">AWSの知識がゼロの状態から静的webアプリをデプロイ</span>
@@ -659,8 +697,13 @@
                             <!-- コース3 -->
                             <div
                                 class="course-card hologram rounded-3xl overflow-hidden shadow-2xl border-l-4 border-primary-500 transform transition-all animate-fade-in-up">
-                                <div class="p-10">
-                                    <h3 class="text-3xl font-black mb-8 text-white text-glow-white">
+                                <!-- サムネイル画像 -->
+                                <div class="relative overflow-hidden h-48">
+                                    <img src="img/2.jpg" alt="初めてのDify" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                                </div>
+
+                                <div class="p-6">
+                                    <h3 class="text-xl font-black mb-4 text-white text-glow-white">
                                         <a href="https://www.udemy.com/course/difybegin/?couponCode=D2FDDAC39B656E32B611"
                                             target="_blank"
                                             class="hover:text-neon-purple transition-colors duration-300">
@@ -668,8 +711,8 @@
                                         </a>
                                     </h3>
 
-                                    <div class="glass p-8 rounded-2xl mb-10">
-                                        <ul class="space-y-6 text-lg">
+                                    <div class="glass p-4 rounded-xl mb-6">
+                                        <ul class="space-y-3 text-sm">
                                             <li class="flex items-start">
                                                 <div class="checkmark mr-4 mt-1"></div>
                                                 <span class="text-gray-200">つまずきゼロでDifyの本質を理解できる講座</span>
@@ -704,20 +747,25 @@
                             <!-- コース4 -->
                             <div
                                 class="course-card hologram rounded-3xl overflow-hidden shadow-2xl border-l-4 border-neon-purple transform transition-all relative animate-fade-in-up">
-                                <div class="p-10">
+                                <!-- サムネイル画像 -->
+                                <div class="relative overflow-hidden h-48">
+                                    <img src="img/1.webp" alt="GPTsハッカソン3連覇" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                                </div>
+
+                                <div class="p-6">
                                     <span
-                                        class="inline-flex items-center px-6 py-2 rounded-full text-lg font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white mb-8 shadow-lg">
+                                        class="inline-flex items-center px-4 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white mb-4 shadow-lg">
                                         🏆 ハッカソン3連覇
                                     </span>
-                                    <h3 class="text-3xl font-black mb-8 text-white text-glow-white">
+                                    <h3 class="text-xl font-black mb-4 text-white text-glow-white">
                                         <a href="https://www.udemy.com/course/gptsstudy/?couponCode=334F4A8A1D5CD4ACDC06"
                                             target="_blank" class="hover:text-neon-pink transition-colors duration-300">
                                             【GPTsハッカソン3連覇のwebエンジニアが教える】Dify・GPTsで役立つアプリを開発する方法を徹底解説
                                         </a>
                                     </h3>
 
-                                    <div class="glass p-8 rounded-2xl mb-10">
-                                        <ul class="space-y-6 text-lg">
+                                    <div class="glass p-4 rounded-xl mb-6">
+                                        <ul class="space-y-3 text-sm">
                                             <li class="flex items-start">
                                                 <div class="checkmark mr-4 mt-1"></div>
                                                 <span class="text-gray-200">GPTsやDifyを網羅的に学べる</span>
@@ -757,7 +805,7 @@
         </main>
 
         <!-- フッター -->
-        <footer class="relative mt-20">
+        <footer class="relative mt-8">
             <!-- 装飾的な波形 -->
             <div class="absolute top-0 left-0 w-full overflow-hidden">
                 <svg class="w-full h-32" viewBox="0 0 1440 74" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -784,30 +832,30 @@
                 </svg>
             </div>
 
-            <div class="bg-gradient-to-br from-dark-100 to-dark-300 text-white py-20 pt-32 relative">
-                <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-gradient-to-br from-dark-100 to-dark-300 text-white py-12 pt-20 relative">
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="text-center">
-                        <h3 class="text-4xl font-black mb-12 gradient-text">ご訪問ありがとうございます！</h3>
+                        <h3 class="text-2xl font-black mb-6 gradient-text">ご訪問ありがとうございます！</h3>
 
                         <button id="fortune-button"
-                            class="magnetic-button px-16 py-8 text-2xl font-black rounded-full shadow-2xl btn-3d mb-16 transform hover:scale-105 transition-all duration-300">
+                            class="magnetic-button px-8 py-4 text-lg font-black rounded-full shadow-2xl btn-3d mb-8 transform hover:scale-105 transition-all duration-300">
                             🎁 今日のおみくじを引く ✨
                         </button>
 
-                        <div class="flex justify-center space-x-12 mb-16">
+                        <div class="flex justify-center space-x-8 mb-8">
                             <!-- X (Twitter) -->
                             <a href="https://x.com/_moto___" target="_blank"
-                                class="magnetic-button text-gray-400 hover:text-neon-cyan transition-all duration-300 transform hover:scale-125 p-4 rounded-full glass">
-                                <svg class="h-10 w-10" fill="currentColor" viewBox="0 0 24 24">
+                                class="magnetic-button text-gray-400 hover:text-neon-cyan transition-all duration-300 transform hover:scale-125 p-3 rounded-full glass">
+                                <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                                     <path
-                                        d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84">
+                                        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z">
                                     </path>
                                 </svg>
                             </a>
                             <!-- GitHub -->
-                            <a href="https://github.com/moto-1985" target="_blank"
-                                class="magnetic-button text-gray-400 hover:text-neon-purple transition-all duration-300 transform hover:scale-125 p-4 rounded-full glass">
-                                <svg class="h-10 w-10" fill="currentColor" viewBox="0 0 24 24">
+                            <a href="https://github.com/sbtest1218-oss" target="_blank"
+                                class="magnetic-button text-gray-400 hover:text-neon-purple transition-all duration-300 transform hover:scale-125 p-3 rounded-full glass">
+                                <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                                     <path fill-rule="evenodd"
                                         d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
                                         clip-rule="evenodd"></path>
@@ -815,15 +863,15 @@
                             </a>
                         </div>
 
-                        <div class="glass-dark p-8 rounded-2xl max-w-2xl mx-auto">
-                            <p class="text-2xl font-bold mb-4 text-glow-white">✨ 最新技術を学んで未来を切り開こう ✨</p>
-                            <p class="text-gray-300 text-lg">AWS、AI、Web開発の最前線で活躍するエンジニアを目指しましょう</p>
+                        <div class="glass-dark p-4 rounded-xl max-w-2xl mx-auto">
+                            <p class="text-lg font-bold mb-2 text-glow-white">✨ 最新技術を学んで未来を切り開こう ✨</p>
+                            <p class="text-gray-300 text-sm">AWS、AI、Web開発の最前線で活躍するエンジニアを目指しましょう</p>
                         </div>
                     </div>
 
-                    <div class="mt-16 border-t border-gray-700 pt-12 text-center">
-                        <p class="text-gray-400 text-lg">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
-                        <p class="text-gray-500 text-sm mt-2">Designed with ❤️ for developers</p>
+                    <div class="mt-8 border-t border-gray-700 pt-6 text-center">
+                        <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                        <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
                     </div>
                 </div>
             </div>
@@ -1160,6 +1208,24 @@
             parallax.forEach((element, index) => {
                 const speed = (index + 1) * 0.5;
                 element.style.transform = `translateY(${scrolled * speed}px) rotate(${scrolled * 0.05}deg)`;
+            });
+
+            // 上に戻るボタンの表示/非表示
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        // 上に戻るボタンのクリックイベント
+        document.getElementById('scroll-to-top').addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
             });
         });
     </script>
