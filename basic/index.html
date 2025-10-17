@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【第四弾】Laravel入門資料 - Laravelの解説</title>
+    <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* タブスタイル */
+        .tab-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tab-list li a {
+            display: block;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #9ca3af;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab-list li a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .tab-list li a.active {
+            background: linear-gradient(135deg, #3183ff, #8b5cf6);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        /* コードブロックスタイル */
+        pre {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre code {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        pre code.filename {
+            display: block;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            padding: 8px 16px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* セクションスタイル */
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section a {
+            color: #3183ff;
+            text-decoration: underline;
+        }
+
+        .content-section a:hover {
+            color: #8b5cf6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2
+                    class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top" class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    【第四弾】Laravel入門資料
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="tab-list">
+                    <li><a href="index.html" class="active">Laravelとは</a></li>
+                    <li><a href="routing.html">ルーティング</a></li>
+                    <li><a href="view.html">ビュー</a></li>
+                    <li><a href="controller.html">コントローラ</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント</strong>
+                        </p>
+                        <a href="https://laravel.com/docs/12.x" target="_blank"
+                           class="text-primary-400 hover:text-primary-300 underline text-base">
+                            https://laravel.com/docs/12.x
+                        </a>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 この講座では、上記の公式ドキュメントを基に解説していきます。<br>
+                            公式ドキュメントは初学者には内容が難しいため、エッセンスを優しく噛み砕いて解説していきます。
+                        </p>
+                    </div>
+
+                    <!-- Laravelの解説 -->
+                    <div class="content-section">
+                        <h3>Laravelとは</h3>
+                        <p>
+                            Laravelは、PHPで書かれた<strong>Webアプリケーションフレームワーク</strong>です。
+                            2011年にTaylor Otwellによって開発され、現在では世界中で最も人気のあるPHPフレームワークの一つとなっています。
+                        </p>
+
+                        <h4>フレームワークとは</h4>
+                        <p>
+                            フレームワークは「枠組み」という意味で、Webアプリケーション開発に必要な<strong>共通機能があらかじめ用意された基盤</strong>のことです。
+                        </p>
+                        <ul>
+                            <li><strong>データベース操作</strong> - データの保存や取得を簡単に行える</li>
+                            <li><strong>ルーティング</strong> - URLとプログラムを紐付ける仕組み</li>
+                            <li><strong>認証・認可</strong> - ログイン機能やアクセス制御</li>
+                            <li><strong>バリデーション</strong> - 入力値のチェック機能</li>
+                            <li><strong>セキュリティ対策</strong> - SQLインジェクションやXSS対策など</li>
+                        </ul>
+
+                        <h4>なぜフレームワークが必要なのか</h4>
+                        <p>フレームワークを使わずに開発すると、以下のような問題が発生します：</p>
+                        <ul>
+                            <li><strong>開発時間の増加</strong> - 基本機能を毎回ゼロから実装する必要がある</li>
+                            <li><strong>品質のばらつき</strong> - 開発者によってコードの書き方が異なる</li>
+                            <li><strong>セキュリティリスク</strong> - 脆弱性対策の実装漏れが発生しやすい</li>
+                            <li><strong>保守性の低下</strong> - コードの構造が統一されず、メンテナンスが困難</li>
+                        </ul>
+                        <p>
+                            フレームワークを使うことで、これらの問題を解決し、<strong>高品質なアプリケーションを効率的に開発</strong>できます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>なぜLaravelなのか</h3>
+
+                        <h4>1. 入門者に優しい</h4>
+                        <p>Laravelは学習曲線が緩やかで、初心者でも理解しやすい設計になっています。</p>
+                        <ul>
+                            <li><strong>わかりやすいドキュメント</strong> - 公式ドキュメントが充実しており、日本語化もされている</li>
+                            <li><strong>直感的な記法</strong> - コードが読みやすく、何をしているのか理解しやすい</li>
+                            <li><strong>豊富な学習リソース</strong> - 書籍、動画、コミュニティが充実</li>
+                            <li><strong>エラーメッセージが親切</strong> - 問題の原因と解決方法がわかりやすい</li>
+                        </ul>
+
+                        <h4>2. 資金調達と将来性</h4>
+                        <p>Laravelは2024年に<strong>5,700万ドル(約85億円)の資金調達</strong>を実施し、今後も継続的な開発とサポートが保証されています。</p>
+                        <ul>
+                            <li>企業からの支援により、長期的な開発が保証されている</li>
+                            <li>定期的なアップデートとセキュリティパッチの提供</li>
+                            <li>エコシステムの拡大（Laravel Forge、Vapor、Novaなど）</li>
+                        </ul>
+
+                        <h4>3. 勢いのあるフレームワーク</h4>
+                        <p>Laravelは現在、最も勢いのあるPHPフレームワークです。</p>
+                        <ul>
+                            <li><strong>GitHub スター数</strong> - 78,000以上（PHPフレームワークで最多）</li>
+                            <li><strong>求人需要</strong> - Laravel開発者の求人が増加傾向</li>
+                            <li><strong>コミュニティ</strong> - 世界中に活発な開発者コミュニティが存在</li>
+                            <li><strong>企業導入</strong> - スタートアップから大企業まで幅広く採用</li>
+                        </ul>
+
+                        <h4>4. モダンな開発体験</h4>
+                        <ul>
+                            <li><strong>Eloquent ORM</strong> - 直感的なデータベース操作</li>
+                            <li><strong>Artisan CLI</strong> - コマンドラインで効率的な開発</li>
+                            <li><strong>Blade テンプレート</strong> - シンプルで強力なテンプレートエンジン</li>
+                            <li><strong>テスト機能</strong> - テストが書きやすく、品質向上に貢献</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>Laravelで何ができるのか</h3>
+                        <ul>
+                            <li><strong>Webアプリケーション</strong> - ECサイト、ブログ、SNSなど</li>
+                            <li><strong>REST API</strong> - モバイルアプリのバックエンド</li>
+                            <li><strong>管理画面</strong> - CMS、ダッシュボード</li>
+                            <li><strong>リアルタイム通信</strong> - チャット、通知機能</li>
+                            <li><strong>バッチ処理</strong> - データ集計、自動メール送信</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+    <script>
+        // サイドバーの制御
+        const sidebar = document.getElementById('sidebar');
+        const openBtn = document.getElementById('open-sidebar');
+        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        // サイドバーを開く
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        // サイドバーを閉じる
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        };
+
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        // スクロールアニメーション
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+
+            // 上に戻るボタンの表示/非表示
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        // 上に戻るボタンのクリックイベント
+        document.getElementById('scroll-to-top').addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', function () {
+            // シンタックスハイライト
+            hljs.highlightAll();
+
+            // コピーボタンの追加
+            document.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.classList.add('copy-button');
+                btn.textContent = 'COPY';
+                btn.addEventListener('click', () => {
+                    const code = pre.querySelector('code');
+                    let textToCopy = code.textContent;
+
+                    // filename要素がある場合は除外
+                    const filename = pre.querySelector('code.filename');
+                    if (filename) {
+                        textToCopy = code.textContent.replace(filename.textContent, '').trim();
+                    }
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        btn.textContent = 'COPIED!';
+                        setTimeout(() => {
+                            btn.textContent = 'COPY';
+                        }, 2000);
+                    });
+                });
+                pre.appendChild(btn);
+            });
+        });
+    </script>
+</body>
+
+</html>
