@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://iloveuedmy.banana-quantum.com/sitemap.xml

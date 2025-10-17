@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新井元気のUdemy講座 | AWS・React・Laravel実践講座のクーポン</title>
+    <meta name="description"
+        content="新井元気が教えるUdemy講座。AWS、React、Laravel、Difyを使った実践的なWeb開発を学べます。GPTsハッカソン3連覇の現役エンジニアによる講座をクーポン価格1500円で受講可能。">
+    <!-- OGP（Twitter/Facebook等でシェアされた時の表示） -->
+    <meta property="og:title" content="新井元気のUdemy講座 | AWS・React・Laravel実践講座">
+    <meta property="og:description" content="GPTsハッカソン3連覇エンジニアが教える実践的Web開発講座。クーポン価格1500円で受講可能。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://iloveuedmy.banana-quantum.com/">
+    <meta property="og:site_name" content="新井元気のUdemy講座">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@_moto___">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- CDNからTailwindを直接読み込み -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                        luxury: {
+                            100: '#f9f7f1',
+                            200: '#f4eee3',
+                            300: '#e8dfd0',
+                            400: '#c2ad87',
+                            500: '#a08b65',
+                            600: '#7d6c4e',
+                            700: '#5c4f39',
+                            800: '#3b3224',
+                            900: '#1a160f',
+                        },
+                        neon: {
+                            cyan: '#00ffff',
+                            purple: '#8b5cf6',
+                            pink: '#ec4899',
+                            green: '#10b981',
+                        },
+                        dark: {
+                            100: '#1a1a1a',
+                            200: '#2a2a2a',
+                            300: '#3a3a3a',
+                            400: '#4a4a4a',
+                            500: '#5a5a5a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shimmer': 'shimmer 3s linear infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'rotate-slow': 'rotate 20s linear infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out',
+                        'slide-in-left': 'slideInLeft 1s ease-out',
+                        'slide-in-right': 'slideInRight 1s ease-out',
+                        'scale-pulse': 'scalePulse 2s ease-in-out infinite',
+                        'neon-pulse': 'neonPulse 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-20px) rotate(5deg)' },
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200% 0' },
+                            '100%': { backgroundPosition: '200% 0' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 20px rgba(49, 131, 255, 0.3)' },
+                            '100%': { boxShadow: '0 0 40px rgba(49, 131, 255, 0.6)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(60px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideInLeft: {
+                            '0%': { opacity: '0', transform: 'translateX(-100px)' },
+                            '100%': { opacity: '1', transform: 'translateX(0)' },
+                        },
+                        slideInRight: {
+                            '0%': { opacity: '0', transform: 'translateX(100px)' },
+                            '100%': { opacity: '1', transform: 'translateX(0)' },
+                        },
+                        scalePulse: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.05)' },
+                        },
+                        neonPulse: {
+                            '0%': { textShadow: '0 0 10px rgba(49, 131, 255, 0.8), 0 0 20px rgba(49, 131, 255, 0.6), 0 0 30px rgba(49, 131, 255, 0.4)' },
+                            '100%': { textShadow: '0 0 20px rgba(49, 131, 255, 1), 0 0 30px rgba(49, 131, 255, 0.8), 0 0 40px rgba(49, 131, 255, 0.6)' },
+                        }
+                    },
+                    backdropBlur: {
+                        xs: '2px',
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+                        'cyber-grid': "url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234f46e5' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')",
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* ベースとなるスタイル */
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        /* カスタムスクロールバー */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #3183ff, #8b5cf6);
+            border-radius: 6px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #1a6cf5, #7c3aed);
+        }
+
+        /* 高度なカードエフェクト */
+        .course-card {
+            position: relative;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .course-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .course-card:hover::before {
+            left: 100%;
+        }
+
+        .course-card:hover {
+            transform: translateY(-20px) scale(1.02) rotateX(5deg);
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                0 0 30px rgba(49, 131, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: rgba(49, 131, 255, 0.5);
+        }
+
+        /* ネオンエフェクト */
+        .neon-border {
+            position: relative;
+            border: 2px solid transparent;
+            background: linear-gradient(135deg, rgba(49, 131, 255, 0.1), rgba(139, 92, 246, 0.1));
+            background-clip: padding-box;
+        }
+
+        .neon-border::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: linear-gradient(45deg, #3183ff, #8b5cf6, #ec4899, #10b981);
+            border-radius: inherit;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: xor;
+            animation: rotate-slow 4s linear infinite;
+        }
+
+        /* ホログラムエフェクト */
+        .hologram {
+            background: linear-gradient(45deg,
+                    rgba(49, 131, 255, 0.1) 0%,
+                    rgba(139, 92, 246, 0.1) 25%,
+                    rgba(236, 72, 153, 0.1) 50%,
+                    rgba(16, 185, 129, 0.1) 75%,
+                    rgba(49, 131, 255, 0.1) 100%);
+            background-size: 400% 400%;
+            animation: gradient-shift 8s ease infinite;
+        }
+
+        @keyframes gradient-shift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* グラデーションテキスト */
+        .gradient-text {
+            background: linear-gradient(135deg, #3183ff 0%, #8b5cf6 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradient-shift 3s ease infinite;
+        }
+
+        .luxury-gradient-text {
+            background: linear-gradient(135deg, #c2ad87 0%, #a08b65 50%, #7d6c4e 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 3Dボタンエフェクト */
+        .btn-3d {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+            background: linear-gradient(135deg, #3183ff, #8b5cf6);
+            border: none;
+            overflow: hidden;
+        }
+
+        .btn-3d::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn-3d:hover::before {
+            left: 100%;
+        }
+
+        .btn-3d:hover {
+            transform: translateY(-8px) translateZ(20px) scale(1.05);
+            box-shadow:
+                0 20px 40px -10px rgba(49, 131, 255, 0.5),
+                0 0 30px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-3d:active {
+            transform: translateY(-2px) translateZ(10px) scale(1.02);
+        }
+
+        /* カスタムカーソル */
+        .custom-cursor {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #3183ff;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+            mix-blend-mode: difference;
+            background: radial-gradient(circle, rgba(49, 131, 255, 0.2), transparent);
+        }
+
+        .custom-cursor.hover {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, rgba(49, 131, 255, 0.3), transparent);
+            border-color: #8b5cf6;
+        }
+
+        /* パーティクルエフェクト */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #3183ff;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.7;
+            animation: particle-float 6s infinite linear;
+        }
+
+        @keyframes particle-float {
+            0% {
+                transform: translateY(100vh) translateX(0px);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.7;
+            }
+
+            90% {
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: translateY(-10vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* 新講座バッジ */
+        .new-badge {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+            animation: neon-pulse 2s infinite alternate;
+            z-index: 10;
+        }
+
+        /* ガラスモーフィズム */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* アイコンアニメーション */
+        .icon-hover {
+            transition: all 0.3s ease;
+        }
+
+        .icon-hover:hover {
+            transform: scale(1.2) rotate(10deg);
+            filter: drop-shadow(0 0 10px rgba(49, 131, 255, 0.5));
+        }
+
+        /* チェックマークアニメーション */
+        .checkmark {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            transform: rotate(45deg);
+            border-right: 3px solid #10b981;
+            border-bottom: 3px solid #10b981;
+            margin-right: 12px;
+            animation: checkmark-appear 0.5s ease-in-out;
+        }
+
+        @keyframes checkmark-appear {
+            0% {
+                opacity: 0;
+                transform: rotate(45deg) scale(0);
+            }
+
+            100% {
+                opacity: 1;
+                transform: rotate(45deg) scale(1);
+            }
+        }
+
+        /* テキストグロー */
+        .text-glow {
+            text-shadow: 0 0 10px rgba(49, 131, 255, 0.5);
+        }
+
+        .text-glow-white {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+    <script type="application/ld+json">
+        {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "新井元気",
+        "jobTitle": "Webエンジニア・Udemy講師",
+        "description": "GPTsハッカソン3連覇。AWS、React、Laravelの実践講座を提供",
+        "url": "https://iloveuedmy.banana-quantum.com/",
+        "sameAs": [
+            "https://x.com/_moto___",
+            "https://github.com/moto-1985",
+            "https://www.udemy.com/user/xin-jing-yuan-qi-3/"
+        ]
+        }
+    </script>
+</head>
+
+<body class="text-white font-inter">
+    <!-- カスタムカーソル -->
+    <div class="custom-cursor hidden md:block"></div>
+
+    <!-- パーティクル背景 -->
+    <div id="particles-container" class="fixed inset-0 overflow-hidden pointer-events-none z-0"></div>
+
+    <div class="min-h-screen flex flex-col relative overflow-hidden">
+        <!-- ヘッダー部分 -->
+        <header class="relative py-16 overflow-hidden">
+            <!-- 背景アニメーション -->
+            <div class="absolute inset-0">
+                <div class="absolute inset-0 bg-cyber-grid opacity-30"></div>
+                <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary-900/20 to-purple-900/20">
+                </div>
+            </div>
+
+            <!-- 装飾用の幾何学的形状 -->
+            <div class="absolute top-20 left-20 w-32 h-32 rounded-full bg-gradient-to-r from-neon-cyan/20 to-primary-400/20 floating blur-xl"
+                style="animation-delay: -2s;"></div>
+            <div class="absolute top-40 right-32 w-24 h-24 rounded-full bg-gradient-to-r from-neon-purple/20 to-neon-pink/20 floating blur-xl"
+                style="animation-delay: -1s;"></div>
+            <div class="absolute bottom-12 left-1/4 w-40 h-40 rounded-full bg-gradient-to-r from-neon-green/20 to-primary-300/20 floating blur-xl"
+                style="animation-delay: -3s;"></div>
+
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center">
+                    <h1 class="text-5xl md:text-5xl font-black mb-12 font-mont tracking-tight animate-fade-in-up">
+                        <span class="gradient-text">新井元気</span>のUdemy講座：
+                        <br class="md:hidden">
+                        <span class="luxury-gradient-text text-glow">Udemyクーポンリンク</span>
+                    </h1>
+
+                    <!-- 警告ボックス変更 -->
+                    <div
+                        class="max-w-4xl mx-auto mt-12 bg-red-900/30 border border-red-500/50 p-8 rounded-2xl shadow-2xl backdrop-blur-sm animate-slide-in-left">
+                        <p class="text-red-200 font-bold text-xl mb-4">⚠️ 定価で購入せず必ずクーポンをご使用ください！</p>
+                        <p class="text-gray-200 text-lg">最新のクーポンコードで1500円でご受講いただけます</p>
+                    </div>
+
+                    <div class="mt-16 animate-slide-in-right">
+                        <a href="https://www.udemy.com/user/xin-jing-yuan-qi-3/" target="_blank"
+                            class="magnetic-button inline-flex items-center px-12 py-6 text-xl font-bold rounded-full shadow-2xl text-white btn-3d">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-4 icon-hover" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            講師プロフィールを見る
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="max-w-5xl mx-auto">
+                <div class="mb-20">
+                    <h2 class="text-5xl font-black mb-16 text-center gradient-text text-glow animate-fade-in-up">コース一覧
+                    </h2>
+
+                    <!-- コース一覧 -->
+                    <div class="space-y-16">
+                        <!-- コース一覧 -->
+                        <div class="space-y-16">
+                            <!-- コース1 - 最新講座 第三弾 -->
+                            <div
+                                class="course-card hologram rounded-3xl overflow-hidden shadow-2xl border-l-4 border-neon-cyan transform transition-all relative animate-fade-in-up">
+
+                                <div class="p-10">
+                                    <!-- 最新講座バッジ -->
+                                    <span
+                                        class="inline-flex items-center px-6 py-3 rounded-full text-xl font-black bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white mb-8 shadow-2xl animate-pulse-slow">
+                                        🚀 最新講座 2025年10月登場
+                                    </span>
+                                    <h3 class="text-3xl font-black mb-8 text-white text-glow-white">
+                                        <a href="https://www.udemy.com/course/fulllstackengineer/?couponCode=3F51870526E11A907599"
+                                            target="_blank" class="hover:text-neon-cyan transition-colors duration-300">
+                                            【第三弾】フルスタックエンジニアへの道 - 現場で必要なスキル全体像を公開
+                                        </a>
+                                    </h3>
+
+                                    <div class="glass p-8 rounded-2xl mb-10">
+                                        <ul class="space-y-6 text-lg">
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200 font-semibold">React × Laravel
+                                                    でモダンなSPAを構築し、AWS上にデプロイする実践講座</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">SPAの仕組みを深く理解し、フロントエンドとバックエンドの連携をマスター</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">AWSでのインフラ構築を実践的に学び、本番環境へのデプロイ手順を完全理解</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200 font-semibold">全セクションでCloud
+                                                    Codeを使用！実際の画面共有で実践的な開発手法を完全公開</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">第一弾・第二弾の知識を統合し、現場で即戦力となるフルスタックスキルを習得</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <a href="https://www.udemy.com/course/fulllstackengineer/?couponCode=3F51870526E11A907599"
+                                            target="_blank"
+                                            class="inline-flex items-center px-10 py-5 text-xl font-bold rounded-full text-white btn-3d shadow-2xl">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-4 icon-hover"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            クーポンで購入する
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- コース2 - 第二弾 -->
+                            <div
+                                class="course-card hologram rounded-3xl overflow-hidden shadow-2xl border-l-4 border-neon-pink transform transition-all relative animate-fade-in-up">
+
+                                <div class="p-10">
+                                    <span
+                                        class="inline-flex items-center px-6 py-2 rounded-full text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white mb-8 shadow-lg">
+                                        新講座 2025年8月登場
+                                    </span>
+                                    <h3 class="text-3xl font-black mb-8 text-white text-glow-white">
+                                        <a href="https://www.udemy.com/course/aws-ec2linux/?couponCode=67551D22F36352F9BF94"
+                                            target="_blank" class="hover:text-neon-cyan transition-colors duration-300">
+                                            【第二弾】ゼロからはじめるAWSウェブ開発 - EC2上でLinuxを学習しウェブアプリを作るための知識を習得
+                                        </a>
+                                    </h3>
+
+                                    <div class="glass p-8 rounded-2xl mb-10">
+                                        <ul class="space-y-6 text-lg">
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">VM、セキュリティグループ、ポート番号などネットワークの基礎を習得</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">全講義EC2上を使ってLinuxを操作するので実践的に学べる</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">第一弾と連動してAWSの知識を積み上げていきます</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <a href="https://www.udemy.com/course/aws-ec2linux/?couponCode=67551D22F36352F9BF94"
+                                            target="_blank"
+                                            class="inline-flex items-center px-10 py-5 text-xl font-bold rounded-full text-white btn-3d shadow-2xl">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-4 icon-hover"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            クーポンで購入する
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- コース2 -->
+                            <div
+                                class="course-card hologram rounded-3xl overflow-hidden shadow-2xl border-l-4 border-primary-500 transform transition-all relative animate-fade-in-up">
+                                <div class="p-10">
+                                    <span
+                                        class="inline-flex items-center px-6 py-2 rounded-full text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white mb-8 shadow-lg">
+                                        名作講座 2025年5月登場
+                                    </span>
+                                    <h3 class="text-3xl font-black mb-8 text-white text-glow-white">
+                                        <a href="https://www.udemy.com/course/aws-s3route53cloudfrontweb/?couponCode=9DC3D0C8D353FCBA3D89"
+                                            target="_blank" class="hover:text-neon-cyan transition-colors duration-300">
+                                            【第一弾】ゼロからはじめるAWSウェブ開発 - S3、Route53、CloudFrontでWebサイトを公開
+                                        </a>
+                                    </h3>
+
+                                    <div class="glass p-8 rounded-2xl mb-10">
+                                        <ul class="space-y-6 text-lg">
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">AWSの知識がゼロの状態から静的webアプリをデプロイ</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">WEBアプリをデプロイする工程を通じて本当の意味でAWSを理解</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">実践的なクラウド開発スキルを身につける</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <a href="https://www.udemy.com/course/aws-s3route53cloudfrontweb/?couponCode=9DC3D0C8D353FCBA3D89"
+                                            target="_blank"
+                                            class="inline-flex items-center px-10 py-5 text-xl font-bold rounded-full text-white btn-3d shadow-2xl">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-4 icon-hover"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            クーポンで購入する
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- コース3 -->
+                            <div
+                                class="course-card hologram rounded-3xl overflow-hidden shadow-2xl border-l-4 border-primary-500 transform transition-all animate-fade-in-up">
+                                <div class="p-10">
+                                    <h3 class="text-3xl font-black mb-8 text-white text-glow-white">
+                                        <a href="https://www.udemy.com/course/difybegin/?couponCode=D2FDDAC39B656E32B611"
+                                            target="_blank"
+                                            class="hover:text-neon-purple transition-colors duration-300">
+                                            【初めてのDify】Difyをさくっと理解してAIを好きになる講座
+                                        </a>
+                                    </h3>
+
+                                    <div class="glass p-8 rounded-2xl mb-10">
+                                        <ul class="space-y-6 text-lg">
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">つまずきゼロでDifyの本質を理解できる講座</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">Difyを初めて使う人にとって最適な教材</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span
+                                                    class="text-gray-200">DifyとClaudeなどAIツールの使い方を解説。MacでもWindowsでもOK</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <a href="https://www.udemy.com/course/difybegin/?couponCode=D2FDDAC39B656E32B611"
+                                            target="_blank"
+                                            class="inline-flex items-center px-10 py-5 text-xl font-bold rounded-full text-white btn-3d shadow-2xl">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-4 icon-hover"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                            クーポンで購入する
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- コース4 -->
+                            <div
+                                class="course-card hologram rounded-3xl overflow-hidden shadow-2xl border-l-4 border-neon-purple transform transition-all relative animate-fade-in-up">
+                                <div class="p-10">
+                                    <span
+                                        class="inline-flex items-center px-6 py-2 rounded-full text-lg font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white mb-8 shadow-lg">
+                                        🏆 ハッカソン3連覇
+                                    </span>
+                                    <h3 class="text-3xl font-black mb-8 text-white text-glow-white">
+                                        <a href="https://www.udemy.com/course/gptsstudy/?couponCode=334F4A8A1D5CD4ACDC06"
+                                            target="_blank" class="hover:text-neon-pink transition-colors duration-300">
+                                            【GPTsハッカソン3連覇のwebエンジニアが教える】Dify・GPTsで役立つアプリを開発する方法を徹底解説
+                                        </a>
+                                    </h3>
+
+                                    <div class="glass p-8 rounded-2xl mb-10">
+                                        <ul class="space-y-6 text-lg">
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">GPTsやDifyを網羅的に学べる</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">AWS、Azureを使ってDifyをデプロイする方法を学べる</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">GASの使い方を学べる</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div class="checkmark mr-4 mt-1"></div>
+                                                <span class="text-gray-200">実際のハッカソン優勝テクニックを伝授</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <a href="https://www.udemy.com/course/gptsstudy/?couponCode=334F4A8A1D5CD4ACDC06"
+                                            target="_blank"
+                                            class="inline-flex items-center px-10 py-5 text-xl font-bold rounded-full text-white btn-3d shadow-2xl">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-4 icon-hover"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            クーポンで購入する
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="relative mt-20">
+            <!-- 装飾的な波形 -->
+            <div class="absolute top-0 left-0 w-full overflow-hidden">
+                <svg class="w-full h-32" viewBox="0 0 1440 74" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,37 C240,67 480,82 720,67 C960,52 1200,7 1440,37 L1440,74 L0,74 Z" fill="url(#gradient1)"
+                        fill-opacity="0.3"></path>
+                    <path d="M0,37 C240,57 480,67 720,57 C960,47 1200,17 1440,37 L1440,74 L0,74 Z"
+                        fill="url(#gradient2)" fill-opacity="0.4"></path>
+                    <path d="M0,37 C240,47 480,52 720,47 C960,42 1200,27 1440,37 L1440,74 L0,74 Z"
+                        fill="url(#gradient3)" fill-opacity="0.5"></path>
+                    <defs>
+                        <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#3183ff" />
+                            <stop offset="100%" style="stop-color:#8b5cf6" />
+                        </linearGradient>
+                        <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#8b5cf6" />
+                            <stop offset="100%" style="stop-color:#ec4899" />
+                        </linearGradient>
+                        <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#ec4899" />
+                            <stop offset="100%" style="stop-color:#10b981" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+
+            <div class="bg-gradient-to-br from-dark-100 to-dark-300 text-white py-20 pt-32 relative">
+                <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center">
+                        <h3 class="text-4xl font-black mb-12 gradient-text">ご訪問ありがとうございます！</h3>
+
+                        <button id="fortune-button"
+                            class="magnetic-button px-16 py-8 text-2xl font-black rounded-full shadow-2xl btn-3d mb-16 transform hover:scale-105 transition-all duration-300">
+                            🎁 今日のおみくじを引く ✨
+                        </button>
+
+                        <div class="flex justify-center space-x-12 mb-16">
+                            <!-- X (Twitter) -->
+                            <a href="https://x.com/_moto___" target="_blank"
+                                class="magnetic-button text-gray-400 hover:text-neon-cyan transition-all duration-300 transform hover:scale-125 p-4 rounded-full glass">
+                                <svg class="h-10 w-10" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84">
+                                    </path>
+                                </svg>
+                            </a>
+                            <!-- GitHub -->
+                            <a href="https://github.com/moto-1985" target="_blank"
+                                class="magnetic-button text-gray-400 hover:text-neon-purple transition-all duration-300 transform hover:scale-125 p-4 rounded-full glass">
+                                <svg class="h-10 w-10" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd"
+                                        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </a>
+                        </div>
+
+                        <div class="glass-dark p-8 rounded-2xl max-w-2xl mx-auto">
+                            <p class="text-2xl font-bold mb-4 text-glow-white">✨ 最新技術を学んで未来を切り開こう ✨</p>
+                            <p class="text-gray-300 text-lg">AWS、AI、Web開発の最前線で活躍するエンジニアを目指しましょう</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-16 border-t border-gray-700 pt-12 text-center">
+                        <p class="text-gray-400 text-lg">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                        <p class="text-gray-500 text-sm mt-2">Designed with ❤️ for developers</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 高機能おみくじモーダル -->
+    <div id="fortune-modal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-80 backdrop-blur-md" id="modal-backdrop"></div>
+        <div
+            class="glass-dark rounded-3xl p-12 max-w-2xl w-full mx-4 relative z-10 transform transition-all neon-border">
+            <div class="text-center">
+                <div class="mb-8">
+                    <div
+                        class="w-20 h-20 mx-auto bg-gradient-to-r from-neon-cyan to-neon-purple rounded-full flex items-center justify-center text-4xl animate-bounce-slow">
+                        🔮
+                    </div>
+                </div>
+                <h3 class="text-4xl font-black mb-8 gradient-text text-glow">本日の運勢</h3>
+                <div id="fortune-result"
+                    class="text-2xl mb-12 py-8 px-10 glass rounded-2xl shadow-inner min-h-32 flex items-center justify-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-neon-cyan"></div>
+                </div>
+                <div class="flex gap-4 justify-center">
+                    <button id="close-modal"
+                        class="px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-500 text-white font-bold rounded-full shadow-lg hover:from-gray-700 hover:to-gray-600 transition duration-300 focus:outline-none">
+                        閉じる
+                    </button>
+                    <button id="retry-fortune"
+                        class="px-8 py-4 btn-3d text-white font-bold rounded-full shadow-lg transition duration-300 focus:outline-none">
+                        もう一度引く
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // パーティクル生成
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            particle.style.opacity = Math.random();
+            particle.style.background = ['#3183ff', '#8b5cf6', '#ec4899', '#10b981'][Math.floor(Math.random() * 4)];
+
+            document.getElementById('particles-container').appendChild(particle);
+
+            setTimeout(() => {
+                particle.remove();
+            }, 5000);
+        }
+
+        // パーティクルを定期的に生成
+        setInterval(createParticle, 300);
+
+        // カスタムカーソル
+        document.addEventListener('DOMContentLoaded', function () {
+            const cursor = document.querySelector('.custom-cursor');
+
+            if (window.innerWidth > 768) {
+                document.addEventListener('mousemove', (e) => {
+                    cursor.style.left = e.clientX + 'px';
+                    cursor.style.top = e.clientY + 'px';
+                });
+
+                // リンクやボタンにホバーした時の効果
+                const interactiveElements = document.querySelectorAll('a, button, .course-card');
+                interactiveElements.forEach(element => {
+                    element.addEventListener('mouseenter', () => {
+                        cursor.classList.add('hover');
+                    });
+
+                    element.addEventListener('mouseleave', () => {
+                        cursor.classList.remove('hover');
+                    });
+                });
+            }
+
+            // マグネットボタン効果
+            const magneticBtns = document.querySelectorAll('.magnetic-button');
+            magneticBtns.forEach(btn => {
+                btn.addEventListener('mousemove', (e) => {
+                    if (window.innerWidth > 768) {
+                        const rect = btn.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+                        const moveX = (e.clientX - centerX) * 0.15;
+                        const moveY = (e.clientY - centerY) * 0.15;
+
+                        btn.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                    }
+                });
+
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translate(0, 0)';
+                });
+            });
+
+            // おみくじボタンのイベントリスナー
+            document.getElementById('fortune-button').addEventListener('click', showFortuneModal);
+            document.getElementById('close-modal').addEventListener('click', closeFortuneModal);
+            document.getElementById('retry-fortune').addEventListener('click', showRandomFortune);
+            document.getElementById('modal-backdrop').addEventListener('click', closeFortuneModal);
+
+            // ページロード時のアニメーション
+            animateOnLoad();
+        });
+
+        // ページロード時のアニメーション
+        function animateOnLoad() {
+            const cards = document.querySelectorAll('.course-card');
+
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(100px) rotateX(20deg)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 1s cubic-bezier(0.23, 1, 0.320, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0) rotateX(0deg)';
+                }, index * 300 + 500);
+            });
+        }
+
+        // おみくじモーダルを表示
+        function showFortuneModal() {
+            const fortuneModal = document.getElementById('fortune-modal');
+            const modalContent = document.querySelector('#fortune-modal .glass-dark');
+
+            fortuneModal.classList.remove('hidden');
+
+            modalContent.style.opacity = '0';
+            modalContent.style.transform = 'scale(0.8) rotateY(20deg)';
+
+            setTimeout(() => {
+                modalContent.style.transition = 'all 0.8s cubic-bezier(0.23, 1, 0.320, 1)';
+                modalContent.style.opacity = '1';
+                modalContent.style.transform = 'scale(1) rotateY(0deg)';
+            }, 10);
+
+            // ローディング後におみくじ結果を表示
+            setTimeout(() => {
+                showRandomFortune();
+            }, 1000);
+        }
+
+        // ランダムなおみくじ結果を表示
+        function showRandomFortune() {
+            const fortunes = [
+                "大吉：宇宙人があなたのGitHubをスターしに来るでしょう👽",
+                "大吉：古代エジプトの呪文で、バグが一瞬で直ります🐛✨",
+                "大吉：ハリーポッターの魔法で、コードが自動で最適化されます🧙‍♂️",
+                "大吉：月からのメッセージ、新しいプログラミング言語を発明するかも🌕",
+                "大吉：アトランティスの失われた技術が、あなたのプロジェクトを加速させます🌊",
+                "大吉：人工知能が今日あなたの親友になるでしょう🤖",
+                "大吉：タイムトラベラーがバグの修正方法を教えてくれます⏰",
+                "大吉：幸運のユニコーンが、デプロイを成功に導きます🦄",
+                "大吉：マトリックスの世界から、革新的なアイデアが降ってきます💊",
+                "中吉：忍者の秘伝書で、セキュリティの極意を学べます🥷",
+                "中吉：賢者の石が、コードを黄金に変えるでしょう💎",
+                "中吉：北欧の神々が、システムの安定性を祝福します⚡",
+                "中吉：アラビアンナイトの魔法のランプから、三つの願いが叶います🪔",
+                "中吉：ドラゴンが、サーバーを見守ってくれます🐉",
+                "中吉：妖精たちが、夜中にコードを整理してくれるでしょう🧚‍♀️",
+                "中吉：ピクシーが、デバッグを手伝ってくれます✨",
+                "中吉：マーリンの魔法書から、新しいアルゴリズムを発見します📚",
+                "中吉：星座が、最適な開発パスを示してくれます⭐",
+                "中吉：占星術師が、リリース日の吉凶を占います🔮",
+                "小吉：謎の古代文明からプルリクエストが届きます🗿",
+                "小吉：レインボーユニコーンが、テストコードを書いてくれます🌈",
+                "小吉：猫又が、バグを見つけてくれるでしょう😺",
+                "小吉：河童が、データベースの最適化を手伝ってくれます🥒",
+                "小吉：鳳凰が、レガシーコードを蘇らせます🦅",
+                "小吉：キツネの嫁入りが、新機能のひらめきをくれます🦊",
+                "小吉：天狗が、パフォーマンスチューニングのコツを教えます👺",
+                "小吉：インターネットの妖精が、WiFiを高速化します🧚‍♂️",
+                "小吉：雪女が、サーバールームの冷却を助けてくれます❄️",
+                "小吉：座敷わらしが、作業環境を整えてくれます👻",
+                "吉：火の鳥が、古いバグを焼き尽くします🔥",
+                "吉：ペガサスが、クラウドの彼方へ導いてくれます🦄",
+                "吉：人魚姫が、データの海から宝物を見つけてくれます🧜‍♀️",
+                "吉：こびとたちが、マイクロサービスを構築します🧝‍♂️",
+                "吉：ゴブリンが、コードのリファクタリングを手伝います👺",
+                "吉：ケンタウロスが、新しい技術の使い方を教えてくれます🐎",
+                "吉：フェニックスが、クラッシュしたアプリを復活させます🦅",
+                "吉：ヨガの達人が、デバッグの瞑想法を伝授します🧘‍♀️",
+                "吉：空飛ぶじゅうたんが、デプロイを運んでくれます🪄",
+                "吉：千里眼の占い師が、潜在的なバグを予言します👁️",
+                "末吉：土蜘蛛が、ネットワークを監視してくれます🕷️",
+                "末吉：カッパが、データベースの深層から秘密を見つけます🥒",
+                "末吉：道士が、バグ退治の護符を授けてくれます📜",
+                "末吉：狐の嫁入りの日は、デプロイを控えめにしましょう🌧️",
+                "末吉：鬼が、パフォーマンス改善のヒントをくれます👹",
+                "末吉：天使が、エラーハンドリングを見守ってくれます👼",
+                "末吉：半魚人が、データベースの深層を探索します🧜‍♂️",
+                "末吉：ムーミンが、デバッグの冒険に連れて行ってくれます🌟",
+                "末吉：ゾンビプロセスの復活に注意が必要です🧟",
+                "末吉：ヴァンパイアが、夜間バッチの実行を見守ります🧛‍♂️",
+                "凶：黒猫が横切ったら、バックアップを取り直しましょう🐈‍⬛",
+                "凶：魔女の呪いで、キーボードが一時的に反転するかも🧙‍♀️",
+                "凶：人面魚が、データベースに警告を発しています🐟",
+                "凶：幽霊バグが、深夜に現れるかもしれません👻",
+                "凶：eclipse of the IDEに気をつけましょう🌑",
+                "凶：マーメイドの涙で、サーバーが一時的に不安定に🧜‍♀️",
+                "凶：たぬきの化かしで、コードが難読化されるかも🦝",
+                "凶：百目の怪が、タイプミスを誘発します👁️",
+                "凶：hungry ghostsがメモリを消費するかも...👻",
+                "凶：呪われたコードレビューに要注意です⚠️",
+                "大凶：コードの墓場から、レガシーバグが蘇ります💀",
+                "大凶：闇の力が、git historyを塗り替えようとしています🌚",
+                "大凶：魔界の門が開き、未知のバグが放たれるかも😈",
+                "大凶：コードの迷宮に迷い込まないよう注意です🌀",
+                "大凶：デーモンプロセスの反乱に気をつけて👿",
+                "超吉：量子コンピューターの神様が微笑んでいます🌟",
+                "超吉：AIの女神が、コードを祝福してくれます🤖",
+                "超吉：銀河系評議会が、あなたのプロジェクトを認証します🌌",
+                "超吉：タイムロードが、未来のバグを事前に修正します⏳",
+                "超吉：アセンブリの古代の神が、最適化の秘密を伝授します⚡",
+                "激吉：虹色のフェニックスが、完璧なデプロイを約束します🌈",
+                "激吉：量子もつれのパラドックスで、バグが消滅します✨",
+                "激吉：スーパーAIが、コードレビューを完璧にこなします🦾",
+                "激吉：プログラミングの神様が、インスピレーションを与えます📿",
+                "激吉：デジタル世界の賢者が、最高の解決策を示します💫",
+                "特吉：オープンソースの精霊が、Pull Requestを承認します🌟",
+                "特吉：テクノマンサーが、完璧なアーキテクチャを啓示します🔮",
+                "特吉：サイバー空間の守護神が、セキュリティを強化します🛡️",
+                "特吉：コードの女神が、リファクタリングの道を示します👑",
+                "特吉：デジタルフェアリーが、UIを魔法のように改善します✨",
+                "omega吉：宇宙のビッグバンが、革新的なソリューションを生み出します💥",
+                "omega吉：全てのバグが特徴となる稀有な日です✨",
+                "omega吉：異次元からの来訪者が、未来の技術を伝授します👽",
+                "omega吉：量子もつれの奇跡が、全てのテストをパスさせます🌌",
+                "omega吉：デジタル世界の創造神が、あなたのコードを完璧にします🌟",
+                "null：突然の404エラー...おみくじが見つかりません🔍",
+                "undefined：おみくじは存在しますが、結果は未定義です❓",
+                "NaN：おみくじの結果が数値ではありません🔢",
+                "[object Object]：おみくじが正しくシリアライズできません📦",
+                "Type Error：おみくじの型が一致しません⚠️",
+                "null吉：無の力を味方につけた最強の運勢です！🎯",
+                "500吉：内部サーバーエラーほど強運はありません！🚀",
+                "SyntaxError吉：エラーの向こうに最高の幸運が待っています！✨",
+                "try-catch吉：どんな例外も幸運に変換される素晴らしい日です🍀",
+                "Runtime吉：実行時に幸運がどんどん溢れ出ます💫",
+                "Stack Overflow吉：積み重なった幸運が溢れ出します📚✨",
+                "Infinite吉：無限の幸運ループに突入します♾️",
+                "ArrayIndexOutOfBounds吉：幸運が配列の範囲を超えて溢れ出ます📊",
+                "Promise吉：非同期な幸運が確実に実行されます🤝",
+                "Binary吉：0と1の世界から幸運が舞い降ります🔄",
+                "HTTP 200吉：すべてのリクエストが成功する完璧な日です✅",
+                "Memory Overflow吉：幸運がメモリに収まりきらないほど訪れます💾",
+                "Git Push吉：幸運を本番環境にデプロイできる日です🚀",
+                "Buffer Overflow吉：幸運がバッファを超えて溢れ出します📈",
+                "Cloud吉：クラウドの彼方から幸運が降り注ぎます☁️",
+                "Quantum吉：量子もつれの力で幸運が重ね合わせされます🌌",
+                "Unicode吉：世界中の文字が幸運を呼び込みます🌏",
+                "Fibonacci吉：幸運が黄金比で増大します📊✨",
+                "Pi吉：円周率のように無限に続く幸運です🥧",
+                "Root吉：管理者権限級の強運が発動します👑"
+            ];
+
+            const result = fortunes[Math.floor(Math.random() * fortunes.length)];
+            const fortuneResult = document.getElementById('fortune-result');
+
+            // ローディングを停止
+            fortuneResult.innerHTML = '';
+            fortuneResult.textContent = result;
+
+            // 結果に応じたスタイリング
+            fortuneResult.className = 'text-2xl mb-12 py-8 px-10 glass rounded-2xl shadow-inner min-h-32 flex items-center justify-center';
+
+            if (result.includes('超大吉') || result.includes('激吉') || result.includes('特吉')) {
+                fortuneResult.classList.add('text-neon-cyan', 'font-bold');
+                fortuneResult.style.textShadow = '0 0 20px rgba(0, 255, 255, 0.8)';
+            } else if (result.includes('大吉')) {
+                fortuneResult.classList.add('text-yellow-300', 'font-bold');
+                fortuneResult.style.textShadow = '0 0 15px rgba(255, 215, 0, 0.8)';
+            } else if (result.includes('中吉') || result.includes('小吉') || result.includes('吉')) {
+                fortuneResult.classList.add('text-green-300');
+                fortuneResult.style.textShadow = '0 0 10px rgba(16, 185, 129, 0.6)';
+            } else if (result.includes('凶')) {
+                fortuneResult.classList.add('text-red-300');
+                fortuneResult.style.textShadow = '0 0 10px rgba(239, 68, 68, 0.6)';
+            } else {
+                fortuneResult.classList.add('text-purple-300');
+                fortuneResult.style.textShadow = '0 0 15px rgba(139, 92, 246, 0.8)';
+            }
+
+            // アニメーション効果
+            fortuneResult.style.opacity = '0';
+            fortuneResult.style.transform = 'scale(0.8)';
+
+            setTimeout(() => {
+                fortuneResult.style.transition = 'all 0.6s cubic-bezier(0.23, 1, 0.320, 1)';
+                fortuneResult.style.opacity = '1';
+                fortuneResult.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        // モーダルを閉じる
+        function closeFortuneModal() {
+            const fortuneModal = document.getElementById('fortune-modal');
+            const modalContent = document.querySelector('#fortune-modal .glass-dark');
+
+            modalContent.style.transition = 'all 0.6s cubic-bezier(0.23, 1, 0.320, 1)';
+            modalContent.style.opacity = '0';
+            modalContent.style.transform = 'scale(0.8) rotateY(-20deg)';
+
+            setTimeout(() => {
+                fortuneModal.classList.add('hidden');
+                // リセット
+                document.getElementById('fortune-result').innerHTML = '<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-neon-cyan"></div>';
+                document.getElementById('fortune-result').className = 'text-2xl mb-12 py-8 px-10 glass rounded-2xl shadow-inner min-h-32 flex items-center justify-center';
+                document.getElementById('fortune-result').style.textShadow = '';
+            }, 600);
+        }
+
+        // レスポンシブ対応
+        window.addEventListener('resize', function () {
+            const cursor = document.querySelector('.custom-cursor');
+            if (window.innerWidth <= 768) {
+                cursor.classList.add('hidden');
+            } else {
+                cursor.classList.remove('hidden');
+            }
+        });
+
+        // スクロールアニメーション
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelectorAll('.floating');
+
+            parallax.forEach((element, index) => {
+                const speed = (index + 1) * 0.5;
+                element.style.transform = `translateY(${scrolled * speed}px) rotate(${scrolled * 0.05}deg)`;
+            });
+        });
+    </script>
+</body>
+
+</html>

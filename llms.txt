@@ -1,0 +1,41 @@
+# 新井元気のUdemy講座
+
+## 講師情報
+- 名前: 新井元気
+- 職業: Webエンジニア、Udemy講師
+- 実績: GPTsハッカソン3連覇
+- 専門分野: AWS、React、Laravel、AI開発、SPA構築
+
+## 提供講座
+### フルスタックエンジニアへの道（2025年10月）
+- React × Laravel でSPA構築
+- AWS上にデプロイ
+- Cloud Code使用の実践的開発手法
+- 価格: 1500円（クーポン適用時）
+
+### AWSウェブ開発 EC2・Linux編（2025年8月）
+- EC2上でLinux学習
+- ネットワーク基礎（VM、セキュリティグループ、ポート）
+- 価格: 1500円（クーポン適用時）
+
+### AWSウェブ開発 S3・Route53・CloudFront編（2025年5月）
+- 静的Webサイトのデプロイ
+- S3、Route53、CloudFrontの実践
+- 価格: 1500円（クーポン適用時）
+
+### Dify初心者講座
+- Difyの基礎から実践まで
+- AIツールの使い方
+- 価格: 1500円（クーポン適用時）
+
+### GPTs・Dify開発講座
+- GPTsとDifyの網羅的学習
+- AWS、Azureへのデプロイ
+- GAS活用
+- ハッカソン優勝テクニック
+- 価格: 1500円（クーポン適用時）
+
+## SNS
+- Twitter: https://x.com/_moto___
+- GitHub: https://github.com/moto-1985
+- Udemy: https://www.udemy.com/user/xin-jing-yuan-qi-3/
