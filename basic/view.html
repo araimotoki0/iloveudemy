@@ -246,6 +246,7 @@
 
                 <!-- タブリスト -->
                 <ul class="tab-list">
+                    <li><a href="setup.html">Mac環境構築</a></li>
                     <li><a href="index.html">Laravelとは</a></li>
                     <li><a href="routing.html">ルーティング</a></li>
                     <li><a href="view.html" class="active">ビュー</a></li>
@@ -254,9 +255,405 @@
 
                 <!-- コンテンツ -->
                 <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント - Views</strong>
+                        </p>
+                        <a href="https://laravel.com/docs/12.x/views" target="_blank"
+                           class="text-primary-400 hover:text-primary-300 underline text-base">
+                            https://laravel.com/docs/12.x/views
+                        </a>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 この講座では、上記の公式ドキュメントを基に解説していきます。<br>
+                            公式ドキュメントは初学者には内容が難しいため、エッセンスを優しく噛み砕いて解説していきます。
+                        </p>
+                    </div>
+
                     <div class="content-section">
-                        <h3>ビュー</h3>
-                        <p>準備中...</p>
+                        <h3>ビュー（View）とは</h3>
+                        <p>
+                            ビューとは、<strong>HTMLを記述するための専用ファイル</strong>のことです。
+                            プログラムのロジック（処理）と表示（HTML）を分離することで、コードの保守性が向上します。
+                        </p>
+                        <p>
+                            前章のルーティングでは、HTMLをルートファイルに直接書いていましたが、
+                            実際の開発では複雑なHTMLになるため、ビューファイルに分けて管理します。
+                        </p>
+
+                        <h4>ビューファイルの場所</h4>
+                        <p>ビューファイルは <code>resources/views/</code> ディレクトリに配置します。</p>
+                        <ul>
+                            <li>ファイル名：<code>○○.blade.php</code></li>
+                            <li>拡張子：<code>.blade.php</code>（Bladeテンプレートエンジン）</li>
+                            <li>配置場所：<code>resources/views/</code></li>
+                        </ul>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>基本的なビューの使い方</h3>
+
+                        <h4>1. ビューファイルを作成</h4>
+                        <p>まず、<code>resources/views/hello.blade.php</code> を作成します。</p>
+
+                        <pre><code class="language-html">&lt;!-- resources/views/hello.blade.php --&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Hello Page&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Hello, World!&lt;/h1&gt;
+    &lt;p&gt;これはビューファイルから表示されています。&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <h4>2. ルートからビューを返す</h4>
+                        <p>次に、ルートファイルでビューを読み込みます。</p>
+
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/hello', function () {
+    return view('hello');
+});</code></pre>
+
+                        <p>
+                            <code>view('hello')</code> は、<code>resources/views/hello.blade.php</code> を読み込みます。<br>
+                            ブラウザで <code>http://localhost/hello</code> にアクセスすると、ビューの内容が表示されます。
+                        </p>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 <code>view('hello')</code> のように、<code>.blade.php</code> は省略します。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ビューにデータを渡す</h3>
+                        <p>
+                            ビューに変数を渡して、動的な内容を表示することができます。
+                        </p>
+
+                        <h4>方法1: 第2引数に配列で渡す</h4>
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/greeting', function () {
+    return view('greeting', ['name' => '太郎']);
+});</code></pre>
+
+                        <pre><code class="language-html">&lt;!-- resources/views/greeting.blade.php --&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Greeting&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;こんにちは、{{ $name }}さん！&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <p>
+                            <code>{{ $name }}</code> のように、二重波括弧で囲むことで変数の値を表示できます。<br>
+                            ブラウザには「こんにちは、太郎さん！」と表示されます。
+                        </p>
+
+                        <h4>方法2: with()メソッドを使う</h4>
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/greeting', function () {
+    return view('greeting')->with('name', '太郎');
+});</code></pre>
+
+                        <h4>方法3: compact()を使う</h4>
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/greeting', function () {
+    $name = '太郎';
+    $age = 25;
+
+    return view('greeting', compact('name', 'age'));
+});</code></pre>
+
+                        <pre><code class="language-html">&lt;!-- resources/views/greeting.blade.php --&gt;
+
+&lt;h1&gt;こんにちは、{{ $name }}さん！&lt;/h1&gt;
+&lt;p&gt;あなたは{{ $age }}歳ですね。&lt;/p&gt;</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 複数の変数を渡す場合は、<code>compact()</code> が便利です。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>Bladeテンプレートの基本構文</h3>
+                        <p>
+                            Blade（ブレード）は、Laravelが提供するテンプレートエンジンです。
+                            PHPよりもシンプルで読みやすい記法でHTMLを書くことができます。
+                        </p>
+
+                        <h4>変数の表示</h4>
+                        <pre><code class="language-html">&lt;!-- Blade構文 --&gt;
+{{ $name }}
+
+&lt;!-- 生成されるPHP --&gt;
+&lt;?php echo htmlspecialchars($name); ?&gt;</code></pre>
+
+                        <p class="text-green-300">
+                            ✅ <code>{{ }}</code> は自動的にHTMLエスケープされるため、XSS攻撃を防げます。
+                        </p>
+
+                        <h4>エスケープしない出力（注意）</h4>
+                        <pre><code class="language-html">&lt;!-- エスケープせずにHTMLを出力 --&gt;
+{!! $html !!}</code></pre>
+
+                        <p class="text-red-300">
+                            ⚠️ <code>{!! !!}</code> はエスケープされないため、信頼できるデータのみに使用してください。
+                        </p>
+
+                        <h4>if文</h4>
+                        <pre><code class="language-html">@if ($age >= 20)
+    &lt;p&gt;成人です&lt;/p&gt;
+@elseif ($age >= 13)
+    &lt;p&gt;未成年です&lt;/p&gt;
+@else
+    &lt;p&gt;子供です&lt;/p&gt;
+@endif</code></pre>
+
+                        <h4>繰り返し処理（foreach）</h4>
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/users', function () {
+    $users = ['太郎', '花子', '次郎'];
+
+    return view('users', compact('users'));
+});</code></pre>
+
+                        <pre><code class="language-html">&lt;!-- resources/views/users.blade.php --&gt;
+
+&lt;ul&gt;
+    @foreach ($users as $user)
+        &lt;li&gt;{{ $user }}&lt;/li&gt;
+    @endforeach
+&lt;/ul&gt;</code></pre>
+
+                        <p>出力結果：</p>
+                        <pre><code class="language-html">&lt;ul&gt;
+    &lt;li&gt;太郎&lt;/li&gt;
+    &lt;li&gt;花子&lt;/li&gt;
+    &lt;li&gt;次郎&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+
+                        <h4>配列が空の場合の処理（forelse）</h4>
+                        <pre><code class="language-html">@forelse ($users as $user)
+    &lt;li&gt;{{ $user }}&lt;/li&gt;
+@empty
+    &lt;p&gt;ユーザーがいません&lt;/p&gt;
+@endforelse</code></pre>
+
+                        <h4>unless（ifの逆）</h4>
+                        <pre><code class="language-html">@unless ($user->isAdmin())
+    &lt;p&gt;あなたは管理者ではありません&lt;/p&gt;
+@endunless</code></pre>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>サブディレクトリを使った整理</h3>
+                        <p>
+                            ビューファイルが増えてきたら、サブディレクトリで整理できます。
+                        </p>
+
+                        <pre><code class="language-bash">resources/views/
+├── users/
+│   ├── index.blade.php
+│   ├── show.blade.php
+│   └── edit.blade.php
+├── posts/
+│   ├── index.blade.php
+│   └── show.blade.php
+└── welcome.blade.php</code></pre>
+
+                        <p>ドット記法でアクセスします：</p>
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/users', function () {
+    return view('users.index');
+});
+
+Route::get('/users/{id}', function ($id) {
+    return view('users.show', ['id' => $id]);
+});</code></pre>
+
+                        <p>
+                            <code>view('users.index')</code> は、<code>resources/views/users/index.blade.php</code> を読み込みます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>レイアウトの共通化</h3>
+                        <p>
+                            複数のページで共通のヘッダーやフッターを使う場合、レイアウト機能を使います。
+                        </p>
+
+                        <h4>1. レイアウトファイルを作成</h4>
+                        <pre><code class="language-html">&lt;!-- resources/views/layouts/app.blade.php --&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;@yield('title')&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;header&gt;
+        &lt;h1&gt;My Website&lt;/h1&gt;
+    &lt;/header&gt;
+
+    &lt;main&gt;
+        @yield('content')
+    &lt;/main&gt;
+
+    &lt;footer&gt;
+        &lt;p&gt;&copy; 2025 My Website&lt;/p&gt;
+    &lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <h4>2. レイアウトを継承して使う</h4>
+                        <pre><code class="language-html">&lt;!-- resources/views/pages/about.blade.php --&gt;
+
+@extends('layouts.app')
+
+@section('title', '会社概要')
+
+@section('content')
+    &lt;h2&gt;会社概要&lt;/h2&gt;
+    &lt;p&gt;私たちは素晴らしい会社です。&lt;/p&gt;
+@endsection</code></pre>
+
+                        <p>解説：</p>
+                        <ul>
+                            <li><code>@extends('layouts.app')</code> - レイアウトを継承</li>
+                            <li><code>@section('title', '会社概要')</code> - タイトルを設定</li>
+                            <li><code>@section('content') ... @endsection</code> - メインコンテンツを定義</li>
+                        </ul>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 レイアウトを使うことで、ヘッダーやフッターを毎回書く必要がなくなります。
+                            1箇所修正すれば、すべてのページに反映されます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>コンポーネントの利用</h3>
+                        <p>
+                            繰り返し使う部品（ボタン、カードなど）は、コンポーネントとして切り出せます。
+                        </p>
+
+                        <h4>コンポーネントファイルを作成</h4>
+                        <pre><code class="language-html">&lt;!-- resources/views/components/button.blade.php --&gt;
+
+&lt;button class="btn btn-primary"&gt;
+    {{ $slot }}
+&lt;/button&gt;</code></pre>
+
+                        <h4>コンポーネントを使う</h4>
+                        <pre><code class="language-html">&lt;!-- 任意のビューファイルで使用 --&gt;
+
+&lt;x-button&gt;送信する&lt;/x-button&gt;
+&lt;x-button&gt;キャンセル&lt;/x-button&gt;</code></pre>
+
+                        <p>
+                            <code>&lt;x-コンポーネント名&gt;</code> の形式で使用します。<br>
+                            <code>{{ $slot }}</code> には、タグの間の内容（「送信する」など）が入ります。
+                        </p>
+
+                        <h4>プロパティ付きコンポーネント</h4>
+                        <pre><code class="language-html">&lt;!-- resources/views/components/alert.blade.php --&gt;
+
+@props(['type' => 'info'])
+
+&lt;div class="alert alert-{{ $type }}"&gt;
+    {{ $slot }}
+&lt;/div&gt;</code></pre>
+
+                        <pre><code class="language-html">&lt;!-- 使用例 --&gt;
+
+&lt;x-alert type="success"&gt;
+    保存しました！
+&lt;/x-alert&gt;
+
+&lt;x-alert type="error"&gt;
+    エラーが発生しました
+&lt;/x-alert&gt;</code></pre>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>便利なBlade機能</h3>
+
+                        <h4>コメント</h4>
+                        <pre><code class="language-html">{{-- これはBladeコメントです（HTMLに出力されません） --}}
+
+&lt;!-- これはHTMLコメント（HTMLに出力されます） --&gt;</code></pre>
+
+                        <h4>isset / empty チェック</h4>
+                        <pre><code class="language-html">@isset($name)
+    &lt;p&gt;名前: {{ $name }}&lt;/p&gt;
+@endisset
+
+@empty($users)
+    &lt;p&gt;ユーザーがいません&lt;/p&gt;
+@endempty</code></pre>
+
+                        <h4>三項演算子</h4>
+                        <pre><code class="language-html">&lt;p&gt;{{ $user->name ?? 'ゲスト' }}&lt;/p&gt;
+
+&lt;!-- $user->name が存在すれば表示、なければ「ゲスト」 --&gt;</code></pre>
+
+                        <h4>ループ変数</h4>
+                        <pre><code class="language-html">@foreach ($users as $user)
+    &lt;p&gt;{{ $loop->iteration }}番目: {{ $user }}&lt;/p&gt;
+
+    @if ($loop->first)
+        &lt;p&gt;最初の要素です&lt;/p&gt;
+    @endif
+
+    @if ($loop->last)
+        &lt;p&gt;最後の要素です&lt;/p&gt;
+    @endif
+@endforeach</code></pre>
+
+                        <p><code>$loop</code> 変数で、ループの情報にアクセスできます：</p>
+                        <ul>
+                            <li><code>$loop->index</code> - 0から始まるインデックス</li>
+                            <li><code>$loop->iteration</code> - 1から始まる回数</li>
+                            <li><code>$loop->first</code> - 最初の要素か</li>
+                            <li><code>$loop->last</code> - 最後の要素か</li>
+                            <li><code>$loop->count</code> - 要素の総数</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <p>この章では、Laravelのビュー（View）について学びました。</p>
+
+                        <h4>重要なポイント</h4>
+                        <ul>
+                            <li>ビューは <code>resources/views/</code> に <code>.blade.php</code> で作成</li>
+                            <li><code>view('ファイル名')</code> でビューを読み込む</li>
+                            <li><code>{{ $変数 }}</code> で安全に変数を表示（自動エスケープ）</li>
+                            <li><code>@if</code>、<code>@foreach</code> など、Blade構文でロジックを記述</li>
+                            <li><code>@extends</code> と <code>@section</code> でレイアウトを共通化</li>
+                            <li><code>&lt;x-コンポーネント&gt;</code> で再利用可能な部品を作成</li>
+                        </ul>
+
+                        <h4>次のステップ</h4>
+                        <p>
+                            次の章では、<strong>コントローラ（Controller）</strong>について学びます。
+                            ルートファイルに書いていた処理をコントローラに移動し、よりMVCアーキテクチャに沿った構成にしていきます。
+                        </p>
                     </div>
                 </div>
             </div>

@@ -246,6 +246,7 @@
 
                 <!-- タブリスト -->
                 <ul class="tab-list">
+                    <li><a href="setup.html">Mac環境構築</a></li>
                     <li><a href="index.html">Laravelとは</a></li>
                     <li><a href="routing.html" class="active">ルーティング</a></li>
                     <li><a href="view.html">ビュー</a></li>
@@ -254,9 +255,344 @@
 
                 <!-- コンテンツ -->
                 <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント - Routing</strong>
+                        </p>
+                        <a href="https://laravel.com/docs/12.x/routing" target="_blank"
+                           class="text-primary-400 hover:text-primary-300 underline text-base">
+                            https://laravel.com/docs/12.x/routing
+                        </a>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 この講座では、上記の公式ドキュメントを基に解説していきます。<br>
+                            公式ドキュメントは初学者には内容が難しいため、エッセンスを優しく噛み砕いて解説していきます。
+                        </p>
+                    </div>
+
                     <div class="content-section">
-                        <h3>ルーティング</h3>
-                        <p>準備中...</p>
+                        <h3>ルーティングとは</h3>
+                        <p>
+                            ルーティングとは、<strong>URLとプログラムを紐付ける仕組み</strong>のことです。
+                            ユーザーが特定のURLにアクセスしたときに、どのプログラム（処理）を実行するかを決定します。
+                        </p>
+                        <p>
+                            例えば、<code>https://example.com/about</code> にアクセスしたら「会社概要ページ」を表示し、
+                            <code>https://example.com/contact</code> にアクセスしたら「お問い合わせページ」を表示する、
+                            といった振り分けをルーティングが担当します。
+                        </p>
+
+                        <h4>ルートファイルの場所</h4>
+                        <p>Laravelでは、ルーティングの設定は以下のファイルで行います：</p>
+                        <ul>
+                            <li><strong>routes/web.php</strong> - Webページ用のルート（セッション、CSRF保護あり）</li>
+                            <li><strong>routes/api.php</strong> - API用のルート</li>
+                        </ul>
+                        <p>この講座では、<strong>routes/web.php</strong> を使って解説していきます。</p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>最もシンプルなルーティング</h3>
+                        <p>まずは、文字列を返す最もシンプルなルートから見ていきましょう。</p>
+
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/hello', function () {
+    return 'Hello, World!';
+});</code></pre>
+
+                        <p>このコードは以下のように動作します：</p>
+                        <ul>
+                            <li><code>Route::get()</code> - GETリクエストを処理するルートを定義</li>
+                            <li><code>'/hello'</code> - アクセスするURLのパス</li>
+                            <li><code>function () { ... }</code> - 実行される処理（クロージャ）</li>
+                            <li><code>return 'Hello, World!';</code> - ブラウザに表示される内容</li>
+                        </ul>
+
+                        <p>
+                            ブラウザで <code>http://localhost/hello</code> にアクセスすると、
+                            「Hello, World!」という文字列が表示されます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>HTMLを返す</h3>
+                        <p>文字列だけでなく、HTMLタグを含む内容も返すことができます。</p>
+
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/about', function () {
+    return '&lt;h1&gt;会社概要&lt;/h1&gt;&lt;p&gt;私たちは素晴らしい会社です。&lt;/p&gt;';
+});</code></pre>
+
+                        <p>
+                            ブラウザで <code>http://localhost/about</code> にアクセスすると、
+                            HTMLとして解釈され、見出しと段落が表示されます。
+                        </p>
+
+                        <p class="text-yellow-400 mt-4">
+                            ⚠️ ただし、実際の開発では、HTMLをルートに直接書くことはほとんどありません。
+                            次のセクションで説明する「ビュー」を使うのが一般的です。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ビュー（View）を返す</h3>
+                        <p>
+                            HTMLが複雑になると、ルートファイルに直接書くのは大変です。
+                            そこで、<strong>ビュー（View）</strong>という仕組みを使います。
+                        </p>
+
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/welcome', function () {
+    return view('welcome');
+});</code></pre>
+
+                        <p>
+                            <code>view('welcome')</code> は、<code>resources/views/welcome.blade.php</code>
+                            というファイルを読み込んで表示します。
+                        </p>
+
+                        <p>
+                            ビューについての詳細は、次の章「ビュー」で詳しく解説します。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>動的なルート - パラメータを使う</h3>
+                        <p>
+                            URLの一部を変数として受け取ることができます。
+                            これを<strong>ルートパラメータ</strong>と呼びます。
+                        </p>
+
+                        <h4>基本的なパラメータ</h4>
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/user/{id}', function ($id) {
+    return 'ユーザーID: ' . $id;
+});</code></pre>
+
+                        <p>動作例：</p>
+                        <ul>
+                            <li><code>/user/1</code> → 「ユーザーID: 1」</li>
+                            <li><code>/user/100</code> → 「ユーザーID: 100」</li>
+                            <li><code>/user/abc</code> → 「ユーザーID: abc」</li>
+                        </ul>
+
+                        <p>
+                            <code>{id}</code> の部分が変数になり、関数の引数 <code>$id</code> として受け取ることができます。
+                        </p>
+
+                        <h4>複数のパラメータ</h4>
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/post/{category}/{id}', function ($category, $id) {
+    return "カテゴリ: {$category}, 記事ID: {$id}";
+});</code></pre>
+
+                        <p>動作例：</p>
+                        <ul>
+                            <li><code>/post/tech/123</code> → 「カテゴリ: tech, 記事ID: 123」</li>
+                            <li><code>/post/news/456</code> → 「カテゴリ: news, 記事ID: 456」</li>
+                        </ul>
+
+                        <h4>オプションパラメータ</h4>
+                        <p>パラメータを省略可能にすることもできます。</p>
+
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/greeting/{name?}', function ($name = 'ゲスト') {
+    return "こんにちは、{$name}さん";
+});</code></pre>
+
+                        <p>動作例：</p>
+                        <ul>
+                            <li><code>/greeting/太郎</code> → 「こんにちは、太郎さん」</li>
+                            <li><code>/greeting</code> → 「こんにちは、ゲストさん」</li>
+                        </ul>
+
+                        <p>
+                            <code>{name?}</code> のように <code>?</code> を付けると省略可能になり、
+                            関数の引数でデフォルト値を設定できます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>HTTPメソッドの種類</h3>
+                        <p>
+                            Webアプリケーションでは、用途に応じて異なるHTTPメソッドを使い分けます。
+                        </p>
+
+                        <ul>
+                            <li><strong>Route::get()</strong> - データを取得する（ページ表示など）</li>
+                            <li><strong>Route::post()</strong> - データを送信する（フォーム送信など）</li>
+                            <li><strong>Route::put()/patch()</strong> - データを更新する</li>
+                            <li><strong>Route::delete()</strong> - データを削除する</li>
+                        </ul>
+
+                        <pre><code class="language-php">// routes/web.php
+
+// ユーザー一覧を表示
+Route::get('/users', function () {
+    return 'ユーザー一覧';
+});
+
+// ユーザーを新規作成
+Route::post('/users', function () {
+    return 'ユーザーを作成しました';
+});
+
+// ユーザー情報を更新
+Route::put('/users/{id}', function ($id) {
+    return "ユーザー{$id}を更新しました";
+});
+
+// ユーザーを削除
+Route::delete('/users/{id}', function ($id) {
+    return "ユーザー{$id}を削除しました";
+});</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 初心者の方へ：まずは <code>Route::get()</code> だけを覚えればOKです。
+                            他のメソッドは、フォーム送信やAPIを作る際に必要になります。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ルート名（Named Routes）</h3>
+                        <p>
+                            ルートに名前を付けることで、後からURLを変更しても影響を受けにくくなります。
+                        </p>
+
+                        <h4>ルート名の定義</h4>
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/profile', function () {
+    return 'プロフィールページ';
+})->name('profile');</code></pre>
+
+                        <h4>なぜルート名が必要なのか - 具体例</h4>
+                        <p>
+                            例えば、複数のページから「プロフィールページ」へのリンクを作る場合を考えてみましょう。
+                        </p>
+
+                        <h4>❌ ルート名を使わない場合（非推奨）</h4>
+                        <pre><code class="language-php">// resources/views/dashboard.blade.php
+&lt;a href="/profile"&gt;プロフィール&lt;/a&gt;
+
+// resources/views/header.blade.php
+&lt;a href="/profile"&gt;マイページ&lt;/a&gt;
+
+// app/Http/Controllers/HomeController.php
+public function index()
+{
+    return redirect('/profile');
+}</code></pre>
+
+                        <p class="text-red-300">
+                            <strong>問題点：</strong> URLを <code>/profile</code> から <code>/user/profile</code> に変更したい場合、
+                            すべてのファイルを探して修正する必要があります。修正漏れがあるとリンク切れが発生します。
+                        </p>
+
+                        <h4>✅ ルート名を使う場合（推奨）</h4>
+                        <pre><code class="language-php">// routes/web.php
+Route::get('/profile', function () {
+    return 'プロフィールページ';
+})->name('profile');
+
+// resources/views/dashboard.blade.php
+&lt;a href="{{ route('profile') }}"&gt;プロフィール&lt;/a&gt;
+
+// resources/views/header.blade.php
+&lt;a href="{{ route('profile') }}"&gt;マイページ&lt;/a&gt;
+
+// app/Http/Controllers/HomeController.php
+public function index()
+{
+    return redirect()->route('profile');
+}</code></pre>
+
+                        <p class="text-green-300">
+                            <strong>メリット：</strong> URLを変更したい場合、<code>routes/web.php</code> の1箇所だけ修正すればOKです。
+                        </p>
+
+                        <pre><code class="language-php">// routes/web.php
+// URLを変更しても、他のファイルは修正不要！
+Route::get('/user/profile', function () {
+    return 'プロフィールページ';
+})->name('profile');</code></pre>
+
+                        <h4>パラメータ付きルート名</h4>
+                        <p>ルートパラメータがある場合も、ルート名を使うことができます。</p>
+
+                        <pre><code class="language-php">// routes/web.php
+Route::get('/user/{id}', function ($id) {
+    return "ユーザーID: {$id}";
+})->name('user.show');
+
+// ビューでの使用例
+&lt;a href="{{ route('user.show', ['id' => 1]) }}"&gt;ユーザー1&lt;/a&gt;
+&lt;a href="{{ route('user.show', ['id' => 100]) }}"&gt;ユーザー100&lt;/a&gt;
+
+// 生成されるURL
+// /user/1
+// /user/100</code></pre>
+
+                        <h4>ルート名を使うメリット まとめ</h4>
+                        <ul>
+                            <li><strong>URLの一元管理</strong> - URLを変更しても1箇所の修正で済む</li>
+                            <li><strong>タイポ防止</strong> - IDEの補完が効くため、URLの書き間違いを防げる</li>
+                            <li><strong>コードの可読性向上</strong> - <code>route('profile')</code> の方が <code>/user/my-profile</code> より意図が明確</li>
+                            <li><strong>リファクタリングが容易</strong> - URL構造を自由に変更できる</li>
+                        </ul>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 実務では、ほとんどのルートに名前を付けるのが一般的です。
+                            今のうちから <code>->name()</code> を付ける習慣をつけておきましょう。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>定義したルートを確認する</h3>
+                        <p>
+                            Laravelには、定義されているすべてのルートを一覧表示するコマンドがあります。
+                        </p>
+
+                        <pre><code class="language-bash">php artisan route:list</code></pre>
+
+                        <p>このコマンドを実行すると、以下のような情報が表示されます：</p>
+                        <ul>
+                            <li>HTTPメソッド（GET、POSTなど）</li>
+                            <li>URI（URLのパス）</li>
+                            <li>ルート名</li>
+                            <li>実行されるアクション</li>
+                        </ul>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 デバッグやルートの確認に非常に便利なコマンドです。
+                            「このURLはどのルートで処理されているんだろう？」と思ったら、このコマンドを使いましょう。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <p>この章では、Laravelのルーティングについて学びました。</p>
+
+                        <h4>重要なポイント</h4>
+                        <ul>
+                            <li>ルーティングは<strong>URLとプログラムを紐付ける仕組み</strong></li>
+                            <li>ルートは <code>routes/web.php</code> に定義する</li>
+                            <li><code>Route::get()</code> で文字列、HTML、ビューを返せる</li>
+                            <li>URLパラメータを使って<strong>動的なページ</strong>を作れる</li>
+                            <li><code>php artisan route:list</code> でルート一覧を確認できる</li>
+                        </ul>
+
+                        <h4>次のステップ</h4>
+                        <p>
+                            次の章では、<strong>ビュー（View）</strong>について詳しく学びます。
+                            HTMLを別ファイルに分離して、より保守性の高いコードを書く方法を習得しましょう。
+                        </p>
                     </div>
                 </div>
             </div>
