@@ -37,7 +37,8 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
     <style>
         body {
             overflow-x: hidden;
@@ -159,7 +160,8 @@
             color: #d1d5db;
         }
 
-        .content-section ul, .content-section ol {
+        .content-section ul,
+        .content-section ol {
             margin: 12px 0;
             padding-left: 24px;
             color: #d1d5db;
@@ -201,20 +203,26 @@
 
 <body class="text-white font-inter">
     <!-- サイドバー -->
-    <aside id="sidebar" class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
         <div class="p-6">
             <div class="flex justify-between items-center mb-8">
-                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">メニュー</h2>
+                <h2
+                    class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
                 <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
             <nav class="space-y-2">
-                <a href="../index.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
                     <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                     <span>クーポンリンク</span>
                 </a>
@@ -223,7 +231,8 @@
                 </div>
                 <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
                     <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <span>【第四弾】Laravel入門</span>
                 </a>
@@ -232,7 +241,8 @@
     </aside>
 
     <!-- ハンバーガーメニューボタン -->
-    <button id="open-sidebar" class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
         <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
@@ -242,7 +252,8 @@
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
 
     <!-- 上に戻るボタン -->
-    <button id="scroll-to-top" class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
@@ -253,7 +264,8 @@
         <!-- メインコンテンツ -->
         <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
             <div class="max-w-6xl mx-auto">
-                <h1 class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
                     【第四弾】Laravel入門資料
                 </h1>
 
@@ -297,7 +309,8 @@
 
                         <h4>インストール手順</h4>
                         <ol>
-                            <li>公式サイトにアクセス: <a href="https://code.visualstudio.com/" target="_blank">https://code.visualstudio.com/</a></li>
+                            <li>公式サイトにアクセス: <a href="https://code.visualstudio.com/"
+                                    target="_blank">https://code.visualstudio.com/</a></li>
                             <li>「Download for Mac」ボタンをクリック</li>
                             <li>ダウンロードした <code>.zip</code> ファイルを解凍</li>
                             <li><code>Visual Studio Code.app</code> を「アプリケーション」フォルダに移動</li>
@@ -309,6 +322,10 @@
 
                         <p class="text-blue-300 mt-4">
                             💡 後ほど、Laravel 開発に便利な拡張機能をインストールします。
+                        </p>
+
+                        <p class="text-yellow-400 mt-4">
+                            ⚠️ 既に他のエディタをインストール使用している場合は、そちらで進めても構いません
                         </p>
                     </div>
 
@@ -404,7 +421,8 @@ git config --list</code></pre>
 
                         <h4>インストール手順</h4>
                         <ol>
-                            <li>公式サイトにアクセス: <a href="https://www.docker.com/products/docker-desktop/" target="_blank">https://www.docker.com/products/docker-desktop/</a></li>
+                            <li>公式サイトにアクセス: <a href="https://www.docker.com/products/docker-desktop/"
+                                    target="_blank">https://www.docker.com/products/docker-desktop/</a></li>
                             <li>「Download for Mac」をクリック</li>
                             <li>お使いの Mac のチップに応じて選択：
                                 <ul>
@@ -443,19 +461,21 @@ git config --list</code></pre>
                         <div class="glass-dark p-6 rounded-xl mb-6">
                             <p class="text-lg mb-3">📚 <strong>公式ドキュメント</strong></p>
                             <a href="https://docs.claude.com/en/docs/claude-code/quickstart" target="_blank"
-                               class="text-primary-400 hover:text-primary-300 underline text-base">
+                                class="text-primary-400 hover:text-primary-300 underline text-base">
                                 https://docs.claude.com/en/docs/claude-code/quickstart
                             </a>
                         </div>
 
                         <div class="glass-dark p-3 rounded-xl mb-6 border-l-4 border-yellow-500">
-                            <p class="text-lg mb-3">⚠️ <strong>重要：プロプランより上のプランへの加入が必要です。従量課金の場合はサブスクリプションプランへの加入は不要です</strong></p>
+                            <p class="text-lg mb-3">⚠️
+                                <strong>重要：プロプランより上のプランへの加入が必要です。従量課金の場合はサブスクリプションプランへの加入は不要です</strong></p>
                             <p class="text-sm">
                                 Claude Code を使用するには、<strong>Claude.ai の Pro プラン（有料）</strong>より上のプランへの加入が必要です。<br>
                                 無料プランでは使用できませんのでご注意ください。
                             </p>
                             <p class="text-sm mt-3">
-                                プランの詳細: <a href="https://claude.ai/upgrade" target="_blank" class="text-primary-400 hover:text-primary-300 underline">https://claude.ai/upgrade</a>
+                                プランの詳細: <a href="https://claude.ai/upgrade" target="_blank"
+                                    class="text-primary-400 hover:text-primary-300 underline">https://claude.ai/upgrade</a>
                             </p>
                             <p class="text-sm mt-3 text-blue-300">
                                 💡 <strong>API を使用する場合：</strong><br>
@@ -515,7 +535,8 @@ git config --list</code></pre>
 
                         <h4>インストール手順</h4>
                         <ol>
-                            <li>公式サイトにアクセス: <a href="https://sequel-ace.com/" target="_blank">https://sequel-ace.com/</a></li>
+                            <li>公式サイトにアクセス: <a href="https://sequel-ace.com/"
+                                    target="_blank">https://sequel-ace.com/</a></li>
                             <li>「Download」ボタンをクリック</li>
                             <li>ダウンロードした <code>.zip</code> ファイルを解凍</li>
                             <li><code>Sequel Ace.app</code> を「アプリケーション」フォルダに移動</li>
@@ -573,9 +594,326 @@ docker compose version</code></pre>
                     </div>
 
                     <div class="content-section">
+                        <h3>Laravelプロジェクトの立ち上げ</h3>
+                        <p>
+                            環境構築ができたので、実際にLaravelプロジェクトを立ち上げてみましょう。<br>
+                            この講座では、講師が用意したプロジェクトテンプレートを使用します。
+                        </p>
+
+                        <h4><span class="step-number">8</span>GitHubからプロジェクトを取得する</h4>
+
+                        <p>講師のGitHubリポジトリ：</p>
+                        <pre><code class="language-bash">https://github.com/sbtest1218-oss/udemy-aws3-laravel-new</code></pre>
+
+                        <p><strong>手順：</strong></p>
+                        <ol>
+                            <li>上記のGitHubリポジトリにアクセス</li>
+                            <li>「Use this template」ボタンをクリック</li>
+                            <li>自分のGitHubアカウントにリポジトリをコピー（リポジトリ名は任意）</li>
+                            <li><strong>必ず「Public」を選択</strong>してリポジトリを作成</li>
+                            <li>コピーしたリポジトリのURLをコピー</li>
+                        </ol>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-2">⚠️ <strong>Privateリポジトリにする場合</strong></p>
+                            <p class="text-sm">
+                                リポジトリをPrivate（非公開）にする場合は、以下が必要になります：
+                            </p>
+                            <ul class="text-sm mt-2 space-y-1">
+                                <li>• SSHキーの設定（GitHubアカウントに公開鍵を登録）</li>
+                                <li>• または、HTTPSクローン時に認証トークンの使用</li>
+                                <li>• チーム開発の場合は、メンバーへのアクセス権限の付与</li>
+                            </ul>
+                            <p class="text-sm mt-2 text-blue-300">
+                                💡 初心者の方は、まず「Public」で始めることをおすすめします。
+                            </p>
+                        </div>
+
+                        <p>ターミナルで、プロジェクトを配置したいディレクトリに移動して、以下を実行：</p>
+                        <pre><code class="language-bash"># 例: Documentsディレクトリに移動
+cd ~/Documents
+
+# リポジトリをクローン（URLは自分のリポジトリのURLに置き換える）
+git clone https://github.com/あなたのユーザー名/リポジトリ名.git
+
+# クローンしたディレクトリに移動
+cd リポジトリ名</code></pre>
+
+                        <h4><span class="step-number">9</span>環境変数ファイルを準備する</h4>
+
+                        <p><code>.env.example</code> をコピーして <code>.env</code> ファイルを作成します：</p>
+                        <pre><code class="language-bash">cp .env.example .env</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 <code>.env</code> ファイルには、データベース接続情報などの設定が含まれます。<br>
+                            このファイルの値は <code>docker-compose.yml</code> で使用されます。
+                        </p>
+
+                        <h4><span class="step-number">10</span>Dockerでプロジェクトを立ち上げる</h4>
+
+                        <p>Docker コンテナを起動します：</p>
+                        <pre><code class="language-bash">docker compose up -d</code></pre>
+
+                        <p><code>-d</code> オプションで、バックグラウンドで実行されます。</p>
+
+                        <p class="mt-4">コンテナが起動したら、appコンテナに入ります：</p>
+                        <pre><code class="language-bash">docker compose exec app bash</code></pre>
+
+                        <p>コンテナ内でLaravelをインストール：</p>
+                        <pre><code class="language-bash">composer create-project laravel/laravel .</code></pre>
+
+                        <p class="text-yellow-400 mt-4">
+                            ⚠️ 最後の <code>.</code>（ドット）を忘れずに！これは「現在のディレクトリにインストール」を意味します。
+                        </p>
+
+                        <p class="mt-4">インストールが完了したら、一旦コンテナから出ます：</p>
+                        <pre><code class="language-bash">exit</code></pre>
+
+                        <h4><span class="step-number">11</span>Laravelのデータベース設定を編集する</h4>
+
+                        <p><code>src/.env</code> ファイルを開いて、データベース設定を編集します。</p>
+
+                        <p>VSCodeでファイルを開く：</p>
+                        <pre><code class="language-bash">code src/.env</code></pre>
+
+                        <p>以下の部分を探して、値を変更します：</p>
+                        <pre><code class="language-bash">DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=udemy123
+DB_PASSWORD=pass123</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 これらの値は、<code>docker-compose.yml</code> で定義されているデータベースコンテナの設定と一致している必要があります。
+                        </p>
+
+                        <p class="mt-4">設定を反映させるため、Dockerコンテナを再起動します：</p>
+                        <pre><code class="language-bash"># コンテナを停止（データベースも削除）
+docker compose down -v
+
+# コンテナを再起動
+docker compose up -d</code></pre>
+
+                        <h4><span class="step-number">12</span>データベースのマイグレーション</h4>
+
+                        <p>再度appコンテナに入ります：</p>
+                        <pre><code class="language-bash">docker compose exec app bash</code></pre>
+
+                        <p>データベースのテーブルを作成します：</p>
+                        <pre><code class="language-bash">php artisan migrate</code></pre>
+
+                        <p class="mt-4">マイグレーションが成功したら、ブラウザでアクセスしてみましょう：</p>
+                        <pre><code class="language-bash">http://localhost</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ Laravelのウェルカムページが表示されれば成功です！
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-6">
+                            <p class="text-lg mb-3">🎉 <strong>よく使うDockerコマンド</strong></p>
+                            <ul class="space-y-2 text-sm">
+                                <li><code>docker compose up -d</code> - コンテナを起動</li>
+                                <li><code>docker compose down</code> - コンテナを停止</li>
+                                <li><code>docker compose down -v</code> - コンテナを停止してボリュームも削除</li>
+                                <li><code>docker compose exec app bash</code> - appコンテナに入る</li>
+                                <li><code>docker compose ps</code> - 起動中のコンテナを確認</li>
+                                <li><code>docker compose logs</code> - ログを確認</li>
+                                <li><code>exit</code> - コンテナから出る</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3><span class="step-number">13</span>よくあるトラブル4選と対処法</h3>
+                        <p>プロジェクト立ち上げ時によく遭遇するトラブルと、その解決方法を紹介します。</p>
+
+                        <h4>❌ トラブル1：ポート番号が被っている</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-2">
+                            <p class="text-red-300 mb-2"><strong>エラー例：</strong></p>
+                            <pre class="text-sm"><code>Error: bind: address already in use
+Error: Ports are not available</code></pre>
+
+                            <p class="text-yellow-300 mt-3 mb-2"><strong>原因：</strong></p>
+                            <p class="text-sm">既に他のアプリケーションが同じポート番号（80番や3306番）を使用している。</p>
+
+                            <p class="text-green-300 mt-3 mb-2"><strong>解決方法：</strong></p>
+                            <p class="text-sm">
+                                <code>docker-compose.yml</code> ファイルを開いて、ポート番号の<strong>左側</strong>を変更します：
+                            </p>
+                            <pre class="text-sm mt-2"><code class="language-yaml"># 変更前
+ports:
+  - 80:80      # Webサーバー
+  - 3306:3306  # MySQL
+
+# 変更後（例）
+ports:
+  - 8080:80    # Webサーバーを8080番に変更
+  - 3307:3306  # MySQLを3307番に変更</code></pre>
+                            <p class="text-sm mt-2">
+                                変更後は <code>http://localhost:8080</code> でアクセスします。<br>
+                                <code>docker compose down</code> してから <code>docker compose up -d</code> で再起動してください。
+                            </p>
+                        </div>
+
+                        <h4>❌ トラブル2：Docker Desktopが起動していない</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-2">
+                            <p class="text-red-300 mb-2"><strong>エラー例：</strong></p>
+                            <pre class="text-sm"><code>Cannot connect to the Docker daemon
+Is the docker daemon running?</code></pre>
+
+                            <p class="text-yellow-300 mt-3 mb-2"><strong>原因：</strong></p>
+                            <p class="text-sm">Docker Desktop が起動していない、またはDockerサービスが停止している。</p>
+
+                            <p class="text-green-300 mt-3 mb-2"><strong>解決方法：</strong></p>
+                            <ol class="text-sm mt-2 space-y-1">
+                                <li>1. アプリケーションフォルダから「Docker Desktop」を起動</li>
+                                <li>2. メニューバーにDockerアイコンが表示されるまで待つ</li>
+                                <li>3. アイコンをクリックして「Docker Desktop is running」と表示されることを確認</li>
+                                <li>4. 再度 <code>docker compose up -d</code> を実行</li>
+                            </ol>
+                            <p class="text-blue-300 text-sm mt-2">
+                                💡 開発時は、Docker Desktopを自動起動するように設定しておくと便利です。
+                            </p>
+                        </div>
+
+                        <h4>❌ トラブル3：.envファイルの設定が間違っている</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-2">
+                            <p class="text-red-300 mb-2"><strong>エラー例：</strong></p>
+                            <pre class="text-sm"><code>SQLSTATE[HY000] [2002] Connection refused
+SQLSTATE[HY000] [1045] Access denied for user</code></pre>
+
+                            <p class="text-yellow-300 mt-3 mb-2"><strong>原因：</strong></p>
+                            <p class="text-sm">
+                                <code>src/.env</code> のデータベース接続情報が、<code>docker-compose.yml</code> で定義した値と一致していない。
+                            </p>
+
+                            <p class="text-green-300 mt-3 mb-2"><strong>解決方法：</strong></p>
+                            <p class="text-sm">
+                                <code>src/.env</code> ファイルを開いて、以下の値を確認・修正します：
+                            </p>
+                            <pre class="text-sm mt-2"><code class="language-bash">DB_CONNECTION=mysql
+DB_HOST=db          # コンテナ名と一致させる
+DB_PORT=3306        # コンテナ内部のポート
+DB_DATABASE=laravel
+DB_USERNAME=udemy123
+DB_PASSWORD=pass123</code></pre>
+                            <p class="text-sm mt-2">
+                                修正後は必ず <code>docker compose down -v</code> → <code>docker compose up -d</code>
+                                で再起動してください。
+                            </p>
+                        </div>
+
+                        <h4>❌ トラブル4：docker compose down -v を実行していない</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-2">
+                            <p class="text-red-300 mb-2"><strong>症状：</strong></p>
+                            <p class="text-sm">設定を変更したのに反映されない、古いデータベースの状態が残っている。</p>
+
+                            <p class="text-yellow-300 mt-3 mb-2"><strong>原因：</strong></p>
+                            <p class="text-sm">
+                                Dockerのボリューム（データを保存する領域）に古い設定やデータが残っている。<br>
+                                <code>docker compose down</code> だけでは、ボリュームは削除されません。
+                            </p>
+
+                            <p class="text-green-300 mt-3 mb-2"><strong>解決方法：</strong></p>
+                            <p class="text-sm">
+                                <code>-v</code> オプションを付けてボリュームも削除します：
+                            </p>
+                            <pre class="text-sm mt-2"><code class="language-bash"># ボリュームも含めて完全に削除
+docker compose down -v
+
+# 再起動
+docker compose up -d
+
+# appコンテナに入る
+docker compose exec app bash
+
+# マイグレーションを再実行
+php artisan migrate</code></pre>
+                            <p class="text-red-300 text-sm mt-2">
+                                ⚠️ <code>-v</code> オプションを使うとデータベースの内容も削除されます。本番環境では絶対に使用しないでください。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3><span class="step-number">14</span>Sequel AceでMySQLに接続する</h3>
+                        <p>
+                            データベースクライアントツールを使って、MySQLに接続してみましょう。<br>
+                            ステップ7でインストールした Sequel Ace を使用します。
+                        </p>
+
+                        <h4>Sequel Aceを起動</h4>
+                        <p>アプリケーションフォルダから Sequel Ace を起動します。</p>
+
+                        <h4>接続情報を入力</h4>
+                        <p>「新規接続」で以下の情報を入力します：</p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3">
+                            <table class="w-full text-sm">
+                                <tr>
+                                    <td class="py-2 pr-4 text-gray-400">名前：</td>
+                                    <td class="py-2">Laravel Project（任意の名前）</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-4 text-gray-400">ホスト：</td>
+                                    <td class="py-2"><code>127.0.0.1</code> または <code>localhost</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-4 text-gray-400">ユーザ名：</td>
+                                    <td class="py-2"><code>udemy123</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-4 text-gray-400">パスワード：</td>
+                                    <td class="py-2"><code>pass123</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-4 text-gray-400">データベース：</td>
+                                    <td class="py-2"><code>laravel</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-4 text-gray-400">ポート：</td>
+                                    <td class="py-2"><code>3306</code> （変更した場合はその番号）</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 これらの値は、<code>src/.env</code> ファイルに記載されている内容と一致します。
+                        </p>
+
+                        <h4>接続テスト</h4>
+                        <p>「接続をテスト」ボタンをクリックして、接続が成功することを確認します。</p>
+                        <p class="mt-2">成功したら「接続」ボタンをクリックしてデータベースに接続します。</p>
+
+                        <h4>データベースの確認</h4>
+                        <p>接続できたら、以下を確認してみましょう：</p>
+                        <ul class="mt-2">
+                            <li>左側のサイドバーで「laravel」データベースを選択</li>
+                            <li>マイグレーションで作成されたテーブル（users, migrations など）が表示される</li>
+                            <li>テーブルをクリックすると、中身を確認・編集できる</li>
+                        </ul>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ テーブルが表示されれば、データベース接続は成功です！
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4">
+                            <p class="text-sm mb-2"><strong>接続できない場合のチェックポイント：</strong></p>
+                            <ul class="text-sm space-y-1">
+                                <li>□ Docker Desktop が起動しているか</li>
+                                <li>□ <code>docker compose ps</code> でコンテナが起動しているか確認</li>
+                                <li>□ ポート番号を変更していないか（変更した場合はその番号を使用）</li>
+                                <li>□ ユーザー名・パスワードが正しいか</li>
+                                <li>□ ファイアウォールやセキュリティソフトがブロックしていないか</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
                         <h3>次のステップ</h3>
                         <p>
-                            環境構築が完了しました！<br>
+                            環境構築とプロジェクトの立ち上げが完了しました！<br>
                             次の章では、Laravel について詳しく学んでいきます。
                         </p>
                     </div>
@@ -641,7 +979,7 @@ docker compose version</code></pre>
         });
 
         // ページ読み込み時の処理
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // シンタックスハイライト
             hljs.highlightAll();
 
