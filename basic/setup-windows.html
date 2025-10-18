@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【第四弾】Laravel入門資料 - Mac環境構築</title>
+    <title>【第四弾】Laravel入門資料 - Windows環境構築</title>
     <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
@@ -271,8 +271,8 @@
 
                 <!-- タブリスト -->
                 <ul class="tab-list">
-                    <li><a href="setup-windows.html">Windows環境構築</a></li>
-                    <li><a href="setup.html" class="active">Mac環境構築</a></li>
+                    <li><a href="setup-windows.html" class="active">Windows環境構築</a></li>
+                    <li><a href="setup.html">Mac環境構築</a></li>
                     <li><a href="index.html">Laravelとは</a></li>
                     <li><a href="routing.html">ルーティング</a></li>
                     <li><a href="view.html">ビュー</a></li>
@@ -282,21 +282,23 @@
                 <!-- コンテンツ -->
                 <div class="glass rounded-3xl p-8">
                     <div class="content-section">
-                        <h3>Mac環境構築</h3>
+                        <h3>Windows環境構築</h3>
                         <p>
                             Laravel開発を始めるために、必要なツールをインストールしていきます。<br>
-                            ここでは、Mac環境を前提としています。
+                            ここでは、Windows環境を前提としています。
                         </p>
 
                         <div class="glass-dark p-2 rounded-xl mb-8 mt-6">
                             <p class="text-lg mb-3">📦 <strong>インストールするツール</strong></p>
                             <ul class="space-y-2">
                                 <li>✅ VSCode - コードエディタ</li>
-                                <li>✅ Node.js と npm - JavaScriptランタイムとパッケージマネージャ</li>
-                                <li>✅ Git - バージョン管理システム</li>
-                                <li>✅ Docker Desktop for Mac - コンテナ環境</li>
+                                <li>✅ WSL2 - Windows Subsystem for Linux</li>
+                                <li>✅ Node.js と npm - JavaScriptランタイムとパッケージマネージャ（Ubuntu内）</li>
+                                <li>✅ Git - バージョン管理システム（Ubuntu内）</li>
+                                <li>✅ Docker Desktop for Windows - コンテナ環境</li>
                                 <li>✅ Claude Code - AI開発アシスタント</li>
-                                <li>✅ Sequel Ace - データベース管理ツール</li>
+                                <li>✅ VSCode WSL拡張機能 - VSCodeからWSL環境へのアクセス</li>
+                                <li>✅ A5M2 - データベース管理ツール</li>
                             </ul>
                         </div>
                     </div>
@@ -312,10 +314,10 @@
                         <ol>
                             <li>公式サイトにアクセス: <a href="https://code.visualstudio.com/"
                                     target="_blank">https://code.visualstudio.com/</a></li>
-                            <li>「Download for Mac」ボタンをクリック</li>
-                            <li>ダウンロードした <code>.zip</code> ファイルを解凍</li>
-                            <li><code>Visual Studio Code.app</code> を「アプリケーション」フォルダに移動</li>
-                            <li>アプリケーションフォルダから VSCode を起動</li>
+                            <li>「Download for Windows」ボタンをクリック</li>
+                            <li>ダウンロードした <code>.exe</code> ファイルを実行</li>
+                            <li>インストーラーの指示に従ってインストール</li>
+                            <li>インストール完了後、VSCode を起動</li>
                         </ol>
 
                         <h4>インストール確認</h4>
@@ -329,7 +331,7 @@
 
                         <ol class="mt-2">
                             <li>VSCode を起動</li>
-                            <li>左側のアクティビティバーから「拡張機能」アイコンをクリック（またはショートカット: <code>⌘+Shift+X</code>）</li>
+                            <li>左側のアクティビティバーから「拡張機能」アイコンをクリック（またはショートカット: <code>Ctrl+Shift+X</code>）</li>
                             <li>検索バーに「<strong>PHP Intelephense</strong>」と入力</li>
                             <li>bmewburn 作の「PHP Intelephense」を選択</li>
                             <li>「インストール」ボタンをクリック</li>
@@ -351,80 +353,404 @@
                             💡 Intelephense をインストールすると、Laravel の開発効率が劇的に向上します。
                         </p>
 
+                        <p class="text-blue-300 mt-4">
+                            💡 後ほど、WSL 拡張機能もインストールします。
+                        </p>
+
                         <p class="text-yellow-400 mt-4">
                             ⚠️ 既に他のエディタをインストール使用している場合は、そちらで進めても構いません
                         </p>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">2</span>Homebrew のインストール</h3>
+                        <h3><span class="step-number">2</span>WSL2 のインストール</h3>
                         <p>
-                            Homebrew は Mac 用のパッケージマネージャです。<br>
-                            以降のツールをインストールする際に使用するため、まず Homebrew をインストールします。
+                            WSL2（Windows Subsystem for Linux 2）は、Windows 上で Linux 環境を実行できる機能です。<br>
+                            Laravel 開発では、Linux 環境を使用することが推奨されています。
                         </p>
 
-                        <h4>Homebrew がインストール済みか確認</h4>
-                        <p>ターミナルで以下のコマンドを実行：</p>
+                        <h4>なぜWSL2が必要なのか</h4>
+                        <p>Web開発、特にPHP/Laravel開発でWSL2を使う理由は以下の通りです：</p>
 
-                        <pre><code class="language-bash">brew -v</code></pre>
+                        <div class="glass-dark p-5 rounded-xl mb-6">
+                            <h4 class="text-primary-400 mb-3">🌐 本番環境はほぼLinux</h4>
+                            <p class="text-sm mb-3">
+                                実際のWebサービスは、ほとんどが<strong>Linux サーバー</strong>で動作しています。<br>
+                                主要なクラウドサービス（AWS、Google Cloud、Azureなど）でも、PHP/Laravelアプリケーションは通常Linuxで運用されます。
+                            </p>
+                            <ul class="text-sm space-y-2">
+                                <li><strong>開発環境と本番環境の統一</strong> - Windows で開発して Linux で本番運用すると、環境差異でトラブルが発生しやすい</li>
+                                <li><strong>ファイルシステムの違い</strong> - Windows と Linux では改行コード、パーミッション、大文字小文字の扱いが異なる</li>
+                                <li><strong>パスの違い</strong> - Windows は <code>C:\</code>、Linux は <code>/</code> でパスが異なる</li>
+                            </ul>
 
-                        <p>バージョン番号が表示されれば、既にインストール済みです。次のセクションに進んでください。</p>
+                            <p class="text-blue-300 text-sm mt-4">
+                                💡 WSL2を使えば、<strong>本番環境と同じLinux環境</strong>で開発できるため、「ローカルでは動くのに本番で動かない」という問題を防げます。
+                            </p>
+                        </div>
+
+                        <h4>WSL2の仕組み - シンプルに理解する</h4>
+
+                        <div class="wsl-simple-diagram">
+                            <div class="diagram-box">
+                                <div class="hw-layer">
+                                    <div class="layer-title">💻 物理ハードウェア</div>
+                                    <div class="layer-desc">CPU / メモリ / SSD / ネットワーク</div>
+                                </div>
+
+                                <div class="arrow-down">↑ Hyper-V（仮想化レイヤー）が仲介 ↑</div>
+
+                                <div class="os-layers">
+                                    <div class="os-box windows-box">
+                                        <div class="os-icon">
+                                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+                                            </svg>
+                                        </div>
+                                        <div class="os-name">Windows 11</div>
+                                    </div>
+
+                                    <div class="os-box linux-box">
+                                        <div class="os-icon">
+                                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                                                <circle cx="19.5" cy="12" r="2.5"/>
+                                                <circle cx="4.5" cy="19.5" r="2.5"/>
+                                                <circle cx="4.5" cy="4.5" r="2.5"/>
+                                                <path d="M6.72 17.34a8 8 0 010-10.68M17.28 6.66a8 8 0 010 10.68M12 4a8 8 0 00-4.28 14"/>
+                                            </svg>
+                                        </div>
+                                        <div class="os-name">Ubuntu (Linux)</div>
+                                    </div>
+                                </div>
+
+                                <div class="key-point">
+                                    <p class="key-text">
+                                        <strong>WindowsもLinuxも、両方ともHyper-V経由で同じハードウェアにアクセス</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>
+                            .wsl-simple-diagram {
+                                margin: 24px 0;
+                            }
+
+                            .diagram-box {
+                                background: rgba(0, 0, 0, 0.3);
+                                border: 2px solid rgba(139, 92, 246, 0.4);
+                                border-radius: 16px;
+                                padding: 32px;
+                                max-width: 600px;
+                                margin: 0 auto;
+                            }
+
+                            .hw-layer {
+                                background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.15));
+                                border: 2px solid rgba(234, 179, 8, 0.5);
+                                border-radius: 12px;
+                                padding: 20px;
+                                text-align: center;
+                                margin-bottom: 20px;
+                            }
+
+                            .layer-title {
+                                font-size: 18px;
+                                font-weight: bold;
+                                color: #fef3c7;
+                                margin-bottom: 8px;
+                            }
+
+                            .layer-desc {
+                                font-size: 14px;
+                                color: #fde68a;
+                            }
+
+                            .arrow-down {
+                                text-align: center;
+                                color: #a78bfa;
+                                font-weight: 600;
+                                font-size: 14px;
+                                margin: 20px 0;
+                                padding: 12px;
+                                background: rgba(139, 92, 246, 0.1);
+                                border-radius: 8px;
+                            }
+
+                            .os-layers {
+                                display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: 16px;
+                                margin-bottom: 24px;
+                            }
+
+                            .os-box {
+                                border-radius: 12px;
+                                padding: 24px;
+                                text-align: center;
+                                border: 2px solid;
+                                transition: transform 0.3s ease;
+                            }
+
+                            .os-box:hover {
+                                transform: translateY(-4px);
+                            }
+
+                            .windows-box {
+                                background: linear-gradient(135deg, rgba(0, 120, 212, 0.2), rgba(0, 90, 158, 0.15));
+                                border-color: rgba(0, 120, 212, 0.5);
+                            }
+
+                            .linux-box {
+                                background: linear-gradient(135deg, rgba(233, 84, 32, 0.2), rgba(221, 72, 20, 0.15));
+                                border-color: rgba(233, 84, 32, 0.5);
+                            }
+
+                            .os-icon {
+                                margin-bottom: 12px;
+                                display: flex;
+                                justify-content: center;
+                            }
+
+                            .os-icon svg {
+                                color: #e5e7eb;
+                            }
+
+                            .os-name {
+                                font-size: 16px;
+                                font-weight: 600;
+                                color: #f3f4f6;
+                            }
+
+                            .key-point {
+                                background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.15));
+                                border: 2px solid rgba(34, 197, 94, 0.5);
+                                border-radius: 12px;
+                                padding: 20px;
+                                text-align: center;
+                            }
+
+                            .key-text {
+                                font-size: 15px;
+                                color: #d1fae5;
+                                margin: 0;
+                            }
+
+                            @media (max-width: 640px) {
+                                .os-layers {
+                                    grid-template-columns: 1fr;
+                                }
+                            }
+                        </style>
+
+                        <div class="glass-dark p-5 rounded-xl mb-6 mt-6">
+                            <p class="text-lg mb-3"><strong>🔑 ポイント</strong></p>
+                            <div class="text-sm space-y-3">
+                                <p>
+                                    WSL2は、Windows と Linux を<strong>Hyper-V（ハイパーバイザー）</strong>という仮想化レイヤーの上で動かします。
+                                </p>
+                                <p>
+                                    WindowsもLinuxも、<strong>対等な立場</strong>でHyper-V経由でハードウェアにアクセスします。<br>
+                                    これにより、Linuxがほぼネイティブに近い速度で動作します。
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-6 rounded-xl mb-6 border-l-4 border-yellow-500" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(202, 138, 4, 0.05));">
+                            <p class="text-xl mb-4 font-bold text-yellow-300">🤯 驚きの事実：MicrosoftがLinuxカーネルを開発している！</p>
+
+                            <div class="text-sm space-y-4">
+                                <p class="text-base">
+                                    WSL2で動作する<strong>「本物のLinuxカーネル」は、なんとMicrosoft自身がメンテナンスしています。</strong>
+                                </p>
+
+                                <div class="bg-black/30 p-4 rounded-lg">
+                                    <p class="text-yellow-200 font-semibold mb-2">📦 GitHubで公開されているソースコード：</p>
+                                    <a href="https://github.com/microsoft/WSL2-Linux-Kernel" target="_blank"
+                                       class="text-blue-400 hover:text-blue-300 underline break-all">
+                                        https://github.com/microsoft/WSL2-Linux-Kernel
+                                    </a>
+                                    <p class="text-xs text-gray-400 mt-2">※ Microsoft公式のLinuxカーネルリポジトリ</p>
+                                </div>
+
+                                <div class="bg-red-900/20 p-4 rounded-lg border border-red-500/30">
+                                    <p class="text-red-300 font-semibold mb-2">😱 歴史的転換</p>
+                                    <div class="space-y-2">
+                                        <p><strong>2001年:</strong> Steve Ballmer CEO「Linux is a cancer（Linuxはガンだ）」発言</p>
+                                        <p><strong>2014年:</strong> Satya Nadella CEO就任「Microsoft ❤️ Linux」宣言</p>
+                                        <p><strong>2019年:</strong> WSL2リリース、MicrosoftがLinuxカーネル開発開始</p>
+                                        <p class="text-yellow-200 mt-3">
+                                            → かつてLinuxを敵視していたMicrosoftが、今やLinuxカーネルを開発・配布している
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-r from-green-900/20 to-emerald-900/20 p-4 rounded-lg border border-green-500/30">
+                                    <p class="text-green-300 font-semibold mb-3">💰 MicrosoftがWSL2を作った本当の理由</p>
+
+                                    <div class="space-y-3">
+                                        <div>
+                                            <p class="text-sm mb-2"><strong>【昔の開発者の流れ】</strong></p>
+                                            <div class="bg-black/30 p-3 rounded text-xs space-y-1">
+                                                <p>「Web開発にはLinuxコマンド必須だなぁ...」</p>
+                                                <p>「WindowsじゃLinuxコマンド使えない...」</p>
+                                                <p>「MacならUnixベースだからターミナル使える！」</p>
+                                                <p class="text-red-300 font-bold mt-2">→ Mac購入 → Windowsから離脱 💸</p>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <p class="text-sm mb-2"><strong>【Microsoftの危機感】</strong></p>
+                                            <ul class="ml-4 space-y-1 text-xs">
+                                                <li>• 開発者 = 未来の意思決定者（会社でどの製品を使うか決める人）</li>
+                                                <li>• 開発者がWindowsを使わない = 企業もWindowsを選ばなくなる</li>
+                                                <li>• 自社クラウド（Azure）でもLinux利用が60%超え</li>
+                                            </ul>
+                                        </div>
+
+                                        <div>
+                                            <p class="text-sm mb-2"><strong>【ビジネスモデルの転換】</strong></p>
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div class="bg-red-900/20 p-2 rounded">
+                                                    <p class="text-xs font-bold text-red-300 mb-1">昔のMS（〜2014年）</p>
+                                                    <p class="text-xs">収益源 = <strong>Windowsライセンス販売</strong></p>
+                                                    <p class="text-xs mt-1">→ Linuxは敵！</p>
+                                                </div>
+                                                <div class="bg-green-900/20 p-2 rounded">
+                                                    <p class="text-xs font-bold text-green-300 mb-1">今のMS（2014年〜）</p>
+                                                    <p class="text-xs">収益源 = <strong>Azure、Office 365、GitHub</strong></p>
+                                                    <p class="text-xs mt-1">→ OSは何でもOK！</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-blue-900/20 p-3 rounded">
+                                            <p class="text-sm font-bold text-blue-300 mb-2">【Microsoftの計算】</p>
+                                            <div class="text-xs space-y-1">
+                                                <p>① WSL2で開発者をWindowsに引き留める</p>
+                                                <p>↓</p>
+                                                <p>② 開発者「Windowsでも開発しやすい！」</p>
+                                                <p>↓</p>
+                                                <p>③ VS Code、Azure、GitHubも使う ← <strong class="text-green-300">ここで儲かる！💰</strong></p>
+                                                <p>↓</p>
+                                                <p>④ 会社でもMS製品を採用</p>
+                                                <p>↓</p>
+                                                <p class="text-green-300 font-bold mt-2">⑤ Microsoft大勝利 🎉</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-purple-900/20 p-4 rounded-lg border border-purple-500/30">
+                                    <p class="text-purple-300 font-semibold mb-2">⚡ パフォーマンスの驚異</p>
+                                    <p class="mb-2 text-xs">WSL2は、VirtualBoxと比較して：</p>
+                                    <ul class="ml-6 space-y-1 text-xs">
+                                        <li>• <strong>ファイルI/O速度：最大20倍高速</strong></li>
+                                        <li>• <strong>起動時間：2秒未満</strong>（VirtualBoxは30秒〜数分）</li>
+                                        <li>• <strong>メモリ使用量：1/5以下</strong></li>
+                                        <li>• <strong>npm install、Git操作が爆速</strong></li>
+                                    </ul>
+                                </div>
+
+                                <div class="bg-gradient-to-r from-blue-900/30 to-purple-900/30 p-4 rounded-lg border border-blue-500/30 mt-4">
+                                    <p class="text-lg font-bold text-blue-200 mb-2">🎯 つまり...</p>
+                                    <p class="text-sm">
+                                        WSL2は、開発者を引き留めるためのMicrosoftの戦略的投資。<br>
+                                        結果として、<strong>「Windows上で、ほぼネイティブLinux並みの速度で開発できる」</strong>という最高の開発環境が誕生しました。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4>PowerShell を管理者権限で起動</h4>
+                        <ol>
+                            <li>スタートメニューで「PowerShell」と検索</li>
+                            <li>「Windows PowerShell」を右クリック</li>
+                            <li>「管理者として実行」を選択</li>
+                        </ol>
+
+                        <h4>WSL2 のインストール</h4>
+                        <p>PowerShell で以下のコマンドを実行します：</p>
+
+                        <pre><code class="language-powershell">wsl --install</code></pre>
+
+                        <p>このコマンドで、WSL2 と Ubuntu ディストリビューションが自動的にインストールされます。</p>
+
+                        <h4>再起動</h4>
+                        <p>インストール完了後、パソコンを再起動してください。</p>
+
+                        <h4>Ubuntu の初期設定</h4>
+                        <p>再起動後、自動的に Ubuntu のターミナルが開きます（開かない場合はスタートメニューから「Ubuntu」を起動）。</p>
+
+                        <p>初回起動時、以下の設定を求められます：</p>
+                        <ul>
+                            <li><strong>ユーザー名</strong>：任意のユーザー名を入力（小文字の英数字のみ）</li>
+                            <li><strong>パスワード</strong>：任意のパスワードを入力（入力中は画面に表示されません）</li>
+                            <li>パスワードの再入力</li>
+                        </ul>
 
                         <p class="text-yellow-400 mt-4">
-                            ⚠️ 既にインストール済みの場合は、以下のインストールコマンドを実行する必要はありません。
+                            ⚠️ このパスワードは重要です。必ず覚えておいてください。<code>sudo</code> コマンド実行時に必要になります。
                         </p>
 
-                        <h4>Homebrew のインストール</h4>
-                        <p>バージョン番号が表示されない場合のみ、以下のコマンドでインストールします：</p>
+                        <h4>Ubuntu のアップデート</h4>
+                        <p>Ubuntu ターミナルで以下のコマンドを実行して、システムを最新の状態にします：</p>
 
-                        <pre><code class="language-bash">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></pre>
+                        <pre><code class="language-bash">sudo apt update && sudo apt upgrade -y</code></pre>
 
-                        <p>インストール中、パスワードの入力を求められることがあります。Mac のログインパスワードを入力してください。</p>
-
-                        <h4>インストール確認</h4>
-                        <pre><code class="language-bash">brew -v</code></pre>
-                        <p>バージョン番号が表示されれば成功です（例: <code>Homebrew 4.2.0</code>）</p>
-                    </div>
-
-                    <div class="content-section">
-                        <h3><span class="step-number">3</span>Node.js と npm のインストール</h3>
-                        <p>
-                            Node.js は JavaScript をブラウザ外で実行するためのランタイム環境です。<br>
-                            npm（Node Package Manager）は Node.js に付属するパッケージ管理ツールで、Laravel のフロントエンド開発で使用します。
-                        </p>
-
-                        <h4>Homebrew でインストール</h4>
-                        <pre><code class="language-bash">brew install node</code></pre>
-
-                        <p>このコマンドで、Node.js と npm が同時にインストールされます。</p>
+                        <p>パスワードの入力を求められたら、先ほど設定したパスワードを入力してください。</p>
 
                         <h4>インストール確認</h4>
-                        <p>ターミナル（またはVSCodeの統合ターミナル）で以下のコマンドを実行：</p>
-
-                        <pre><code class="language-bash">node -v</code></pre>
-                        <p>バージョン番号が表示されれば成功です（例: <code>v20.11.0</code>）</p>
-
-                        <pre><code class="language-bash">npm -v</code></pre>
-                        <p>npm のバージョン番号も表示されます（例: <code>10.2.4</code>）</p>
+                        <p>PowerShell で以下のコマンドを実行：</p>
+                        <pre><code class="language-powershell">wsl --list --verbose</code></pre>
+                        <p>Ubuntu が表示され、VERSION が 2 になっていれば成功です。</p>
 
                         <p class="text-blue-300 mt-4">
-                            💡 Homebrew を使うことで、アップデートも簡単に行えます：<code>brew upgrade node</code>
+                            💡 今後、「Ubuntu ターミナル」または「WSL ターミナル」と記載がある場合は、スタートメニューから「Ubuntu」を起動してください。
                         </p>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">4</span>Git のインストール</h3>
+                        <h3><span class="step-number">3</span>Node.js と npm のインストール（Ubuntu内）</h3>
                         <p>
-                            Git は、ソースコードのバージョン管理システムです。<br>
-                            コードの変更履歴を管理したり、チーム開発で必須のツールです。
+                            Node.js は JavaScript をブラウザ外で実行するためのランタイム環境です。<br>
+                            npm（Node Package Manager）は Node.js に付属するパッケージ管理ツールで、Laravel のフロントエンド開発で使用します。<br>
+                            <strong>WSL2 の Ubuntu 環境内にインストール</strong>します。
                         </p>
 
-                        <h4>Homebrew でインストール</h4>
-                        <pre><code class="language-bash">brew install git</code></pre>
+                        <h4>Ubuntu ターミナルで実行</h4>
+                        <p>スタートメニューから「Ubuntu」を起動し、以下のコマンドを実行：</p>
+
+                        <pre><code class="language-bash">sudo apt install nodejs npm -y</code></pre>
+
+                        <h4>インストール確認</h4>
+                        <p>Ubuntu ターミナルで以下のコマンドを実行：</p>
+
+                        <pre><code class="language-bash">node -v</code></pre>
+                        <p>バージョン番号が表示されれば成功です（例: <code>v12.22.9</code>）</p>
+
+                        <pre><code class="language-bash">npm -v</code></pre>
+                        <p>npm のバージョン番号も表示されます（例: <code>8.5.1</code>）</p>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 より新しいバージョンが必要な場合は、nvm（Node Version Manager）を使用することもできます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3><span class="step-number">4</span>Git のインストール（Ubuntu内）</h3>
+                        <p>
+                            Git は、ソースコードのバージョン管理システムです。<br>
+                            コードの変更履歴を管理したり、チーム開発で必須のツールです。<br>
+                            <strong>WSL2 の Ubuntu 環境内にインストール</strong>します。
+                        </p>
+
+                        <h4>Ubuntu ターミナルで実行</h4>
+                        <pre><code class="language-bash">sudo apt install git -y</code></pre>
 
                         <h4>インストール確認</h4>
                         <pre><code class="language-bash">git --version</code></pre>
-                        <p>バージョン番号が表示されれば成功です（例: <code>git version 2.42.0</code>）</p>
+                        <p>バージョン番号が表示されれば成功です（例: <code>git version 2.34.1</code>）</p>
 
                         <h4>初期設定</h4>
                         <p>Git の初期設定を行います：</p>
@@ -440,7 +766,7 @@ git config --list</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">5</span>Docker Desktop for Mac のインストール</h3>
+                        <h3><span class="step-number">5</span>Docker Desktop for Windows のインストール</h3>
                         <p>
                             Docker は、アプリケーションをコンテナという単位で実行する仮想化技術です。<br>
                             Laravel の開発環境を簡単に構築・共有できます。
@@ -450,23 +776,26 @@ git config --list</code></pre>
                         <ol>
                             <li>公式サイトにアクセス: <a href="https://www.docker.com/products/docker-desktop/"
                                     target="_blank">https://www.docker.com/products/docker-desktop/</a></li>
-                            <li>「Download for Mac」をクリック</li>
-                            <li>お使いの Mac のチップに応じて選択：
-                                <ul>
-                                    <li><strong>Apple Silicon（M1/M2/M3/M4/M5などMシリーズ）</strong>の場合: 「Apple Chip」</li>
-                                    <li><strong>Intel Mac</strong> の場合: 「Intel Chip」</li>
-                                </ul>
-                            </li>
-                            <li>ダウンロードした <code>.dmg</code> ファイルを開く</li>
-                            <li><code>Docker.app</code> を「アプリケーション」フォルダにドラッグ</li>
-                            <li>アプリケーションフォルダから Docker Desktop を起動</li>
-                            <li>初回起動時、利用規約に同意</li>
+                            <li>「Download for Windows」をクリック</li>
+                            <li>ダウンロードした <code>.exe</code> ファイルを実行</li>
+                            <li>インストーラーの指示に従ってインストール</li>
+                            <li>「Use WSL 2 instead of Hyper-V」にチェックが入っていることを確認</li>
+                            <li>インストール完了後、パソコンを再起動</li>
+                        </ol>
+
+                        <h4>Docker Desktop の起動と設定</h4>
+                        <ol>
+                            <li>スタートメニューから「Docker Desktop」を起動</li>
+                            <li>利用規約に同意</li>
+                            <li>右上の歯車アイコン（設定）をクリック</li>
+                            <li>「Resources」→「WSL Integration」を選択</li>
+                            <li>「Enable integration with my default WSL distro」をオンにする</li>
+                            <li>「Ubuntu」のスイッチもオンにする</li>
+                            <li>「Apply & Restart」をクリック</li>
                         </ol>
 
                         <h4>インストール確認</h4>
-                        <p>Docker Desktop が起動し、メニューバーに Docker アイコンが表示されれば成功です。</p>
-
-                        <p>ターミナルでも確認できます：</p>
+                        <p>Ubuntu ターミナルで確認します：</p>
                         <pre><code class="language-bash">docker --version</code></pre>
                         <p>バージョン番号が表示されれば OK です（例: <code>Docker version 24.0.6</code>）</p>
 
@@ -512,7 +841,7 @@ git config --list</code></pre>
                         </div>
 
                         <h4>npm でインストール</h4>
-                        <p>ターミナルで以下のコマンドを実行します（Node.js 18 以上が必要）：</p>
+                        <p>Ubuntu ターミナルで以下のコマンドを実行します（Node.js 18 以上が必要）：</p>
 
                         <pre><code class="language-bash">npm install -g @anthropic-ai/claude-code</code></pre>
 
@@ -554,28 +883,65 @@ git config --list</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">7</span>Sequel Ace のインストール</h3>
+                        <h3><span class="step-number">7</span>VSCode WSL拡張機能のインストール</h3>
                         <p>
-                            Sequel Ace は、MySQL/MariaDB データベースを管理するための GUI ツールです。<br>
-                            テーブルの中身を確認したり、SQL を実行したりできます。
+                            VSCode から WSL 環境に直接アクセスできる拡張機能をインストールします。<br>
+                            これにより、Windows の VSCode で WSL 内のファイルを編集できます。
                         </p>
 
                         <h4>インストール手順</h4>
                         <ol>
-                            <li>公式サイトにアクセス: <a href="https://sequel-ace.com/"
-                                    target="_blank">https://sequel-ace.com/</a></li>
-                            <li>「Download」ボタンをクリック</li>
-                            <li>ダウンロードした <code>.zip</code> ファイルを解凍</li>
-                            <li><code>Sequel Ace.app</code> を「アプリケーション」フォルダに移動</li>
-                            <li>アプリケーションフォルダから Sequel Ace を起動</li>
+                            <li>VSCode を起動</li>
+                            <li>左側のアクティビティバーから「拡張機能」アイコンをクリック（または <code>Ctrl+Shift+X</code>）</li>
+                            <li>検索ボックスに「WSL」と入力</li>
+                            <li>「WSL」（Microsoft 公式）を見つけて「インストール」をクリック</li>
                         </ol>
 
+                        <h4>WSL で VSCode を開く</h4>
+                        <p>Ubuntu ターミナルで、プロジェクトディレクトリに移動してから以下を実行：</p>
+
+                        <pre><code class="language-bash"># ホームディレクトリで VSCode を開く場合
+code .
+
+# 特定のディレクトリで開く場合
+cd /path/to/project
+code .</code></pre>
+
+                        <p>初回起動時、VSCode Server のインストールが自動的に行われます。</p>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 VSCode の左下に「WSL: Ubuntu」と表示されていれば、WSL 環境に接続されています。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3><span class="step-number">8</span>A5M2 のインストール</h3>
+                        <p>
+                            A5M2 は、Windows で使える無料のデータベース管理ツールです。<br>
+                            MySQL/MariaDB のテーブルの中身を確認したり、SQL を実行したりできます。
+                        </p>
+
+                        <h4>インストール手順</h4>
+                        <ol>
+                            <li>公式サイトにアクセス: <a href="https://a5m2.mmatsubara.com/"
+                                    target="_blank">https://a5m2.mmatsubara.com/</a></li>
+                            <li>「ダウンロード」をクリック</li>
+                            <li>最新版の <code>.zip</code> ファイルをダウンロード</li>
+                            <li>ダウンロードした <code>.zip</code> ファイルを解凍</li>
+                            <li>解凍したフォルダを任意の場所（例: <code>C:\Program Files\A5M2</code>）に配置</li>
+                            <li><code>A5M2.exe</code> を実行</li>
+                        </ol>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 インストーラー不要で、解凍してすぐに使えます。デスクトップにショートカットを作成しておくと便利です。
+                        </p>
+
                         <h4>代替ツール</h4>
-                        <p>Sequel Ace 以外にも、以下のようなツールがあります：</p>
+                        <p>A5M2 以外にも、以下のようなツールがあります：</p>
                         <ul>
                             <li><strong>TablePlus</strong> - 有料だが高機能（無料トライアルあり）</li>
                             <li><strong>DBeaver</strong> - 無料でオープンソース</li>
-                            <li><strong>phpMyAdmin</strong> - Web ベースの管理ツール</li>
+                            <li><strong>HeidiSQL</strong> - Windows 用の無料ツール</li>
                         </ul>
 
                         <p class="text-blue-300 mt-4">
@@ -587,7 +953,7 @@ git config --list</code></pre>
                         <h3>環境構築の確認</h3>
                         <p>すべてのツールが正しくインストールされたか、最終確認をしましょう。</p>
 
-                        <h4>ターミナルで確認</h4>
+                        <h4>Ubuntu ターミナルで確認</h4>
                         <pre><code class="language-bash"># Node.js
 node -v
 
@@ -609,13 +975,15 @@ docker compose version</code></pre>
                             <p class="text-lg mb-3">✅ <strong>インストール完了チェックリスト</strong></p>
                             <ul class="space-y-2">
                                 <li>□ VSCode が起動できる</li>
-                                <li>□ <code>node -v</code> でバージョンが表示される</li>
-                                <li>□ <code>npm -v</code> でバージョンが表示される</li>
-                                <li>□ <code>git --version</code> でバージョンが表示される</li>
+                                <li>□ WSL2 の Ubuntu が起動できる</li>
+                                <li>□ Ubuntu ターミナルで <code>node -v</code> でバージョンが表示される</li>
+                                <li>□ Ubuntu ターミナルで <code>npm -v</code> でバージョンが表示される</li>
+                                <li>□ Ubuntu ターミナルで <code>git --version</code> でバージョンが表示される</li>
                                 <li>□ Docker Desktop が起動している</li>
-                                <li>□ <code>docker --version</code> でバージョンが表示される</li>
+                                <li>□ Ubuntu ターミナルで <code>docker --version</code> でバージョンが表示される</li>
                                 <li>□ Claude Code にログインできる</li>
-                                <li>□ Sequel Ace が起動できる</li>
+                                <li>□ VSCode WSL拡張機能がインストールされている</li>
+                                <li>□ A5M2 が起動できる</li>
                             </ul>
                         </div>
                     </div>
@@ -627,7 +995,7 @@ docker compose version</code></pre>
                             この講座では、講師が用意したプロジェクトテンプレートを使用します。
                         </p>
 
-                        <h4><span class="step-number">8</span>GitHubからプロジェクトを取得する</h4>
+                        <h4><span class="step-number">9</span>GitHubからプロジェクトを取得する（Ubuntu内）</h4>
 
                         <p>講師のGitHubリポジトリ：</p>
                         <pre><code class="language-bash">https://github.com/sbtest1218-oss/udemy-aws3-laravel-new</code></pre>
@@ -656,9 +1024,9 @@ docker compose version</code></pre>
                             </p>
                         </div>
 
-                        <p>ターミナルで、プロジェクトを配置したいディレクトリに移動して、以下を実行：</p>
-                        <pre><code class="language-bash"># 例: Documentsディレクトリに移動
-cd ~/Documents
+                        <p>Ubuntu ターミナルで、プロジェクトを配置したいディレクトリに移動して、以下を実行：</p>
+                        <pre><code class="language-bash"># ホームディレクトリに移動
+cd ~
 
 # リポジトリをクローン（URLは自分のリポジトリのURLに置き換える）
 git clone https://github.com/あなたのユーザー名/リポジトリ名.git
@@ -666,7 +1034,7 @@ git clone https://github.com/あなたのユーザー名/リポジトリ名.git
 # クローンしたディレクトリに移動
 cd リポジトリ名</code></pre>
 
-                        <h4><span class="step-number">9</span>環境変数ファイルを準備する</h4>
+                        <h4><span class="step-number">10</span>環境変数ファイルを準備する</h4>
 
                         <p><code>.env.example</code> をコピーして <code>.env</code> ファイルを作成します：</p>
                         <pre><code class="language-bash">cp .env.example .env</code></pre>
@@ -676,17 +1044,30 @@ cd リポジトリ名</code></pre>
                             このファイルの値は <code>docker-compose.yml</code> で使用されます。
                         </p>
 
-                        <h4><span class="step-number">10</span>Dockerでプロジェクトを立ち上げる</h4>
+                        <h4><span class="step-number">11</span>Dockerでプロジェクトを立ち上げる</h4>
 
                         <p>Docker コンテナを起動します：</p>
                         <pre><code class="language-bash">docker compose up -d</code></pre>
 
                         <p><code>-d</code> オプションで、バックグラウンドで実行されます。</p>
 
-                        <p class="mt-4">コンテナが起動したら、appコンテナに入ります：</p>
-                        <pre><code class="language-bash">docker compose exec app bash</code></pre>
+                        <p class="mt-4">コンテナが起動したら、appコンテナに<strong>root権限で</strong>入ります：</p>
+                        <pre><code class="language-bash">docker compose exec -u root app bash</code></pre>
 
-                        <p>コンテナ内でLaravelをインストール：</p>
+                        <p class="text-blue-300 mt-4">
+                            💡 <code>-u root</code> オプションで、root ユーザーとしてコンテナに入ります。これにより、ファイルのパーミッション問題を回避できます。
+                        </p>
+
+                        <h4><span class="step-number">12</span>パーミッションの修正</h4>
+
+                        <p>コンテナ内で、データディレクトリの所有者を変更します：</p>
+                        <pre><code class="language-bash">chown -R 1000:1000 /data</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 WSL 環境では、ファイルのパーミッション問題が発生することがあります。このコマンドで、適切な権限を設定します。
+                        </p>
+
+                        <p class="mt-4">コンテナ内でLaravelをインストール：</p>
                         <pre><code class="language-bash">composer create-project laravel/laravel .</code></pre>
 
                         <p class="text-yellow-400 mt-4">
@@ -696,11 +1077,11 @@ cd リポジトリ名</code></pre>
                         <p class="mt-4">インストールが完了したら、一旦コンテナから出ます：</p>
                         <pre><code class="language-bash">exit</code></pre>
 
-                        <h4><span class="step-number">11</span>Laravelのデータベース設定を編集する</h4>
+                        <h4><span class="step-number">13</span>Laravelのデータベース設定を編集する</h4>
 
                         <p><code>src/.env</code> ファイルを開いて、データベース設定を編集します。</p>
 
-                        <p>VSCodeでファイルを開く：</p>
+                        <p>VSCodeでファイルを開く（WSL環境から）：</p>
                         <pre><code class="language-bash">code src/.env</code></pre>
 
                         <p>以下の部分を探して、値を変更します：</p>
@@ -722,9 +1103,9 @@ docker compose down -v
 # コンテナを再起動
 docker compose up -d</code></pre>
 
-                        <h4><span class="step-number">12</span>データベースのマイグレーション</h4>
+                        <h4><span class="step-number">14</span>データベースのマイグレーション</h4>
 
-                        <p>再度appコンテナに入ります：</p>
+                        <p>再度appコンテナに入ります（通常ユーザーで問題ありません）：</p>
                         <pre><code class="language-bash">docker compose exec app bash</code></pre>
 
                         <p>データベースのテーブルを作成します：</p>
@@ -744,6 +1125,7 @@ docker compose up -d</code></pre>
                                 <li><code>docker compose down</code> - コンテナを停止</li>
                                 <li><code>docker compose down -v</code> - コンテナを停止してボリュームも削除</li>
                                 <li><code>docker compose exec app bash</code> - appコンテナに入る</li>
+                                <li><code>docker compose exec -u root app bash</code> - root権限でappコンテナに入る</li>
                                 <li><code>docker compose ps</code> - 起動中のコンテナを確認</li>
                                 <li><code>docker compose logs</code> - ログを確認</li>
                                 <li><code>exit</code> - コンテナから出る</li>
@@ -752,7 +1134,7 @@ docker compose up -d</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">13</span>よくあるトラブル4選と対処法</h3>
+                        <h3><span class="step-number">15</span>よくあるトラブル4選と対処法</h3>
                         <p>プロジェクト立ち上げ時によく遭遇するトラブルと、その解決方法を紹介します。</p>
 
                         <h4>❌ トラブル1：ポート番号が被っている</h4>
@@ -794,10 +1176,10 @@ Is the docker daemon running?</code></pre>
 
                             <p class="text-green-300 mt-3 mb-2"><strong>解決方法：</strong></p>
                             <ol class="text-sm mt-2 space-y-1">
-                                <li>1. アプリケーションフォルダから「Docker Desktop」を起動</li>
-                                <li>2. メニューバーにDockerアイコンが表示されるまで待つ</li>
+                                <li>1. スタートメニューから「Docker Desktop」を起動</li>
+                                <li>2. システムトレイにDockerアイコンが表示されるまで待つ</li>
                                 <li>3. アイコンをクリックして「Docker Desktop is running」と表示されることを確認</li>
-                                <li>4. 再度 <code>docker compose up -d</code> を実行</li>
+                                <li>4. 再度 Ubuntu ターミナルで <code>docker compose up -d</code> を実行</li>
                             </ol>
                             <p class="text-blue-300 text-sm mt-2">
                                 💡 開発時は、Docker Desktopを自動起動するように設定しておくと便利です。
@@ -864,43 +1246,44 @@ php artisan migrate</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">14</span>Sequel AceでMySQLに接続する</h3>
+                        <h3><span class="step-number">16</span>A5M2でMySQLに接続する</h3>
                         <p>
                             データベースクライアントツールを使って、MySQLに接続してみましょう。<br>
-                            ステップ7でインストールした Sequel Ace を使用します。
+                            ステップ8でインストールした A5M2 を使用します。
                         </p>
 
-                        <h4>Sequel Aceを起動</h4>
-                        <p>アプリケーションフォルダから Sequel Ace を起動します。</p>
+                        <h4>A5M2を起動</h4>
+                        <p>解凍したフォルダから <code>A5M2.exe</code> を実行します。</p>
 
-                        <h4>接続情報を入力</h4>
-                        <p>「新規接続」で以下の情報を入力します：</p>
+                        <h4>新規接続の作成</h4>
+                        <ol>
+                            <li>メニューバーから「データベース」→「データベースの追加と削除」を選択</li>
+                            <li>「追加」ボタンをクリック</li>
+                            <li>「MySQL/MariaDB (直接接続)」を選択</li>
+                            <li>以下の情報を入力：</li>
+                        </ol>
 
                         <div class="glass-dark p-4 rounded-xl mt-3">
                             <table class="w-full text-sm">
                                 <tr>
-                                    <td class="py-2 pr-4 text-gray-400">名前：</td>
-                                    <td class="py-2">Laravel Project（任意の名前）</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2 pr-4 text-gray-400">ホスト：</td>
+                                    <td class="py-2 pr-4 text-gray-400">サーバ名：</td>
                                     <td class="py-2"><code>127.0.0.1</code> または <code>localhost</code></td>
                                 </tr>
                                 <tr>
-                                    <td class="py-2 pr-4 text-gray-400">ユーザ名：</td>
-                                    <td class="py-2"><code>udemy123</code></td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2 pr-4 text-gray-400">パスワード：</td>
-                                    <td class="py-2"><code>pass123</code></td>
+                                    <td class="py-2 pr-4 text-gray-400">ポート番号：</td>
+                                    <td class="py-2"><code>3306</code> （変更した場合はその番号）</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4 text-gray-400">データベース：</td>
                                     <td class="py-2"><code>laravel</code></td>
                                 </tr>
                                 <tr>
-                                    <td class="py-2 pr-4 text-gray-400">ポート：</td>
-                                    <td class="py-2"><code>3306</code> （変更した場合はその番号）</td>
+                                    <td class="py-2 pr-4 text-gray-400">ユーザーID：</td>
+                                    <td class="py-2"><code>udemy123</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-4 text-gray-400">パスワード：</td>
+                                    <td class="py-2"><code>pass123</code></td>
                                 </tr>
                             </table>
                         </div>
@@ -910,15 +1293,15 @@ php artisan migrate</code></pre>
                         </p>
 
                         <h4>接続テスト</h4>
-                        <p>「接続をテスト」ボタンをクリックして、接続が成功することを確認します。</p>
-                        <p class="mt-2">成功したら「接続」ボタンをクリックしてデータベースに接続します。</p>
+                        <p>「接続テスト」ボタンをクリックして、接続が成功することを確認します。</p>
+                        <p class="mt-2">成功したら「OK」ボタンをクリックして接続情報を保存します。</p>
 
                         <h4>データベースの確認</h4>
                         <p>接続できたら、以下を確認してみましょう：</p>
                         <ul class="mt-2">
-                            <li>左側のサイドバーで「laravel」データベースを選択</li>
+                            <li>左側のツリービューで「laravel」データベースを展開</li>
                             <li>マイグレーションで作成されたテーブル（users, migrations など）が表示される</li>
-                            <li>テーブルをクリックすると、中身を確認・編集できる</li>
+                            <li>テーブルをダブルクリックすると、中身を確認・編集できる</li>
                         </ul>
 
                         <p class="text-green-300 mt-4">
@@ -929,7 +1312,7 @@ php artisan migrate</code></pre>
                             <p class="text-sm mb-2"><strong>接続できない場合のチェックポイント：</strong></p>
                             <ul class="text-sm space-y-1">
                                 <li>□ Docker Desktop が起動しているか</li>
-                                <li>□ <code>docker compose ps</code> でコンテナが起動しているか確認</li>
+                                <li>□ Ubuntu ターミナルで <code>docker compose ps</code> でコンテナが起動しているか確認</li>
                                 <li>□ ポート番号を変更していないか（変更した場合はその番号を使用）</li>
                                 <li>□ ユーザー名・パスワードが正しいか</li>
                                 <li>□ ファイアウォールやセキュリティソフトがブロックしていないか</li>
