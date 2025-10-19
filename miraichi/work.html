@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会社員としての経験 - MIRAICHI特別講座</title>
+    <meta name="description" content="SIerから外資Web企業、そしてフリーランスへの道のり">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tab-list li a {
+            display: block;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #9ca3af;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab-list li a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .tab-list li a.active {
+            background: linear-gradient(135deg, #3183ff, #8b5cf6);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 24px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3183ff, #8b5cf6);
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2
+                    class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span>独学でエンジニア</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    独学でエンジニア - MIRAICHI特別講座
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="tab-list">
+                    <li><a href="index.html">概要</a></li>
+                    <li><a href="study.html">独学での学び</a></li>
+                    <li><a href="work.html" class="active">会社員としての経験</a></li>
+                    <li><a href="roadmap.html">今からエンジニアになるなら</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- キャリアタイムライン -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <h4 class="text-lg font-bold mb-4 text-primary-300">📌 エンジニアキャリアタイムライン</h4>
+                        <div class="space-y-3 text-sm">
+                            <div class="timeline-item">
+                                <strong>2019年4月〜2021年8月：</strong>日本のSIer（約2年4ヶ月）
+                                <p class="text-gray-400 ml-0 mt-1">Java、JavaScript、SQLを使用したECサイト運用</p>
+                            </div>
+                            <div class="timeline-item">
+                                <strong>2021年8月〜2024年3月：</strong>外資系Web企業（約2年7ヶ月）
+                                <p class="text-gray-400 ml-0 mt-1">Spring Boot、Laravel、React、AWS/Azure/GCPを使用</p>
+                            </div>
+                            <div class="timeline-item">
+                                <strong>2024年3月〜現在：</strong>フリーランスエンジニア
+                                <p class="text-gray-400 ml-0 mt-1">独立して自由な働き方を実現</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SIer時代 -->
+                    <div class="content-section">
+                        <h3>第1章：SIer時代（2019年4月〜2021年8月）</h3>
+
+                        <h4>業務内容</h4>
+                        <ul>
+                            <li><strong>ECサイトの運用</strong> - 既存システムの保守・改修がメイン</li>
+                            <li><strong>使用技術</strong> - Java、JavaScript、SQL</li>
+                            <li><strong>開発スタイル</strong> - ウォーターフォール型の開発プロセス</li>
+                        </ul>
+
+                        <h4>SIerで学んだこと</h4>
+                        <div class="glass-dark p-4 rounded-lg">
+                            <ul class="text-sm space-y-2">
+                                <li>✓ <strong>基礎的な開発フロー</strong> - 要件定義、設計、実装、テスト、リリースの一連の流れ</li>
+                                <li>✓ <strong>SQLの実践</strong> - 大規模データベースを扱う実務経験</li>
+                                <li>✓ <strong>チーム開発</strong> - 複数人でのコード管理とコミュニケーション</li>
+                                <li>✓ <strong>品質管理</strong> - テスト仕様書の作成とバグ修正</li>
+                            </ul>
+                        </div>
+
+                        <h4>SIer時代の課題</h4>
+                        <ul>
+                            <li>レガシーなシステムが多く、新しい技術に触れる機会が少ない</li>
+                            <li>ウォーターフォール型で開発サイクルが長い</li>
+                            <li>モダンなWeb開発の経験を積みたいという思いが強くなった</li>
+                        </ul>
+                    </div>
+
+                    <!-- 外資Web企業時代 -->
+                    <div class="content-section">
+                        <h3>第2章：外資系Web企業時代（2021年8月〜2024年3月）</h3>
+
+                        <h4>転職のきっかけ</h4>
+                        <p>
+                            知人からの紹介で、外資系Web企業に転職のチャンスが訪れた。
+                            <strong>一回の面接で採用</strong>が決まり、モダンな技術スタックを扱える環境に飛び込むことができた。
+                        </p>
+
+                        <h4>使用技術スタック</h4>
+                        <div class="grid md:grid-cols-2 gap-4 mt-4">
+                            <div class="glass-dark p-4 rounded-lg">
+                                <h5 class="font-bold text-primary-300 mb-2">バックエンド</h5>
+                                <ul class="text-sm space-y-1">
+                                    <li>• Spring Boot（Java）</li>
+                                    <li>• Laravel（PHP）</li>
+                                </ul>
+                            </div>
+                            <div class="glass-dark p-4 rounded-lg">
+                                <h5 class="font-bold text-purple-300 mb-2">フロントエンド</h5>
+                                <ul class="text-sm space-y-1">
+                                    <li>• React（JavaScript/TypeScript）</li>
+                                </ul>
+                            </div>
+                            <div class="glass-dark p-4 rounded-lg">
+                                <h5 class="font-bold text-pink-300 mb-2">インフラ・クラウド</h5>
+                                <ul class="text-sm space-y-1">
+                                    <li>• AWS（Amazon Web Services）</li>
+                                    <li>• Azure（Microsoft Azure）</li>
+                                    <li>• GCP（Google Cloud Platform）</li>
+                                </ul>
+                            </div>
+                            <div class="glass-dark p-4 rounded-lg">
+                                <h5 class="font-bold text-cyan-300 mb-2">その他</h5>
+                                <ul class="text-sm space-y-1">
+                                    <li>• Docker / Kubernetes</li>
+                                    <li>• CI/CD（GitHub Actions等）</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h4 class="mt-6">外資Web企業で成長したこと</h4>
+                        <ul>
+                            <li><strong>モダンな技術スタック</strong> - React、Spring Boot、Laravelなど最新の技術に触れることができた</li>
+                            <li><strong>クラウド技術</strong> - AWS、Azure、GCPの3大クラウドを実務で使用</li>
+                            <li><strong>アジャイル開発</strong> - スピード感のある開発サイクルを経験</li>
+                            <li><strong>国際的な環境</strong> - 英語でのコミュニケーションやドキュメント作成</li>
+                        </ul>
+
+                        <div class="glass-dark p-4 rounded-lg mt-4">
+                            <p class="text-sm text-gray-300">
+                                <strong class="text-primary-300">SIerとの最大の違い：</strong>
+                                技術選定の自由度が高く、最新技術をどんどん取り入れる文化があった。
+                                また、開発スピードが圧倒的に速く、週単位でリリースを繰り返す環境だった。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- フリーランスへ -->
+                    <div class="content-section">
+                        <h3>第3章：フリーランスエンジニアへ（2024年3月〜）</h3>
+
+                        <h4>フリーランスになった理由</h4>
+                        <ul>
+                            <li><strong>自由な働き方</strong> - 場所や時間に縛られない働き方を実現したい</li>
+                            <li><strong>自分のサービスを作る時間</strong> - 会社員時代は業務に追われて個人開発の時間が取れなかった</li>
+                            <li><strong>収入の向上</strong> - スキルを活かして収入を増やしたい</li>
+                            <li><strong>多様な経験</strong> - 様々なプロジェクトに関わることでスキルの幅を広げたい</li>
+                        </ul>
+
+                        <h4>フリーランスとして意識していること</h4>
+                        <div class="glass-dark p-4 rounded-lg">
+                            <ul class="text-sm space-y-2">
+                                <li>✓ <strong>継続的な学習</strong> - 常に最新技術をキャッチアップ</li>
+                                <li>✓ <strong>情報発信</strong> - Udemy講座、SNS、ブログなどで知見を共有</li>
+                                <li>✓ <strong>人脈作り</strong> - エンジニアコミュニティへの参加</li>
+                                <li>✓ <strong>健康管理</strong> - 自己管理能力が重要</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 営業経験の活用 -->
+                    <div class="content-section">
+                        <h3>営業11年の経験はエンジニアに活きたか？</h3>
+                        <p>
+                            三菱自動車で11年間営業をしていた経験は、エンジニアとしても大いに役立っている。
+                        </p>
+
+                        <h4>営業経験が活きた場面</h4>
+                        <ul>
+                            <li><strong>コミュニケーション能力</strong> - クライアントや他部署との折衝がスムーズ</li>
+                            <li><strong>提案力</strong> - 技術的な解決策をビジネス視点で提案できる</li>
+                            <li><strong>顧客視点</strong> - ユーザーが本当に求めているものを理解する力</li>
+                            <li><strong>プレゼン能力</strong> - 技術的な内容をわかりやすく説明できる</li>
+                            <li><strong>交渉力</strong> - 要件調整や納期交渉などで発揮</li>
+                        </ul>
+
+                        <div class="glass-dark p-4 rounded-lg mt-4">
+                            <p class="text-sm text-gray-300">
+                                <strong class="text-primary-300">結論：</strong>
+                                営業経験は決して無駄ではなかった。むしろ、技術力とビジネススキルの両方を持つことで、
+                                他のエンジニアとの差別化につながっている。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const openBtn = document.getElementById('open-sidebar');
+        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        };
+
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        document.getElementById('scroll-to-top').addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+
+</html>

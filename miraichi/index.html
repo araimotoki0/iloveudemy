@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>独学でエンジニア - MIRAICHI特別講座</title>
+    <meta name="description" content="独学でエンジニアになるまでの勉強と会社員での経験と今からエンジニアになるなら何をするか">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* タブスタイル */
+        .tab-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tab-list li a {
+            display: block;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #9ca3af;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab-list li a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .tab-list li a.active {
+            background: linear-gradient(135deg, #3183ff, #8b5cf6);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        /* セクションスタイル */
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2
+                    class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span>独学でエンジニア</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    独学でエンジニア - MIRAICHI特別講座
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="tab-list">
+                    <li><a href="index.html" class="active">概要</a></li>
+                    <li><a href="story.html">独学の道のり</a></li>
+                    <li><a href="roadmap.html">2025年版ロードマップ</a></li>
+                    <li><a href="sales.html">営業ゼロで案件獲得</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- セミナー情報 -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📅 <strong>開催日時：2025年10月20日</strong>
+                        </p>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            💡 完全独学でエンジニアになるまでの道のり、2025年の今エンジニアを目指すなら何をするべきか、営業ゼロで案件を獲得する方法を余すことなく公開
+                        </p>
+                    </div>
+
+                    <!-- セミナー概要 -->
+                    <div class="content-section">
+                        <h3>セミナー概要</h3>
+                        <p>
+                            三菱自動車で11年間営業として働き、その後Excelをフィギュアスケートの技だと思っていたレベルから、
+                            完全独学でエンジニアになった経験をすべてお話しします。
+                        </p>
+                        <p>
+                            このセミナーでは、<strong>過去の経験談だけでなく、2025年の今から始めるなら何をするか</strong>、
+                            そして<strong>フリーランスとして営業せずに案件を獲得する方法</strong>まで、実践的な内容をお届けします。
+                        </p>
+
+                        <h4>このセミナーで学べること</h4>
+                        <ul>
+                            <li><strong>独学での学習方法</strong> - 学習方法と使った教材</li>
+                            <li><strong>2025年版学習ロードマップ</strong> - AI時代の今から始めるなら何をするべきか</li>
+                            <li><strong>営業ゼロで案件獲得</strong> - フリーランスとして案件を「取りに行く」のではなく「依頼される」方法</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>対象者</h3>
+                        <ul>
+                            <li>これからプログラミングを学びたい方</li>
+                            <li>独学で挫折しそうな方</li>
+                            <li>実務未経験からエンジニアを目指す方</li>
+                            <li>効率的な学習方法を知りたい方</li>
+                            <li>フリーランスとして案件を獲得したい方</li>
+                            <li>お金持ちになりたい方</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>セミナーの構成</h3>
+                        <ol>
+                            <li><strong>第1部：独学の道のり</strong> - 営業11年→専門校→独学1年→SIer→外資Web企業→フリーランスの全キャリア</li>
+                            <li><strong>第2部：2025年版ロードマップ</strong> - 今から始めるなら何を学ぶか、AIをどう活用するか</li>
+                            <li><strong>第3部：営業ゼロで案件獲得</strong> - 案件を「取る」のではなく「依頼される」仕組みの作り方</li>
+                        </ol>
+                    </div>
+
+                    <!-- 講師について -->
+                    <div class="content-section">
+                        <h3>講師プロフィール</h3>
+                        <div class="glass-dark p-6 rounded-xl">
+                            <h4 class="text-white mb-4">新井元気</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li>📍 <strong>2006-2017：</strong>三菱自動車で営業として11年間勤務</li>
+                                <li>📍 <strong>2017-2019：</strong>埼玉県立高等技術専門校で2年間学習（組み込み系）</li>
+                                <li>📍 <strong>2019-2021：</strong>日本のSIerでエンジニアとしてキャリアスタート</li>
+                                <li>📍 <strong>2021-2024：</strong>外資系Web企業でモダンな技術を習得</li>
+                                <li>📍 <strong>2024-現在：</strong>フリーランスエンジニアとして活動中</li>
+                                <li>🏆 <strong>実績：</strong>GPTsハッカソン3連覇</li>
+                            </ul>
+                            <p class="text-xs text-gray-400 mt-4">
+                                ※学校に行くまでExcelをフィギュアスケートの技だと思っていたレベルから、完全独学でエンジニアになりました
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // サイドバーの制御
+        const sidebar = document.getElementById('sidebar');
+        const openBtn = document.getElementById('open-sidebar');
+        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        // サイドバーを開く
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        // サイドバーを閉じる
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        };
+
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        // スクロールアニメーション
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+
+            // 上に戻るボタンの表示/非表示
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        // 上に戻るボタンのクリックイベント
+        document.getElementById('scroll-to-top').addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+
+</html>
