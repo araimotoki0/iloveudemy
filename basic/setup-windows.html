@@ -1088,6 +1088,15 @@ cd リポジトリ名</code></pre>
                         <p class="mt-4">パーミッション修正後、コンテナから出ます：</p>
                         <pre><code class="language-bash">exit</code></pre>
 
+                        <h4>ホスト側でのパーミッション修正</h4>
+
+                        <p>コンテナから出た後、Ubuntu ターミナルで以下のコマンドを実行します：</p>
+                        <pre><code class="language-bash">chmod -R 755 src/</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 コンテナ内で作成されたファイルは、ホスト側（WSL Ubuntu）から編集できない場合があります。このコマンドで、VSCodeなどから編集可能にします。
+                        </p>
+
                         <h4><span class="step-number">13</span>Laravelのデータベース設定を編集する</h4>
 
                         <p><code>src/.env</code> ファイルを開いて、データベース設定を編集します。</p>
