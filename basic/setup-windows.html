@@ -1067,23 +1067,25 @@ cd リポジトリ名</code></pre>
                             💡 <code>-u root</code> オプションで、root ユーザーとしてコンテナに入ります。これにより、ファイルのパーミッション問題を回避できます。
                         </p>
 
-                        <h4><span class="step-number">12</span>パーミッションの修正</h4>
+                        <h4><span class="step-number">12</span>Laravelのインストール</h4>
 
-                        <p>コンテナ内で、データディレクトリの所有者を変更します：</p>
-                        <pre><code class="language-bash">chown -R 1000:1000 /data</code></pre>
-
-                        <p class="text-blue-300 mt-4">
-                            💡 WSL 環境では、ファイルのパーミッション問題が発生することがあります。このコマンドで、適切な権限を設定します。
-                        </p>
-
-                        <p class="mt-4">コンテナ内でLaravelをインストール：</p>
+                        <p>コンテナ内でLaravelをインストールします：</p>
                         <pre><code class="language-bash">composer create-project laravel/laravel .</code></pre>
 
                         <p class="text-yellow-400 mt-4">
                             ⚠️ 最後の <code>.</code>（ドット）を忘れずに！これは「現在のディレクトリにインストール」を意味します。
                         </p>
 
-                        <p class="mt-4">インストールが完了したら、一旦コンテナから出ます：</p>
+                        <h4>パーミッションの修正</h4>
+
+                        <p>Laravelのインストールが完了したら、データディレクトリの所有者を変更します：</p>
+                        <pre><code class="language-bash">chown -R 1000:1000 /data</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 WSL 環境では、ファイルのパーミッション問題が発生することがあります。このコマンドで、適切な権限を設定します。
+                        </p>
+
+                        <p class="mt-4">パーミッション修正後、コンテナから出ます：</p>
                         <pre><code class="language-bash">exit</code></pre>
 
                         <h4><span class="step-number">13</span>Laravelのデータベース設定を編集する</h4>
