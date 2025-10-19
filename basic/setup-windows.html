@@ -787,16 +787,15 @@ git config --list</code></pre>
                             <li>インストール完了後、パソコンを再起動</li>
                         </ol>
 
-                        <h4>Docker Desktop の起動と設定</h4>
+                        <h4>Docker Desktop の起動</h4>
                         <ol>
                             <li>スタートメニューから「Docker Desktop」を起動</li>
                             <li>利用規約に同意</li>
-                            <li>右上の歯車アイコン（設定）をクリック</li>
-                            <li>「Resources」→「WSL Integration」を選択</li>
-                            <li>「Enable integration with my default WSL distro」をオンにする</li>
-                            <li>「Ubuntu」のスイッチもオンにする</li>
-                            <li>「Apply & Restart」をクリック</li>
                         </ol>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 Docker Desktop for Windows は、初回起動時に自動的にWSL2との統合設定を行います。
+                        </p>
 
                         <h4>インストール確認</h4>
                         <p>Ubuntu ターミナルで確認します：</p>
@@ -844,19 +843,28 @@ git config --list</code></pre>
                             </p>
                         </div>
 
-                        <h4>npm でインストール</h4>
-                        <p>Ubuntu ターミナルで以下のコマンドを実行します（Node.js 18 以上が必要）：</p>
+                        <h4>インストールスクリプトでインストール</h4>
+                        <p>Ubuntu ターミナルで以下のコマンドを実行します：</p>
 
-                        <pre><code class="language-bash">npm install -g @anthropic-ai/claude-code</code></pre>
+                        <pre><code class="language-bash">curl -fsSL https://claude.ai/install.sh | bash</code></pre>
 
-                        <p><code>-g</code> オプションで、グローバルにインストールされます（どのディレクトリからでも使用可能）。</p>
+                        <p class="text-blue-300 mt-4">
+                            💡 このスクリプトは、Claude Code を自動的にダウンロードしてインストールします。
+                        </p>
+
+                        <h4>インストール確認</h4>
+                        <p>インストールが完了したら、バージョンを確認してみましょう：</p>
+
+                        <pre><code class="language-bash">claude --version</code></pre>
+
+                        <p>バージョン番号が表示されれば、インストール成功です。</p>
 
                         <h4>初回セットアップと起動</h4>
-                        <p>インストールが完了したら、プロジェクトディレクトリ（またはホームディレクトリ）で以下のコマンドを実行：</p>
+                        <p>プロジェクトディレクトリ（またはホームディレクトリ）で以下のコマンドを実行：</p>
 
                         <pre><code class="language-bash">claude</code></pre>
 
-                        <p> Claude.ai での認証が求められます。ブラウザで認証してください。</p>
+                        <p>Claude.ai での認証が求められます。ブラウザで認証してください。</p>
 
                         <p class="mt-4">認証が完了すると、Claude Code のインタラクティブセッションが開始されます。</p>
 
