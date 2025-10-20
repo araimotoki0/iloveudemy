@@ -308,9 +308,14 @@
                         <p>Laravelでは、ルーティングの設定は以下のファイルで行います：</p>
                         <ul>
                             <li><strong>routes/web.php</strong> - Webページ用のルート（セッション、CSRF保護あり）</li>
-                            <li><strong>routes/api.php</strong> - API用のルート</li>
+                            <li><strong>routes/api.php</strong> - API用のルート（Laravel 11以降はデフォルトでは存在しません）</li>
                         </ul>
                         <p>この講座では、<strong>routes/web.php</strong> を使って解説していきます。</p>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 <code>api.php</code> は、API開発が必要になったら <code>php artisan install:api</code> コマンドで作成できます。<br>
+                            今は気にしなくてOKです。
+                        </p>
                     </div>
 
                     <div class="content-section">
@@ -367,12 +372,12 @@ Route::get('/about', function () {
 
                         <pre><code class="language-php">// routes/web.php
 
-Route::get('/welcome', function () {
-    return view('welcome');
+Route::get('/company', function () {
+    return view('company');
 });</code></pre>
 
                         <p>
-                            <code>view('welcome')</code> は、<code>resources/views/welcome.blade.php</code>
+                            <code>view('company')</code> は、<code>resources/views/company.blade.php</code>
                             というファイルを読み込んで表示します。
                         </p>
 
@@ -576,6 +581,116 @@ Route::get('/user/{id}', function ($id) {
                     </div>
 
                     <div class="content-section">
+                        <h3>ルートグループ（Route Group）</h3>
+                        <p>
+                            複数のルートに共通の設定を適用したい場合、<strong>ルートグループ</strong>を使うと便利です。<br>
+                            実務では、管理画面、API、多言語対応などで頻繁に使われる重要な機能です。
+                        </p>
+
+                        <h4>プレフィックス（prefix）でURLをまとめる</h4>
+                        <p>管理画面のルートを <code>/admin</code> で統一する例：</p>
+
+                        <pre><code class="language-php">// routes/web.php
+
+// ❌ グループを使わない場合（冗長）
+Route::get('/admin/dashboard', function () {
+    return '管理画面ダッシュボード';
+});
+Route::get('/admin/users', function () {
+    return 'ユーザー管理';
+});
+Route::get('/admin/posts', function () {
+    return '記事管理';
+});
+
+// ✅ グループを使う場合（推奨）
+Route::prefix('admin')->group(function () {
+    Route::get('/dashboard', function () {
+        return '管理画面ダッシュボード';
+    });
+    Route::get('/users', function () {
+        return 'ユーザー管理';
+    });
+    Route::get('/posts', function () {
+        return '記事管理';
+    });
+});
+
+// アクセスするURL
+// /admin/dashboard
+// /admin/users
+// /admin/posts</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            <strong>メリット：</strong> <code>/admin</code> を何度も書く必要がなく、後から変更も容易です。
+                        </p>
+
+                        <h4>ルート名にプレフィックスを付ける</h4>
+                        <p>ルート名にも共通の接頭辞を付けることができます。</p>
+
+                        <pre><code class="language-php">// routes/web.php
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', function () {
+        return '管理画面ダッシュボード';
+    })->name('dashboard');  // ルート名: admin.dashboard
+
+    Route::get('/users', function () {
+        return 'ユーザー管理';
+    })->name('users');      // ルート名: admin.users
+});
+
+// ビューでの使用例
+// {{ route('admin.dashboard') }} → /admin/dashboard
+// {{ route('admin.users') }}     → /admin/users</code></pre>
+
+                        <h4>実務での使用例</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-3 mb-4">
+                            <p class="text-sm mb-3"><strong>📋 よくある使い方</strong></p>
+
+                            <p class="text-sm font-semibold text-primary-300 mb-2">1. 管理画面のルートをまとめる</p>
+                            <pre class="text-xs"><code class="language-php">Route::prefix('admin')->name('admin.')->group(function () {
+    // 管理画面のルートをここに記述
+});</code></pre>
+
+                            <p class="text-sm font-semibold text-primary-300 mb-2 mt-4">2. APIのバージョン管理</p>
+                            <pre class="text-xs"><code class="language-php">Route::prefix('api/v1')->group(function () {
+    Route::get('/users', function () {
+        // APIバージョン1のユーザー一覧
+    });
+});
+
+Route::prefix('api/v2')->group(function () {
+    Route::get('/users', function () {
+        // APIバージョン2のユーザー一覧
+    });
+});</code></pre>
+
+                            <p class="text-sm font-semibold text-primary-300 mb-2 mt-4">3. 多言語対応</p>
+                            <pre class="text-xs"><code class="language-php">Route::prefix('ja')->group(function () {
+    Route::get('/about', function () {
+        return '会社概要';
+    });
+});
+
+Route::prefix('en')->group(function () {
+    Route::get('/about', function () {
+        return 'About Us';
+    });
+});
+
+// /ja/about → 日本語
+// /en/about → 英語</code></pre>
+                        </div>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 ルートグループは、実務で必ず使う機能です。<br>
+                            特に、認証機能（ログインしたユーザーだけアクセス可能）を実装する際にも重要になります。<br>
+                            今のうちから慣れておきましょう。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
                         <h3>定義したルートを確認する</h3>
                         <p>
                             Laravelには、定義されているすべてのルートを一覧表示するコマンドがあります。
@@ -614,6 +729,74 @@ Route::get('/user/{id}', function ($id) {
                         <p>
                             次の章では、<strong>ビュー（View）</strong>について詳しく学びます。
                             HTMLを別ファイルに分離して、より保守性の高いコードを書く方法を習得しましょう。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>補足：Routeの仕組み（読まなくてもOK）</h3>
+                        <p class="text-gray-400 text-sm">
+                            ※ この説明は理解しなくても、ルーティングは使えます。興味がある方だけお読みください。
+                        </p>
+
+                        <h4>Route::get() の :: とは？</h4>
+                        <p>
+                            <code>::</code> は<strong>スコープ解決演算子</strong>と呼ばれ、
+                            PHPで静的メソッドやクラス定数を呼び出す記号です。
+                        </p>
+
+                        <pre><code class="language-php">// 一般的な静的メソッドの例
+class Math
+{
+    public static function add($a, $b)
+    {
+        return $a + $b;
+    }
+}
+
+Math::add(1, 2);  // 3</code></pre>
+
+                        <h4>LaravelのRouteは「Facade」</h4>
+                        <p>
+                            ただし、LaravelのRouteは<strong>Facade（ファサード）</strong>という特殊な仕組みを使っています。
+                        </p>
+
+                        <p>
+                            見た目は静的メソッドですが、実際には内部でインスタンスメソッドを呼び出しています。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-3 mb-4">
+                            <p class="text-sm mb-3"><strong>💡 Facadeとは？</strong></p>
+                            <p class="text-sm">
+                                Facade（ファサード）は、複雑なシステムをシンプルに使うための「窓口」です。
+                            </p>
+                            <pre class="text-xs mt-3"><code class="language-php">// ❌ Facadeを使わない場合（複雑）
+$router = app('router');
+$router->get('/hello', function () {
+    return 'Hello';
+});
+
+// ✅ Facadeを使う場合（シンプル）
+Route::get('/hello', function () {
+    return 'Hello';
+});</code></pre>
+                            <p class="text-sm mt-3 text-blue-300">
+                                Facadeのおかげで、短く書けるようになっています。
+                            </p>
+                        </div>
+
+                        <h4>初学者が覚えるべきこと</h4>
+                        <p>
+                            <strong>「<code>Route::get()</code> でルートを定義できる」</strong>
+                        </p>
+                        <p>
+                            これだけでOKです。Facadeやサービスコンテナの仕組みは、Laravelに慣れてから学ぶ中級者向けの知識です。
+                        </p>
+
+                        <p class="text-gray-400 text-sm mt-4">
+                            📚 詳しく知りたい方は、Laravel公式ドキュメントの「Facades」を参照してください。<br>
+                            <a href="https://laravel.com/docs/12.x/facades" target="_blank" class="text-primary-400 hover:text-primary-300 underline">
+                                https://laravel.com/docs/12.x/facades
+                            </a>
                         </p>
                     </div>
                 </div>
