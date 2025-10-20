@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025年版ロードマップ - MIRAICHI特別講座</title>
+    <meta name="description" content="2025年からエンジニアを目指す人のための学習ロードマップ">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tab-list li a {
+            display: block;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #9ca3af;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab-list li a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .tab-list li a.active {
+            background: linear-gradient(135deg, #3183ff, #8b5cf6);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .step-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2
+                    class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="../basic/index.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    独学でエンジニア - MIRAICHI特別講座
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="tab-list">
+                    <li><a href="index.html">概要</a></li>
+                    <li><a href="story.html">独学の道のり</a></li>
+                    <li><a href="roadmap.html" class="active">2025年版ロードマップ</a></li>
+                    <li><a href="sales.html">営業ゼロで案件獲得</a></li>
+                    <li><a href="faq.html">よくある質問</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- イントロ -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg font-bold mb-3 text-yellow-300">
+                            💡 結論：やり方は自由。続けられる方法が正解
+                        </p>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            新井の考えと両学長の考え、2つの視点から2025年のエンジニア学習ロードマップを解説します。
+                        </p>
+                    </div>
+
+                    <!-- 新井のロードマップ -->
+                    <div class="content-section">
+                        <h3>新井のおすすめ学習ロードマップ（2025年版）</h3>
+
+                        <div class="step-box border-primary-500">
+                            <h4 class="text-white mt-0">ステップ1：Progateで基礎を固める（月額1,490円）</h4>
+                            <p class="text-sm text-gray-300">
+                                <strong class="text-yellow-300">低リスクで始められる適性テスト</strong>
+                            </p>
+                            <ul class="text-sm mt-2">
+                                <li>✓ <strong>PHPコース</strong> - サーバーサイドの基礎</li>
+                                <li>✓ <strong>HTML & CSSコース</strong> - Web画面の基礎</li>
+                                <li>✓ <strong>JavaScriptコース</strong> - 動的なWebページの基礎</li>
+                                <li>✓ <strong>Gitコース</strong> - バージョン管理の基礎</li>
+                            </ul>
+                            <p class="text-xs text-gray-400 mt-3">
+                                💡 月々1,490円と低コスト。ここで挫折するならエンジニアは向いていないかも。
+                            </p>
+                        </div>
+
+                        <div class="step-box border-purple-500">
+                            <h4 class="text-white mt-0">ステップ2：新井の講座で実践力をつける</h4>
+
+                            <div class="mt-4 space-y-3">
+                                <div class="glass-dark p-3 rounded">
+                                    <h5 class="font-bold text-yellow-300 text-sm">【第一弾】静的サイト + AWS基礎 → 名作</h5>
+                                    <p class="text-xs text-gray-300 mt-1">
+                                        HTML/CSS/JSでの静的サイトの作り方とAWSのIAM、S3、HTTPS化の基礎
+                                    </p>
+                                </div>
+
+                                <div class="glass-dark p-3 rounded">
+                                    <h5 class="font-bold text-gray-300 text-sm">【第二弾】Linux + EC2基礎 → 普通</h5>
+                                    <p class="text-xs text-gray-300 mt-1">
+                                        Linuxの基礎とAWSのセキュリティグループやEC2の基礎
+                                    </p>
+                                </div>
+
+                                <div class="glass-dark p-3 rounded">
+                                    <h5 class="font-bold text-cyan-300 text-sm">【第三弾】フルスタック概要 + Claude Code</h5>
+                                    <p class="text-xs text-gray-300 mt-1">
+                                        フルスタックで働くための必要な知識全概要。Claude Codeの使い方が詳しい
+                                    </p>
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        💡 難しすぎるからラジオ感覚で聞いていい。Claude Codeの使い方はかなり詳しくていい
+                                    </p>
+                                </div>
+
+                                <div class="glass-dark p-3 rounded border-2 border-yellow-500">
+                                    <h5 class="font-bold text-yellow-300 text-sm">【第四弾】Laravel + EC2 → 超名作になりそう</h5>
+                                    <p class="text-xs text-gray-300 mt-1">
+                                        LaravelフレームワークでのMVCアプリ構築とEC2とネットワークの基礎
+                                    </p>
+                                    <p class="text-xs text-yellow-300 mt-1">
+                                        ✅ <strong>すごい簡単なところからLaravelの使い方を教える</strong>
+                                    </p>
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        前提知識：Progateのphpコース終了レベル
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step-box border-green-500">
+                            <h4 class="text-white mt-0">ステップ3：これができれば仕事はある</h4>
+                            <ul class="text-sm">
+                                <li>✓ <strong>AWSをかじったことがある</strong></li>
+                                <li>✓ <strong>HTML、CSS、JS、Laravelがある程度わかる</strong></li>
+                                <li>✓ <strong>Gitが使える</strong></li>
+                                <li>✓ <strong>Claude CodeかCodexが使える</strong></li>
+                            </ul>
+                            <p class="text-sm text-green-300 mt-3">
+                                <strong>これだけできれば仕事はあるし求められる。</strong>
+                            </p>
+                            <p class="text-xs text-gray-400 mt-2">
+                                💡 MVCの構成のアプリは世の中にたくさん溢れているから、これだけでもお客様の役に立てます。
+                            </p>
+                        </div>
+
+                        <div class="step-box border-red-500">
+                            <h4 class="text-white mt-0">ステップ4：60点でもいいから仕事を取ってやり切る</h4>
+
+                            <div class="glass-dark p-4 rounded-lg mb-4 border-l-4 border-yellow-500">
+                                <p class="text-sm text-yellow-300 font-bold">
+                                    100点目指しても一生終わらない。60点でもいいから仕事を取って全力でやり切るのが一番成長する。
+                                </p>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    お客様に価値を発揮するために勉強してるんだから、まさにお客様に価値を発揮することが1番の近道。
+                                </p>
+                            </div>
+
+                            <h5 class="text-white text-sm font-bold mb-2">具体的なアクション</h5>
+
+                            <div class="space-y-3">
+                                <div class="glass-dark p-3 rounded">
+                                    <p class="text-sm text-primary-300 font-bold mb-1">1. 失敗しても許してもらえる仕事から始める</p>
+                                    <p class="text-xs text-gray-300">
+                                        知り合いに「失敗しても謝ればなんとか許してもらえる仕事」がないか聞いてみる
+                                    </p>
+                                </div>
+
+                                <div class="glass-dark p-3 rounded">
+                                    <p class="text-sm text-purple-300 font-bold mb-1">2. クラウドワークス等で簡単な仕事を受ける</p>
+                                    <p class="text-xs text-gray-300">
+                                        エンジニアの友達がいれば、炎上しそうになったらお金払って助けてもらう。<br>
+                                        まずはできそうな簡単な仕事を受けるようにする。
+                                    </p>
+                                </div>
+
+                                <div class="glass-dark p-3 rounded border-2 border-yellow-500">
+                                    <p class="text-sm text-yellow-300 font-bold mb-1">3. MVCまでできるようになったら新井に聞いてみる</p>
+                                    <p class="text-xs text-gray-300">
+                                        経歴が浅いと最初は汐留まで通っていただかないと厳しいですが、仕事はあります。<br>
+                                        <strong class="text-white">怒らない、盗まない、決まった時間に来れる、睡眠確保して健康、禁煙者なら紹介します。</strong>
+                                    </p>
+                                </div>
+
+                                <div class="glass-dark p-3 rounded">
+                                    <p class="text-sm text-cyan-300 font-bold mb-1">4. Udemy講師になって講座を作ってしまう</p>
+                                    <p class="text-xs text-gray-300">
+                                        学んだことをアウトプットすることで理解が深まる。実績にもなる。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-red-300 mt-4">
+                                ⚠️ 重要：本番の技術との乖離をなくすため、早めに実務に入る。座学だけでは一生100点にならない。
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr class="my-12 border-gray-700">
+
+                    <!-- 両学長のロードマップ -->
+                    <div class="content-section">
+                        <h3>両学長の黄金ルート（独学中心）</h3>
+
+                        <div class="glass-dark p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <h5 class="font-bold text-blue-300 mb-2">📺 参考動画</h5>
+                            <a href="https://www.youtube.com/watch?v=N7aYjpRpjGM&t=3s" target="_blank"
+                                class="text-sm text-blue-400 hover:text-blue-300 underline">
+                                【スクール必要？】Webエンジニア・Webデザイナーになるための黄金ルートを解説【リベ大公式切り抜き】
+                            </a>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-lg mb-6 border-l-4 border-red-500">
+                            <h5 class="font-bold text-red-300 mb-2">🚫 スクールは不要</h5>
+                            <p class="text-sm text-gray-300">
+                                結論：<strong>スクールは行かなくていい</strong>。独学で勉強できるし、独学でできない人はWebエンジニアやWebデザイナーに向いていない。
+                            </p>
+                            <p class="text-xs text-gray-400 mt-2">
+                                ※ どうしてもスクールに行くなら、内容と価格が合っているまともなスクールを選ぶこと
+                            </p>
+                        </div>
+
+                        <h4>Webエンジニア・Webデザイナーの黄金ルート</h4>
+
+                        <div class="step-box border-primary-500">
+                            <h4 class="text-white mt-0">ステップ0：自主学習（就職前の準備）</h4>
+
+                            <div class="mt-3 space-y-3">
+                                <div class="glass-dark p-3 rounded">
+                                    <h5 class="font-bold text-primary-300 text-sm">0-1. Progate等で上級編まで終わらせる</h5>
+                                    <p class="text-xs text-gray-300">
+                                        <strong class="text-yellow-300">最低限の適性テスト</strong> - 1,000円程度でできる
+                                    </p>
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        💡 これができないなら向いていないという残酷な現実を突きつけてくれる
+                                    </p>
+                                </div>
+
+                                <div class="glass-dark p-3 rounded">
+                                    <h5 class="font-bold text-purple-300 text-sm">0-2. 自主学習を進めて小さなプロダクトを開発</h5>
+                                    <p class="text-xs text-gray-300">
+                                        自分で作れるレベルまで学習を継続する
+                                    </p>
+                                </div>
+
+                                <div class="glass-dark p-3 rounded">
+                                    <h5 class="font-bold text-cyan-300 text-sm">0-3. プロダクトを公開してポートフォリオに加える</h5>
+                                    <p class="text-xs text-gray-300">
+                                        このプロダクトを武器に開発実績として就職活動する
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-red-300 mt-4">
+                                ⚠️ スクールは0-1と0-2の間に入る程度。スクール卒業だけでは就職できない。
+                            </p>
+                        </div>
+
+                        <div class="step-box border-green-500">
+                            <h4 class="text-white mt-0">ステップ1：開発経験が積める企業に就職</h4>
+                            <ul class="text-sm">
+                                <li>✓ <strong>イケてるIT企業</strong> - モダンな技術が学べる会社</li>
+                                <li>✓ <strong>開発経験が積める会社</strong> - 技術が磨ける環境</li>
+                                <li>✓ <strong>チーム開発や経験を積む</strong></li>
+                            </ul>
+                            <p class="text-xs text-gray-400 mt-3">
+                                💡 安全に未経験で採用してくれる会社は少ない。ステップ0でポートフォリオを作っておく必要がある。
+                            </p>
+                        </div>
+
+                        <div class="step-box border-yellow-500">
+                            <h4 class="text-white mt-0">ステップ2：徐々に独立を考える</h4>
+                            <p class="text-sm text-gray-300">
+                                一定レベル以上になれば、就職先にも仕事にも困らない。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-8">2025年はAIが最強の先生</h4>
+                        <div class="glass-dark p-4 rounded-lg">
+                            <h5 class="font-bold text-primary-300 mb-2">AIに聞きながら学習する時代</h5>
+                            <ul class="text-sm space-y-2">
+                                <li>✓ <strong>ChatGPTの学習モード</strong> - 先生のように寄り添って教えてくれる</li>
+                                <li>✓ <strong>いきなり答えを出さない</strong> - 「こうなった時どうなると思う？」と導いてくれる</li>
+                                <li>✓ <strong>無料のチュートリアル + AI</strong> - これが最もコスパが良い</li>
+                                <li>✓ <strong>デザインのフィードバック</strong> - 自分が作ったデザインを投げればAIが評価してくれる</li>
+                            </ul>
+                            <p class="text-sm text-yellow-300 mt-3">
+                                <strong>AIに聞きながら進められないなら、エンジニアは諦めた方が無難</strong>
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">厳しい現実：向き不向きがある</h4>
+                        <div class="glass-dark p-4 rounded-lg border-l-4 border-red-500">
+                            <p class="text-sm text-gray-300">
+                                <strong class="text-red-300">1から10まで全部教わらないとダメな人</strong>は、エンジニアだけでなく副業や独立にも向いていない。
+                            </p>
+                            <ul class="text-xs text-gray-400 mt-3 space-y-1">
+                                <li>• 自ら情報を取りに行く力</li>
+                                <li>• 必要な時に聞きに行く力</li>
+                                <li>• 誰に会いに行けばいいのか決めて探す力</li>
+                                <li>• 実践していく力</li>
+                            </ul>
+                            <p class="text-xs text-gray-300 mt-3">
+                                これらの力が、稼ぐ力を鍛えていくために必要。
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr class="my-12 border-gray-700">
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>まとめ：どちらの道を選んでも大事なこと</h3>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="glass-dark p-6 rounded-lg">
+                                <h4 class="text-primary-300 mt-0">新井のアプローチ</h4>
+                                <ul class="text-sm space-y-2">
+                                    <li>✓ Progateで適性確認（低リスク）</li>
+                                    <li>✓ 実践的な講座で段階的に学習</li>
+                                    <li>✓ MVC、AWS、Gitなど実務で使う技術を習得</li>
+                                    <li>✓ Claude Code等のAIツールを活用</li>
+                                </ul>
+                            </div>
+
+                            <div class="glass-dark p-6 rounded-lg">
+                                <h4 class="text-purple-300 mt-0">両学長のアプローチ</h4>
+                                <ul class="text-sm space-y-2">
+                                    <li>✓ 完全独学路線（スクール不要）</li>
+                                    <li>✓ Progate等で適性確認</li>
+                                    <li>✓ ポートフォリオを作って就職</li>
+                                    <li>✓ AIを最大限活用して学習</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-6 rounded-lg mt-6 border-l-4 border-yellow-500">
+                            <h4 class="text-yellow-300 mt-0">結論：自分に合った方法で続けることが最重要</h4>
+                            <p class="text-sm text-gray-300">
+                                新井の講座を使うか、完全独学でいくか、スクールを使うか。<br>
+                                <strong class="text-white">大事なのは「続けられる方法」を選ぶこと。</strong>
+                            </p>
+                            <p class="text-sm text-gray-300 mt-3">
+                                ただし、どの道を選んでも<strong class="text-yellow-300">「自分で調べる力」「自走する力」</strong>は必須。<br>
+                                これができないなら、エンジニアには向いていない。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const openBtn = document.getElementById('open-sidebar');
+        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        };
+
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        document.getElementById('scroll-to-top').addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+
+</html>

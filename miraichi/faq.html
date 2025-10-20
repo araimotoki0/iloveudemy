@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>よくある質問 - MIRAICHI特別講座</title>
+    <meta name="description" content="独学でエンジニアになることについてのよくある質問">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tab-list li a {
+            display: block;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #9ca3af;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab-list li a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .tab-list li a.active {
+            background: linear-gradient(135deg, #3183ff, #8b5cf6);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .faq-item {
+            margin-bottom: 16px;
+        }
+
+        .faq-question {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #3183ff;
+            margin-bottom: 8px;
+        }
+
+        .faq-answer {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #8b5cf6;
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2
+                    class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="../basic/index.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    独学でエンジニア - MIRAICHI特別講座
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="tab-list">
+                    <li><a href="index.html">概要</a></li>
+                    <li><a href="story.html">独学の道のり</a></li>
+                    <li><a href="roadmap.html">2025年版ロードマップ</a></li>
+                    <li><a href="sales.html">営業ゼロで案件獲得</a></li>
+                    <li><a href="faq.html" class="active">よくある質問</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- イントロ -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg font-bold mb-3 text-yellow-300">
+                            💡 よくある質問
+                        </p>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            ※ 以下の回答はAIが新井の思考に基づき考えました
+                        </p>
+                    </div>
+
+                    <!-- FAQ -->
+                    <div class="space-y-6">
+                        <!-- Q1 -->
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <p class="font-bold text-primary-300">Q1. 完全未経験でもエンジニアになれますか？</p>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-sm text-gray-300">
+                                    なれます。新井も33歳までパソコンを買ったことがなく、Excelをフィギュアスケートの技だと思っていたレベルから始めました。ただし、独学で進められる自走力は必須です。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Q2 -->
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <p class="font-bold text-primary-300">Q2. 何歳からでも始められますか？</p>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-sm text-gray-300">
+                                    始められます。新井は3歳で専門校に入学し、33歳でエンジニアとしてキャリアをスタートしました。年齢より「自分で学び続ける力」が重要です。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Q3 -->
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <p class="font-bold text-primary-300">Q3. スクールに通った方がいいですか？</p>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-sm text-gray-300">
+                                    基本的には不要です。独学で進められない人はエンジニアに向いていません。AIが先生になってくれる2025年は、独学が最もコスパが良いです。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Q4 -->
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <p class="font-bold text-primary-300">Q4. どれくらいの期間で仕事ができるレベルになりますか？</p>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-sm text-gray-300">
+                                    新井の場合、専門校2年 + 独学1年で最初の仕事を始めました。ただし、100点を目指さず60点でも仕事を始めることが重要です。実務が一番の成長機会です。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Q5 -->
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <p class="font-bold text-primary-300">Q5. フリーランスになるにはどれくらいの経験が必要ですか？</p>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-sm text-gray-300">
+                                    新井は会社員5年でフリーランスになりました。ただし、MVCまでできるようになれば、最初は安くても直受けで仕事を始めて実績を積むことができます。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Q6 -->
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <p class="font-bold text-primary-300">Q6. 営業経験はエンジニアに役立ちますか？</p>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-sm text-gray-300">
+                                    大いに役立ちます。お金にビビらない、失敗しても人を責めない、顧客視点で考える、ゴールから逆算する。これらはエンジニアとしても重要なスキルです。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Q7 -->
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <p class="font-bold text-primary-300">Q7. 最初はどんな案件から始めればいいですか？</p>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-sm text-gray-300">
+                                    友達の紹介など、失敗しても謝れば許してもらえる案件から始めましょう。金額は安くても構いません。品質で信頼を得れば、大きな案件と紹介が来ます。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Q8 -->
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <p class="font-bold text-primary-300">Q8. AIがあればエンジニアは不要になりませんか？</p>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-sm text-gray-300">
+                                    逆です。AIを使えるだけの人は山ほどいますが、エンジニアリングの基礎があってAIを使いこなせる人は圧倒的に少ないです。だからこそ価値があります。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Q9 -->
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <p class="font-bold text-primary-300">Q9. 新井さんに仕事を紹介してもらえますか？</p>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-sm text-gray-300">
+                                    MVCまでできるようになって、汐留まで通える方で、怒らない・盗まない・決まった時間に来れる・睡眠確保して健康・禁煙者なら紹介できます。まずは学習を進めて連絡してください。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Q10 -->
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <p class="font-bold text-primary-300">Q10. どの言語から学び始めればいいですか？</p>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-sm text-gray-300">
+                                    2025年ならProgateでPHP、HTML/CSS、JavaScriptから始めるのがおすすめです。新井の第四弾講座ではLaravelを使ったMVCアプリ開発を学べます。エンジニアリングの基礎を理解すれば、他の言語もすぐ理解できます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元基のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const openBtn = document.getElementById('open-sidebar');
+        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        };
+
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        document.getElementById('scroll-to-top').addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+
+</html>

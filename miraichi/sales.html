@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>営業ゼロで案件獲得 - MIRAICHI特別講座</title>
+    <meta name="description" content="直受け案件を営業せずに獲得し続ける方法">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tab-list li a {
+            display: block;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #9ca3af;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab-list li a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .tab-list li a.active {
+            background: linear-gradient(135deg, #3183ff, #8b5cf6);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2
+                    class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="../basic/index.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    独学でエンジニア - MIRAICHI特別講座
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="tab-list">
+                    <li><a href="index.html">概要</a></li>
+                    <li><a href="story.html">独学の道のり</a></li>
+                    <li><a href="roadmap.html">2025年版ロードマップ</a></li>
+                    <li><a href="sales.html" class="active">営業ゼロで案件獲得</a></li>
+                    <li><a href="faq.html">よくある質問</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- イントロ -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg font-bold mb-3 text-yellow-300">
+                            💡 案件を「取りに行く」のではなく「依頼される」仕組み
+                        </p>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            直受け案件を営業ゼロで獲得し続ける方法を、実体験をもとに解説します。
+                        </p>
+                    </div>
+
+                    <!-- 前提：直受けが重要 -->
+                    <div class="content-section">
+                        <h3>前提：なぜ直受けが重要か</h3>
+
+                        <div class="glass-dark p-5 rounded-xl mb-4 border-l-4 border-yellow-500">
+                            <h4 class="text-white mt-0 mb-3">直受けが前提となる</h4>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <h5 class="font-bold text-primary-300 text-sm mb-2">紹介案件の問題点</h5>
+                                    <p class="text-sm text-gray-300">
+                                        紹介（エージェント経由など）だと<strong class="text-red-300">保守がないことが多い</strong>。
+                                        単発で終わってしまい、収入が安定しない。
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <h5 class="font-bold text-green-300 text-sm mb-2">直受けのメリット</h5>
+                                    <ul class="text-sm text-gray-300 space-y-1">
+                                        <li>✓ <strong class="text-white">必ず保守がつく</strong></li>
+                                        <li>✓ <strong class="text-yellow-300">1〜2案件こなせば生活が安定する</strong></li>
+                                        <li>✓ <strong class="text-cyan-300">収入が積み上がる</strong> - 実際にはサブスクリプションに近い</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4>受託と準委任の違い</h4>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="glass-dark p-4 rounded-lg">
+                                <h5 class="font-bold text-primary-300 mb-2">受託契約</h5>
+                                <p class="text-sm text-gray-300 mb-2">
+                                    成果物を納品する契約。完成責任がある。
+                                </p>
+                                <p class="text-xs text-yellow-300">
+                                    リスクは高いが、やる気が出る。成果に対して報酬が決まる。
+                                </p>
+                            </div>
+                            <div class="glass-dark p-4 rounded-lg">
+                                <h5 class="font-bold text-purple-300 mb-2">準委任契約</h5>
+                                <p class="text-sm text-gray-300 mb-2">
+                                    労働時間に対して報酬を支払う契約。成果物の完成責任はない。
+                                </p>
+                                <p class="text-xs text-gray-400">
+                                    リスクは低いが、時間単価での計算になる。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 実体験：案件獲得の道のり -->
+                    <div class="content-section">
+                        <h3>実体験：案件獲得の道のり</h3>
+
+                        <div class="space-y-4">
+                            <div class="glass-dark p-5 rounded-xl border-l-4 border-primary-500">
+                                <h4 class="text-white mt-0 mb-2">最初の1件：友達の紹介で5万円</h4>
+                                <p class="text-sm text-gray-300">
+                                    初めは1件のお客様から毎月5万円で品質の良いものを納品し続けた。
+                                </p>
+                                <div class="mt-3 bg-black/30 p-3 rounded">
+                                    <p class="text-sm text-yellow-300 font-bold">
+                                        → その結果、<strong class="text-white">3,000万円程度の新規案件</strong>をいただいた
+                                    </p>
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        さらに別のお客様もご紹介いただいた
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="glass-dark p-5 rounded-xl border-l-4 border-purple-500">
+                                <h4 class="text-white mt-0 mb-2">ハッカソン3回連続優勝</h4>
+                                <p class="text-sm text-gray-300">
+                                    ハッカソンで3回連続優勝して仕事をもらった。今も続いている。
+                                </p>
+                                <div class="mt-3 bg-black/30 p-3 rounded">
+                                    <p class="text-sm text-cyan-300 font-bold">
+                                        → そのお客様からも<strong class="text-white">一件ご紹介</strong>をいただいた
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-lg mt-6 border-l-4 border-green-500">
+                            <p class="text-sm text-green-300 font-bold">
+                                パターン：最初は安くても品質で信頼を得る → 大きな案件 + 紹介が来る
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- コツ -->
+                    <div class="content-section">
+                        <h3>営業ゼロで案件を獲得し続ける4つのコツ</h3>
+
+                        <div class="space-y-4">
+                            <div class="glass-dark p-5 rounded-xl border-l-4 border-primary-500">
+                                <h4 class="text-white mt-0 mb-3">コツ1：全てまるっと受託する</h4>
+                                <p class="text-sm text-gray-300 mb-3">
+                                    WordPressだろうがLPだろうが、<strong class="text-yellow-300">受けられるもの全て受ける</strong>。
+                                </p>
+                                <p class="text-xs text-gray-400 mb-3">
+                                    💡 エンジニアリングのメカニズムを理解してるから、新しいこともすぐに理解できる自信がある。
+                                </p>
+                                <div class="bg-black/30 p-3 rounded">
+                                    <h5 class="font-bold text-green-300 text-xs mb-1">売上だけでなく効率も良い</h5>
+                                    <p class="text-xs text-gray-300">
+                                        <strong class="text-white">コミュニケーションコストが一件で済む</strong>から、複数の小さい案件を別々の顧客から受けるより圧倒的に効率が良い。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="glass-dark p-5 rounded-xl border-l-4 border-yellow-500">
+                                <h4 class="text-white mt-0 mb-3">コツ2：品質の良いものを作る</h4>
+                                <ul class="text-sm text-gray-300 space-y-2">
+                                    <li>✓ <strong>顧客と連絡を密に取る</strong></li>
+                                    <li>✓ <strong>実装したらすぐにデプロイして確認してもらう</strong></li>
+                                    <li>✓ <strong>時間遅れそうなら早い段階から連絡</strong></li>
+                                </ul>
+                                <div class="mt-3 bg-black/30 p-3 rounded">
+                                    <p class="text-sm text-green-300 font-bold">
+                                        → 結果：紹介が増える
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="glass-dark p-5 rounded-xl border-l-4 border-green-500">
+                                <h4 class="text-white mt-0 mb-3">コツ3：必ず直受け</h4>
+                                <p class="text-sm text-gray-300">
+                                    エージェント経由ではなく、<strong class="text-yellow-300">お客様と直接契約</strong>する。
+                                    保守が続き、収入が安定する。
+                                </p>
+                            </div>
+
+                            <div class="glass-dark p-5 rounded-xl border-l-4 border-red-500">
+                                <h4 class="text-white mt-0 mb-3">コツ4：安すぎる案件は断る</h4>
+                                <p class="text-sm text-gray-300">
+                                    <strong class="text-red-300">生活の安定は必要</strong>。安すぎる案件ばかり受けると疲弊する。
+                                </p>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    💡 ただし、最初は安くても良いから直受けで全力を尽くす。信頼を得れば単価は上がる。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>まとめ：営業ゼロで案件を獲得する仕組み</h3>
+
+                        <div class="glass-dark p-6 rounded-xl border-l-4 border-yellow-500">
+                            <h4 class="text-yellow-300 mt-0 mb-4">サイクル</h4>
+
+                            <ol class="space-y-3 text-sm text-gray-300">
+                                <li class="flex items-start">
+                                    <span class="bg-primary-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-xs font-bold">1</span>
+                                    <span>最初は安くても良いから<strong class="text-white">直受けで案件を受ける</strong></span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-xs font-bold">2</span>
+                                    <span><strong class="text-white">品質の良いものを作り</strong>、密にコミュニケーションを取る</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="bg-cyan-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-xs font-bold">3</span>
+                                    <span>信頼を得て、<strong class="text-yellow-300">大きな案件 + 紹介</strong>をもらう</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-xs font-bold">4</span>
+                                    <span>保守で収入が安定し、<strong class="text-white">サブスクリプションのように積み上がる</strong></span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="bg-pink-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 text-xs font-bold">5</span>
+                                    <span>紹介の紹介が続き、<strong class="text-yellow-300">営業ゼロで案件が来る</strong>状態になる</span>
+                                </li>
+                            </ol>
+
+                            <div class="mt-6 pt-4 border-t border-gray-600">
+                                <p class="text-sm text-white font-bold">
+                                    重要なのは「取りに行く」のではなく「依頼される」仕組みを作ること
+                                </p>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    品質と信頼で積み上げれば、自然と案件は来る。営業は不要。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const openBtn = document.getElementById('open-sidebar');
+        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        };
+
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        document.getElementById('scroll-to-top').addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+
+</html>
