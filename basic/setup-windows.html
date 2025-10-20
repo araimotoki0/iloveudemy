@@ -1084,11 +1084,27 @@ cd リポジトリ名</code></pre>
                         <h4><span class="step-number">12</span>Laravelのインストール</h4>
 
                         <p>コンテナ内でLaravelをインストールします：</p>
-                        <pre><code class="language-bash">composer create-project laravel/laravel .</code></pre>
+                        <pre><code class="language-bash">composer create-project laravel/laravel:"^12.0" .</code></pre>
 
                         <p class="text-yellow-400 mt-4">
                             ⚠️ 最後の <code>.</code>（ドット）を忘れずに！これは「現在のディレクトリにインストール」を意味します。
                         </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-2">📌 <strong>バージョン指定について</strong></p>
+                            <p class="text-sm">
+                                動画では <code>composer create-project laravel/laravel .</code> でLaravel最新版を取得していましたが、<br>
+                                この資料では <code>laravel/laravel:"^12.0"</code> とバージョンを指定しています。
+                            </p>
+                            <p class="text-sm mt-2 text-blue-300">
+                                💡 <strong>理由：</strong> バージョンを指定しないと、将来Laravel 13、14などがリリースされた際に、<br>
+                                最新バージョンが自動的にインストールされ、動作が変わってしまう可能性があるためです。
+                            </p>
+                            <p class="text-sm mt-2">
+                                <code>"^12.0"</code> と指定することで、Laravel 12系の最新版（12.0、12.1など）をインストールし、<br>
+                                メジャーバージョンアップ（13.0など）は自動的にインストールされないようにしています。
+                            </p>
+                        </div>
 
                         <h4>パーミッションの修正</h4>
 
