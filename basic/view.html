@@ -435,6 +435,95 @@ Route::get('/greeting', function () {
                             ⚠️ <code>{!! !!}</code> はエスケープされないため、信頼できるデータのみに使用してください。
                         </p>
 
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-red-500">
+                            <p class="text-sm mb-3"><strong>🚨 XSS攻撃の実例 - 実際に試してみよう</strong></p>
+
+                            <p class="text-sm mb-3">
+                                <code>{!! !!}</code> がなぜ危険なのか、実際にLaravelで確認してみましょう。
+                            </p>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">📝 手順1: ルートを作成</p>
+                            <pre class="text-xs mb-3"><code class="language-php">// routes/web.php に追加
+
+Route::get('/xss-demo', function () {
+    // 攻撃者が入力したコメント（本来はフォームから受け取る）
+    $comment = 'こんにちは&lt;script&gt;alert("XSS攻撃成功！")&lt;/script&gt;';
+
+    return view('xss-demo', compact('comment'));
+});</code></pre>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2 mt-4">📝 手順2: ビューを作成</p>
+                            <pre class="text-xs mb-3"><code class="language-html">&lt;!-- resources/views/xss-demo.blade.php を新規作成 --&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;XSS攻撃デモ&lt;/title&gt;
+    &lt;style&gt;
+        .danger { border: 3px solid red; padding: 20px; margin: 20px; background: #ffe0e0; }
+        .safe { border: 3px solid green; padding: 20px; margin: 20px; background: #e0ffe0; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;XSS攻撃のデモ&lt;/h1&gt;
+
+    &lt;div class="danger"&gt;
+        &lt;h2&gt;❌ エスケープしない場合&lt;/h2&gt;
+        &lt;p&gt;コメント: {!! $comment !!}&lt;/p&gt;
+    &lt;/div&gt;
+
+    &lt;div class="safe"&gt;
+        &lt;h2&gt;✅ エスケープする場合&lt;/h2&gt;
+        &lt;p&gt;コメント: {{ $comment }}&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2 mt-4">📝 手順3: ブラウザで確認</p>
+                            <p class="text-sm mb-2">
+                                <code>http://localhost/xss-demo</code> にアクセスしてください。
+                            </p>
+
+                            <div class="bg-gray-900 p-4 rounded-lg mt-3 mb-3">
+                                <p class="text-sm font-semibold text-red-300 mb-2">🔥 結果</p>
+                                <ul class="text-sm space-y-2">
+                                    <li><strong>上の赤いボックス（{!! !!}）:</strong><br>
+                                        → アラートが表示される（JavaScriptが実行された）</li>
+                                    <li><strong>下の緑のボックス（{{ }}）:</strong><br>
+                                        → 「こんにちは&lt;script&gt;alert("XSS攻撃成功！")&lt;/script&gt;」と文字列として表示される</li>
+                                </ul>
+                            </div>
+
+                            <p class="text-sm font-semibold text-blue-300 mb-2 mt-4">💡 実験してみよう</p>
+                            <p class="text-sm mb-2">
+                                ルートの <code>$comment</code> の内容を変更して、色々試してみてください：
+                            </p>
+                            <pre class="text-xs mb-3"><code class="language-php">// 例1: 画像タグで攻撃
+$comment = '&lt;img src=x onerror="alert(\'画像でも攻撃できる\')"&gt;';
+
+// 例2: ページを改ざん
+$comment = '&lt;script&gt;document.body.innerHTML = "&lt;h1&gt;乗っ取られました&lt;/h1&gt;"&lt;/script&gt;';
+
+// 例3: 普通のHTML（安全な使い方）
+$comment = '&lt;strong&gt;太字&lt;/strong&gt;のテキスト';</code></pre>
+
+                            <hr class="border-gray-600 my-4">
+
+                            <p class="text-sm font-semibold text-red-300 mb-2">⚠️ 重要なルール</p>
+                            <ul class="text-sm space-y-1 ml-4">
+                                <li><strong>ユーザー入力は絶対に {!! !!} を使わない</strong></li>
+                                <li>❌ コメント、レビュー、プロフィール → <code>{{ }}</code> を使う</li>
+                                <li>❌ フォーム入力全般 → <code>{{ }}</code> を使う</li>
+                                <li>✅ 管理者が作ったHTMLコンテンツのみ → <code>{!! !!}</code> でOK</li>
+                            </ul>
+
+                            <p class="text-sm text-yellow-300 mt-3">
+                                💡 <code>{{ }}</code> は自動的にエスケープされるため、<strong>デフォルトで安全</strong>です。<br>
+                                99%のケースで <code>{{ }}</code> を使えば問題ありません。
+                            </p>
+                        </div>
+
                         <h4>if文</h4>
                         <pre><code class="language-html">@if ($age >= 20)
     &lt;p&gt;成人です&lt;/p&gt;
@@ -475,10 +564,93 @@ Route::get('/users', function () {
     &lt;p&gt;ユーザーがいません&lt;/p&gt;
 @endforelse</code></pre>
 
+                        <p class="text-sm mt-3">
+                            <code>@forelse</code> は、<code>@foreach</code> に「データが空の場合の処理」を追加したものです。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-3">
+                            <p class="text-sm mb-3"><strong>💡 @empty の意味</strong></p>
+                            <p class="text-sm mb-2">
+                                <code>@empty</code> は、配列が空（要素が0個）の場合に実行される部分です。
+                            </p>
+
+                            <p class="text-sm font-semibold text-blue-300 mb-2 mt-4">❌ 普通の @foreach で書くと...</p>
+                            <pre class="text-xs mb-3"><code class="language-html">@if (count($users) > 0)
+    @foreach ($users as $user)
+        &lt;li&gt;{{ $user }}&lt;/li&gt;
+    @endforeach
+@else
+    &lt;p&gt;ユーザーがいません&lt;/p&gt;
+@endif</code></pre>
+                            <p class="text-sm text-gray-400">→ 冗長で読みにくい</p>
+
+                            <p class="text-sm font-semibold text-green-300 mb-2 mt-4">✅ @forelse で書くと...</p>
+                            <pre class="text-xs mb-3"><code class="language-html">@forelse ($users as $user)
+    &lt;li&gt;{{ $user }}&lt;/li&gt;
+@empty
+    &lt;p&gt;ユーザーがいません&lt;/p&gt;
+@endforelse</code></pre>
+                            <p class="text-sm text-green-300">→ スッキリ！実務ではこちらを使います。</p>
+                        </div>
+
+                        <p class="text-sm font-semibold text-yellow-300 mt-4 mb-2">📋 実務でよく使う例</p>
+                        <pre><code class="language-html">&lt;!-- 商品一覧 --&gt;
+@forelse ($products as $product)
+    &lt;div class="product"&gt;
+        &lt;h3&gt;{{ $product->name }}&lt;/h3&gt;
+        &lt;p&gt;¥{{ $product->price }}&lt;/p&gt;
+    &lt;/div&gt;
+@empty
+    &lt;p class="text-gray-500"&gt;商品がありません&lt;/p&gt;
+@endforelse</code></pre>
+
+                        <p class="text-sm text-blue-300 mt-3">
+                            💡 「データがない時のメッセージ」を表示する場合は、<code>@foreach</code> より <code>@forelse</code> を使いましょう。
+                        </p>
+
                         <h4>unless（ifの逆）</h4>
                         <pre><code class="language-html">@unless ($user->isAdmin())
     &lt;p&gt;あなたは管理者ではありません&lt;/p&gt;
 @endunless</code></pre>
+
+                        <p class="text-sm mt-3">
+                            <code>@unless</code> は <code>@if</code> の否定形です。以下のコードと同じ意味になります：
+                        </p>
+
+                        <pre><code class="language-html">&lt;!-- @unless と同じ意味 --&gt;
+@if (!$user->isAdmin())
+    &lt;p&gt;あなたは管理者ではありません&lt;/p&gt;
+@endif</code></pre>
+
+                        <p class="text-sm text-gray-400 mt-2">
+                            💡 実務では <code>@if (!...)</code> を使う人が多いです。<code>@unless</code> はほとんど使いません。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-5 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>📚 他のBladeディレクティブについて</strong></p>
+                            <p class="text-sm mb-3">
+                                Laravelには、この章で紹介した以外にも多くのBladeディレクティブがあります。<br>
+                                例えば、<code>@can</code>（権限チェック）、<code>@include</code>（部分テンプレート）、<code>@push</code>（スタック）、<code>@error</code>（バリデーションエラー）、<code>@switch</code>（switch文）などです。
+                            </p>
+
+                            <p class="text-sm font-semibold text-blue-300 mb-2">しかし、今の内容で十分です</p>
+                            <p class="text-sm mb-3">
+                                <strong>この章で学んだディレクティブだけで、実務の90%以上をカバーできます。</strong><br>
+                                他のディレクティブは、必要になったときに公式ドキュメントを見れば理解できます。
+                            </p>
+
+                            <p class="text-sm text-yellow-300 mt-4">
+                                💡 <strong>まずは今の内容を完璧に使えるようになりましょう。</strong><br>
+                                初学者が覚えるべきBladeディレクティブは、この章の内容で完結しています。
+                            </p>
+
+                            <p class="text-sm text-gray-400 mt-3">
+                                📖 Blade全機能を知りたい方は、公式ドキュメントを参照してください：<br>
+                                <a href="https://laravel.com/docs/12.x/blade" target="_blank" class="text-primary-400 hover:text-primary-300 underline">
+                                    https://laravel.com/docs/12.x/blade
+                                </a>
+                            </p>
+                        </div>
                     </div>
 
                     <div class="content-section">
@@ -519,7 +691,53 @@ Route::get('/users/{id}', function ($id) {
                             複数のページで共通のヘッダーやフッターを使う場合、レイアウト機能を使います。
                         </p>
 
-                        <h4>1. レイアウトファイルを作成</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4">
+                            <p class="text-sm mb-3"><strong>💡 Bladeディレクティブの意味</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li><strong>@extends</strong> - レイアウトファイルを「継承する」</li>
+                                <li><strong>@yield</strong> - 「ここに子ページの内容が入りますよ」という穴あけ</li>
+                                <li><strong>@section</strong> - 「この内容を@yieldの穴に埋めます」という指定</li>
+                                <li><strong>@endsection</strong> - @sectionの終わり</li>
+                            </ul>
+                            <p class="text-sm text-blue-300 mt-3">
+                                簡単に言うと：<strong>親ファイル（レイアウト）に穴を開けて、子ファイル（各ページ）がその穴を埋める</strong>イメージです。
+                            </p>
+                        </div>
+
+                        <h4>仕組みを図で理解する</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4">
+                            <pre class="text-xs" style="line-height: 1.8;"><code>┌─────────────────────────────────────┐
+│ 親ファイル (layouts/app.blade.php) │
+├─────────────────────────────────────┤
+│ &lt;header&gt;ヘッダー&lt;/header&gt;            │
+│                                     │
+│ @yield('content')  ← ここに子の内容が入る
+│                                     │
+│ &lt;footer&gt;フッター&lt;/footer&gt;            │
+└─────────────────────────────────────┘
+           ↑ @extends で継承
+           │
+┌─────────────────────────────────────┐
+│ 子ファイル (pages/about.blade.php) │
+├─────────────────────────────────────┤
+│ @section('content')                 │
+│   &lt;h1&gt;会社概要&lt;/h1&gt;                 │
+│   &lt;p&gt;内容&lt;/p&gt;                      │
+│ @endsection                         │
+└─────────────────────────────────────┘
+           │
+           ↓ 結果
+┌─────────────────────────────────────┐
+│ ブラウザに表示される最終HTML        │
+├─────────────────────────────────────┤
+│ &lt;header&gt;ヘッダー&lt;/header&gt;            │
+│ &lt;h1&gt;会社概要&lt;/h1&gt;                   │
+│ &lt;p&gt;内容&lt;/p&gt;                        │
+│ &lt;footer&gt;フッター&lt;/footer&gt;            │
+└─────────────────────────────────────┘</code></pre>
+                        </div>
+
+                        <h4>手順1: 親ファイル（レイアウト）を作成</h4>
                         <pre><code class="language-html">&lt;!-- resources/views/layouts/app.blade.php --&gt;
 
 &lt;!DOCTYPE html&gt;
@@ -543,7 +761,14 @@ Route::get('/users/{id}', function ($id) {
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
-                        <h4>2. レイアウトを継承して使う</h4>
+                        <p class="text-sm mt-3"><strong>ポイント:</strong></p>
+                        <ul class="text-sm space-y-1">
+                            <li><code>@yield('title')</code> - タイトル用の穴</li>
+                            <li><code>@yield('content')</code> - メインコンテンツ用の穴</li>
+                            <li>ヘッダーとフッターは共通なので直接書く</li>
+                        </ul>
+
+                        <h4>手順2: 子ファイル（各ページ）を作成</h4>
                         <pre><code class="language-html">&lt;!-- resources/views/pages/about.blade.php --&gt;
 
 @extends('layouts.app')
@@ -555,50 +780,341 @@ Route::get('/users/{id}', function ($id) {
     &lt;p&gt;私たちは素晴らしい会社です。&lt;/p&gt;
 @endsection</code></pre>
 
-                        <p>解説：</p>
-                        <ul>
-                            <li><code>@extends('layouts.app')</code> - レイアウトを継承</li>
-                            <li><code>@section('title', '会社概要')</code> - タイトルを設定</li>
-                            <li><code>@section('content') ... @endsection</code> - メインコンテンツを定義</li>
+                        <p class="text-sm mt-3"><strong>各ディレクティブの意味:</strong></p>
+                        <ul class="text-sm space-y-2 ml-4">
+                            <li><strong>@extends('layouts.app')</strong><br>
+                                → 「<code>layouts/app.blade.php</code>を親として使います」という宣言<br>
+                                → 必ず1行目に書く</li>
+
+                            <li><strong>@section('title', '会社概要')</strong><br>
+                                → 「親の<code>@yield('title')</code>に『会社概要』を入れます」<br>
+                                → 短い内容は1行で書ける</li>
+
+                            <li><strong>@section('content') ... @endsection</strong><br>
+                                → 「親の<code>@yield('content')</code>にこの内容を入れます」<br>
+                                → 複数行の内容は<code>@endsection</code>で閉じる</li>
                         </ul>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 mb-4">
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">🧪 実際に試してみよう</p>
+                            <p class="text-sm mb-3">以下のコードをコピペして動作を確認してください。</p>
+
+                            <p class="text-sm font-semibold mb-2">1. ディレクトリ作成</p>
+                            <pre class="text-xs mb-3"><code class="language-bash">mkdir -p resources/views/layouts
+mkdir -p resources/views/pages</code></pre>
+
+                            <p class="text-sm font-semibold mb-2">2. レイアウトファイル作成</p>
+                            <p class="text-xs mb-2"><code>resources/views/layouts/app.blade.php</code></p>
+                            <pre class="text-xs mb-3"><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;@yield('title', 'My Website')&lt;/title&gt;
+    &lt;style&gt;
+        header { background: #667eea; color: white; padding: 20px; }
+        nav { background: #333; padding: 10px; }
+        nav a { color: white; margin: 0 15px; text-decoration: none; }
+        main { max-width: 1200px; margin: 20px auto; padding: 20px; }
+        footer { background: #333; color: white; text-align: center; padding: 20px; margin-top: 40px; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;header&gt;
+        &lt;h1&gt;My Laravel Website&lt;/h1&gt;
+    &lt;/header&gt;
+
+    &lt;nav&gt;
+        &lt;a href="/layout/home"&gt;ホーム&lt;/a&gt;
+        &lt;a href="/layout/about"&gt;会社概要&lt;/a&gt;
+        &lt;a href="/layout/contact"&gt;お問い合わせ&lt;/a&gt;
+    &lt;/nav&gt;
+
+    &lt;main&gt;
+        @yield('content')
+    &lt;/main&gt;
+
+    &lt;footer&gt;
+        &lt;p&gt;&copy; 2025 My Website&lt;/p&gt;
+    &lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                            <p class="text-sm font-semibold mb-2 mt-4">3. 各ページ作成</p>
+                            <p class="text-xs mb-2"><code>resources/views/pages/home.blade.php</code></p>
+                            <pre class="text-xs mb-3"><code class="language-html">@extends('layouts.app')
+
+@section('title', 'ホーム')
+
+@section('content')
+    &lt;h2&gt;ホームページ&lt;/h2&gt;
+    &lt;p&gt;extendsとsectionを使ってレイアウトを継承しています。&lt;/p&gt;
+@endsection</code></pre>
+
+                            <p class="text-xs mb-2"><code>resources/views/pages/about.blade.php</code></p>
+                            <pre class="text-xs mb-3"><code class="language-html">@extends('layouts.app')
+
+@section('title', '会社概要')
+
+@section('content')
+    &lt;h2&gt;会社概要&lt;/h2&gt;
+    &lt;p&gt;会社名: 株式会社サンプル&lt;/p&gt;
+    &lt;p&gt;設立: 2020年1月1日&lt;/p&gt;
+@endsection</code></pre>
+
+                            <p class="text-xs mb-2"><code>resources/views/pages/contact.blade.php</code></p>
+                            <pre class="text-xs mb-3"><code class="language-html">@extends('layouts.app')
+
+@section('title', 'お問い合わせ')
+
+@section('content')
+    &lt;h2&gt;お問い合わせ&lt;/h2&gt;
+    &lt;p&gt;メール: contact@example.com&lt;/p&gt;
+    &lt;p&gt;電話: 03-1234-5678&lt;/p&gt;
+@endsection</code></pre>
+
+                            <p class="text-sm font-semibold mb-2 mt-4">4. ルート追加 (<code>routes/web.php</code>)</p>
+                            <pre class="text-xs mb-3"><code class="language-php">Route::get('/layout/home', function () {
+    return view('pages.home');
+});
+
+Route::get('/layout/about', function () {
+    return view('pages.about');
+});
+
+Route::get('/layout/contact', function () {
+    return view('pages.contact');
+});</code></pre>
+
+                            <p class="text-sm font-semibold mb-2 mt-4">5. ブラウザで確認</p>
+                            <ul class="text-xs space-y-1">
+                                <li><code>http://localhost/layout/home</code></li>
+                                <li><code>http://localhost/layout/about</code></li>
+                                <li><code>http://localhost/layout/contact</code></li>
+                            </ul>
+
+                            <p class="text-sm text-green-300 mt-3">
+                                ✅ ナビゲーションで3ページを移動してみてください。<br>
+                                ヘッダー・ナビ・フッターが全ページで共通なのが分かります。
+                            </p>
+                        </div>
 
                         <p class="text-blue-300 mt-4">
                             💡 レイアウトを使うことで、ヘッダーやフッターを毎回書く必要がなくなります。
                             1箇所修正すれば、すべてのページに反映されます。
                         </p>
+
+                        <h4>ディレクティブの順番ルール</h4>
+                        <p class="mt-3">
+                            <code>@extends</code> と <code>@section</code> を書く順番には<strong>ルール</strong>があります。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4">
+                            <p class="text-sm mb-3"><strong>📋 順番のルール</strong></p>
+
+                            <p class="text-sm font-semibold text-green-300 mb-2">✅ ルール1: @extends は必ず1行目</p>
+                            <pre class="text-xs mb-3"><code class="language-html">@extends('layouts.app')  &lt;!-- 必ず1行目 --&gt;
+
+@section('title', '会社概要')
+@section('content')
+    &lt;h2&gt;会社概要&lt;/h2&gt;
+@endsection</code></pre>
+                            <p class="text-sm text-gray-400 mb-3">
+                                → Laravelが「このファイルは親ファイルを継承する」と最初に知る必要があるため
+                            </p>
+
+                            <p class="text-sm font-semibold text-red-300 mb-2">❌ これはエラーになる</p>
+                            <pre class="text-xs mb-3"><code class="language-html">@section('title', 'ホーム')
+@extends('layouts.app')  &lt;!-- エラー！extendsは1行目じゃないとダメ --&gt;</code></pre>
+
+                            <hr class="border-gray-600 my-4">
+
+                            <p class="text-sm font-semibold text-green-300 mb-2">✅ ルール2: @section の順番は自由</p>
+                            <pre class="text-xs mb-3"><code class="language-html">@extends('layouts.app')
+
+&lt;!-- この順番でもOK --&gt;
+@section('content')
+    &lt;h2&gt;会社概要&lt;/h2&gt;
+@endsection
+
+@section('title', '会社概要')</code></pre>
+
+                            <pre class="text-xs mb-3"><code class="language-html">@extends('layouts.app')
+
+&lt;!-- この順番でもOK --&gt;
+@section('title', '会社概要')
+@section('subtitle', 'About Us')
+@section('content')
+    &lt;h2&gt;会社概要&lt;/h2&gt;
+@endsection</code></pre>
+
+                            <p class="text-sm text-gray-400">
+                                → <code>@section</code> は「この名前の穴に、この内容を入れる」という指示なので、順番は関係ない
+                            </p>
+
+                            <hr class="border-gray-600 my-4">
+
+                            <p class="text-sm font-semibold text-blue-300 mb-2">💡 推奨される順番（読みやすさのため）</p>
+                            <p class="text-sm mb-3">
+                                実務では、見やすさのために以下の順番で書くのが一般的です。
+                            </p>
+                            <pre class="text-xs mb-3"><code class="language-html">@extends('layouts.app')
+
+@section('title', 'ページタイトル')  &lt;!-- 短い内容を上に --&gt;
+
+@section('content')  &lt;!-- 長い内容を下に --&gt;
+    &lt;h2&gt;メインコンテンツ&lt;/h2&gt;
+    &lt;p&gt;たくさんのHTML...&lt;/p&gt;
+@endsection</code></pre>
+
+                            <p class="text-sm text-blue-300 mt-3">
+                                理由: 短い <code>@section</code> を上に、長い <code>@section</code> を下に書くと読みやすい
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 mb-4">
+                            <p class="text-sm font-semibold mb-3"><strong>まとめ</strong></p>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: rgba(255,255,255,0.1);">
+                                        <th style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; text-align: left; font-size: 0.875rem;">ディレクティブ</th>
+                                        <th style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; text-align: left; font-size: 0.875rem;">順番</th>
+                                        <th style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; text-align: left; font-size: 0.875rem;">理由</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; font-size: 0.875rem;"><code>@extends</code></td>
+                                        <td style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; font-size: 0.875rem;"><strong style="color: #f87171;">必ず1行目</strong></td>
+                                        <td style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; font-size: 0.875rem;">Laravelの仕様</td>
+                                    </tr>
+                                    <tr style="background: rgba(255,255,255,0.05);">
+                                        <td style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; font-size: 0.875rem;"><code>@section</code></td>
+                                        <td style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; font-size: 0.875rem;"><strong style="color: #34d399;">自由</strong></td>
+                                        <td style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; font-size: 0.875rem;">どの順番でもOK</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; font-size: 0.875rem;">推奨順番</td>
+                                        <td style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; font-size: 0.875rem;"><strong style="color: #60a5fa;">短い→長い</strong></td>
+                                        <td style="border: 1px solid rgba(255,255,255,0.2); padding: 8px; font-size: 0.875rem;">読みやすさのため</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <div class="content-section">
                         <h3>コンポーネントの利用</h3>
                         <p>
-                            繰り返し使う部品（ボタン、カードなど）は、コンポーネントとして切り出せます。
+                            繰り返し使う部品（ボタン、カードなど）は、コンポーネントとして切り出せます。<br>
+                            実務では、デザインの統一性を保つために頻繁に使われる重要な機能です。
                         </p>
 
-                        <h4>コンポーネントファイルを作成</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>📁 重要: コンポーネントの配置場所</strong></p>
+                            <p class="text-sm mb-3">
+                                コンポーネントは<strong>必ず <code>resources/views/components/</code> ディレクトリ内に作成します。</strong>
+                            </p>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">ファイル配置のルール</p>
+                            <pre class="text-xs mb-3" style="line-height: 1.8;"><code>resources/views/
+├── components/          ← ここにコンポーネントを作る
+│   ├── button.blade.php      → &lt;x-button&gt;
+│   ├── alert.blade.php       → &lt;x-alert&gt;
+│   ├── card.blade.php        → &lt;x-card&gt;
+│   └── form/                 ← サブディレクトリもOK
+│       ├── input.blade.php   → &lt;x-form.input&gt;
+│       └── select.blade.php  → &lt;x-form.select&gt;
+└── pages/              ← 通常のビューファイル
+    └── home.blade.php</code></pre>
+
+                            <p class="text-sm font-semibold text-green-300 mb-2 mt-3">命名規則</p>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: left; padding: 8px; border-bottom: 1px solid #444;">ファイルパス</th>
+                                        <th style="text-align: left; padding: 8px; border-bottom: 1px solid #444;">コンポーネント名</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 8px;"><code>components/button.blade.php</code></td>
+                                        <td style="padding: 8px;"><code>&lt;x-button&gt;</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;"><code>components/user-card.blade.php</code></td>
+                                        <td style="padding: 8px;"><code>&lt;x-user-card&gt;</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;"><code>components/form/input.blade.php</code></td>
+                                        <td style="padding: 8px;"><code>&lt;x-form.input&gt;</code></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <p class="text-sm text-blue-300 mt-3">
+                                💡 <strong>ポイント:</strong> ファイル名がそのままコンポーネント名になります。<br>
+                                サブディレクトリを使う場合は、ドット(<code>.</code>)で区切ります。
+                            </p>
+                        </div>
+
+                        <h4>基本的なコンポーネント</h4>
+                        <p>まず、最もシンプルな例から見ていきましょう。</p>
+
                         <pre><code class="language-html">&lt;!-- resources/views/components/button.blade.php --&gt;
 
-&lt;button class="btn btn-primary"&gt;
+&lt;button style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;"&gt;
     {{ $slot }}
 &lt;/button&gt;</code></pre>
 
-                        <h4>コンポーネントを使う</h4>
                         <pre><code class="language-html">&lt;!-- 任意のビューファイルで使用 --&gt;
 
 &lt;x-button&gt;送信する&lt;/x-button&gt;
 &lt;x-button&gt;キャンセル&lt;/x-button&gt;</code></pre>
 
-                        <p>
+                        <p class="mt-3">
                             <code>&lt;x-コンポーネント名&gt;</code> の形式で使用します。<br>
                             <code>{{ $slot }}</code> には、タグの間の内容（「送信する」など）が入ります。
                         </p>
 
-                        <h4>プロパティ付きコンポーネント</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4">
+                            <p class="text-sm mb-3"><strong>💡 $slot とは？</strong></p>
+                            <p class="text-sm">
+                                <code>$slot</code> は、コンポーネントタグの間に書かれた内容を受け取る特別な変数です。
+                            </p>
+                            <pre class="text-xs mt-2"><code class="language-html">&lt;x-button&gt;この部分が $slot に入る&lt;/x-button&gt;</code></pre>
+                            <p class="text-sm mt-2 text-blue-300">
+                                これにより、同じデザインのボタンを簡単に量産できます。
+                            </p>
+                        </div>
+
+                        <h4>プロパティ付きコンポーネント（実務例）</h4>
+                        <p>
+                            コンポーネントに属性を渡して、動作を変えることができます。<br>
+                            実務でよく使う「アラート表示」の例を見てみましょう。
+                        </p>
+
                         <pre><code class="language-html">&lt;!-- resources/views/components/alert.blade.php --&gt;
 
 @props(['type' => 'info'])
 
-&lt;div class="alert alert-{{ $type }}"&gt;
-    {{ $slot }}
+@php
+    $styles = [
+        'success' => 'background: #d1fae5; color: #065f46;',
+        'error' => 'background: #fee2e2; color: #991b1b;',
+        'warning' => 'background: #fef3c7; color: #92400e;',
+        'info' => 'background: #dbeafe; color: #1e40af;',
+    ];
+    $icons = [
+        'success' => '✅',
+        'error' => '❌',
+        'warning' => '⚠️',
+        'info' => 'ℹ️',
+    ];
+@endphp
+
+&lt;div style="padding: 16px; border-radius: 4px; margin-bottom: 16px; {{ $styles[$type] ?? $styles['info'] }}"&gt;
+    &lt;span style="font-size: 1.2em; margin-right: 8px;"&gt;{{ $icons[$type] ?? $icons['info'] }}&lt;/span&gt;
+    &lt;span&gt;{{ $slot }}&lt;/span&gt;
 &lt;/div&gt;</code></pre>
 
                         <pre><code class="language-html">&lt;!-- 使用例 --&gt;
@@ -609,7 +1125,326 @@ Route::get('/users/{id}', function ($id) {
 
 &lt;x-alert type="error"&gt;
     エラーが発生しました
+&lt;/x-alert&gt;
+
+&lt;x-alert type="warning"&gt;
+    この操作は取り消せません
+&lt;/x-alert&gt;
+
+&lt;x-alert&gt;
+    お知らせ：メンテナンスを実施します
 &lt;/x-alert&gt;</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 <code>@props(['type' => 'info'])</code> で、デフォルト値を設定できます。<br>
+                            <code>type</code> を指定しない場合は、自動的に <code>'info'</code> になります。
+                        </p>
+
+                        <h4>複数の属性を持つコンポーネント（カード例）</h4>
+                        <p>実務でよく使う「カード」コンポーネントの例です。</p>
+
+                        <pre><code class="language-html">&lt;!-- resources/views/components/card.blade.php --&gt;
+
+@props(['title', 'footer' => null])
+
+&lt;div style="border: 1px solid #ddd; border-radius: 8px; padding: 24px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"&gt;
+    &lt;!-- ヘッダー部分 --&gt;
+    &lt;h3 style="font-size: 1.5em; font-weight: bold; margin-bottom: 16px;"&gt;{{ $title }}&lt;/h3&gt;
+
+    &lt;!-- メインコンテンツ --&gt;
+    &lt;div&gt;
+        {{ $slot }}
+    &lt;/div&gt;
+
+    &lt;!-- フッター部分（オプション） --&gt;
+    @if ($footer)
+        &lt;div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #ddd;"&gt;
+            {{ $footer }}
+        &lt;/div&gt;
+    @endif
+&lt;/div&gt;</code></pre>
+
+                        <pre><code class="language-html">&lt;!-- 使用例 --&gt;
+
+&lt;x-card title="ユーザー情報"&gt;
+    &lt;p&gt;名前: 太郎&lt;/p&gt;
+    &lt;p&gt;メール: taro@example.com&lt;/p&gt;
+
+    &lt;x-slot:footer&gt;
+        &lt;button&gt;編集&lt;/button&gt;
+        &lt;button&gt;削除&lt;/button&gt;
+    &lt;/x-slot:footer&gt;
+&lt;/x-card&gt;</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4">
+                            <p class="text-sm mb-3"><strong>💡 名前付きスロットとは？</strong></p>
+                            <p class="text-sm mb-3">
+                                コンポーネントに<strong>複数の領域</strong>を渡したいときに使います。
+                            </p>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">通常のスロット（$slot）の問題</p>
+                            <p class="text-sm mb-3">
+                                通常の <code>$slot</code> は1つしかないので、「本文（コンテンツ）」と「フッター」を別々に渡せません。
+                            </p>
+
+                            <p class="text-sm font-semibold text-green-300 mb-2">名前付きスロットの解決策</p>
+                            <pre class="text-xs mb-3"><code class="language-html">&lt;x-card title="ユーザー情報"&gt;
+    &lt;!-- ここは $slot に入る（本文・メインコンテンツ） --&gt;
+    &lt;p&gt;名前: 太郎&lt;/p&gt;
+    &lt;p&gt;メール: taro@example.com&lt;/p&gt;
+
+    &lt;!-- ここは $footer に入る（名前付きスロット） --&gt;
+    &lt;x-slot:footer&gt;
+        &lt;button&gt;編集&lt;/button&gt;
+        &lt;button&gt;削除&lt;/button&gt;
+    &lt;/x-slot:footer&gt;
+&lt;/x-card&gt;</code></pre>
+
+                            <p class="text-sm text-blue-300 mt-3">
+                                <strong>まとめ:</strong><br>
+                                ・<code>$slot</code> → 本文（メインコンテンツ）<br>
+                                ・<code>&lt;x-slot:footer&gt;</code> → フッター部分を別で指定<br>
+                                ・コンポーネント側では <code>{{ $footer }}</code> のように変数名で受け取る
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>⚠️ 属性（footer=）では複雑なHTMLを渡せない</strong></p>
+
+                            <p class="text-sm font-semibold text-red-300 mb-2">❌ これは無理（属性では文字列しか渡せない）</p>
+                            <pre class="text-xs mb-3"><code class="language-html">&lt;x-card title="ユーザー情報" footer="&lt;button&gt;編集&lt;/button&gt;"&gt;
+    &lt;p&gt;名前: 太郎&lt;/p&gt;
+&lt;/x-card&gt;
+
+&lt;!-- 属性 footer= では、文字列しか渡せない --&gt;
+&lt;!-- HTMLタグは文字列として表示されてしまう --&gt;</code></pre>
+
+                            <p class="text-sm font-semibold text-green-300 mb-2 mt-4">✅ これが正しい（名前付きスロットを使う）</p>
+                            <pre class="text-xs mb-3"><code class="language-html">&lt;x-card title="ユーザー情報"&gt;
+    &lt;p&gt;名前: 太郎&lt;/p&gt;
+
+    &lt;x-slot:footer&gt;
+        &lt;button&gt;編集&lt;/button&gt;
+        &lt;button&gt;削除&lt;/button&gt;
+    &lt;/x-slot:footer&gt;
+&lt;/x-card&gt;
+
+&lt;!-- 名前付きスロットなら、HTMLをそのまま渡せる --&gt;</code></pre>
+
+                            <p class="text-sm text-blue-300 mt-3">
+                                <strong>ルール:</strong><br>
+                                ・<code>title="文字列"</code> → 文字列のみ渡せる（属性）<br>
+                                ・<code>&lt;x-slot:footer&gt;HTML&lt;/x-slot:footer&gt;</code> → HTMLを渡せる（名前付きスロット）<br>
+                                ・<strong>ボタンなど複雑なHTMLを渡すなら、名前付きスロット必須</strong>
+                            </p>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2 mt-4">💡 コンポーネント側の定義</p>
+                            <pre class="text-xs mb-3"><code class="language-php">@props(['title', 'footer' => null])</code></pre>
+                            <p class="text-sm">
+                                この <code>'footer' => null</code> は：<br>
+                                ・属性 <code>footer="文字列"</code> でも受け取れる<br>
+                                ・名前付きスロット <code>&lt;x-slot:footer&gt;</code> でも受け取れる<br>
+                                ・何も渡されなければ <code>null</code> になる
+                            </p>
+                        </div>
+
+                        <p class="mt-3"><strong>ポイント：</strong></p>
+                        <ul>
+                            <li><code>title</code> 属性で見出しを設定</li>
+                            <li><code>$slot</code> でメインコンテンツを挿入</li>
+                            <li><code>&lt;x-slot:footer&gt;</code> で名前付きスロットを使用（フッター部分を別管理）</li>
+                        </ul>
+
+                        <h4>実際に動かしてみよう - 完全なコード例</h4>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>✅ 以下のコードをコピペして実際に試してください</strong></p>
+                        </div>
+
+                        <p class="text-sm font-semibold text-yellow-300 mb-2">📝 手順1: ボタンコンポーネントを作成</p>
+                        <p class="text-xs mb-2">ファイル: <code>resources/views/components/button.blade.php</code></p>
+                        <pre class="text-xs mb-4"><code class="language-html">@props(['type' => 'primary'])
+
+@php
+    $styles = [
+        'primary' => 'background: #3b82f6; color: white;',
+        'secondary' => 'background: #6b7280; color: white;',
+        'danger' => 'background: #ef4444; color: white;',
+        'success' => 'background: #10b981; color: white;',
+    ];
+    $buttonStyle = $styles[$type] ?? $styles['primary'];
+@endphp
+
+&lt;button style="padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; {{ $buttonStyle }}"&gt;
+    {{ $slot }}
+&lt;/button&gt;</code></pre>
+
+                        <p class="text-sm font-semibold text-yellow-300 mb-2 mt-4">📝 手順2: アラートコンポーネントを作成</p>
+                        <p class="text-xs mb-2">ファイル: <code>resources/views/components/alert.blade.php</code></p>
+                        <pre class="text-xs mb-4"><code class="language-html">@props(['type' => 'info'])
+
+@php
+    $styles = [
+        'success' => 'background: #d1fae5; border-left: 4px solid #10b981; color: #065f46;',
+        'error' => 'background: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b;',
+        'warning' => 'background: #fef3c7; border-left: 4px solid #f59e0b; color: #92400e;',
+        'info' => 'background: #dbeafe; border-left: 4px solid #3b82f6; color: #1e40af;',
+    ];
+    $icons = [
+        'success' => '✅',
+        'error' => '❌',
+        'warning' => '⚠️',
+        'info' => 'ℹ️',
+    ];
+    $alertStyle = $styles[$type] ?? $styles['info'];
+    $icon = $icons[$type] ?? $icons['info'];
+@endphp
+
+&lt;div style="padding: 16px; margin-bottom: 16px; {{ $alertStyle }}"&gt;
+    &lt;span style="font-size: 1.2em; margin-right: 8px;"&gt;{{ $icon }}&lt;/span&gt;
+    &lt;span&gt;{{ $slot }}&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+
+                        <p class="text-sm font-semibold text-yellow-300 mb-2 mt-4">📝 手順3: カードコンポーネントを作成</p>
+                        <p class="text-xs mb-2">ファイル: <code>resources/views/components/card.blade.php</code></p>
+                        <pre class="text-xs mb-4"><code class="language-html">@props(['title', 'footer' => null])
+
+&lt;div style="border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;"&gt;
+    &lt;h3 style="font-size: 1.5em; font-weight: bold; margin-bottom: 15px; color: #333;"&gt;
+        {{ $title }}
+    &lt;/h3&gt;
+
+    &lt;div style="color: #666; line-height: 1.6;"&gt;
+        {{ $slot }}
+    &lt;/div&gt;
+
+    @if ($footer)
+        &lt;div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;"&gt;
+            {{ $footer }}
+        &lt;/div&gt;
+    @endif
+&lt;/div&gt;</code></pre>
+
+                        <p class="text-sm font-semibold text-yellow-300 mb-2 mt-4">📝 手順4: ルートを作成</p>
+                        <p class="text-xs mb-2">ファイル: <code>routes/web.php</code> に追加</p>
+                        <pre class="text-xs mb-4"><code class="language-php">Route::get('/component-demo', function () {
+    return view('component-demo');
+});</code></pre>
+
+                        <p class="text-sm font-semibold text-yellow-300 mb-2 mt-4">📝 手順5: ビューファイルを作成</p>
+                        <p class="text-xs mb-2">ファイル: <code>resources/views/component-demo.blade.php</code></p>
+                        <pre class="text-xs mb-4"><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;コンポーネントデモ&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 30px; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;コンポーネントデモ&lt;/h1&gt;
+
+    &lt;h2&gt;1. ボタンコンポーネント&lt;/h2&gt;
+    &lt;x-button type="primary"&gt;プライマリー&lt;/x-button&gt;
+    &lt;x-button type="secondary"&gt;セカンダリー&lt;/x-button&gt;
+    &lt;x-button type="danger"&gt;削除&lt;/x-button&gt;
+    &lt;x-button type="success"&gt;保存&lt;/x-button&gt;
+
+    &lt;h2&gt;2. アラートコンポーネント&lt;/h2&gt;
+    &lt;x-alert type="success"&gt;
+        保存に成功しました！
+    &lt;/x-alert&gt;
+
+    &lt;x-alert type="error"&gt;
+        エラーが発生しました。もう一度お試しください。
+    &lt;/x-alert&gt;
+
+    &lt;x-alert type="warning"&gt;
+        この操作は取り消せません。本当に削除しますか？
+    &lt;/x-alert&gt;
+
+    &lt;x-alert type="info"&gt;
+        お知らせ: システムメンテナンスを実施します。
+    &lt;/x-alert&gt;
+
+    &lt;h2&gt;3. カードコンポーネント&lt;/h2&gt;
+    &lt;x-card title="ユーザー情報"&gt;
+        &lt;p&gt;&lt;strong&gt;名前:&lt;/strong&gt; 山田太郎&lt;/p&gt;
+        &lt;p&gt;&lt;strong&gt;メール:&lt;/strong&gt; yamada@example.com&lt;/p&gt;
+        &lt;p&gt;&lt;strong&gt;登録日:&lt;/strong&gt; 2024年1月1日&lt;/p&gt;
+
+        &lt;x-slot:footer&gt;
+            &lt;x-button type="primary"&gt;編集&lt;/x-button&gt;
+            &lt;x-button type="danger"&gt;削除&lt;/x-button&gt;
+        &lt;/x-slot:footer&gt;
+    &lt;/x-card&gt;
+
+    &lt;x-card title="商品情報"&gt;
+        &lt;p&gt;&lt;strong&gt;商品名:&lt;/strong&gt; Laravel入門書&lt;/p&gt;
+        &lt;p&gt;&lt;strong&gt;価格:&lt;/strong&gt; 3,000円&lt;/p&gt;
+        &lt;p&gt;&lt;strong&gt;在庫:&lt;/strong&gt; 100冊&lt;/p&gt;
+    &lt;/x-card&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <p class="text-sm font-semibold text-green-300 mb-2 mt-4">✅ 手順6: アクセスして確認</p>
+                        <p class="text-xs mb-3">ブラウザで以下にアクセス:</p>
+                        <pre class="text-xs mb-4"><code>http://localhost/component-demo</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4">
+                            <p class="text-sm mb-3"><strong>💡 コンポーネントの仕組み</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li><strong>@props</strong> - コンポーネントが受け取る属性を定義</li>
+                                <li><strong>$slot</strong> - タグの間に書かれた内容が入る</li>
+                                <li><strong>&lt;x-slot:名前&gt;</strong> - 名前付きスロット（複数の領域に分ける）</li>
+                                <li><strong>&lt;x-コンポーネント名&gt;</strong> - コンポーネントの呼び出し</li>
+                            </ul>
+                        </div>
+
+                        <h4>実務でよく使うコンポーネント例</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-3 mb-4">
+                            <p class="text-sm mb-3"><strong>📦 実務でよく作るコンポーネント</strong></p>
+
+                            <ul class="text-sm space-y-2">
+                                <li><strong>button.blade.php</strong> - ボタン（primary、secondary、dangerなど）</li>
+                                <li><strong>alert.blade.php</strong> - 通知メッセージ（成功、エラー、警告）</li>
+                                <li><strong>card.blade.php</strong> - カードレイアウト</li>
+                                <li><strong>modal.blade.php</strong> - モーダルダイアログ</li>
+                                <li><strong>form-input.blade.php</strong> - フォーム入力フィールド</li>
+                                <li><strong>badge.blade.php</strong> - ステータスバッジ（公開中、下書きなど）</li>
+                                <li><strong>loading.blade.php</strong> - ローディングスピナー</li>
+                            </ul>
+
+                            <p class="text-blue-300 mt-4 text-sm">
+                                💡 コンポーネントを使うことで：<br>
+                                ・デザインの統一性が保たれる<br>
+                                ・修正が1箇所で済む（全ページに反映される）<br>
+                                ・コードの重複が減り、保守性が向上する
+                            </p>
+                        </div>
+
+                        <h4>コンポーネントを使うメリット まとめ</h4>
+                        <ul>
+                            <li><strong>再利用性</strong> - 同じコードを何度も書かなくて良い</li>
+                            <li><strong>一貫性</strong> - デザインやUIが統一される</li>
+                            <li><strong>保守性</strong> - 修正が1箇所で済む</li>
+                            <li><strong>可読性</strong> - <code>&lt;x-card&gt;</code> のように意味が分かりやすい</li>
+                        </ul>
+
+                        <p class="text-yellow-400 mt-4">
+                            ⚠️ 最初は「ちょっと難しい」と感じるかもしれませんが、慣れると手放せなくなります。<br>
+                            まずは簡単なボタンやアラートから試してみてください。
+                        </p>
                     </div>
 
                     <div class="content-section">
@@ -629,10 +1464,102 @@ Route::get('/users/{id}', function ($id) {
     &lt;p&gt;ユーザーがいません&lt;/p&gt;
 @endempty</code></pre>
 
-                        <h4>三項演算子</h4>
+                        <h4>null合体演算子（??）</h4>
                         <pre><code class="language-html">&lt;p&gt;{{ $user->name ?? 'ゲスト' }}&lt;/p&gt;
 
-&lt;!-- $user->name が存在すれば表示、なければ「ゲスト」 --&gt;</code></pre>
+&lt;!-- $user->name がnullまたは存在しなければ「ゲスト」 --&gt;</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-red-500">
+                            <p class="text-sm mb-3"><strong>⚠️ 超重要: ??、@isset、@empty の違い（実務でよく間違える）</strong></p>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">📊 動作の違い一覧表</p>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                                <thead>
+                                    <tr style="background: rgba(59, 130, 246, 0.2);">
+                                        <th style="padding: 8px; border: 1px solid #444; text-align: left;">値</th>
+                                        <th style="padding: 8px; border: 1px solid #444; text-align: center;">??</th>
+                                        <th style="padding: 8px; border: 1px solid #444; text-align: center;">@isset</th>
+                                        <th style="padding: 8px; border: 1px solid #444; text-align: center;">@empty</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #444;"><code>'太郎'</code></td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">表示</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">true</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">false</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #444;"><code>''</code>（空文字）</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">表示</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">true</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(239, 68, 68, 0.2);">true</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #444;"><code>null</code></td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(239, 68, 68, 0.2);">右側</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(239, 68, 68, 0.2);">false</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(239, 68, 68, 0.2);">true</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #444;"><code>0</code></td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">表示</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">true</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(239, 68, 68, 0.2);">true</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #444;"><code>'0'</code></td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">表示</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">true</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(239, 68, 68, 0.2);">true</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #444;"><code>false</code></td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">表示</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(34, 197, 94, 0.2);">true</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(239, 68, 68, 0.2);">true</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #444;">存在しない</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(239, 68, 68, 0.2);">右側</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(239, 68, 68, 0.2);">false</td>
+                                        <td style="padding: 8px; border: 1px solid #444; text-align: center; background: rgba(239, 68, 68, 0.2);">true</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <p class="text-sm font-semibold text-green-300 mb-2 mt-4">💡 簡単な覚え方</p>
+                            <ul class="text-sm space-y-2">
+                                <li><strong>??</strong> と <strong>@isset</strong> → <strong>null と 未定義だけ</strong>を弾く</li>
+                                <li><strong>@empty</strong> → <strong>空文字・0・null・false・未定義すべて</strong>を弾く</li>
+                            </ul>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2 mt-4">📝 実務での使い分け</p>
+
+                            <p class="text-sm font-semibold text-blue-300 mb-2 mt-3">パターン1: 0や空文字もそのまま表示したい</p>
+                            <pre class="text-xs mb-3"><code class="language-html">&lt;!-- 価格が0円でも「0円」と表示したい --&gt;
+{{ $product->price ?? '未設定' }}
+
+&lt;!-- 0円の場合: 「0」と表示される ✅ --&gt;
+&lt;!-- nullの場合: 「未設定」と表示される --&gt;</code></pre>
+
+                            <p class="text-sm font-semibold text-blue-300 mb-2 mt-3">パターン2: 空文字や0も「空」として扱いたい</p>
+                            <pre class="text-xs mb-3"><code class="language-html">&lt;!-- 名前が空文字でも「名前未設定」と表示したい --&gt;
+@empty($user->name)
+    &lt;p&gt;名前未設定&lt;/p&gt;
+@else
+    &lt;p&gt;{{ $user->name }}&lt;/p&gt;
+@endempty
+
+&lt;!-- 空文字の場合: 「名前未設定」と表示される ✅ --&gt;
+&lt;!-- nullの場合: 「名前未設定」と表示される --&gt;</code></pre>
+
+                            <p class="text-sm text-red-300 mt-4">
+                                <strong>⚠️ よくある間違い:</strong><br>
+                                <code>{{ $price ?? 0 }}</code> と書いて、「価格が0円の時もデフォルト値の0を表示する」と勘違いする。<br>
+                                実際は、<code>$price</code> が <code>0</code> なら <code>0</code> がそのまま表示される（右側の <code>0</code> は使われない）。
+                            </p>
+                        </div>
 
                         <h4>ループ変数</h4>
                         <pre><code class="language-html">@foreach ($users as $user)
@@ -655,6 +1582,65 @@ Route::get('/users/{id}', function ($id) {
                             <li><code>$loop->last</code> - 最後の要素か</li>
                             <li><code>$loop->count</code> - 要素の総数</li>
                         </ul>
+
+                        <h4>フォーム関連のディレクティブ（予告）</h4>
+                        <p>
+                            フォーム送信では、以下のディレクティブを使います。<br>
+                            今は「こういうのがあるんだ」程度の理解でOKです。詳細は後の章で解説します。
+                        </p>
+
+                        <pre><code class="language-html">&lt;form method="POST" action="/users"&gt;
+    @csrf
+    &lt;!-- ↑ CSRF保護（セキュリティ対策で必須） --&gt;
+
+    &lt;input type="text" name="name" placeholder="名前"&gt;
+    &lt;button type="submit"&gt;送信&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                        <p class="text-sm mt-3"><strong>@csrf とは？</strong></p>
+                        <p class="text-sm">
+                            <strong>CSRF（クロスサイトリクエストフォージェリ）</strong>という攻撃を防ぐためのトークンを自動生成します。<br>
+                            Laravelでは、POSTフォームには必ず <code>@csrf</code> を付ける必要があります。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4">
+                            <p class="text-sm mb-3"><strong>💡 実務で使う例</strong></p>
+
+                            <p class="text-sm font-semibold text-primary-300 mb-2">PUT/DELETEメソッドの指定</p>
+                            <p class="text-sm mb-2">
+                                HTMLフォームは <code>GET</code> と <code>POST</code> しか対応していませんが、
+                                <code>@method</code> を使うことで、PUTやDELETEを擬似的に指定できます。
+                            </p>
+                            <pre class="text-xs"><code class="language-html">&lt;!-- ユーザー情報の更新（PUT） --&gt;
+&lt;form method="POST" action="/users/1"&gt;
+    @csrf
+    @method('PUT')
+    &lt;!-- 更新フォーム --&gt;
+&lt;/form&gt;
+
+&lt;!-- ユーザーの削除（DELETE） --&gt;
+&lt;form method="POST" action="/users/1"&gt;
+    @csrf
+    @method('DELETE')
+    &lt;button&gt;削除&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                            <p class="text-sm font-semibold text-primary-300 mb-2 mt-4">認証状態の確認</p>
+                            <pre class="text-xs"><code class="language-html">@auth
+    &lt;p&gt;ログイン中です&lt;/p&gt;
+    &lt;a href="/logout"&gt;ログアウト&lt;/a&gt;
+@endauth
+
+@guest
+    &lt;p&gt;ログインしてください&lt;/p&gt;
+    &lt;a href="/login"&gt;ログイン&lt;/a&gt;
+@endguest</code></pre>
+                        </div>
+
+                        <p class="text-yellow-400 mt-4">
+                            ⚠️ これらのディレクティブは、フォームや認証の章で詳しく学びます。<br>
+                            今は「Bladeにはこういう便利な機能がある」ということを知っておけば十分です。
+                        </p>
                     </div>
 
                     <div class="content-section">
@@ -674,7 +1660,207 @@ Route::get('/users/{id}', function ($id) {
                         <h4>次のステップ</h4>
                         <p>
                             次の章では、<strong>コントローラ（Controller）</strong>について学びます。
-                            ルートファイルに書いていた処理をコントローラに移動し、よりMVCアーキテクチャに沿った構成にしていきます。
+                        </p>
+                        <p>
+                            これまでルートファイル（<code>routes/web.php</code>）では、ビューを直接返すだけのシンプルな書き方をしてきました。
+                        </p>
+                        <pre><code class="language-php">// routes/web.php（これまで学んだ方法）
+Route::get('/about', function () {
+    return view('about');
+});
+
+Route::get('/contact', function () {
+    return view('contact');
+});
+
+Route::get('/users', function () {
+    return view('users.index');
+});
+// ↓ ページが増えるとルートファイルが見づらくなる...</code></pre>
+
+                        <p class="mt-4">
+                            しかし、実際のアプリケーションでは、<strong>データベースからデータを取得したり、計算処理をしたり</strong>といった
+                            複雑な処理が必要になります。<br>
+                            そのような処理を全部ルートファイルに書くと、コードが見づらくなってしまいます。
+                        </p>
+
+                        <p class="mt-4">
+                            コントローラを使うと、処理を整理して管理しやすくなります：
+                        </p>
+
+                        <pre><code class="language-php">// routes/web.php（コントローラ使用）
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
+// ↓ スッキリ！複雑な処理はコントローラに書く</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 次の章で、MVCアーキテクチャに沿った設計方法を習得しましょう。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>補足：Bladeの仕組み（読まなくてもOK）</h3>
+                        <p class="text-gray-400 text-sm">
+                            ※ この説明は理解しなくても、Bladeは使えます。興味がある方だけお読みください。
+                        </p>
+
+                        <h4>.blade.php の正体</h4>
+                        <p>
+                            <code>.blade.php</code> ファイルは、実は<strong>普通のPHPファイル</strong>です。<br>
+                            ただし、Laravelの「Bladeテンプレートエンジン」が、<strong>実行前にPHPコードに変換</strong>してくれます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4">
+                            <p class="text-sm mb-3"><strong>💡 Bladeの処理の流れ</strong></p>
+                            <ol class="text-sm space-y-2">
+                                <li><strong>1. Bladeファイルを書く</strong> - <code>{{ $name }}</code> や <code>@if</code> などを使う</li>
+                                <li><strong>2. 初回アクセス時にコンパイル</strong> - LaravelがPHPコードに変換</li>
+                                <li><strong>3. キャッシュに保存</strong> - <code>storage/framework/views/</code> に保存される</li>
+                                <li><strong>4. 次回以降は高速実行</strong> - キャッシュされたPHPを直接実行</li>
+                            </ol>
+                            <p class="text-blue-300 mt-3 text-sm">
+                                つまり、<strong>毎回変換するわけではなく、キャッシュを使うため高速</strong>です。
+                            </p>
+                        </div>
+
+                        <h4>Blade構文がPHPに変換される例</h4>
+                        <p>実際にどうPHPに変換されているか見てみましょう。</p>
+
+                        <p class="text-sm font-semibold text-primary-300 mt-4 mb-2">例1: 変数の表示</p>
+                        <pre><code class="language-html">&lt;!-- Blade構文 --&gt;
+{{ $name }}</code></pre>
+
+                        <pre><code class="language-php">&lt;!-- 変換後のPHP --&gt;
+&lt;?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8', false); ?&gt;</code></pre>
+
+                        <p class="text-sm mt-2">
+                            <code>{{ }}</code> は自動的に <code>htmlspecialchars()</code> でエスケープされます。<br>
+                            これにより、XSS（クロスサイトスクリプティング）攻撃を防げます。
+                        </p>
+
+                        <p class="text-sm font-semibold text-primary-300 mt-4 mb-2">例2: if文</p>
+                        <pre><code class="language-html">&lt;!-- Blade構文 --&gt;
+@if ($age >= 20)
+    &lt;p&gt;成人です&lt;/p&gt;
+@else
+    &lt;p&gt;未成年です&lt;/p&gt;
+@endif</code></pre>
+
+                        <pre><code class="language-php">&lt;!-- 変換後のPHP --&gt;
+&lt;?php if ($age >= 20): ?&gt;
+    &lt;p&gt;成人です&lt;/p&gt;
+&lt;?php else: ?&gt;
+    &lt;p&gt;未成年です&lt;/p&gt;
+&lt;?php endif; ?&gt;</code></pre>
+
+                        <p class="text-sm mt-2">
+                            <code>@if</code> は、PHPの <code>&lt;?php if (): ?&gt;</code> に変換されます。<br>
+                            Bladeの方が見やすく、HTMLとの親和性が高いですね。
+                        </p>
+
+                        <p class="text-sm font-semibold text-primary-300 mt-4 mb-2">例3: foreach</p>
+                        <pre><code class="language-html">&lt;!-- Blade構文 --&gt;
+@foreach ($users as $user)
+    &lt;li&gt;{{ $user }}&lt;/li&gt;
+@endforeach</code></pre>
+
+                        <pre><code class="language-php">&lt;!-- 変換後のPHP --&gt;
+&lt;?php foreach ($users as $user): ?&gt;
+    &lt;li&gt;&lt;?php echo htmlspecialchars($user, ENT_QUOTES, 'UTF-8', false); ?&gt;&lt;/li&gt;
+&lt;?php endforeach; ?&gt;</code></pre>
+
+                        <p class="text-sm font-semibold text-primary-300 mt-4 mb-2">例4: @csrf</p>
+                        <pre><code class="language-html">&lt;!-- Blade構文 --&gt;
+@csrf</code></pre>
+
+                        <pre><code class="language-php">&lt;!-- 変換後のPHP --&gt;
+&lt;?php echo csrf_field(); ?&gt;
+
+&lt;!-- さらに実行されると、以下のHTMLが生成される --&gt;
+&lt;input type="hidden" name="_token" value="ランダムなトークン文字列"&gt;</code></pre>
+
+                        <p class="text-sm mt-2">
+                            <code>@csrf</code> はたった1行ですが、内部でトークンを生成してhiddenフィールドを出力しています。
+                        </p>
+
+                        <h4>キャッシュファイルを確認してみよう</h4>
+                        <p>
+                            実際に変換されたPHPファイルは、<code>storage/framework/views/</code> に保存されています。
+                        </p>
+
+                        <pre><code class="language-bash"># Laravelプロジェクトのルートで実行
+ls storage/framework/views/
+
+# 結果例
+# a3b4c5d6e7f8g9h0.php
+# b1c2d3e4f5g6h7i8.php
+# ...</code></pre>
+
+                        <p class="mt-3">
+                            このファイルを開くと、Bladeが変換した「生のPHP」を見ることができます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4">
+                            <p class="text-sm mb-3"><strong>💡 キャッシュのクリア方法</strong></p>
+                            <p class="text-sm mb-2">
+                                Bladeファイルを編集しても反映されない場合、キャッシュをクリアします：
+                            </p>
+                            <pre class="text-xs"><code class="language-bash">php artisan view:clear</code></pre>
+                            <p class="text-sm mt-3 text-blue-300">
+                                開発中は自動的にキャッシュが更新されるので、通常は不要です。<br>
+                                ただし、本番環境では手動でクリアが必要な場合があります。
+                            </p>
+                        </div>
+
+                        <h4>なぜBladeを使うのか？</h4>
+                        <p>普通のPHPでも書けるのに、なぜBladeを使うのでしょうか？</p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-3 mb-4">
+                            <p class="text-sm mb-3"><strong>📋 Bladeのメリット</strong></p>
+
+                            <p class="text-sm font-semibold text-primary-300 mb-2">1. コードが読みやすい</p>
+                            <pre class="text-xs mb-3"><code class="language-php">&lt;!-- ❌ 普通のPHP（読みにくい） --&gt;
+&lt;?php if ($user->isAdmin()): ?&gt;
+    &lt;p&gt;&lt;?php echo htmlspecialchars($user->name, ENT_QUOTES, 'UTF-8'); ?&gt;&lt;/p&gt;
+&lt;?php endif; ?&gt;
+
+&lt;!-- ✅ Blade（読みやすい） --&gt;
+@if ($user->isAdmin())
+    &lt;p&gt;{{ $user->name }}&lt;/p&gt;
+@endif</code></pre>
+
+                            <p class="text-sm font-semibold text-primary-300 mb-2 mt-4">2. 自動エスケープでセキュア</p>
+                            <p class="text-sm mb-2">
+                                <code>{{ }}</code> は自動的にエスケープされるため、XSS攻撃のリスクが減ります。<br>
+                                普通のPHPだと、<code>htmlspecialchars()</code> を毎回書き忘れる危険があります。
+                            </p>
+
+                            <p class="text-sm font-semibold text-primary-300 mb-2 mt-4">3. 便利なディレクティブ</p>
+                            <p class="text-sm mb-2">
+                                <code>@csrf</code>、<code>@auth</code>、<code>@foreach</code> など、よく使う処理が短く書けます。
+                            </p>
+
+                            <p class="text-sm font-semibold text-primary-300 mb-2 mt-4">4. レイアウト継承が簡単</p>
+                            <p class="text-sm">
+                                <code>@extends</code>、<code>@section</code> で、共通レイアウトを簡単に作れます。<br>
+                                普通のPHPだと、<code>include</code> や <code>require</code> で複雑になりがちです。
+                            </p>
+                        </div>
+
+                        <h4>初学者が覚えるべきこと</h4>
+                        <p>
+                            <strong>「Bladeは最終的にPHPに変換される」</strong>
+                        </p>
+                        <p>
+                            これだけ覚えておけばOKです。<br>
+                            内部の詳しい仕組みは、Laravelに慣れてから学ぶ中級者向けの知識です。
+                        </p>
+
+                        <p class="text-gray-400 text-sm mt-4">
+                            📚 詳しく知りたい方は、Laravel公式ドキュメントの「Blade Templates」を参照してください。<br>
+                            <a href="https://laravel.com/docs/12.x/blade" target="_blank" class="text-primary-400 hover:text-primary-300 underline">
+                                https://laravel.com/docs/12.x/blade
+                            </a>
                         </p>
                     </div>
                 </div>
