@@ -148,6 +148,41 @@
             margin-bottom: 16px;
             font-size: 24px;
             font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
         }
 
         .content-section h4 {
@@ -249,6 +284,25 @@
     <!-- オーバーレイ -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
 
+    <!-- 目次ポップアップ（コンパクト版） -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">
+                    目次
+                </h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav id="toc-list" class="space-y-1">
+                <!-- JavaScriptで動的に生成 -->
+            </nav>
+        </div>
+    </div>
+
     <!-- 上に戻るボタン -->
     <button id="scroll-to-top" class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -258,6 +312,23 @@
 
     <div class="min-h-screen flex flex-col">
 
+        <!-- 目次ボタンと全て閉じるボタン（固定位置） -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
         <!-- メインコンテンツ -->
         <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
             <div class="max-w-6xl mx-auto">
@@ -266,13 +337,16 @@
                 </h1>
 
                 <!-- タブリスト -->
-                <ul class="tab-list">
-                    <li><a href="setup-windows.html">Windows環境構築</a></li>
-                    <li><a href="setup.html">Mac環境構築</a></li>
-                    <li><a href="index.html">Laravelとは</a></li>
-                    <li><a href="routing.html" class="active">ルーティング</a></li>
-                    <li><a href="view.html">ビュー</a></li>
-                    <li><a href="controller.html">コントローラ</a></li>
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">DB実践</a></li>
                 </ul>
 
                 <!-- コンテンツ -->
@@ -888,6 +962,101 @@ Route::get('/hello', function () {
                     });
                 });
                 pre.appendChild(btn);
+            });
+
+            // h3の折り畳み機能と目次生成
+            const tocList = document.getElementById('toc-list');
+
+            document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                const id = `section-${index}`;
+                h3.id = id;
+
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('collapsible-content');
+
+                const contentSection = h3.parentElement;
+                let nextElement = h3.nextElementSibling;
+                const elementsToWrap = [];
+
+                while (nextElement) {
+                    elementsToWrap.push(nextElement);
+                    nextElement = nextElement.nextElementSibling;
+                }
+
+                elementsToWrap.forEach(el => {
+                    wrapper.appendChild(el);
+                });
+
+                contentSection.appendChild(wrapper);
+
+                h3.addEventListener('click', () => {
+                    h3.classList.toggle('collapsed');
+                    wrapper.classList.toggle('collapsed');
+                });
+
+                const tocItem = document.createElement('a');
+                tocItem.href = `#${id}`;
+                tocItem.className = 'block px-3 py-2 rounded hover:bg-white/10 transition-colors duration-200 text-gray-300 hover:text-white text-xs cursor-pointer';
+                tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                tocItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('toc-modal').classList.add('hidden');
+                    h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                tocList.appendChild(tocItem);
+            });
+
+            const tocButton = document.getElementById('toc-button');
+            const tocModal = document.getElementById('toc-modal');
+            const closeToc = document.getElementById('close-toc');
+
+            tocButton.addEventListener('click', () => {
+                tocModal.classList.toggle('hidden');
+            });
+
+            closeToc.addEventListener('click', () => {
+                tocModal.classList.add('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!tocButton.contains(e.target) && !tocModal.contains(e.target)) {
+                    tocModal.classList.add('hidden');
+                }
+            });
+
+            const toggleAllBtn = document.getElementById('toggle-all');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const toggleText = document.getElementById('toggle-text');
+            let allCollapsed = false;
+
+            toggleAllBtn.addEventListener('click', () => {
+                if (allCollapsed) {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.remove('collapsed');
+                            wrapper.classList.remove('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て閉じる';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    allCollapsed = false;
+                } else {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.add('collapsed');
+                            wrapper.classList.add('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て開く';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+                    toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    allCollapsed = true;
+                }
             });
         });
     </script>

@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【第四弾】Laravel入門資料 - マイグレーション</title>
+    <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section a {
+            color: #3183ff;
+            text-decoration: underline;
+        }
+
+        .content-section a:hover {
+            color: #8b5cf6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        pre {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre code {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="../miraichi/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 目次ポップアップ（コンパクト版） -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">
+                    目次
+                </h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav id="toc-list" class="space-y-1">
+                <!-- JavaScriptで動的に生成 -->
+            </nav>
+        </div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- 目次ボタンと全て閉じるボタン（固定位置） -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    【第四弾】Laravel入門資料
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">DB実践</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント - Database: Migrations</strong>
+                        </p>
+                        <a href="https://laravel.com/docs/12.x/migrations" target="_blank"
+                            class="text-primary-400 hover:text-primary-300 underline text-base">
+                            https://laravel.com/docs/12.x/migrations
+                        </a>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 この講座では、上記の公式ドキュメントを基に解説していきます。<br>
+                            公式ドキュメントは初学者には内容が難しいため、エッセンスを優しく噛み砕いて解説していきます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>マイグレーション(Migration)とは</h3>
+                        <p>
+                            マイグレーションとは、<strong>データベースのテーブル構造をコードで管理する仕組み</strong>です。
+                        </p>
+
+                        <h4>マイグレーションなしの問題点</h4>
+                        <p>従来のデータベース管理では、以下のような問題がありました:</p>
+                        <ul>
+                            <li>手動でSQLを実行してテーブルを作成</li>
+                            <li>チームメンバー間でテーブル構造が異なる</li>
+                            <li>本番環境と開発環境で構造が違う</li>
+                            <li>変更履歴が追えない</li>
+                            <li>ロールバック（元に戻す）ができない</li>
+                        </ul>
+
+                        <h4>マイグレーションのメリット</h4>
+                        <ul>
+                            <li>✅ <strong>バージョン管理</strong> - Gitでテーブル構造を管理できる</li>
+                            <li>✅ <strong>再現性</strong> - コマンド1つで同じ構造を作れる</li>
+                            <li>✅ <strong>チーム開発</strong> - 全員が同じ構造で開発できる</li>
+                            <li>✅ <strong>ロールバック</strong> - 変更を簡単に元に戻せる</li>
+                            <li>✅ <strong>履歴管理</strong> - いつ何が変更されたかわかる</li>
+                        </ul>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>💡 例え話</strong></p>
+                            <p class="text-sm">
+                                マイグレーションは<strong>「データベースのGit」</strong>のようなものです。<br>
+                                コードと同じように、データベースの変更履歴を管理し、いつでも特定の状態に戻せます。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>データベース設定</h3>
+                        <p>
+                            マイグレーションを実行する前に、データベースの接続設定を確認します。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 前提条件</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ MySQLがインストール済み</li>
+                                <li>✅ <code>.env</code> ファイルでデータベース接続設定済み</li>
+                                <li>✅ データベースGUIツール導入済み
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs">
+                                        <li>• Mac: Sequel Ace</li>
+                                        <li>• Windows: A5M2</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h4>.envファイルの設定例</h4>
+                        <p class="text-sm text-gray-300 mb-2">プロジェクトのルートディレクトリにある <code>.env</code> ファイル:</p>
+                        <pre><code class="language-bash"># .env
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=your_password</code></pre>
+
+                        <h4>接続確認</h4>
+                        <p>データベースに接続できるか確認します。</p>
+                        <pre><code class="language-bash">php artisan migrate:status</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-2">
+                            エラーが出なければ、データベース接続成功です！
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>⚠️ 注意</strong></p>
+                            <p class="text-sm">
+                                <code>.env</code> ファイルを変更した場合、キャッシュをクリアする必要があります:
+                            </p>
+                            <pre class="text-sm mt-2"><code class="language-bash">php artisan config:clear</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>マイグレーションの作成</h3>
+                        <p>
+                            実際にマイグレーションファイルを作成してみましょう。
+                        </p>
+
+                        <h4>基本的な作成コマンド</h4>
+                        <pre><code class="language-bash">php artisan make:migration create_products_table</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-2">
+                            これにより、<code>database/migrations/</code> ディレクトリに新しいマイグレーションファイルが作成されます。
+                        </p>
+
+                        <h4>ファイル名の規則</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-3">
+                            <p class="text-sm mb-2"><strong>作成されるファイル名の例:</strong></p>
+                            <code class="text-xs">2025_01_22_123456_create_products_table.php</code>
+                            <p class="text-gray-300 text-xs mt-2">
+                                タイムスタンプ + アンダースコア + 指定した名前
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 タイムゾーン設定</strong></p>
+                            <p class="text-sm mb-3">
+                                マイグレーションファイルのタイムスタンプは、デフォルトでUTC（協定世界時）で作成されます。<br>
+                                日本時間で作成したい場合は、以下の設定を行ってください。
+                            </p>
+
+                            <p class="text-sm font-semibold mb-2">1. config/app.php を編集</p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-php">// 変更前
+'timezone' => 'UTC',
+
+// 変更後
+'timezone' => env('APP_TIMEZONE', 'UTC'),</code></pre>
+
+                            <p class="text-sm font-semibold mb-2">2. .env ファイルに追加</p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-bash">APP_TIMEZONE=Asia/Tokyo</code></pre>
+
+                            <p class="text-sm font-semibold mb-2">3. キャッシュをクリア</p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-bash">php artisan config:clear</code></pre>
+
+                            <p class="text-sm text-gray-300">
+                                これで、マイグレーションファイルのタイムスタンプやデータベースの日時データが日本時間（JST）になります。
+                            </p>
+                        </div>
+
+                        <h4>命名規則</h4>
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">目的</th>
+                                    <th class="px-4 py-2 text-left">命名例</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">テーブル作成</td>
+                                    <td class="px-4 py-2"><code>create_products_table</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">カラム追加</td>
+                                    <td class="px-4 py-2"><code>add_price_to_products_table</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">カラム変更</td>
+                                    <td class="px-4 py-2"><code>modify_description_in_products_table</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">テーブル削除</td>
+                                    <td class="px-4 py-2"><code>drop_old_products_table</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>💡 命名規則のポイント</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li><strong>1. スネークケースを使う</strong><br>
+                                    <span class="text-xs text-gray-300">小文字 + アンダースコア（例: create_products_table）</span>
+                                </li>
+                                <li><strong>2. テーブル名は複数形にする</strong><br>
+                                    <span class="text-xs text-gray-300">
+                                        • ❌ 単数形: <code>create_product_table</code><br>
+                                        • ✅ 複数形: <code>create_products_table</code>
+                                    </span>
+                                </li>
+                                <li><strong>3. なぜ複数形？</strong><br>
+                                    <span class="text-xs text-gray-300">
+                                        テーブルは「データの集合」を表すため、複数形が自然です。<br>
+                                        また、Laravelの規約として、モデル名（単数形）とテーブル名（複数形）が対応します。<br>
+                                        例: モデル <code>Product</code> → テーブル <code>products</code>
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>💡 重要な注意点</strong></p>
+                            <p class="text-sm mb-3">
+                                マイグレーションファイルの命名によって、生成されるテンプレートが少し変わります。
+                            </p>
+                            <ul class="text-sm space-y-2">
+                                <li><strong>create_xxx_table パターン</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• <code>Schema::create()</code> を使ったテンプレートが生成される</li>
+                                        <li>• 新しいテーブルを作成する時に使う</li>
+                                    </ul>
+                                </li>
+                                <li><strong>add_xxx_to_yyy_table パターン</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• <code>Schema::table()</code> を使ったテンプレートが生成される</li>
+                                        <li>• 既存のテーブルにカラムを追加する時に使う</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <p class="text-sm mt-3 text-gray-300">
+                                ただし、最終的な実装は<strong>自分で書く必要があります</strong>。<br>
+                                命名規則に従うことで、チームメンバーが「このマイグレーションは何をするか」を名前から推測できるようになります。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>テーブル構造の定義</h3>
+                        <p>
+                            作成されたマイグレーションファイルを開いて、テーブル構造を定義します。
+                        </p>
+
+                        <h4>マイグレーションファイルの構造</h4>
+                        <pre><code class="language-php">&lt;?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('products');
+    }
+};</code></pre>
+
+                        <h4>up() メソッド</h4>
+                        <p>
+                            <code>up()</code> メソッドは、マイグレーション実行時に呼ばれます。<br>
+                            ここにテーブル作成やカラム追加の処理を書きます。
+                        </p>
+
+                        <h4>down() メソッド</h4>
+                        <p>
+                            <code>down()</code> メソッドは、ロールバック時に呼ばれます。<br>
+                            <code>up()</code> で行った処理を<strong>元に戻す</strong>処理を書きます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 重要な原則</strong></p>
+                            <p class="text-sm">
+                                <code>up()</code> と <code>down()</code> は<strong>対になる</strong>必要があります。<br>
+                                • up() でテーブル作成 → down() でテーブル削除<br>
+                                • up() でカラム追加 → down() でカラム削除
+                            </p>
+                        </div>
+
+                        <h4>カラムの定義</h4>
+                        <p>商品テーブルを例に、実際のカラムを定義してみましょう。</p>
+
+                        <pre><code class="language-php">public function up(): void
+{
+    Schema::create('products', function (Blueprint $table) {
+        $table->id();                           // id (BIGINT, AUTO_INCREMENT, PRIMARY KEY)
+        $table->string('name');                 // 商品名 (VARCHAR 255)
+        $table->text('description');            // 説明 (TEXT)
+        $table->integer('price');               // 価格 (INT)
+        $table->integer('stock')->default(0);  // 在庫数 (INT, デフォルト0)
+        $table->boolean('is_published')->default(false); // 公開状態 (BOOLEAN)
+        $table->timestamps();                   // created_at, updated_at
+    });
+}</code></pre>
+
+                        <h4>よく使うカラム型</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            実務でよく使うカラム型のみを紹介します。他にも多くの型がありますが、まずはこれらを覚えましょう。<br>
+                            <strong>データ型</strong>は、MySQLで実際に作成されるカラムの型です。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 主キー（Primary Key）とは</strong></p>
+                            <p class="text-sm">
+                                <strong>主キー</strong>は、テーブルの各レコード（行）を<strong>一意に識別する</strong>ためのカラムです。<br>
+                                • 重複しない（ユニーク）<br>
+                                • NULL（空）にならない<br>
+                                • 自動的に連番（1, 2, 3...）が割り振られる<br><br>
+                                Laravelの <code>id()</code> メソッドは、MySQLの <strong>BIGINT型</strong>（大きな整数）で主キーを作成します。
+                            </p>
+                        </div>
+
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Laravelメソッド</th>
+                                    <th class="px-4 py-2 text-left">MySQLデータ型</th>
+                                    <th class="px-4 py-2 text-left">用途</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>id()</code></td>
+                                    <td class="px-4 py-2">BIGINT UNSIGNED</td>
+                                    <td class="px-4 py-2">主キー（1, 2, 3...と自動採番）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>string('name')</code></td>
+                                    <td class="px-4 py-2">VARCHAR(255)</td>
+                                    <td class="px-4 py-2">短いテキスト（名前、タイトル、メールアドレス）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>text('description')</code></td>
+                                    <td class="px-4 py-2">TEXT</td>
+                                    <td class="px-4 py-2">長いテキスト（説明、本文、コメント）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>integer('price')</code></td>
+                                    <td class="px-4 py-2">INT</td>
+                                    <td class="px-4 py-2">整数（価格、数量、年齢）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>boolean('is_active')</code></td>
+                                    <td class="px-4 py-2">TINYINT(1)</td>
+                                    <td class="px-4 py-2">真偽値（0=false, 1=true）有効/無効、公開/非公開</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>foreignId('user_id')</code></td>
+                                    <td class="px-4 py-2">BIGINT</td>
+                                    <td class="px-4 py-2">外部キー（他のテーブルとの関連）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>timestamps()</code></td>
+                                    <td class="px-4 py-2">TIMESTAMP</td>
+                                    <td class="px-4 py-2">created_at, updated_at（作成日時、更新日時）</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>💡 補足</strong></p>
+                            <p class="text-sm mb-3">
+                                この講座では基本的なカラム型のみ紹介しています。<br>
+                                他にも <code>decimal()</code>（小数点付き数値）、<code>date()</code>（日付）、<code>json()</code>（JSON）など、様々な型があります。<br>
+                                詳しくは<a href="https://laravel.com/docs/12.x/migrations#available-column-types" target="_blank" class="text-primary-400 hover:text-primary-300 underline">公式ドキュメント</a>を参照してください。
+                            </p>
+                            <p class="text-sm mt-3 pt-3 border-t border-white/10">
+                                <strong>📝 MySQLでのboolean型について</strong><br>
+                                MySQLには真のBOOLEAN型は存在しません。<code>boolean()</code> メソッドは、実際には <strong>TINYINT(1)</strong> 型として作成されます。<br>
+                                • <code>0</code> = false（偽）<br>
+                                • <code>1</code> = true（真）<br>
+                                Laravelが自動的に true/false として扱ってくれるので、通常は意識する必要はありません。
+                            </p>
+                        </div>
+
+                        <h4>よく使うカラム修飾子</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            カラムに追加の設定を加えることができます。実務でよく使う修飾子のみを紹介します。
+                        </p>
+
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">修飾子</th>
+                                    <th class="px-4 py-2 text-left">説明</th>
+                                    <th class="px-4 py-2 text-left">例</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>nullable()</code></td>
+                                    <td class="px-4 py-2">NULL許可（空でもOK）</td>
+                                    <td class="px-4 py-2"><code>$table->string('phone')->nullable()</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>default($value)</code></td>
+                                    <td class="px-4 py-2">デフォルト値を設定</td>
+                                    <td class="px-4 py-2"><code>$table->integer('stock')->default(0)</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>unique()</code></td>
+                                    <td class="px-4 py-2">一意制約（重複不可）</td>
+                                    <td class="px-4 py-2"><code>$table->string('email')->unique()</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>comment('説明')</code></td>
+                                    <td class="px-4 py-2">カラムの説明を追加</td>
+                                    <td class="px-4 py-2"><code>$table->string('name')->comment('商品名')</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>💡 comment() について</strong></p>
+                            <p class="text-sm">
+                                <code>comment()</code> を使うと、データベースのカラムに日本語の説明を付けられます。<br>
+                                GUIツール（Sequel AceやA5M2）でテーブルを見た時に、何のカラムか一目でわかるので便利です。
+                            </p>
+                        </div>
+
+                        <h4>実践例: 商品テーブル</h4>
+                        <pre><code class="language-php">public function up(): void
+{
+    Schema::create('products', function (Blueprint $table) {
+        $table->id();
+        $table->string('name')->comment('商品名');
+        $table->text('description')->nullable()->comment('商品説明');
+        $table->integer('price')->comment('価格');
+        $table->integer('stock')->default(0)->comment('在庫数');
+        $table->boolean('is_published')->default(false)->comment('公開状態');
+        $table->timestamps();
+    });
+}
+
+public function down(): void
+{
+    Schema::dropIfExists('products');
+}</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ これで商品テーブルの構造が定義できました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>マイグレーションの実行</h3>
+                        <p>
+                            定義したマイグレーションを実行して、実際にテーブルを作成します。
+                        </p>
+
+                        <h4>基本的な実行コマンド</h4>
+                        <pre><code class="language-bash">php artisan migrate</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-2">
+                            このコマンドで、まだ実行されていないマイグレーションが全て実行されます。
+                        </p>
+
+                        <h4>実行結果の例</h4>
+                        <pre><code class="language-bash">$ php artisan migrate
+
+   INFO  Running migrations.
+
+  2025_01_22_000001_create_products_table ............... 15ms DONE</code></pre>
+
+                        <h4>マイグレーションの状態確認</h4>
+                        <pre><code class="language-bash">php artisan migrate:status</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-2">
+                            どのマイグレーションが実行済みかを確認できます。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-3">
+                            <p class="text-sm mb-2"><strong>📊 実行結果の例:</strong></p>
+                            <pre class="text-xs bg-black/40 p-3 rounded"><code>Migration name .......................... Batch / Status
+2014_10_12_000000_create_users_table ........ [1] Ran
+2025_01_22_000001_create_products_table ..... [1] Ran</code></pre>
+                        </div>
+
+                        <h4>マイグレーションの仕組み</h4>
+                        <p>
+                            Laravelは、<code>migrations</code> というテーブルで実行履歴を管理しています。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>🔍 実行の流れ</strong></p>
+                            <ol class="text-sm space-y-2">
+                                <li><strong>1. migrations テーブルを確認</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• どのマイグレーションが実行済みかチェック</li>
+                                    </ul>
+                                </li>
+                                <li><strong>2. 未実行のマイグレーションを実行</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• ファイル名のタイムスタンプ順に実行</li>
+                                        <li>• up() メソッドを呼び出す</li>
+                                    </ul>
+                                </li>
+                                <li><strong>3. migrations テーブルに記録</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• 実行したマイグレーションを記録</li>
+                                        <li>• 次回は実行されない</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <h4>よく使うオプション</h4>
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">コマンド</th>
+                                    <th class="px-4 py-2 text-left">説明</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>migrate</code></td>
+                                    <td class="px-4 py-2">未実行のマイグレーションを実行</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>migrate:status</code></td>
+                                    <td class="px-4 py-2">マイグレーションの状態を確認</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>migrate --force</code></td>
+                                    <td class="px-4 py-2">本番環境で強制実行（本番では慎重に！）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>migrate --pretend</code></td>
+                                    <td class="px-4 py-2">実行せずにSQLを表示（確認用）</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>💡 本番環境での安全機構</strong></p>
+                            <p class="text-sm">
+                                Laravelは <code>.env</code> ファイルの <code>APP_ENV=production</code> で本番環境を判断します。<br>
+                                本番環境で <code>migrate</code> や <code>migrate:fresh</code> などを実行すると、以下のような確認メッセージが表示されます：
+                            </p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mt-2"><code>Do you really wish to run this command? (yes/no)</code></pre>
+                            <p class="text-sm mt-3">
+                                <strong>yes</strong> と入力すれば実行できますが、この確認は誤操作を防ぐための安全機構です。<br>
+                                <code>--force</code> オプションを付けると、この確認をスキップして直接実行できます（CI/CDでの自動デプロイ時に便利）。
+                            </p>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ これでテーブルが作成されました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ロールバックとリフレッシュ</h3>
+                        <p>
+                            マイグレーションは、実行した処理を<strong>元に戻す</strong>ことができます。
+                        </p>
+
+                        <h4>ロールバック</h4>
+                        <p>最後に実行したマイグレーションを元に戻します。</p>
+                        <pre><code class="language-bash">php artisan migrate:rollback</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-2">
+                            これにより、<code>down()</code> メソッドが実行され、テーブルが削除されます。
+                        </p>
+
+                        <h4>特定のステップ数だけロールバック</h4>
+                        <pre><code class="language-bash"># 最後の3つのバッチをロールバック
+php artisan migrate:rollback --step=3</code></pre>
+
+                        <h4>リフレッシュ（全削除して再実行）</h4>
+                        <pre><code class="language-bash">php artisan migrate:refresh</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-2">
+                            全てのマイグレーションを<strong>ロールバック（down()実行）</strong>してから、再度実行（up()実行）します。<br>
+                            開発中にテーブル構造を変更した時に使います。
+                        </p>
+
+                        <h4>フレッシュ（全削除して再作成）</h4>
+                        <pre><code class="language-bash">php artisan migrate:fresh</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-2">
+                            全てのテーブルを<strong>強制的に削除（DROP）</strong>してから、マイグレーションを実行します。<br>
+                            <code>down()</code> メソッドを使わないので、<code>refresh</code> より高速で確実です。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>💡 refresh と fresh の違い</strong></p>
+                            <table class="w-full text-xs">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">コマンド</th>
+                                        <th class="px-3 py-2 text-left">削除方法</th>
+                                        <th class="px-3 py-2 text-left">速度</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white/5">
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>refresh</code></td>
+                                        <td class="px-3 py-2">down() メソッドでロールバック</td>
+                                        <td class="px-3 py-2">遅い</td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>fresh</code></td>
+                                        <td class="px-3 py-2">全テーブルをDROP（強制削除）</td>
+                                        <td class="px-3 py-2">高速</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p class="text-sm mt-3">
+                                <strong>おすすめ:</strong> 開発中は <code>migrate:fresh --seed</code> を使うのが一般的です。<br>
+                                高速で確実にテーブルを再作成し、テストデータも投入できます。
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-red-500">
+                            <p class="text-sm mb-3"><strong>⚠️ 警告</strong></p>
+                            <p class="text-sm">
+                                <code>refresh</code> と <code>fresh</code> は<strong>全データが削除</strong>されます！<br>
+                                本番環境では絶対に使わないでください。開発環境のみで使用してください。
+                            </p>
+                        </div>
+
+                        <h4>コマンド比較</h4>
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">コマンド</th>
+                                    <th class="px-4 py-2 text-left">動作</th>
+                                    <th class="px-4 py-2 text-left">用途</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>migrate</code></td>
+                                    <td class="px-4 py-2">未実行のマイグレーションを実行</td>
+                                    <td class="px-4 py-2">通常の実行</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>migrate:rollback</code></td>
+                                    <td class="px-4 py-2">最後のバッチをdown()で元に戻す</td>
+                                    <td class="px-4 py-2">直前の変更を取り消し</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>migrate:refresh</code></td>
+                                    <td class="px-4 py-2">全てをdown()で削除 → 再実行</td>
+                                    <td class="px-4 py-2">開発中の再構築（遅い）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>migrate:fresh</code></td>
+                                    <td class="px-4 py-2">全テーブルをDROP → 再実行</td>
+                                    <td class="px-4 py-2">開発中の再構築（高速・推奨）</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>実践例: 開発中の流れ</h4>
+                        <pre><code class="language-bash"># 1. マイグレーション作成
+php artisan make:migration create_products_table
+
+# 2. ファイルを編集してテーブル構造を定義
+
+# 3. マイグレーション実行
+php artisan migrate
+
+# 4. テーブル構造を変更したい！
+
+# 5. 一旦削除して再実行
+php artisan migrate:fresh
+
+# 6. 再度実行
+php artisan migrate</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ ロールバックを使えば、安心してテーブル構造を変更できます！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>カラムの追加・変更</h3>
+                        <p>
+                            既存のテーブルに対して、カラムを追加・変更する方法を学びます。
+                        </p>
+
+                        <h4>カラム追加のマイグレーション作成</h4>
+                        <p>既存の <code>products</code> テーブルに新しいカラムを追加する例です。</p>
+                        <pre><code class="language-bash">php artisan make:migration add_category_to_products_table</code></pre>
+
+                        <h4>カラム追加の実装</h4>
+                        <pre><code class="language-php">&lt;?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            $table->string('category')->nullable()->after('name');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            $table->dropColumn('category');
+        });
+    }
+};</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 重要なポイント</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>• <code>Schema::create()</code> ではなく <code>Schema::table()</code> を使う</li>
+                                <li>• <code>after('name')</code> で挿入位置を指定できる</li>
+                                <li>• <code>down()</code> では <code>dropColumn()</code> でカラムを削除</li>
+                            </ul>
+                        </div>
+
+                        <h4>カラム変更のマイグレーション</h4>
+                        <p>既存のカラムの型や属性を変更することができます。</p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>💡 doctrine/dbal について（Laravel 10以前）</strong></p>
+                            <p class="text-sm">
+                                <strong>Laravel 10以前</strong>では、カラムを変更する際に <code>doctrine/dbal</code> パッケージのインストールが必要でした。<br>
+                                しかし、<strong>Laravel 11以降（現在はLaravel 12）では不要</strong>になりました。<br>
+                                Laravelがネイティブでカラム変更をサポートしています。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mt-2"><code class="language-bash"># Laravel 10以前では必要だった
+composer require doctrine/dbal
+
+# Laravel 11以降は不要！</code></pre>
+                        </div>
+
+                        <h4>カラム変更の実装</h4>
+                        <pre><code class="language-bash">php artisan make:migration modify_description_in_products_table</code></pre>
+
+                        <pre><code class="language-php">public function up(): void
+{
+    Schema::table('products', function (Blueprint $table) {
+        // descriptionをnullableに変更
+        $table->text('description')->nullable()->change();
+
+        // nameの長さを100文字に変更
+        $table->string('name', 100)->change();
+    });
+}
+
+public function down(): void
+{
+    Schema::table('products', function (Blueprint $table) {
+        $table->text('description')->change();
+        $table->string('name', 255)->change();
+    });
+}</code></pre>
+
+                        <h4>カラムのリネーム</h4>
+                        <pre><code class="language-php">public function up(): void
+{
+    Schema::table('products', function (Blueprint $table) {
+        $table->renameColumn('old_name', 'new_name');
+    });
+}
+
+public function down(): void
+{
+    Schema::table('products', function (Blueprint $table) {
+        $table->renameColumn('new_name', 'old_name');
+    });
+}</code></pre>
+
+                        <h4>複数カラムの削除</h4>
+                        <pre><code class="language-php">public function up(): void
+{
+    Schema::table('products', function (Blueprint $table) {
+        $table->dropColumn(['category', 'old_price']);
+    });
+}</code></pre>
+
+                    </div>
+
+                    <div class="content-section">
+                        <h3>外部キー制約</h3>
+                        <p>
+                            テーブル間のリレーション（関連）を定義するために、<strong>外部キー制約</strong>を設定します。<br>
+                            これは非常に重要な概念なので、しっかり理解しましょう。
+                        </p>
+
+                        <h4>外部キーとは</h4>
+                        <p>
+                            外部キーは、<strong>あるテーブルのカラムが、別のテーブルの主キーを参照する</strong>仕組みです。<br>
+                            データの整合性を保つために使われます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>💡 具体例で理解する</strong></p>
+                            <p class="text-sm mb-3">
+                                商品(products)とカテゴリー(categories)の関係を考えてみましょう。
+                            </p>
+                            <table class="w-full text-xs mt-2 mb-3">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th colspan="3" class="px-3 py-2 text-left">categories テーブル</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">id</th>
+                                        <th class="px-3 py-2 text-left">name</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white/5">
+                                    <tr><td class="px-3 py-2">1</td><td class="px-3 py-2">家電</td></tr>
+                                    <tr><td class="px-3 py-2">2</td><td class="px-3 py-2">食品</td></tr>
+                                </tbody>
+                            </table>
+                            <table class="w-full text-xs mt-3">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th colspan="4" class="px-3 py-2 text-left">products テーブル</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">id</th>
+                                        <th class="px-3 py-2 text-left">name</th>
+                                        <th class="px-3 py-2 text-left">category_id</th>
+                                        <th class="px-3 py-2 text-left">→参照先</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white/5">
+                                    <tr><td class="px-3 py-2">1</td><td class="px-3 py-2">ノートPC</td><td class="px-3 py-2">1</td><td class="px-3 py-2 text-green-300">✓ 家電</td></tr>
+                                    <tr><td class="px-3 py-2">2</td><td class="px-3 py-2">コーヒー</td><td class="px-3 py-2">2</td><td class="px-3 py-2 text-green-300">✓ 食品</td></tr>
+                                    <tr><td class="px-3 py-2">3</td><td class="px-3 py-2">マウス</td><td class="px-3 py-2 text-red-300">999</td><td class="px-3 py-2 text-red-300">✗ 存在しない</td></tr>
+                                </tbody>
+                            </table>
+                            <p class="text-sm mt-3">
+                                <strong>外部キー制約がないと:</strong> category_id=999 のように、存在しないカテゴリーを指定できてしまう<br>
+                                <strong>外部キー制約があると:</strong> 存在しないカテゴリーIDは登録できない（エラーになる）
+                            </p>
+                        </div>
+
+                        <h4>なぜ外部キー制約を使うべきなのか？</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-red-500">
+                            <p class="text-sm mb-3"><strong>🚨 外部キーなしの問題点</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li><strong>1. データの不整合が起きる</strong><br>
+                                    <span class="text-xs text-gray-300">存在しないカテゴリーIDを持つ商品が作れてしまう</span>
+                                </li>
+                                <li><strong>2. 孤立したデータが残る</strong><br>
+                                    <span class="text-xs text-gray-300">カテゴリーを削除しても、そのカテゴリーIDを持つ商品が残る</span>
+                                </li>
+                                <li><strong>3. バグの原因になる</strong><br>
+                                    <span class="text-xs text-gray-300">存在しないカテゴリーを参照してエラーが発生</span>
+                                </li>
+                                <li><strong>4. アプリ側で整合性チェックが必要</strong><br>
+                                    <span class="text-xs text-gray-300">データベースで保証されないので、PHP側で毎回チェックが必要</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>✅ 外部キーありのメリット</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li><strong>1. データの一元管理（正規化）</strong><br>
+                                    <span class="text-xs text-gray-300">
+                                        カテゴリー名を1箇所変更すれば、全商品に反映される。<br>
+                                        categories テーブルで「家電」→「電化製品」に変更するだけでOK
+                                    </span>
+                                </li>
+                                <li><strong>2. データベースレベルで整合性を保証</strong><br>
+                                    <span class="text-xs text-gray-300">不正なデータは絶対に入らない</span>
+                                </li>
+                                <li><strong>3. 削除時の動作を制御できる</strong><br>
+                                    <span class="text-xs text-gray-300">親削除時に子も削除、または削除を防ぐなど</span>
+                                </li>
+                                <li><strong>4. バグを未然に防ぐ</strong><br>
+                                    <span class="text-xs text-gray-300">データの不整合が原因のバグがなくなる</span>
+                                </li>
+                                <li><strong>5. 開発が楽になる</strong><br>
+                                    <span class="text-xs text-gray-300 mb-2 block">
+                                        整合性チェックをアプリ側で書かなくていい
+                                    </span>
+                                    <p class="text-xs text-gray-300 mb-2">❌ 外部キーなしの場合 - PHP側で毎回チェックが必要</p>
+                                    <pre class="text-xs bg-black/40 p-2 rounded mt-1 mb-3"><code class="language-php">// 商品を作成する時
+public function store(Request $request)
+{
+    // PHP側で存在チェックが必要
+    $categoryExists = Category::where('id', $request->category_id)->exists();
+
+    if (!$categoryExists) {
+        return back()->withErrors(['category_id' => '存在しないカテゴリー']);
+    }
+
+    // チェックが通ったら作成
+    Product::create([
+        'name' => $request->name,
+        'category_id' => $request->category_id,
+    ]);
+}</code></pre>
+                                    <p class="text-xs text-gray-300 mb-2">✅ 外部キーありの場合 - データベースが自動チェック</p>
+                                    <pre class="text-xs bg-black/40 p-2 rounded mt-1"><code class="language-php">// 商品を作成する時
+public function store(Request $request)
+{
+    // 存在チェック不要！データベースが自動的にチェック
+    Product::create([
+        'name' => $request->name,
+        'category_id' => $request->category_id,
+    ]);
+
+    // 存在しないcategory_idなら、データベースがエラーを返す
+}</code></pre>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>⚠️ あえて外部キーにしない場合もある</strong></p>
+                            <p class="text-sm mb-3">
+                                実務では、意図的に外部キー制約を使わない場合もあります。
+                            </p>
+                            <ul class="text-sm space-y-2">
+                                <li><strong>1. ログデータ・履歴データ</strong><br>
+                                    <span class="text-xs text-gray-300">
+                                        削除されたユーザーのログも残したい場合、user_id だけを保存して外部キーにしない。<br>
+                                        ユーザーが削除されてもログは残る。
+                                    </span>
+                                </li>
+                                <li><strong>2. スナップショット（その時点のデータ）</strong><br>
+                                    <span class="text-xs text-gray-300">
+                                        注文時の商品価格や商品名を保存する場合、後で商品情報が変わっても注文データは変わらない。<br>
+                                        外部キーではなく、カテゴリー名を直接 products テーブルに保存することもある。
+                                    </span>
+                                </li>
+                                <li><strong>3. パフォーマンス重視</strong><br>
+                                    <span class="text-xs text-gray-300">
+                                        大量のデータを扱う場合、外部キーチェックのオーバーヘッドを避けるため。<br>
+                                        アプリ側で整合性を保証する。
+                                    </span>
+                                </li>
+                            </ul>
+                            <p class="text-sm mt-3">
+                                <strong>判断基準:</strong> データの整合性 vs 柔軟性・パフォーマンスのトレードオフを考えて決める
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-indigo-500">
+                            <p class="text-sm mb-3"><strong>💡 外部キーとリレーションの関係</strong></p>
+                            <p class="text-sm mb-3">
+                                <strong>マイグレーション（今ここで学習中）</strong>では、データベースに<strong>外部キー制約</strong>を設定します。<br>
+                                これはデータの整合性を保つための<strong>データベースレベルの設定</strong>です。
+                            </p>
+                            <p class="text-sm mb-3">
+                                <strong>モデル（後で学習）</strong>では、<strong>リレーション</strong>を定義します。<br>
+                                これはLaravelで「カテゴリーに紐づく商品を取得」のような操作を簡単に書けるようにする<strong>アプリケーションレベルの設定</strong>です。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mt-2 mb-2"><code class="language-php">// モデルで定義するリレーション（後で学習）
+class Category extends Model
+{
+    public function products() {
+        return $this->hasMany(Product::class);
+    }
+}
+
+// こう書けるようになる
+$category = Category::find(1);
+$products = $category->products; // このカテゴリーの全商品を取得</code></pre>
+                            <p class="text-sm">
+                                <strong>まとめ:</strong><br>
+                                • <strong>外部キー</strong>（マイグレーション）= データベースでデータの整合性を守る<br>
+                                • <strong>リレーション</strong>（モデル）= Laravelで関連データを簡単に取得できるようにする<br><br>
+                                詳しくは<strong>モデルの章</strong>で学習します。
+                            </p>
+                        </div>
+
+                        <h4>【実践】カテゴリーと商品のリレーションを作る</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            実際に外部キー制約を設定してみましょう。今回は、<strong>最初からcreateマイグレーションに含める方法</strong>で実装します。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 2つのアプローチ</strong></p>
+                            <p class="text-sm mb-2">
+                                外部キーを追加する方法は2つあります:
+                            </p>
+                            <p class="text-sm mb-2">
+                                <strong>1. 最初からcreateに含める（推奨）</strong><br>
+                                <span class="text-xs text-gray-300">テーブル作成時に外部キーも一緒に定義。シンプルで分かりやすい</span>
+                            </p>
+                            <p class="text-sm">
+                                <strong>2. 後からaddマイグレーションで追加</strong><br>
+                                <span class="text-xs text-gray-300">既存テーブルに外部キーを追加する場合に使う</span>
+                            </p>
+                        </div>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">ステップ1: 既存のproductsテーブルを削除</p>
+                        <pre><code class="language-bash"># 既存のテーブルを削除
+php artisan migrate:rollback
+
+# または全削除
+php artisan migrate:fresh</code></pre>
+
+                        <p class="font-semibold text-purple-300 mt-6 mb-2">ステップ2: カテゴリーテーブル作成</p>
+                        <pre><code class="language-bash">php artisan make:migration create_categories_table</code></pre>
+
+                        <pre><code class="language-php">public function up(): void
+{
+    Schema::create('categories', function (Blueprint $table) {
+        $table->id();
+        $table->string('name')->comment('カテゴリー名');
+        $table->timestamps();
+    });
+}
+
+public function down(): void
+{
+    Schema::dropIfExists('categories');
+}</code></pre>
+
+                        <p class="font-semibold text-purple-300 mt-6 mb-2">ステップ3: 商品テーブルを外部キー付きで作成</p>
+                        <p class="text-sm text-gray-300 mb-2">
+                            既存の <code>create_products_table</code> マイグレーションファイルを編集します。
+                        </p>
+                        <pre><code class="language-php">public function up(): void
+{
+    Schema::create('products', function (Blueprint $table) {
+        $table->id();
+        $table->string('name')->comment('商品名');
+        $table->text('description')->nullable()->comment('商品説明');
+        $table->integer('price')->comment('価格');
+        $table->integer('stock')->default(0)->comment('在庫数');
+        $table->boolean('is_published')->default(false)->comment('公開状態');
+
+        // 外部キー
+        $table->foreignId('category_id')
+              ->constrained()           // categories テーブルを参照
+              ->onDelete('restrict');   // カテゴリーに商品がある場合は削除不可
+
+        $table->timestamps();
+    });
+}
+
+public function down(): void
+{
+    Schema::dropIfExists('products');
+}</code></pre>
+
+                        <p class="font-semibold text-purple-300 mt-6 mb-2">ステップ4: マイグレーション実行</p>
+                        <pre><code class="language-bash"># マイグレーション実行
+php artisan migrate</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-3">
+                            ✅ これで、categoriesテーブルが先に作成され、その後productsテーブルが外部キー付きで作成されます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-red-500">
+                            <p class="text-sm mb-3"><strong>⚠️ 重要: マイグレーションの順序</strong></p>
+                            <p class="text-sm mb-3">
+                                外部キーを設定する際は、<strong>参照先のテーブルが先に存在</strong>している必要があります。<br>
+                                順序を間違えるとエラーになります。
+                            </p>
+                            <p class="text-sm mb-2"><strong>正しい順序:</strong></p>
+                            <p class="text-sm mb-3">
+                                1. <code>create_categories_table</code> (2025_01_22_000001)<br>
+                                2. <code>create_products_table</code> (2025_01_22_000002)
+                            </p>
+                            <p class="text-sm mb-2"><strong>❌ 間違った順序だと:</strong></p>
+                            <pre class="text-xs bg-black/40 p-3 rounded"><code>SQLSTATE[HY000]: General error: 1215 Cannot add foreign key constraint
+(table 'categories' doesn't exist)</code></pre>
+                            <p class="text-sm mt-3">
+                                <strong>💡 ポイント:</strong> マイグレーションファイル名のタイムスタンプで実行順序が決まります。<br>
+                                categories を先に作成したので、タイムスタンプが若い（古い）ファイル名になり、先に実行されます。
+                            </p>
+                        </div>
+
+                        <h4>外部キーの書き方</h4>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">シンプルな書き方（推奨）</p>
+                        <pre><code class="language-php">$table->foreignId('category_id')
+      ->constrained()           // categories テーブルを自動推測
+      ->onDelete('cascade');</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-2">
+                            • <code>foreignId()</code> は <code>unsignedBigInteger()</code> のショートカット<br>
+                            • <code>constrained()</code> は <code>category_id</code> から <code>categories</code> テーブルを推測
+                        </p>
+
+                        <p class="font-semibold text-purple-300 mt-6 mb-2">明示的な書き方</p>
+                        <pre><code class="language-php">$table->foreignId('category_id')
+      ->constrained('categories')  // テーブル名を明示
+      ->onDelete('cascade');</code></pre>
+
+                        <p class="font-semibold text-purple-300 mt-6 mb-2">従来の書き方（Laravel 6以前）</p>
+                        <pre><code class="language-php">$table->unsignedBigInteger('category_id');
+$table->foreign('category_id')
+      ->references('id')->on('categories')
+      ->onDelete('cascade');</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>💡 書き方が変わった理由と歴史</strong></p>
+                            <p class="text-sm mb-3">
+                                <strong>Laravel 7（2020年3月）</strong>から、<code>foreignId()</code> と <code>constrained()</code> が導入されました。
+                            </p>
+                            <p class="text-sm mb-3">
+                                <strong>変更の理由:</strong><br>
+                                • 従来の書き方は冗長で書くのが大変<br>
+                                • テーブル名を手動で指定する必要があった<br>
+                                • Laravelの規約に従っていれば自動推測できるはず<br>
+                                → より簡潔で書きやすい構文に改善されました
+                            </p>
+                            <p class="text-sm">
+                                <strong>Laravelの命名規約:</strong><br>
+                                <code>constrained()</code> は、カラム名からテーブル名を自動推測します。<br>
+                                • カラム名 <code>category_id</code> → テーブル名 <code>categories</code> を推測<br>
+                                • カラム名 <code>user_id</code> → テーブル名 <code>users</code> を推測<br>
+                                • パターン: <code>{単数形}_id</code> → <code>{複数形}</code> テーブル<br>
+                                <span class="text-xs text-gray-300">※ この規約に従えば、テーブル名を明示しなくてもOK</span>
+                            </p>
+                        </div>
+
+                        <h4>onDelete() - 削除時の動作指定</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            親レコード（カテゴリー）を削除した時に、子レコード（商品）をどう扱うかを指定します。<br>
+                            <strong>これは非常に重要な設定</strong>で、ビジネスロジックによって使い分けます。
+                        </p>
+
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">メソッド</th>
+                                    <th class="px-4 py-2 text-left">動作</th>
+                                    <th class="px-4 py-2 text-left">例</th>
+                                    <th class="px-4 py-2 text-left">実務での用途</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>cascade</code></td>
+                                    <td class="px-4 py-2">親を削除すると子も削除</td>
+                                    <td class="px-4 py-2">カテゴリー削除→商品も削除</td>
+                                    <td class="px-4 py-2 text-xs">注文と注文明細など、親なしで意味がない子データ</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>set null</code></td>
+                                    <td class="px-4 py-2">親を削除すると子はNULLに</td>
+                                    <td class="px-4 py-2">カテゴリー削除→商品はcategory_id=NULL</td>
+                                    <td class="px-4 py-2 text-xs">ユーザーとコメントなど、親が消えても子を残したい場合</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>restrict</code></td>
+                                    <td class="px-4 py-2">子が存在すると親を削除できない</td>
+                                    <td class="px-4 py-2">商品があるカテゴリーは削除不可</td>
+                                    <td class="px-4 py-2 text-xs"><strong>本番で最も安全</strong>。誤削除を防ぐ（デフォルト）</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>💡 実務での使い分け</strong></p>
+                            <p class="text-sm mb-3">
+                                <strong>1. cascade を使う場合</strong><br>
+                                • 注文(orders) と 注文明細(order_items)<br>
+                                • ブログ投稿(posts) と コメント(comments)（投稿が消えたらコメントも不要な場合）<br>
+                                → 親が消えたら子も意味がないデータ
+                            </p>
+                            <p class="text-sm mb-3">
+                                <strong>2. set null を使う場合</strong><br>
+                                • ユーザー(users) と コメント(comments)（ユーザーが退会してもコメントは残す）<br>
+                                • 投稿者(users) と ブログ記事(posts)（退会しても記事は残す）<br>
+                                → 親が消えても子は残したいデータ<br>
+                                ⚠️ <code>nullable()</code> を忘れずに!
+                            </p>
+                            <p class="text-sm">
+                                <strong>3. restrict を使う場合（デフォルト）</strong><br>
+                                • カテゴリー(categories) と 商品(products)<br>
+                                • 部署(departments) と 社員(employees)<br>
+                                → 誤削除を防ぎたい場合。子レコードが存在する限り、親は削除できない。<br>
+                                → アプリ側で「このカテゴリーには商品が登録されているため削除できません」と表示して、ユーザーに確認を促せる。<br>
+                                <span class="text-xs text-gray-300">※ onDelete() を指定しない場合は自動的に restrict になります</span>
+                            </p>
+                        </div>
+
+
+                    </div>
+
+                    <div class="content-section">
+                        <h3>シーダー(Seeder)</h3>
+                        <p>
+                            シーダーとは、<strong>データベースに初期データを投入する仕組み</strong>です。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 Seederの主な用途</strong></p>
+                            <p class="text-sm mb-3">
+                                <strong>1. マスターデータの投入（最重要）</strong><br>
+                                <span class="text-xs text-gray-300">
+                                    システムが動作するために<strong>必ず必要なデータ</strong>を投入します。<br>
+                                    例: カテゴリー、都道府県、権限、ステータス、設定値など<br>
+                                    → これがないとシステムが動かない
+                                </span>
+                            </p>
+                            <p class="text-sm mb-3">
+                                <strong>2. 開発環境のテストデータ投入</strong><br>
+                                <span class="text-xs text-gray-300">
+                                    開発中に動作確認用のサンプルデータを投入します。<br>
+                                    例: サンプル商品、サンプルユーザーなど<br>
+                                    → チーム全員が同じデータで開発できる
+                                </span>
+                            </p>
+                            <p class="text-sm">
+                                <strong>3. 本番環境の初期データ投入</strong><br>
+                                <span class="text-xs text-gray-300">
+                                    本番リリース時に必要なマスターデータを投入します。<br>
+                                    → <code>php artisan db:seed</code> で本番環境にも投入可能
+                                </span>
+                            </p>
+                        </div>
+
+                        <h4>シーダーのメリット</h4>
+                        <ul>
+                            <li>✅ <strong>マスターデータを確実に投入</strong>できる（本番環境でも使える）</li>
+                            <li>✅ <strong>migrate:fresh しても一発で復元</strong>できる（開発効率UP）</li>
+                            <li>✅ <strong>チーム全員が同じデータ</strong>で開発できる（属人化防止）</li>
+                            <li>✅ <strong>Git管理できる</strong>（バージョン管理可能）</li>
+                        </ul>
+
+                        <h4>【実践】シーダーを作成してマスターデータを投入</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            カテゴリーと商品のマスターデータを投入するシーダーを作成します。
+                        </p>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">ステップ1: シーダーを作成</p>
+                        <pre><code class="language-bash"># カテゴリーのシーダー
+php artisan make:seeder CategorySeeder
+
+# 商品のシーダー
+php artisan make:seeder ProductSeeder</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-2 mb-4">
+                            <code>database/seeders/</code> ディレクトリに2つのファイルが作成されます。
+                        </p>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">ステップ2: CategorySeeder を実装</p>
+                        <pre><code class="language-php">&lt;?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class CategorySeeder extends Seeder
+{
+    public function run(): void
+    {
+        DB::table('categories')->insert([
+            ['name' => '家電', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => '食品', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => '衣類', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => '書籍', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+    }
+}</code></pre>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">ステップ3: ProductSeeder を実装</p>
+                        <pre><code class="language-php">&lt;?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class ProductSeeder extends Seeder
+{
+    public function run(): void
+    {
+        DB::table('products')->insert([
+            [
+                'name' => 'ノートPC',
+                'description' => '高性能なノートパソコン',
+                'price' => 120000,
+                'stock' => 10,
+                'is_published' => true,
+                'category_id' => 1,  // 家電
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'ワイヤレスマウス',
+                'description' => '快適な操作感',
+                'price' => 3000,
+                'stock' => 50,
+                'is_published' => true,
+                'category_id' => 1,  // 家電
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'オーガニックコーヒー',
+                'description' => '香り高いコーヒー豆',
+                'price' => 1500,
+                'stock' => 30,
+                'is_published' => true,
+                'category_id' => 2,  // 食品
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Laravel入門書',
+                'description' => '初心者向けの解説書',
+                'price' => 2800,
+                'stock' => 20,
+                'is_published' => true,
+                'category_id' => 4,  // 書籍
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+    }
+}</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-2"><strong>⚠️ 重要: シーダーの実行順序</strong></p>
+                            <p class="text-sm">
+                                ProductSeederは <code>category_id</code> で外部キーを参照しているため、
+                                <strong>CategorySeederを先に実行</strong>する必要があります。<br>
+                                順序を間違えると、存在しない category_id を参照してエラーになります。
+                            </p>
+                        </div>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">ステップ4: DatabaseSeeder で実行順序を管理</p>
+                        <p class="text-sm text-gray-300 mb-3">
+                            <code>database/seeders/DatabaseSeeder.php</code> で、実行するシーダーと順序を指定します。
+                        </p>
+
+                        <pre><code class="language-php">&lt;?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $this->call([
+            CategorySeeder::class,  // 先に実行
+            ProductSeeder::class,   // 後に実行
+        ]);
+    }
+}</code></pre>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">ステップ5: シーダーを実行</p>
+                        <pre><code class="language-bash"># 全てのシーダーを実行（DatabaseSeeder の call() に書いたものを順に実行）
+php artisan db:seed
+
+# 特定のシーダーのみ実行（DatabaseSeeder に書かなくても実行可能）
+php artisan db:seed --class=CategorySeeder
+
+# migrate:fresh と同時に実行（便利！）
+php artisan migrate:fresh --seed</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 シーダーの実行の仕組み</strong></p>
+                            <p class="text-sm mb-3">
+                                <strong>1. php artisan db:seed（オプションなし）</strong><br>
+                                <span class="text-xs text-gray-300">
+                                    → DatabaseSeeder の <code>call()</code> に書かれたシーダーを<strong>順番に実行</strong>します。<br>
+                                    → この例では CategorySeeder → ProductSeeder の順で実行される
+                                </span>
+                            </p>
+                            <p class="text-sm mb-3">
+                                <strong>2. php artisan db:seed --class=CategorySeeder</strong><br>
+                                <span class="text-xs text-gray-300">
+                                    → 指定したシーダー<strong>だけを実行</strong>します。<br>
+                                    → DatabaseSeeder の <code>call()</code> に書かなくても実行可能<br>
+                                    → 開発中に特定のマスターデータだけ投入し直したい時に便利
+                                </span>
+                            </p>
+                            <p class="text-sm">
+                                <strong>3. php artisan migrate:fresh --seed</strong><br>
+                                <span class="text-xs text-gray-300">
+                                    → 全テーブル削除 → マイグレーション実行 → <code>db:seed</code> を実行<br>
+                                    → つまり DatabaseSeeder の <code>call()</code> に書いたシーダーを順に実行
+                                </span>
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>💡 開発の流れ</strong></p>
+                            <pre class="text-sm"><code class="language-bash"># テーブル構造を変更
+# ↓
+php artisan migrate:fresh --seed
+# ↓
+# テーブル再作成 + マスターデータ投入 完了！</code></pre>
+                            <p class="text-sm mt-3">
+                                この<strong>ワンコマンド</strong>で、いつでもクリーンな状態に戻せます。
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-gray-500">
+                            <p class="text-sm mb-3"><strong>💡 補足: Factory（中級者向け）</strong></p>
+                            <p class="text-sm mb-3">
+                                Seederは<strong>決まったデータ</strong>（カテゴリー、都道府県など）を投入するのに適していますが、
+                                1000件、10000件といった<strong>大量のランダムなテストデータ</strong>が必要な場合は、
+                                <strong>Factory</strong> という機能があります。
+                            </p>
+                            <p class="text-sm mb-2">
+                                <strong>Factoryの用途:</strong><br>
+                                <span class="text-xs text-gray-300">
+                                    • PHPUnitでの自動テスト用データ生成<br>
+                                    • パフォーマンステスト用の大量データ生成<br>
+                                    • ランダムな商品データを1000件生成、など
+                                </span>
+                            </p>
+                            <p class="text-sm">
+                                ただし、Factoryは主に<strong>PHPUnitでの自動テスト</strong>で使う中級者向けの機能のため、
+                                <strong>この入門講座では扱いません</strong>。<br>
+                                まずは Seeder を使って<strong>マスターデータの投入</strong>ができるようになりましょう！
+                            </p>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ シーダーを使えば、マスターデータの管理が楽になります！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <p>
+                            この講座で学んだマイグレーションの内容をまとめます。
+                        </p>
+
+                        <h4>マイグレーションの基本</h4>
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">操作</th>
+                                    <th class="px-4 py-2 text-left">コマンド</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">マイグレーション作成</td>
+                                    <td class="px-4 py-2"><code>make:migration create_xxx_table</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">マイグレーション実行</td>
+                                    <td class="px-4 py-2"><code>migrate</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">状態確認</td>
+                                    <td class="px-4 py-2"><code>migrate:status</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">ロールバック</td>
+                                    <td class="px-4 py-2"><code>migrate:rollback</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">全削除→再実行</td>
+                                    <td class="px-4 py-2"><code>migrate:fresh</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">シーダー作成</td>
+                                    <td class="px-4 py-2"><code>make:seeder XxxSeeder</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">シーダー実行</td>
+                                    <td class="px-4 py-2"><code>db:seed</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">再構築+データ投入</td>
+                                    <td class="px-4 py-2"><code>migrate:fresh --seed</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>よく使うカラム型</h4>
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">用途</th>
+                                    <th class="px-4 py-2 text-left">メソッド</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">主キー</td>
+                                    <td class="px-4 py-2"><code>id()</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">短いテキスト</td>
+                                    <td class="px-4 py-2"><code>string('name')</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">長いテキスト</td>
+                                    <td class="px-4 py-2"><code>text('description')</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">整数</td>
+                                    <td class="px-4 py-2"><code>integer('price')</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">真偽値（0 or 1）</td>
+                                    <td class="px-4 py-2"><code>boolean('is_active')</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">外部キー</td>
+                                    <td class="px-4 py-2"><code>foreignId('user_id')->constrained()</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">作成日時・更新日時</td>
+                                    <td class="px-4 py-2"><code>timestamps()</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>よく使うカラム修飾子</h4>
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">修飾子</th>
+                                    <th class="px-4 py-2 text-left">意味</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>nullable()</code></td>
+                                    <td class="px-4 py-2">NULL許可（空でもOK）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>default($value)</code></td>
+                                    <td class="px-4 py-2">デフォルト値を設定</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>unique()</code></td>
+                                    <td class="px-4 py-2">一意制約（重複不可）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>comment('説明')</code></td>
+                                    <td class="px-4 py-2">カラムの説明を追加</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>マイグレーションのベストプラクティス</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <strong>up() と down() は必ず対にする</strong><br>
+                                    <span class="text-xs text-gray-300">ロールバックできるようにする</span>
+                                </li>
+                                <li>✅ <strong>マイグレーションファイルは編集しない</strong><br>
+                                    <span class="text-xs text-gray-300">一度実行したら、新しいマイグレーションで変更する</span>
+                                </li>
+                                <li>✅ <strong>外部キーの順序に注意</strong><br>
+                                    <span class="text-xs text-gray-300">参照先テーブルを先に作成する</span>
+                                </li>
+                                <li>✅ <strong>開発中は migrate:fresh --seed を活用</strong><br>
+                                    <span class="text-xs text-gray-300">いつでもクリーンな状態に戻せる</span>
+                                </li>
+                                <li>⚠️ <strong>本番環境では fresh/refresh は絶対に使わない</strong><br>
+                                    <span class="text-xs text-gray-300">データが全て消えてしまう</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h4>次のステップ</h4>
+                        <p>
+                            マイグレーションでテーブル構造を定義できるようになりました。<br>
+                            次は<strong>モデル(Model)</strong>を学び、PHPからデータベースを操作する方法を学びます。
+                        </p>
+
+                        <div class="glass-dark p-6 rounded-xl mt-6 border-l-4 border-gradient-to-r from-primary-500 to-purple-500">
+                            <p class="text-lg mb-3">
+                                🎉 <strong>お疲れ様でした！</strong>
+                            </p>
+                            <p class="text-sm text-gray-300">
+                                マイグレーションは、Laravelでアプリケーションを開発する上で<strong>最も重要な機能の1つ</strong>です。<br>
+                                何度も練習して、しっかりマスターしましょう！
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+    <script>
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', function () {
+            // シンタックスハイライト
+            hljs.highlightAll();
+
+            // コピーボタンの追加
+            document.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.classList.add('copy-button');
+                btn.textContent = 'COPY';
+                btn.addEventListener('click', () => {
+                    const code = pre.querySelector('code');
+                    let textToCopy = code.textContent;
+
+                    // filename要素がある場合は除外
+                    const filename = pre.querySelector('code.filename');
+                    if (filename) {
+                        textToCopy = code.textContent.replace(filename.textContent, '').trim();
+                    }
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        btn.textContent = 'COPIED!';
+                        setTimeout(() => {
+                            btn.textContent = 'COPY';
+                        }, 2000);
+                    });
+                });
+                pre.appendChild(btn);
+            });
+
+            // h3の折り畳み機能と目次生成
+            const tocList = document.getElementById('toc-list');
+
+            document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                // h3にIDを付与（目次リンク用）
+                const id = `section-${index}`;
+                h3.id = id;
+
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('collapsible-content');
+
+                const contentSection = h3.parentElement;
+                let nextElement = h3.nextElementSibling;
+                const elementsToWrap = [];
+
+                // 同じcontent-section内のh3の次の要素を全て収集
+                while (nextElement) {
+                    elementsToWrap.push(nextElement);
+                    nextElement = nextElement.nextElementSibling;
+                }
+
+                // 要素をwrapperに移動
+                elementsToWrap.forEach(el => {
+                    wrapper.appendChild(el);
+                });
+
+                // wrapperをh3の後に挿入
+                contentSection.appendChild(wrapper);
+
+                // クリックイベント（折り畳み）
+                h3.addEventListener('click', () => {
+                    h3.classList.toggle('collapsed');
+                    wrapper.classList.toggle('collapsed');
+                });
+
+                // 目次リンク生成
+                const tocItem = document.createElement('a');
+                tocItem.href = `#${id}`;
+                tocItem.className = 'block px-3 py-2 rounded hover:bg-white/10 transition-colors duration-200 text-gray-300 hover:text-white text-xs cursor-pointer';
+                tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                tocItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('toc-modal').classList.add('hidden');
+                    h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                tocList.appendChild(tocItem);
+            });
+
+            // 目次ポップアップの制御
+            const tocButton = document.getElementById('toc-button');
+            const tocModal = document.getElementById('toc-modal');
+            const closeToc = document.getElementById('close-toc');
+
+            tocButton.addEventListener('click', () => {
+                tocModal.classList.toggle('hidden');
+            });
+
+            closeToc.addEventListener('click', () => {
+                tocModal.classList.add('hidden');
+            });
+
+            // 外側クリックで閉じる
+            document.addEventListener('click', (e) => {
+                if (!tocButton.contains(e.target) && !tocModal.contains(e.target)) {
+                    tocModal.classList.add('hidden');
+                }
+            });
+
+            // 全て閉じる/開くボタン
+            const toggleAllBtn = document.getElementById('toggle-all');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const toggleText = document.getElementById('toggle-text');
+            let allCollapsed = false;
+
+            toggleAllBtn.addEventListener('click', () => {
+                if (allCollapsed) {
+                    // 全て開く
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.remove('collapsed');
+                            wrapper.classList.remove('collapsed');
+                        }
+                    });
+                    // ボタンを「全て閉じる」に戻す
+                    toggleText.textContent = '全て閉じる';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    allCollapsed = false;
+                } else {
+                    // 全て閉じる
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.add('collapsed');
+                            wrapper.classList.add('collapsed');
+                        }
+                    });
+                    // ボタンを「全て開く」に変更
+                    toggleText.textContent = '全て開く';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+                    toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    allCollapsed = true;
+                }
+            });
+        });
+
+        // サイドバーの制御
+        const sidebar = document.getElementById('sidebar');
+        const openBtn = document.getElementById('open-sidebar');
+        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        };
+
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        // 上に戻るボタン
+        const scrollBtn = document.getElementById('scroll-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                scrollBtn.classList.add('opacity-0', 'pointer-events-none');
+            }
+        });
+
+        scrollBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+
+</html>

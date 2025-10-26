@@ -1,0 +1,3293 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【第四弾】Laravel入門資料 - モデル</title>
+    <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section a {
+            color: #3183ff;
+            text-decoration: underline;
+        }
+
+        .content-section a:hover {
+            color: #8b5cf6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        pre {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre code {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="../miraichi/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 目次ポップアップ（コンパクト版） -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">
+                    目次
+                </h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav id="toc-list" class="space-y-1">
+                <!-- JavaScriptで動的に生成 -->
+            </nav>
+        </div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- 目次ボタンと全て閉じるボタン（固定位置） -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    【第四弾】Laravel入門資料
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">DB実践</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント - Eloquent ORM</strong>
+                        </p>
+                        <a href="https://laravel.com/docs/12.x/eloquent" target="_blank"
+                            class="text-primary-400 hover:text-primary-300 underline text-base">
+                            https://laravel.com/docs/12.x/eloquent
+                        </a>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 この講座では、上記の公式ドキュメントを基に解説していきます。<br>
+                            公式ドキュメントは初学者には内容が難しいため、エッセンスを優しく噛み砕いて解説していきます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>モデル(Model)とは</h3>
+                        <p>
+                            モデルとは、<strong>データベースのテーブルを操作するためのPHPクラス</strong>です。<br>
+                            SQL文を書かずに、PHPのコードでデータベースを操作できます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 イメージ</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>• <code>products</code>テーブル → <code>Product</code>モデル</li>
+                                <li>• <code>users</code>テーブル → <code>User</code>モデル</li>
+                                <li>• モデルを使えば、SQL文なしでデータ操作できる</li>
+                            </ul>
+                        </div>
+
+                        <p class="text-gray-300 text-sm mt-4">
+                            まずは手を動かして、モデルを作って使ってみましょう。理屈は後から理解します。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>【ステップ1】モデルを作成しよう</h3>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-2"><strong>💡 前提</strong></p>
+                            <p class="text-sm">
+                                <strong>マイグレーション</strong>の章で、既に以下を完了しています:<br>
+                                • <code>categories</code> テーブル作成<br>
+                                • <code>products</code> テーブル作成（category_idの外部キー含む）<br>
+                                • CategorySeeder と ProductSeeder でテストデータ投入<br><br>
+                                <span class="text-xs text-gray-300">※ もし忘れてしまった場合は、マイグレーションの章を見返してください。</span>
+                            </p>
+                        </div>
+
+                        <h4>モデル作成コマンド</h4>
+                        <pre><code class="language-bash"># Productモデルを作成
+php artisan make:model Product</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-3">
+                            これで <code>app/Models/Product.php</code> が作られます。
+                        </p>
+
+                        <h4>⭐ 重要: $fillable を設定</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            <code>app/Models/Product.php</code> を開いて、<strong>$fillable</strong> を追加します。<br>
+                            これがないと <code>create()</code> でエラーになります。
+                        </p>
+
+                        <pre><code class="language-php">&lt;?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use HasFactory;
+
+    // ⭐ これを追加！
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'stock',
+        'is_published',
+        'category_id',
+    ];
+}</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>⚠️ $fillable とは？</strong></p>
+                            <p class="text-sm mb-3">
+                                <code>Product::create([...])</code> で一括代入できるカラムを指定するものです。<br>
+                                セキュリティ対策として、明示的に許可したカラムだけ代入可能にします。
+                            </p>
+
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>🔒 なぜセキュリティ上必要なのか？</strong><br>
+                                悪意のあるユーザーが、予期しないカラムを勝手に変更できてしまう危険性があるためです。<br>
+                                例: ユーザー情報更新時に、<code>is_admin</code> というカラムを勝手に <code>true</code> にして管理者権限を取得する攻撃など。<br>
+                                <code>$fillable</code> で許可したカラムだけ受け付けることで、この攻撃を防げます。
+                            </p>
+
+                            <p class="text-xs text-gray-300 mb-2">
+                                <strong>これを設定しないと:</strong><br>
+                                → <code>MassAssignmentException</code> エラーが出ます
+                            </p>
+                            <p class="text-xs text-gray-300">
+                                <strong>💡 補足:</strong> <code>$guarded</code>（ブラックリスト方式）もありますが、実務では<strong>$fillableを使うのが一般的</strong>です。
+                            </p>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ モデルの準備完了！これで Eloquent ORM を使えます。<br>
+                            <span class="text-xs text-gray-300 mt-2">※ Eloquent ORM については後ほど詳しく説明します。</span>
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>【ステップ2】Tinkerで実際に操作してみよう</h3>
+                        <p>
+                            Tinkerは、コマンドラインでPHPコードを実行できるツールです。<br>
+                            実際にデータベースを操作しながら、モデルの使い方を覚えましょう。
+                        </p>
+
+                        <h4>Tinker起動</h4>
+                        <pre><code class="language-bash">php artisan tinker</code></pre>
+                        <p class="text-xs text-gray-300 mt-2 mb-4">
+                            終了する時は <code>exit</code> または <code>Ctrl + C</code>
+                        </p>
+
+                        <h4>【実践1】データを取得してみる</h4>
+
+                        <pre><code class="language-php">// 全件取得
+>>> $products = App\Models\Product::all();
+=> Illuminate\Database\Eloquent\Collection {
+     all: [
+       App\Models\Product {
+         id: 1,
+         name: "ノートPC",
+         price: 120000,
+       },
+       App\Models\Product {
+         id: 2,
+         name: "ワイヤレスマウス",
+         price: 3000,
+       },
+       // ...
+     ],
+   }
+
+// 件数確認
+>>> $products->count();
+=> 3
+
+// IDで1件取得
+>>> $product = App\Models\Product::find(1);
+=> App\Models\Product {
+     id: 1,
+     name: "ノートPC",
+     price: 120000,
+     stock: 10,
+   }
+
+// 属性にアクセス
+>>> $product->name;
+=> "ノートPC"
+
+>>> $product->price;
+=> 120000</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-cyan-500">
+                            <p class="text-xs text-gray-300">
+                                <strong>💡 ポイント:</strong><br>
+                                • <code>Product::all()</code> や <code>Product::find()</code> で取得<br>
+                                • <code>$product->name</code> でカラムの値を取得<br>
+                                • SQL文を書いていないのに、データが取れた！
+                            </p>
+                        </div>
+
+                        <h4>【実践2】条件を指定して取得</h4>
+
+                        <pre><code class="language-php">// 価格が10000円より高い商品
+>>> $products = App\Models\Product::where('price', '>', 10000)->get();
+=> Illuminate\Database\Eloquent\Collection {
+     all: [
+       App\Models\Product {
+         id: 1,
+         name: "ノートPC",
+         price: 120000,
+       },
+     ],
+   }
+
+// 最初の1件だけ
+>>> $product = App\Models\Product::where('price', '<', 5000)->first();
+=> App\Models\Product {
+     id: 2,
+     name: "ワイヤレスマウス",
+     price: 3000,
+   }
+
+// 件数だけ知りたい
+>>> App\Models\Product::where('price', '>', 10000)->count();
+=> 1</code></pre>
+
+                        <h4>【実践3】データを作成してみる</h4>
+
+                        <pre><code class="language-php">// 新しい商品を作成
+>>> $product = App\Models\Product::create([
+...   'name' => 'Bluetoothキーボード',
+...   'description' => '打ちやすいキーボード',
+...   'price' => 8000,
+...   'stock' => 15,
+...   'is_published' => true,
+...   'category_id' => 1,  // 家電
+... ]);
+=> App\Models\Product {
+     id: 4,
+     name: "Bluetoothキーボード",
+     price: 8000,
+     // ...
+   }
+
+// 確認
+>>> App\Models\Product::find(4)->name;
+=> "Bluetoothキーボード"</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs text-gray-300">
+                                <strong>💡 $fillable のおかげで動く:</strong><br>
+                                さっき設定した <code>$fillable</code> があるから、<code>create()</code> が動きました。<br>
+                                なければ <code>MassAssignmentException</code> エラーになります。
+                            </p>
+                        </div>
+
+                        <h4>【実践4】データを更新してみる</h4>
+
+                        <pre><code class="language-php">// IDで取得
+>>> $product = App\Models\Product::find(4);
+
+// 価格を変更
+>>> $product->price = 7500;
+
+// 保存
+>>> $product->save();
+=> true
+
+// 確認
+>>> $product->price;
+=> 7500
+
+// 別の方法: update() メソッド
+>>> $product->update(['stock' => 20]);
+=> true</code></pre>
+
+                        <h4>【実践5】データを削除してみる</h4>
+
+                        <pre><code class="language-php">// IDで取得
+>>> $product = App\Models\Product::find(4);
+
+// 削除
+>>> $product->delete();
+=> true
+
+// 確認（nullになる）
+>>> App\Models\Product::find(4);
+=> null</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ データの取得・作成・更新・削除ができました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>【ステップ3】いま何をしたか理解しよう</h3>
+
+                        <h4>ORM（Object-Relational Mapping）とは</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            さっきやったことが、まさに<strong>ORM</strong>です。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>📊 ORMの仕組み</strong></p>
+
+                            <table class="w-full text-xs mt-2 mb-4">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">データベース</th>
+                                        <th class="px-3 py-2 text-left">ORM（PHP）</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white/5">
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>products</code> テーブル</td>
+                                        <td class="px-3 py-2"><code>Product</code> モデル</td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2">1行のデータ</td>
+                                        <td class="px-3 py-2"><code>$product</code> オブジェクト</td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>name</code> カラム</td>
+                                        <td class="px-3 py-2"><code>$product->name</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>SELECT * FROM products</code></td>
+                                        <td class="px-3 py-2"><code>Product::all()</code></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>つまり:</strong><br>
+                                SQL文を書かずに、PHPのオブジェクトとしてデータベースを操作できる仕組みです。
+                            </p>
+
+                            <p class="text-xs text-gray-300 mb-2">
+                                <strong>💡 LaravelのORM = Eloquent ORM</strong><br>
+                                Laravelでは、ORMのことを <strong>Eloquent ORM</strong>（エロクアント）と呼びます。
+                            </p>
+
+                            <p class="text-xs text-gray-300">
+                                <strong>💡 他のフレームワークにもORMはある</strong><br>
+                                • Ruby on Rails → <strong>Active Record</strong><br>
+                                • Django (Python) → <strong>Django ORM</strong><br>
+                                • Symfony (PHP) → <strong>Doctrine</strong><br>
+                                • ASP.NET → <strong>Entity Framework</strong><br><br>
+                                ORMは、現代のWebフレームワークでは<strong>必ずと言っていいほど備わっている仕組み</strong>です。
+                            </p>
+                        </div>
+
+                        <h4>「::」と「->」の使い分け</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-red-500">
+                            <p class="text-sm mb-3">
+                                <strong>⚠️ 初心者がよく混乱するポイント</strong>
+                            </p>
+                            <p class="text-sm text-gray-300 mb-3">
+                                <code>::</code> と <code>-></code> の使い分けは、<strong>Laravel初心者が必ずつまずく箇所</strong>です。<br>
+                                ここでしっかり理解しておきましょう。
+                            </p>
+                        </div>
+
+                        <p class="text-sm text-gray-300 mb-3">
+                            さっきのTinkerで、2種類の記号を使いました。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-cyan-500">
+                            <p class="text-sm mb-3"><strong>💡 シンプルな理解</strong></p>
+
+                            <div class="bg-blue-500/20 p-4 rounded-lg mb-4">
+                                <p class="text-base mb-3"><strong>:: (ダブルコロン) = 新しく作る</strong></p>
+                                <ul class="text-sm space-y-2">
+                                    <li>✅ データを検索する時 → <code>Product::where(...)</code></li>
+                                    <li>✅ 新しいデータを作る時 → <code>Product::create(...)</code></li>
+                                    <li>✅ IDで探す時 → <code>Product::find(1)</code></li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-green-500/20 p-4 rounded-lg">
+                                <p class="text-base mb-3"><strong>-> (アロー) = すでにあるものを操作</strong></p>
+                                <ul class="text-sm space-y-2">
+                                    <li>✅ データを見る時 → <code>$product->name</code></li>
+                                    <li>✅ データを変更する時 → <code>$product->price = 15000</code></li>
+                                    <li>✅ 保存する時 → <code>$product->save()</code></li>
+                                    <li>✅ 削除する時 → <code>$product->delete()</code></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h4>終端メソッド - いつSQLが実行される？</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            さっき <code>where()</code> の後に <code>get()</code> や <code>first()</code> を書きましたね。<br>
+                            実は、<strong>get() や first() を呼ぶまでSQLは実行されません</strong>。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-orange-500">
+                            <p class="text-sm mb-3"><strong>💡 終端メソッド = SQLを実行するメソッド</strong></p>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-php">// ここまではSQL未実行（クエリを組み立てているだけ）
+$query = Product::where('price', '>', 10000);
+
+// get() を呼んで初めてSQL実行される
+$products = $query->get();  // ← ここで実行
+
+// first() も終端メソッド
+$product = $query->first();  // ← ここで実行
+
+// count() も終端メソッド
+$count = $query->count();  // ← ここで実行</code></pre>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>主な終端メソッド:</strong><br>
+                                • <code>get()</code> - 複数件取得<br>
+                                • <code>first()</code> - 最初の1件<br>
+                                • <code>find(id)</code> - IDで1件<br>
+                                • <code>count()</code> - 件数<br>
+                                • <code>exists()</code> - 存在チェック<br><br>
+                                💡 <strong>終端メソッドについて詳しくは、後のセクション「いつSQLが実行される？」で解説します。</strong>
+                            </p>
+                        </div>
+                    </div>
+
+
+
+                    <div class="content-section">
+                        <h3>実務でよく使うメソッド一覧</h3>
+                        <p>
+                            ここまでで基本的な操作ができるようになりました。<br>
+                            実務でよく使うメソッドを重要度順に紹介します。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>📋 重要度別メソッド一覧</strong></p>
+
+                            <table class="w-full text-xs mt-2 mb-4">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">重要度</th>
+                                        <th class="px-3 py-2 text-left">メソッド</th>
+                                        <th class="px-3 py-2 text-left">説明</th>
+                                        <th class="px-3 py-2 text-left">例</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white/5">
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-yellow-300">★★★</span></td>
+                                        <td class="px-3 py-2"><code>all()</code></td>
+                                        <td class="px-3 py-2">全件取得</td>
+                                        <td class="px-3 py-2"><code>Product::all()</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-yellow-300">★★★</span></td>
+                                        <td class="px-3 py-2"><code>find()</code></td>
+                                        <td class="px-3 py-2">IDで1件取得</td>
+                                        <td class="px-3 py-2"><code>Product::find(1)</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-yellow-300">★★★</span></td>
+                                        <td class="px-3 py-2"><code>where()</code></td>
+                                        <td class="px-3 py-2">条件指定</td>
+                                        <td class="px-3 py-2"><code>where('price', '>', 1000)</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-yellow-300">★★★</span></td>
+                                        <td class="px-3 py-2"><code>get()</code></td>
+                                        <td class="px-3 py-2">検索結果を取得</td>
+                                        <td class="px-3 py-2"><code>where(...)->get()</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-yellow-300">★★★</span></td>
+                                        <td class="px-3 py-2"><code>first()</code></td>
+                                        <td class="px-3 py-2">最初の1件</td>
+                                        <td class="px-3 py-2"><code>where(...)->first()</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-yellow-300">★★★</span></td>
+                                        <td class="px-3 py-2"><code>create()</code></td>
+                                        <td class="px-3 py-2">新規作成</td>
+                                        <td class="px-3 py-2"><code>Product::create([...])</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-yellow-300">★★★</span></td>
+                                        <td class="px-3 py-2"><code>save()</code></td>
+                                        <td class="px-3 py-2">保存</td>
+                                        <td class="px-3 py-2"><code>$product->save()</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-yellow-300">★★★</span></td>
+                                        <td class="px-3 py-2"><code>update()</code></td>
+                                        <td class="px-3 py-2">更新</td>
+                                        <td class="px-3 py-2"><code>$product->update([...])</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-yellow-300">★★★</span></td>
+                                        <td class="px-3 py-2"><code>delete()</code></td>
+                                        <td class="px-3 py-2">削除</td>
+                                        <td class="px-3 py-2"><code>$product->delete()</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-blue-300">★★☆</span></td>
+                                        <td class="px-3 py-2"><code>orderBy()</code></td>
+                                        <td class="px-3 py-2">並び替え</td>
+                                        <td class="px-3 py-2"><code>orderBy('price', 'desc')</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-blue-300">★★☆</span></td>
+                                        <td class="px-3 py-2"><code>count()</code></td>
+                                        <td class="px-3 py-2">件数取得</td>
+                                        <td class="px-3 py-2"><code>Product::count()</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-blue-300">★★☆</span></td>
+                                        <td class="px-3 py-2"><code>with()</code></td>
+                                        <td class="px-3 py-2">リレーション取得</td>
+                                        <td class="px-3 py-2"><code>Product::with('category')</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-gray-400">★☆☆</span></td>
+                                        <td class="px-3 py-2"><code>pluck()</code></td>
+                                        <td class="px-3 py-2">特定カラムのみ</td>
+                                        <td class="px-3 py-2"><code>Product::pluck('name')</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><span class="text-gray-400">★☆☆</span></td>
+                                        <td class="px-3 py-2"><code>sum()</code></td>
+                                        <td class="px-3 py-2">合計</td>
+                                        <td class="px-3 py-2"><code>Product::sum('price')</code></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>💡 重要度の基準:</strong><br>
+                                • <span class="text-yellow-300">★★★</span> = <strong>必須</strong>（CRUD操作で毎日使う）<br>
+                                • <span class="text-blue-300">★★☆</span> = <strong>よく使う</strong>（実務で頻繁に使う）<br>
+                                • <span class="text-gray-400">★☆☆</span> = <strong>たまに使う</strong>（特定の場面で使う）
+                            </p>
+                        </div>
+                    </div>
+
+
+                    <div class="content-section">
+                        <h3>いつSQLが実行される？終端メソッドを理解しよう</h3>
+                        <p>
+                            Eloquent ORMでは、<strong>メソッドチェーンで繋いでいる間はSQL文は発行されません</strong>。<br>
+                            最後に<strong>終端メソッド</strong>を呼んで初めて、データベースにSQLが送られます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-orange-500">
+                            <p class="text-sm mb-3"><strong>💡 終端メソッド = SQLを実行するメソッド</strong></p>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-php">// ここまではSQL未発行（クエリを組み立てているだけ）
+$query = Product::where('price', '>', 10000)
+    ->where('is_published', true)
+    ->orderBy('created_at', 'desc');
+
+// この時点ではまだデータベースに問い合わせていない
+
+// get() を呼んで初めてSQL実行される ← 終端メソッド
+$products = $query->get();  // SELECT * FROM products WHERE ...
+
+// first() も終端メソッド
+$product = $query->first();  // SELECT * FROM products WHERE ... LIMIT 1</code></pre>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>💡 つまり:</strong><br>
+                                • メソッドチェーン中 = クエリを組み立てているだけ<br>
+                                • 終端メソッド呼び出し = その瞬間にSQL実行<br>
+                                • <strong>終端メソッドを呼ぶまでデータは取得されない</strong>
+                            </p>
+                        </div>
+
+                        <h4>主な終端メソッド一覧</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            よく使う終端メソッドを覚えましょう。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>📋 終端メソッド（SQLを実行する）</strong></p>
+
+                            <table class="w-full text-xs mt-2 mb-4">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">メソッド</th>
+                                        <th class="px-3 py-2 text-left">何を返す？</th>
+                                        <th class="px-3 py-2 text-left">例</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white/5">
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>get()</code></td>
+                                        <td class="px-3 py-2">複数件のコレクション</td>
+                                        <td class="px-3 py-2"><code>Product::where(...)->get()</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>first()</code></td>
+                                        <td class="px-3 py-2">最初の1件</td>
+                                        <td class="px-3 py-2"><code>Product::where(...)->first()</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>find(id)</code></td>
+                                        <td class="px-3 py-2">指定IDの1件</td>
+                                        <td class="px-3 py-2"><code>Product::find(1)</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>count()</code></td>
+                                        <td class="px-3 py-2">件数（数値）</td>
+                                        <td class="px-3 py-2"><code>Product::where(...)->count()</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>pluck('name')</code></td>
+                                        <td class="px-3 py-2">特定カラムの配列</td>
+                                        <td class="px-3 py-2"><code>Product::pluck('name')</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>sum('price')</code></td>
+                                        <td class="px-3 py-2">合計値</td>
+                                        <td class="px-3 py-2"><code>Product::sum('price')</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>max('price')</code></td>
+                                        <td class="px-3 py-2">最大値</td>
+                                        <td class="px-3 py-2"><code>Product::max('price')</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>min('price')</code></td>
+                                        <td class="px-3 py-2">最小値</td>
+                                        <td class="px-3 py-2"><code>Product::min('price')</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>avg('price')</code></td>
+                                        <td class="px-3 py-2">平均値</td>
+                                        <td class="px-3 py-2"><code>Product::avg('price')</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>exists()</code></td>
+                                        <td class="px-3 py-2">存在チェック（true/false）</td>
+                                        <td class="px-3 py-2"><code>Product::where(...)->exists()</code></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4>終端メソッドでないもの（チェーンできる）</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            これらはSQL未実行。さらにメソッドを繋げられます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>🔗 チェーン可能なメソッド（SQL未実行）</strong></p>
+
+                            <table class="w-full text-xs mt-2 mb-4">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">メソッド</th>
+                                        <th class="px-3 py-2 text-left">役割</th>
+                                        <th class="px-3 py-2 text-left">例</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white/5">
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>where()</code></td>
+                                        <td class="px-3 py-2">条件追加</td>
+                                        <td class="px-3 py-2"><code>where('price', '>', 1000)</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>orderBy()</code></td>
+                                        <td class="px-3 py-2">並び替え</td>
+                                        <td class="px-3 py-2"><code>orderBy('created_at', 'desc')</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>limit()</code></td>
+                                        <td class="px-3 py-2">件数制限</td>
+                                        <td class="px-3 py-2"><code>limit(10)</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>select()</code></td>
+                                        <td class="px-3 py-2">取得カラム指定</td>
+                                        <td class="px-3 py-2"><code>select('name', 'price')</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>with()</code></td>
+                                        <td class="px-3 py-2">リレーション指定</td>
+                                        <td class="px-3 py-2"><code>with('category')</code></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>💡 これらはいくらでも繋げられる:</strong>
+                            </p>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mt-2"><code class="language-php">// 全部繋げてもSQL未実行
+$query = Product::where('price', '>', 10000)
+    ->where('is_published', true)
+    ->orderBy('created_at', 'desc')
+    ->limit(10)
+    ->select('name', 'price')
+    ->with('category');
+
+// ここまでSQL未実行
+
+// get() で初めてSQL実行
+$products = $query->get();  // ← ここで実行される</code></pre>
+                        </div>
+
+                        <h4>【Tinkerで確認】実際に試してみよう</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            Tinkerで、いつSQLが実行されるか確認できます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>🧪 Tinkerで実験</strong></p>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-bash">php artisan tinker</code></pre>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-php">// クエリログを有効化
+>>> DB::enableQueryLog();
+
+// where() や orderBy() を書く（SQL未実行）
+>>> $query = App\Models\Product::where('price', '>', 10000)->orderBy('price', 'desc');
+
+// まだログは空
+>>> DB::getQueryLog();
+=> []  // 空！まだSQL実行されていない
+
+// get() で実行
+>>> $products = $query->get();
+
+// ログを確認
+>>> DB::getQueryLog();
+=> [
+     [
+       "query" => "select * from `products` where `price` > ? order by `price` desc",
+       "bindings" => [10000],
+       "time" => 1.23,
+     ],
+   ]  // ← get() を呼んだ時にSQLが実行された！</code></pre>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>💡 確認できたこと:</strong><br>
+                                • <code>where()</code>, <code>orderBy()</code> = SQL未実行<br>
+                                • <code>get()</code> = その瞬間にSQL実行<br>
+                                • <strong>終端メソッドを呼ぶまで、データベースには何も問い合わせていない</strong>
+                            </p>
+                        </div>
+
+                        <h4>【Tinkerで確認】pluck() と バインド値</h4>
+                        <p class="text-sm text-gray-300 mb-3">
+                            他の終端メソッドも試してみましょう。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🧪 pluck() を試す</strong></p>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-php">// 特定のカラムだけ取得
+>>> App\Models\Product::pluck('name');
+=> Illuminate\Support\Collection {
+     all: [
+       "ノートPC",
+       "ワイヤレスマウス",
+       "オーガニックコーヒー",
+       "Laravel入門書",
+     ],
+   }
+
+// IDをキーにして名前を取得
+>>> App\Models\Product::pluck('name', 'id');
+=> Illuminate\Support\Collection {
+     all: [
+       1 => "ノートPC",
+       2 => "ワイヤレスマウス",
+       3 => "オーガニックコーヒー",
+       4 => "Laravel入門書",
+     ],
+   }</code></pre>
+
+                            <div class="glass-dark p-4 rounded-lg mb-3 bg-blue-500/10 border border-blue-500/30">
+                                <p class="text-xs text-gray-300 mb-2">
+                                    <strong>💡 pluck() とは？</strong>
+                                </p>
+                                <p class="text-xs text-gray-300">
+                                    特定のカラムの値だけを配列で取得する<strong>終端メソッド</strong>です。<br>
+                                    全部のデータは不要で、名前のリストだけ欲しい時などに便利です。<br><br>
+                                    <strong>使い分け:</strong><br>
+                                    • <code>pluck('name')</code> → 名前だけの配列<br>
+                                    • <code>pluck('name', 'id')</code> → IDをキーにした名前の配列（セレクトボックスなどで使う）
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-orange-500">
+                            <p class="text-sm mb-3"><strong>🧪 バインド値を確認する</strong></p>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-php">// クエリを作成（SQL未実行）
+>>> $query = App\Models\Product::where('price', '>', 10000);
+
+// SQLの構造を確認（?がある）
+>>> $query->toSql();
+=> "select * from `products` where `price` > ?"
+
+// バインド値を確認（?に入る実際の値）
+>>> $query->getBindings();
+=> [
+     10000,
+   ]
+
+// 問題なければ実行
+>>> $products = $query->get();</code></pre>
+
+                            <div class="glass-dark p-4 rounded-lg mb-3 bg-purple-500/10 border border-purple-500/30">
+                                <p class="text-xs text-gray-300 mb-2">
+                                    <strong>💡 バインド値とは？</strong>
+                                </p>
+                                <p class="text-xs text-gray-300">
+                                    SQL文の <code>?</code> の部分に入る実際の値のことです。<br>
+                                    上の例では、<code>where('price', '>', 10000)</code> の <code>10000</code> がバインド値です。<br><br>
+                                    <strong>なぜ？にするのか:</strong><br>
+                                    <strong>SQLインジェクション対策</strong>のためです。<br>
+                                    値を直接SQL文に埋め込まず、安全に渡すための仕組みです。<br><br>
+                                    <strong>デバッグ時の使い方:</strong><br>
+                                    • <code>toSql()</code> → SQL文の構造を確認<br>
+                                    • <code>getBindings()</code> → 実際の値を確認<br>
+                                    → 両方見ることで、実行されるSQLの全体像が分かります
+                                </p>
+                            </div>
+                        </div>
+
+                        <h4>なぜこの仕組みが便利なのか？</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>⚙️ 遅延実行のメリット</strong></p>
+
+                            <p class="text-sm mb-2"><strong>【メリット1】条件を動的に追加できる</strong></p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-4"><code class="language-php">$query = Product::query();
+
+if ($request->has('min_price')) {
+    $query->where('price', '>=', $request->min_price);
+}
+
+if ($request->has('category_id')) {
+    $query->where('category_id', $request->category_id);
+}
+
+// 最後に一度だけSQL実行
+$products = $query->get();</code></pre>
+
+                            <p class="text-sm mb-2 mt-4"><strong>【メリット2】同じクエリで違う終端メソッドを使える</strong></p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-4"><code class="language-php">$query = Product::where('is_published', true);
+
+// 同じクエリで件数を取得
+$count = $query->count();  // SQL実行1回目
+
+// 同じクエリでデータ取得
+$products = $query->get();  // SQL実行2回目
+
+// 同じクエリで最初の1件
+$first = $query->first();  // SQL実行3回目</code></pre>
+
+                            <p class="text-sm mb-2 mt-4"><strong>【メリット3】デバッグしやすい</strong></p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-4"><code class="language-php">$query = Product::where('price', '>', 10000);
+
+// SQLを確認できる（まだ実行されていない）
+echo $query->toSql();  // select * from `products` where `price` > ?
+
+// バインド値も確認
+dd($query->getBindings());  // [10000]
+
+// 問題なければ実行
+$products = $query->get();</code></pre>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>💡 まとめ:</strong><br>
+                                • 必要になるまでSQLを発行しないので効率的<br>
+                                • 条件を柔軟に組み立てられる<br>
+                                • デバッグがしやすい<br>
+                                • <strong>終端メソッドを呼んで初めて実行される</strong>
+                            </p>
+                        </div>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 覚え方: <strong>get, first, count, pluck などが終端メソッド</strong>。これを呼ぶまでデータは取得されない!
+                        </p>
+                    </div>
+
+                                        <div class="content-section">
+                        <h3>なぜEloquent ORMを使うのか？ - SQL → クエリビルダー → ORMの進化</h3>
+                        <p class="text-sm text-gray-300 mb-3">
+                            Laravelでデータベース操作をする方法は、実は3つあります。<br>
+                            それぞれに問題があり、最終的に<strong>Eloquent ORM</strong>が生まれました。
+                        </p>
+
+                        <h4>【方法1】生SQL - 最も危険な方法</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-red-500">
+                            <p class="text-sm mb-3"><strong>書き方</strong></p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-php">use Illuminate\Support\Facades\DB;
+
+// 全件取得
+$products = DB::select('SELECT * FROM products');
+
+// 条件付き取得
+$products = DB::select('SELECT * FROM products WHERE price > ?', [10000]);
+
+// ❌ 危険な書き方（SQLインジェクションの危険性）
+$products = DB::select("SELECT * FROM products WHERE name = '$name'");</code></pre>
+
+                            <p class="text-sm mb-2"><strong>❌ 最大の問題: SQLインジェクションのリスク</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                SQL文を文字列で組み立てると、<strong>SQLインジェクション攻撃</strong>を受ける可能性があります。<br>
+                                悪意のあるユーザーが、データベースを不正に操作したり、データを盗んだりできてしまいます。
+                            </p>
+                        </div>
+
+                        <h4>【方法2】クエリビルダー - まだリスクが残る</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>書き方</strong></p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-php">use Illuminate\Support\Facades\DB;
+
+// ✅ 安全な書き方
+$products = DB::table('products')->where('price', '>', 10000)->get();
+
+// ❌ 危険な書き方（whereRaw を使うとSQLインジェクションのリスク）
+$products = DB::table('products')
+    ->whereRaw("name = '$name'")  // 危険！
+    ->get();</code></pre>
+
+                            <p class="text-sm mb-2"><strong>⚠️ 問題1: whereRaw() でSQLインジェクションのリスクが残る</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                基本的には安全ですが、<code>whereRaw()</code>、<code>selectRaw()</code> などの「Raw」メソッドを使うと、<br>
+                                生SQL文を書くことになり、<strong>SQLインジェクションの危険性が残ります</strong>。
+                            </p>
+
+                            <p class="text-sm mb-2 mt-4"><strong>⚠️ 問題2: リレーションが使えない</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                商品のカテゴリー名を取得したい場合、クエリビルダーだと<strong>JOINを手動で書く必要</strong>があります。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">// クエリビルダー: JOINを手動で書く必要がある
+$products = DB::table('products')
+    ->join('categories', 'products.category_id', '=', 'categories.id')
+    ->select('products.*', 'categories.name as category_name')
+    ->get();
+
+// 結果は配列（オブジェクトではない）
+foreach ($products as $product) {
+    echo $product->category_name;  // categoryオブジェクトではなく文字列
+}</code></pre>
+
+                            <div class="glass-dark p-4 rounded-lg mt-3 mb-3 bg-yellow-500/10 border border-yellow-500/30">
+                                <p class="text-xs text-gray-300 mb-2">
+                                    <strong>🧪 Tinkerで実際に試してみよう</strong>
+                                </p>
+                                <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-bash">php artisan tinker</code></pre>
+                                <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">// クエリビルダーでJOIN
+>>> $products = DB::table('products')
+...     ->join('categories', 'products.category_id', '=', 'categories.id')
+...     ->select('products.*', 'categories.name as category_name')
+...     ->limit(2)
+...     ->get();
+
+=> Illuminate\Support\Collection {
+     all: [
+       {
+         +"id": 1,
+         +"name": "ノートPC",
+         +"description": "高性能なノートパソコン",
+         +"price": 120000,
+         +"stock": 10,
+         +"is_published": 1,
+         +"category_id": 1,
+         +"created_at": "2025-10-26 23:30:29",
+         +"updated_at": "2025-10-26 23:30:29",
+         +"category_name": "家電",  // ← 文字列として追加されただけ
+       },
+       {
+         +"id": 2,
+         +"name": "ワイヤレスマウス",
+         +"description": "静音設計のマウス",
+         +"price": 3000,
+         +"stock": 50,
+         +"is_published": 1,
+         +"category_id": 1,
+         +"created_at": "2025-10-26 23:30:29",
+         +"updated_at": "2025-10-26 23:30:29",
+         +"category_name": "家電",
+       },
+     ],
+   }
+
+// カテゴリー名を取得する場合
+>>> $products[0]->category_name;
+=> "家電"  // ただの文字列
+
+// カテゴリーオブジェクトは存在しない
+>>> $products[0]->category;
+=> null  // ❌ リレーションではないので取れない</code></pre>
+
+                                <p class="text-xs text-gray-300 mt-2">
+                                    <strong>💡 問題点:</strong><br>
+                                    • データが平坦（フラット）になってしまう<br>
+                                    • category_name は文字列として追加されただけ<br>
+                                    • カテゴリーの他の情報（id、created_atなど）は取得できない<br>
+                                    • <strong>JOINのSQL文を毎回書く必要がある</strong>
+                                </p>
+                            </div>
+
+                            <p class="text-xs text-gray-300 mb-2 mt-3">
+                                <strong>Eloquent ORMなら非常にシンプル:</strong>
+                            </p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">// Eloquent: リレーションで簡単に取得
+$products = Product::with('category')->get();
+
+foreach ($products as $product) {
+    echo $product->category->name;  // リレーションで自動取得
+}</code></pre>
+
+                            <div class="glass-dark p-4 rounded-lg mt-3 mb-3 bg-green-500/10 border border-green-500/30">
+                                <p class="text-xs text-gray-300 mb-2">
+                                    <strong>🧪 Eloquentの結果（リレーション使用）</strong>
+                                </p>
+                                <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">>>> $products = App\Models\Product::with('category')->limit(2)->get();
+
+=> Illuminate\Database\Eloquent\Collection {
+     all: [
+       App\Models\Product {
+         id: 1,
+         name: "ノートPC",
+         description: "高性能なノートパソコン",
+         price: 120000,
+         stock: 10,
+         is_published: 1,
+         category_id: 1,
+         created_at: "2025-10-26 23:30:29",
+         updated_at: "2025-10-26 23:30:29",
+         category: App\Models\Category {  // ← オブジェクトとして取得！
+           id: 1,
+           name: "家電",
+           created_at: "2025-10-26 23:30:29",
+           updated_at: "2025-10-26 23:30:29",
+         },
+       },
+       App\Models\Product {
+         id: 2,
+         name: "ワイヤレスマウス",
+         description: "静音設計のマウス",
+         price: 3000,
+         stock: 50,
+         is_published: 1,
+         category_id: 1,
+         created_at: "2025-10-26 23:30:29",
+         updated_at: "2025-10-26 23:30:29",
+         category: App\Models\Category {
+           id: 1,
+           name: "家電",
+           created_at: "2025-10-26 23:30:29",
+           updated_at: "2025-10-26 23:30:29",
+         },
+       },
+     ],
+   }
+
+// カテゴリー名を取得
+>>> $products[0]->category->name;
+=> "家電"
+
+// カテゴリーの他の情報も取得可能
+>>> $products[0]->category->id;
+=> 1
+
+>>> $products[0]->category->created_at;
+=> Illuminate\Support\Carbon @1730020229 {
+     date: 2025-10-26 23:30:29.0 UTC (+00:00),
+   }</code></pre>
+
+                                <p class="text-xs text-gray-300 mt-2">
+                                    <strong>💡 Eloquentの利点:</strong><br>
+                                    • カテゴリーが<strong>オブジェクト</strong>として取得される<br>
+                                    • カテゴリーの全ての情報にアクセス可能<br>
+                                    • <code>$product->category->name</code> のように直感的に書ける<br>
+                                    • <strong>JOINのSQLを書く必要がない</strong>
+                                </p>
+                            </div>
+
+                            <p class="text-sm mb-2 mt-4"><strong>⚠️ 問題3: モデルの機能が使えない</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                クエリビルダーの返り値は<strong>ただの配列</strong>なので、モデルに定義した便利な機能が使えません。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">// 例: 価格を税込みで表示したい場合
+
+// クエリビルダー: 毎回計算が必要
+$products = DB::table('products')->get();
+foreach ($products as $product) {
+    echo $product->price * 1.1;  // 毎回計算を書く必要がある
+}
+
+// Eloquent: モデルにカスタムメソッドを定義すれば再利用できる
+// Product.php
+public function getPriceWithTax() {
+    return $this->price * 1.1;
+}
+
+// 使う側
+$products = Product::all();
+foreach ($products as $product) {
+    echo $product->getPriceWithTax();  // スッキリ！明示的！
+}</code></pre>
+
+                            <p class="text-sm mb-2 mt-4"><strong>⚠️ 問題4: コードの可読性が低い</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                テーブル名を文字列で書く必要があるため、<strong>タイポに気づきにくい</strong>です。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-php">// クエリビルダー: テーブル名が文字列（タイポしても気づかない）
+DB::table('producst')->get();  // タイポ！でもエラーにならず実行時に失敗
+
+// Eloquent: クラス名なのでIDEが補完してくれる
+Product::all();  // タイポしたら即座にエラーになる</code></pre>
+
+                            <p class="text-xs text-gray-300 mt-4">
+                                <strong>💡 まとめ: クエリビルダーを避ける理由</strong><br>
+                                • whereRaw() でSQLインジェクションのリスク<br>
+                                • リレーションを使うにはJOINを手動で書く必要がある<br>
+                                • モデルの便利な機能（アクセサ、スコープなど）が使えない<br>
+                                • 返り値が配列なので型安全ではない<br>
+                                • テーブル名が文字列なのでタイポに気づきにくい
+                            </p>
+                        </div>
+
+                        <h4>【方法3】Eloquent ORM - 最も安全な方法</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>書き方</strong></p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code class="language-php">use App\Models\Product;
+
+// 全件取得
+$products = Product::all();
+
+// 条件付き取得
+$products = Product::where('price', '>', 10000)->get();
+
+// ユーザー入力を使っても安全
+$products = Product::where('name', $request->name)->get();  // ✅ 自動でエスケープされる</code></pre>
+
+                            <p class="text-sm mb-2"><strong>✅ 最大のメリット: SQLインジェクションのリスクがない</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                Eloquent ORMは、<strong>すべての入力値を自動的にエスケープ</strong>します。<br>
+                                開発者が意識しなくても、SQLインジェクション対策が完璧に行われます。<br>
+                                <code>whereRaw()</code> のような危険なメソッドを使う必要がありません。
+                            </p>
+
+                            <p class="text-sm mb-2"><strong>その他のメリット</strong></p>
+                            <ul class="text-xs space-y-1">
+                                <li>• <strong>created_at / updated_at が自動</strong></li>
+                                <li>• <strong>リレーション（関連データ）が簡単</strong> - <code>$product->category</code> で取得</li>
+                                <li>• IDE の補完が効く</li>
+                                <li>• より直感的で読みやすい</li>
+                            </ul>
+                        </div>
+
+                        <h4>3つの方法の比較</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <table class="w-full text-xs mt-2 mb-4">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">項目</th>
+                                        <th class="px-3 py-2 text-left">生SQL</th>
+                                        <th class="px-3 py-2 text-left">クエリビルダー</th>
+                                        <th class="px-3 py-2 text-left">Eloquent ORM</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white/5">
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><strong>SQLインジェクション</strong></td>
+                                        <td class="px-3 py-2 text-red-300"><strong>危険</strong></td>
+                                        <td class="px-3 py-2 text-yellow-300"><strong>whereRaw()で危険</strong></td>
+                                        <td class="px-3 py-2 text-green-300"><strong>安全</strong></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2">書き方</td>
+                                        <td class="px-3 py-2"><code>DB::select('SELECT...')</code></td>
+                                        <td class="px-3 py-2"><code>DB::table('products')</code></td>
+                                        <td class="px-3 py-2"><code>Product::where(...)</code></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2">タイムスタンプ</td>
+                                        <td class="px-3 py-2 text-red-300">手動</td>
+                                        <td class="px-3 py-2 text-red-300">手動</td>
+                                        <td class="px-3 py-2 text-green-300">自動</td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2">リレーション</td>
+                                        <td class="px-3 py-2 text-red-300">JOIN文を書く</td>
+                                        <td class="px-3 py-2 text-yellow-300">join()メソッド</td>
+                                        <td class="px-3 py-2 text-green-300">$product->category</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>💡 結論: できるだけ Eloquent ORM を使おう</strong></p>
+                            <p class="text-sm mb-3">
+                                Laravelでは、<strong>基本的にEloquent ORMを使って書く</strong>のが推奨されます。<br>
+                                最大の理由は<strong>セキュリティ</strong>です。SQLインジェクションのリスクを開発者が意識せずに回避できます。
+                            </p>
+                            <p class="text-xs text-gray-300">
+                                <strong>生SQLやクエリビルダーを使う場合:</strong><br>
+                                • 複雑な集計やサブクエリで、Eloquentでは書きづらい時<br>
+                                • 大量データの一括更新/削除（Eloquentより高速）<br>
+                                ⚠️ ただし、<code>whereRaw()</code> などを使う時は、SQLインジェクション対策を忘れずに！
+                            </p>
+                        </div>
+                    </div>
+
+
+
+                    <div class="content-section">
+                        <h3>リレーションシップの実践</h3>
+                        <p>
+                            ここからは、実際にリレーションシップを定義して、Tinkerで動作を確認していきます。<br>
+                            <strong>Product（商品）</strong>を中心に、<strong>Category（カテゴリー）</strong>、<strong>ProductDetail（商品詳細）</strong>、<strong>Tag（タグ）</strong>との関係を学びます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-2"><strong>⚠️ 先ほどのwith()エラーについて</strong></p>
+                            <p class="text-xs text-gray-300">
+                                「なぜEloquent ORM」のセクションで<code>Product::with('category')</code>を試した際、エラーが出ました。<br>
+                                理由は以下の2つです:<br><br>
+                                1️⃣ <strong>Categoryモデルがまだ存在しない</strong><br>
+                                2️⃣ <strong>Productモデルにcategory()リレーションが定義されていない</strong><br><br>
+                                これから順番に解決していきます！
+                            </p>
+                        </div>
+
+                        <h4>【準備】Categoryモデルを作成</h4>
+                        <p class="text-xs text-gray-300 mb-3">
+                            categoriesテーブルは既に存在しているため、モデルだけを作成します。
+                        </p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-2"><code class="language-bash">php artisan make:model Category</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>Categoryモデルを編集</strong></p>
+                        <p class="text-xs text-gray-400 mb-2"><code>app/Models/Category.php</code></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">&lt;?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Category extends Model
+{
+    use HasFactory;
+
+    // まだ設定していないため、Categoryにもfillableを設定
+    protected $fillable = ['name'];
+}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-lg mt-3 mb-3 bg-blue-500/10 border border-blue-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>💡 カテゴリーデータについて</strong></p>
+                            <p class="text-xs text-gray-300">
+                                カテゴリーデータは既にSeederで作成済みです。<br>
+                                <code>CategorySeeder</code>で「家電」「食品」「衣類」「書籍」の4つが登録されています。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">📚 リレーションメソッドの種類</h4>
+                        <p class="text-xs text-gray-300 mb-3">
+                            Laravelでは、テーブル間の関係を表現するために、いくつかのリレーションメソッドが用意されています。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-lg mb-4">
+                            <table class="w-full text-xs">
+                                <thead>
+                                    <tr class="border-b border-gray-700">
+                                        <th class="text-left py-2 px-2 text-blue-400">メソッド</th>
+                                        <th class="text-left py-2 px-2 text-blue-400">関係性</th>
+                                        <th class="text-left py-2 px-2 text-blue-400">例</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-800">
+                                        <td class="py-2 px-2"><code class="text-yellow-400">hasMany()</code></td>
+                                        <td class="py-2 px-2">1対多（1つが複数を持つ）</td>
+                                        <td class="py-2 px-2">1つのカテゴリーは複数の商品を持つ</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-800">
+                                        <td class="py-2 px-2"><code class="text-yellow-400">belongsTo()</code></td>
+                                        <td class="py-2 px-2">多対1（多くが1つに属する）</td>
+                                        <td class="py-2 px-2">複数の商品は1つのカテゴリーに属する</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-800">
+                                        <td class="py-2 px-2"><code class="text-yellow-400">hasOne()</code></td>
+                                        <td class="py-2 px-2">1対1（1つが1つを持つ）</td>
+                                        <td class="py-2 px-2">1つの商品は1つの詳細情報を持つ</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 px-2"><code class="text-yellow-400">belongsToMany()</code></td>
+                                        <td class="py-2 px-2">多対多（多くが多くと関連）</td>
+                                        <td class="py-2 px-2">複数の商品は複数のタグを持ち、1つのタグは複数の商品に紐づく</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-lg mb-4 bg-green-500/10 border border-green-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>💡 Product::class とは？</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                <code>Product::class</code>は、<strong>完全修飾クラス名（名前空間 + クラス名）を文字列で返す</strong>PHPの機能です。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-2 rounded mb-2"><code class="language-php">Product::class
+// ↓ 実際にはこの文字列を返す
+"App\Models\Product"</code></pre>
+                            <p class="text-xs text-gray-300 mb-2">
+                                これは<code>app/Models/Product.php</code>ファイルにある<code>Product</code>クラスを指しています。
+                            </p>
+                            <p class="text-xs text-gray-300">
+                                <strong>メリット:</strong><br>
+                                • タイポ防止（文字列で書くよりも安全）<br>
+                                • IDEがクラスの存在をチェックしてくれる<br>
+                                • クラス名変更時に自動で修正されやすい
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">1対多（One to Many）リレーションを定義</h4>
+                        <p class="text-xs text-gray-300 mb-3">
+                            <strong>Product（商品） ← Category（カテゴリー）</strong><br>
+                            1つのカテゴリーは複数の商品を持つ関係です。
+                        </p>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>Category側（親）にリレーションを追加</strong></p>
+                        <p class="text-xs text-gray-400 mb-2"><code>app/Models/Category.php</code></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">&lt;?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Category extends Model
+{
+    use HasFactory;
+
+    protected $fillable = ['name'];
+
+    // このカテゴリーに属する商品（複数）
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>Product側（子）にリレーションを追加</strong></p>
+                        <p class="text-xs text-gray-400 mb-2"><code>app/Models/Product.php</code></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">&lt;?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'stock',
+        'is_published',
+        'category_id',  // 外部キー
+    ];
+
+    // この商品が属するカテゴリー（1つ）
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+}</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>💡 リレーションメソッド名は自由に付けられる！</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                実は、<code>category()</code>や<code>products()</code>というメソッド名は、<strong>何でも好きな名前にできます</strong>。<br>
+                                ただし、<strong>わかりやすい名前</strong>を付けることが重要です。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">// ✅ 推奨: わかりやすい名前
+public function category()  // 単数形（1つのカテゴリー）
+{
+    return $this->belongsTo(Category::class);
+}
+
+public function products()  // 複数形（複数の商品）
+{
+    return $this->hasMany(Product::class);
+}
+
+// ❌ 動くけど推奨しない: 意味不明な名前
+public function test123()  // これでも動く
+{
+    return $this->belongsTo(Category::class);
+}
+
+// ✅ こんな名前でもOK（意味があれば）
+public function belongsToCategory()  // より明示的
+{
+    return $this->belongsTo(Category::class);
+}
+
+public function allProducts()  // すべての商品
+{
+    return $this->hasMany(Product::class);
+}</code></pre>
+
+                            <p class="text-xs text-gray-300 mt-2">
+                                <strong>命名のベストプラクティス:</strong><br>
+                                • belongsTo（子→親）は<strong>単数形</strong>: <code>category</code>, <code>user</code><br>
+                                • hasMany（親→子）は<strong>複数形</strong>: <code>products</code>, <code>comments</code><br>
+                                • hasOne（1対1）は<strong>単数形</strong>: <code>profile</code>, <code>detail</code><br>
+                                • 英語で意味が通じる名前にする
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>⚠️ メソッド名を変えると、使い方（呼び出し方）も変わる！</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                リレーションメソッド名は自由ですが、<strong>付けた名前でアクセスする必要があります</strong>。
+                            </p>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">// ケース1: category() というメソッド名の場合
+public function category()
+{
+    return $this->belongsTo(Category::class);
+}
+
+// 使い方
+$product = Product::first();
+$product->category;  // ✅ category() で定義したので category でアクセス
+$product->test123;   // ❌ エラー: そんなリレーションは存在しない</code></pre>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">// ケース2: test123() というメソッド名に変えた場合
+public function test123()  // メソッド名を変更
+{
+    return $this->belongsTo(Category::class);
+}
+
+// 使い方
+$product = Product::first();
+$product->category;  // ❌ エラー: category() メソッドは存在しない
+$product->test123;   // ✅ test123() で定義したので test123 でアクセス
+
+// Eager Loadingも同じ
+Product::with('category')->get();  // ❌ エラー
+Product::with('test123')->get();   // ✅ これなら動く</code></pre>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">// ケース3: belongsToCategory() という名前の場合
+public function belongsToCategory()
+{
+    return $this->belongsTo(Category::class);
+}
+
+// 使い方
+$product = Product::first();
+$product->category;            // ❌ エラー
+$product->belongsToCategory;   // ✅ このメソッド名でアクセス
+
+// Eager Loading
+Product::with('belongsToCategory')->get();  // ✅</code></pre>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>💡 重要なポイント:</strong><br>
+                                • メソッド名 = アクセスする時のプロパティ名<br>
+                                • <code>category()</code> で定義 → <code>$product->category</code> でアクセス<br>
+                                • <code>test123()</code> で定義 → <code>$product->test123</code> でアクセス<br>
+                                • <code>with('category')</code> の文字列も、メソッド名と一致させる必要がある<br><br>
+                                <strong>だからこそ、わかりやすい名前を付けることが大切！</strong>
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">Tinkerで動作確認</h4>
+                        <div class="glass-dark p-4 rounded-lg mt-3 mb-3 bg-blue-500/10 border border-blue-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>🧪 Tinkerを起動して試してみよう</strong></p>
+                            <pre class="text-sm bg-black/40 p-3 rounded mb-2"><code class="language-bash">php artisan tinker</code></pre>
+
+                            <pre class="text-sm bg-black/40 p-3 rounded mb-2"><code class="language-php">// 既存のカテゴリーを取得（Seederで作成済み）
+>>> $category = \App\Models\Category::first();
+=> App\Models\Category {
+     id: 1,
+     name: "家電",
+     created_at: "2025-10-27 12:00:00",
+     updated_at: "2025-10-27 12:00:00",
+   }
+
+// 商品からカテゴリーを取得（これで動くようになった！）
+>>> $product = \App\Models\Product::first();
+>>> $product->category;
+=> App\Models\Category {
+     id: 1,
+     name: "家電",
+     created_at: "2025-10-27 12:00:00",
+     updated_at: "2025-10-27 12:00:00",
+   }
+
+>>> $product->category->name;
+=> "家電"
+
+// カテゴリーから商品を取得
+>>> $category->products;
+=> Illuminate\Database\Eloquent\Collection {
+     all: [
+       App\Models\Product {
+         id: 1,
+         name: "ノートPC",
+         // ... 以下省略
+       },
+       // ... 他の商品
+     ],
+   }
+
+// withでEager Loading（これでエラーが出なくなった！）
+>>> $products = \App\Models\Product::with('category')->get();
+=> Illuminate\Database\Eloquent\Collection {
+     all: [
+       App\Models\Product {
+         id: 1,
+         name: "ノートPC",
+         category: App\Models\Category {
+           id: 1,
+           name: "家電",
+         },
+       },
+       // ...
+     ],
+   }</code></pre>
+
+                            <p class="text-xs text-gray-300 mt-2">
+                                <strong>✅ リレーションを定義したことで:</strong><br>
+                                • <code>$product->category</code> でカテゴリー情報を取得できる<br>
+                                • <code>$category->products</code> で商品一覧を取得できる<br>
+                                • <code>with('category')</code> でEager Loadingが使える
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">Eager Loading（事前読み込み）とは？ - N+1問題を解決する</h4>
+                        <p class="text-xs text-gray-300 mb-3">
+                            <strong>Eager Loading</strong>は、リレーションデータを<strong>事前にまとめて取得</strong>する機能です。<br>
+                            これを使わないと、<strong>N+1問題</strong>という深刻なパフォーマンス問題が発生します。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-red-500">
+                            <p class="text-sm mb-3"><strong>❌ 悪い例: Eager Loadingを使わない場合（N+1問題）</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                Tinkerで実際に試してみましょう。<strong>何回SQLが実行されるか</strong>に注目してください。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-bash">php artisan tinker</code></pre>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">// まず、DBクエリのログを有効化
+>>> \DB::enableQueryLog();
+
+// ❌ withを使わずに商品を全件取得
+>>> $products = \App\Models\Product::all();
+=> Illuminate\Database\Eloquent\Collection {#...}
+
+// 各商品のカテゴリー名を表示
+>>> foreach ($products as $product) {
+...     echo $product->name . ' - ' . $product->category->name . "\n";
+... }
+ノートPC - 家電
+ワイヤレスマウス - 家電
+コーヒー豆 - 食品
+Tシャツ - 衣類
+プログラミング入門 - 書籍
+
+// 実行されたSQLを確認
+>>> \DB::getQueryLog();
+=> [
+     [
+       "query" => "select * from `products`",  // ← 1回目: 商品を全件取得
+     ],
+     [
+       "query" => "select * from `categories` where `categories`.`id` = ? limit 1",
+       "bindings" => [1],  // ← 2回目: category_id=1 のカテゴリーを取得
+     ],
+     [
+       "query" => "select * from `categories` where `categories`.`id` = ? limit 1",
+       "bindings" => [1],  // ← 3回目: またcategory_id=1 を取得（無駄！）
+     ],
+     [
+       "query" => "select * from `categories` where `categories`.`id` = ? limit 1",
+       "bindings" => [2],  // ← 4回目: category_id=2 のカテゴリーを取得
+     ],
+     [
+       "query" => "select * from `categories` where `categories`.`id` = ? limit 1",
+       "bindings" => [3],  // ← 5回目: category_id=3 のカテゴリーを取得
+     ],
+     [
+       "query" => "select * from `categories` where `categories`.`id` = ? limit 1",
+       "bindings" => [4],  // ← 6回目: category_id=4 のカテゴリーを取得
+     ],
+   ]
+
+// 合計: 6回のクエリが実行された！
+// 1回（商品） + 5回（各商品ごとにカテゴリー） = 6回</code></pre>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>⚠️ N+1問題とは:</strong><br>
+                                • 最初に商品を5件取得（1回のクエリ）← これが「+1」<br>
+                                • ループで各商品のカテゴリーにアクセスする度に、1件ずつSQLが実行される（5回）← これが「N」<br>
+                                • <strong>合計6回のクエリ</strong>（N + 1 = 5 + 1 = 6）<br>
+                                • 商品が100件なら100+1=101回、1000件なら1000+1=1001回のクエリになる！<br>
+                                • <strong>データベースへの負荷が非常に大きい</strong>
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>✅ 良い例: Eager Loadingを使う場合</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <code>with('category')</code>を使うと、<strong>最初にまとめて取得</strong>します。
+                            </p>
+
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-2"><code class="language-php">// クエリログをリセット
+>>> \DB::flushQueryLog();
+>>> \DB::enableQueryLog();
+
+// ✅ withを使って商品とカテゴリーをまとめて取得
+>>> $products = \App\Models\Product::with('category')->get();
+=> Illuminate\Database\Eloquent\Collection {#...}
+
+// 各商品のカテゴリー名を表示（さっきと同じコード）
+>>> foreach ($products as $product) {
+...     echo $product->name . ' - ' . $product->category->name . "\n";
+... }
+ノートPC - 家電
+ワイヤレスマウス - 家電
+コーヒー豆 - 食品
+Tシャツ - 衣類
+プログラミング入門 - 書籍
+
+// 実行されたSQLを確認
+>>> \DB::getQueryLog();
+=> [
+     [
+       "query" => "select * from `products`",  // ← 1回目: 商品を全件取得
+     ],
+     [
+       "query" => "select * from `categories` where `categories`.`id` in (?, ?, ?, ?)",
+       "bindings" => [1, 2, 3, 4],  // ← 2回目: カテゴリーをまとめて取得！
+     ],
+   ]
+
+// 合計: たった2回のクエリで完了！
+// 1回（商品） + 1回（全カテゴリー） = 2回</code></pre>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>✅ Eager Loadingの効果:</strong><br>
+                                • 商品を全件取得（1回のクエリ）<br>
+                                • 必要なカテゴリーを<strong>まとめて</strong>取得（1回のクエリ）<br>
+                                • <strong>合計2回のクエリ</strong>で完了！<br>
+                                • 商品が100件でも1000件でも、<strong>クエリは2回だけ</strong><br>
+                                • <strong>データベースへの負荷が激減</strong>
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>📊 パフォーマンス比較</strong></p>
+                            <table class="w-full text-xs mt-2">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">商品数</th>
+                                        <th class="px-3 py-2 text-left">Eager Loadingなし</th>
+                                        <th class="px-3 py-2 text-left">Eager Loadingあり</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white/5">
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2">5件</td>
+                                        <td class="px-3 py-2 text-red-300"><strong>6回</strong> (5+1)</td>
+                                        <td class="px-3 py-2 text-green-300"><strong>2回</strong></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2">100件</td>
+                                        <td class="px-3 py-2 text-red-300"><strong>101回</strong> (100+1)</td>
+                                        <td class="px-3 py-2 text-green-300"><strong>2回</strong></td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2">1000件</td>
+                                        <td class="px-3 py-2 text-red-300"><strong>1001回</strong> (1000+1)</td>
+                                        <td class="px-3 py-2 text-green-300"><strong>2回</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>💡 結論:</strong><br>
+                                • リレーションを使う時は、<strong>必ずwith()を使う</strong>習慣をつけよう<br>
+                                • Eager Loadingを使わないと、アプリが遅くなる<br>
+                                • 特に本番環境では、パフォーマンスに大きな差が出る
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3 class="mt-8">1対1（One to One）リレーション</h3>
+                        <p class="text-xs text-gray-300 mb-3">
+                            <strong>Product（商品） - ProductDetail（商品詳細）</strong><br>
+                            1つの商品は1つの詳細情報を持つ関係です。
+                        </p>
+
+                        <h4>ProductDetailモデルとマイグレーションを作成</h4>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-2"><code class="language-bash">php artisan make:model ProductDetail -m</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>マイグレーションファイルを編集</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">public function up(): void
+{
+    Schema::create('product_details', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('product_id')->constrained()->onDelete('cascade');
+        $table->text('long_description')->nullable();
+        $table->string('manufacturer')->nullable();
+        $table->string('warranty_period')->nullable();
+        $table->timestamps();
+    });
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>ProductDetailモデルを編集</strong></p>
+                        <p class="text-xs text-gray-400 mb-2"><code>app/Models/ProductDetail.php</code></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">&lt;?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class ProductDetail extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'product_id',
+        'long_description',
+        'manufacturer',
+        'warranty_period',
+    ];
+
+    // この詳細情報が属する商品（1つ）
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>Productモデルにリレーションを追加</strong></p>
+                        <p class="text-xs text-gray-400 mb-2"><code>app/Models/Product.php</code>（既存のcategory()の下に追加）</p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">// この商品の詳細情報（1つ）
+public function detail()
+{
+    return $this->hasOne(ProductDetail::class);
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>マイグレーションを実行</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-bash">php artisan migrate</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>🤔 hasOne と belongsTo の使い分け</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                1対1リレーションでは、<strong>どちら側にデータを持つか</strong>で使い分けます。
+                            </p>
+
+                            <div class="bg-black/40 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-300 mb-2"><strong>📦 データベースの構造:</strong></p>
+                                <pre class="text-xs"><code>products テーブル
+├─ id: 1
+├─ name: ノートパソコン
+└─ price: 120000
+
+product_details テーブル
+├─ id: 1
+├─ product_id: 1  ← 外部キー（Productのidを参照）
+├─ long_description: 高性能な...
+└─ manufacturer: Dell</code></pre>
+                            </div>
+
+                            <p class="text-xs text-gray-300 mb-2">
+                                <strong>ルール:</strong>
+                            </p>
+                            <ul class="text-xs text-gray-300 list-disc list-inside space-y-1 mb-3">
+                                <li><code class="text-yellow-400">belongsTo()</code>: <strong>外部キー（product_id）を持つ側</strong>が使う</li>
+                                <li><code class="text-yellow-400">hasOne()</code>: <strong>外部キーを持たない側</strong>が使う</li>
+                            </ul>
+
+                            <div class="bg-black/40 p-3 rounded mb-3">
+                                <p class="text-xs text-yellow-400 mb-2">✅ ProductDetail（外部キーを持つ側）</p>
+                                <pre class="text-xs"><code class="language-php">class ProductDetail extends Model
+{
+    // product_id を持っているので belongsTo()
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+}</code></pre>
+                            </div>
+
+                            <div class="bg-black/40 p-3 rounded">
+                                <p class="text-xs text-yellow-400 mb-2">✅ Product（外部キーを持たない側）</p>
+                                <pre class="text-xs"><code class="language-php">class Product extends Model
+{
+    // 外部キーを持たないので hasOne()
+    public function detail()
+    {
+        return $this->hasOne(ProductDetail::class);
+    }
+}</code></pre>
+                            </div>
+
+                            <p class="text-xs text-gray-300 mt-3 mb-3">
+                                <strong>💡 覚え方:</strong><br>
+                                「<strong>〜_id カラムを持っている方が belongsTo()</strong>」と覚えましょう！
+                            </p>
+
+                            <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded">
+                                <p class="text-xs text-gray-300 mb-2"><strong>🤔 なぜ外部キーを持たない側がhasOne()なの？</strong></p>
+                                <p class="text-xs text-gray-300 mb-2">
+                                    理由は<strong>データの参照方向</strong>にあります。
+                                </p>
+                                <ul class="text-xs text-gray-300 list-disc list-inside space-y-1">
+                                    <li><strong>Product側（外部キーなし）:</strong> 自分のテーブルに相手の情報がないので、<strong>相手を探しに行く必要がある</strong> → hasOne()（能動的）</li>
+                                    <li><strong>ProductDetail側（外部キーあり）:</strong> product_idを持っているので、<strong>既にどのProductに属するか知っている</strong> → belongsTo()（受動的）</li>
+                                </ul>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    つまり、「<strong>相手を探しに行く側</strong>」がhas系、「<strong>既に相手のIDを知ってる側</strong>」がbelongsToです！
+                                </p>
+                            </div>
+                        </div>
+
+                        <h4 class="mt-6">🎯 Tinkerで試してみよう</h4>
+                        <p class="text-xs text-gray-300 mb-3">
+                            実際に1対1リレーションを使って、商品の詳細情報を登録・取得してみます。
+                        </p>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>1️⃣ Tinkerを起動</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-bash">php artisan tinker</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>2️⃣ 商品を1つ取得</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">>>> $product = \App\Models\Product::first();
+=> App\Models\Product {#...
+     id: 1,
+     name: "ノートパソコン",
+     price: 120000,
+     category_id: 1,
+   }</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>3️⃣ この商品に詳細情報を作成（hasOneを使う）</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">>>> $detail = $product->detail()->create([
+...     'long_description' => '高性能なCore i7プロセッサーを搭載した15.6インチノートPC。メモリ16GB、SSD512GBで快適な動作を実現。',
+...     'manufacturer' => 'Dell',
+...     'warranty_period' => '1年間',
+... ]);
+=> App\Models\ProductDetail {#...
+     product_id: 1,
+     long_description: "高性能なCore i7プロセッサーを搭載した...",
+     manufacturer: "Dell",
+     warranty_period: "1年間",
+   }</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>4️⃣ 商品から詳細情報を取得（hasOne - プロパティとしてアクセス）</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">>>> $product->detail;
+=> App\Models\ProductDetail {#...
+     id: 1,
+     product_id: 1,
+     long_description: "高性能なCore i7プロセッサーを搭載した...",
+     manufacturer: "Dell",
+     warranty_period: "1年間",
+   }
+
+// 詳細情報の特定のカラムにアクセス
+>>> $product->detail->manufacturer;
+=> "Dell"
+
+>>> $product->detail->warranty_period;
+=> "1年間"</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>5️⃣ 逆方向: 詳細情報から商品を取得（belongsTo）</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">>>> $detail = \App\Models\ProductDetail::first();
+=> App\Models\ProductDetail {#...
+     id: 1,
+     product_id: 1,
+     long_description: "高性能なCore i7プロセッサーを搭載した...",
+   }
+
+// この詳細情報が属する商品を取得
+>>> $detail->product;
+=> App\Models\Product {#...
+     id: 1,
+     name: "ノートパソコン",
+     price: 120000,
+   }
+
+>>> $detail->product->name;
+=> "ノートパソコン"</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>6️⃣ Eager Loadingで一緒に取得</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">// ✅ 商品と詳細情報をまとめて取得
+>>> $products = \App\Models\Product::with('detail')->get();
+
+>>> foreach ($products as $product) {
+...     echo $product->name;
+...     if ($product->detail) {
+...         echo " - 製造元: " . $product->detail->manufacturer;
+...     }
+...     echo "\n";
+... }
+ノートパソコン - 製造元: Dell
+スマートフォン
+冷蔵庫
+...</code></pre>
+
+                        <div class="glass-dark p-4 rounded-lg mt-4 mb-4 bg-yellow-500/10 border border-yellow-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>⚠️ 注意: 詳細情報がない場合</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                全ての商品に詳細情報があるわけではないので、アクセス前に<code>null</code>チェックをしましょう。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-2 rounded"><code class="language-php">// ❌ エラーになる可能性
+$product->detail->manufacturer;  // detailがnullの場合エラー
+
+// ✅ 安全
+if ($product->detail) {
+    echo $product->detail->manufacturer;
+}</code></pre>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-lg mb-4 bg-green-500/10 border border-green-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>💡 1対1リレーションのまとめ</strong></p>
+                            <ul class="text-xs text-gray-300 list-disc list-inside space-y-1">
+                                <li><code>hasOne()</code>: 親モデル（Product）から子モデル（ProductDetail）へのアクセス</li>
+                                <li><code>belongsTo()</code>: 子モデル（ProductDetail）から親モデル（Product）へのアクセス</li>
+                                <li>外部キーを持つ側が<code>belongsTo()</code>を使う</li>
+                                <li>データがない場合は<code>null</code>が返るので、必ずチェックする</li>
+                                <li>Eager Loadingで<code>with('detail')</code>を使うとパフォーマンスが向上</li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <div class="content-section">
+                        <h3 class="mt-8">多対多（Many to Many）リレーション</h3>
+                        <p class="text-xs text-gray-300 mb-3">
+                            <strong>Product（商品） ↔ Tag（タグ）</strong><br>
+                            1つの商品は複数のタグを持ち、1つのタグは複数の商品に紐づく関係です。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-lg mb-4 bg-purple-500/10 border border-purple-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>💡 多対多リレーションの特徴</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                多対多リレーションでは、<strong>中間テーブル（ピボットテーブル）</strong>が必要です。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-2 rounded"><code>products テーブル
+├─ id: 1 (ノートパソコン)
+├─ id: 2 (スマートフォン)
+
+tags テーブル
+├─ id: 1 (人気)
+├─ id: 2 (新商品)
+├─ id: 3 (セール中)
+
+product_tag テーブル（中間テーブル）
+├─ product_id: 1, tag_id: 1  ← ノートパソコンは「人気」
+├─ product_id: 1, tag_id: 2  ← ノートパソコンは「新商品」
+├─ product_id: 2, tag_id: 1  ← スマートフォンは「人気」
+└─ product_id: 2, tag_id: 3  ← スマートフォンは「セール中」</code></pre>
+                        </div>
+
+                        <h4>Tagモデルとマイグレーションを作成</h4>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-2"><code class="language-bash">php artisan make:model Tag -m</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>マイグレーションファイルを編集（tagsテーブル）</strong></p>
+                        <p class="text-xs text-gray-400 mb-2"><code>database/migrations/xxxx_create_tags_table.php</code></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">public function up(): void
+{
+    Schema::create('tags', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->timestamps();
+    });
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>中間テーブルのマイグレーションを作成</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-2"><code class="language-bash">php artisan make:migration create_product_tag_table</code></pre>
+
+                        <div class="glass-dark p-3 rounded-lg mb-3 bg-blue-500/10 border border-blue-500/30">
+                            <p class="text-xs text-gray-300">
+                                <strong>📝 中間テーブルの命名規則:</strong><br>
+                                • 2つのモデル名を<strong>アルファベット順</strong>に並べる<br>
+                                • 単数形で、アンダースコアで区切る<br>
+                                • 例: Product + Tag → <code>product_tag</code>（tagが後）
+                            </p>
+                        </div>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>中間テーブルのマイグレーションを編集</strong></p>
+                        <p class="text-xs text-gray-400 mb-2"><code>database/migrations/xxxx_create_product_tag_table.php</code></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">public function up(): void
+{
+    Schema::create('product_tag', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('product_id')->constrained()->onDelete('cascade');
+        $table->foreignId('tag_id')->constrained()->onDelete('cascade');
+        $table->timestamps();
+    });
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>Tagモデルを編集</strong></p>
+                        <p class="text-xs text-gray-400 mb-2"><code>app/Models/Tag.php</code></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">&lt;?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Tag extends Model
+{
+    use HasFactory;
+
+    protected $fillable = ['name'];
+
+    // このタグが紐づく商品（複数）
+    public function products()
+    {
+        return $this->belongsToMany(Product::class);
+    }
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>Productモデルにリレーションを追加</strong></p>
+                        <p class="text-xs text-gray-400 mb-2"><code>app/Models/Product.php</code>（既存のリレーションの下に追加）</p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">// この商品に紐づくタグ（複数）
+public function tags()
+{
+    return $this->belongsToMany(Tag::class);
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>マイグレーションを実行</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-bash">php artisan migrate</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🤔 なぜ両方ともbelongsToMany()なの？</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                多対多リレーションでは、<strong>どちら側も相手を「複数持つ」関係</strong>なので、両方とも<code>belongsToMany()</code>を使います。
+                            </p>
+                            <ul class="text-xs text-gray-300 list-disc list-inside space-y-1">
+                                <li><strong>Product側:</strong> 1つの商品は複数のタグに属する → belongsToMany(Tag::class)</li>
+                                <li><strong>Tag側:</strong> 1つのタグは複数の商品に属する → belongsToMany(Product::class)</li>
+                            </ul>
+                            <p class="text-xs text-gray-400 mt-2">
+                                1対多の<code>hasMany</code>と違い、多対多では「主従関係」がないため、両方とも<code>belongsToMany</code>になります。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">🎯 Tinkerで試してみよう</h4>
+                        <p class="text-xs text-gray-300 mb-3">
+                            実際に多対多リレーションを使って、商品にタグを紐づけてみます。
+                        </p>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>1️⃣ Tinkerを起動</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-bash">php artisan tinker</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>2️⃣ タグを作成</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">>>> $tag1 = \App\Models\Tag::create(['name' => '人気']);
+=> App\Models\Tag {#... id: 1, name: "人気" }
+
+>>> $tag2 = \App\Models\Tag::create(['name' => '新商品']);
+=> App\Models\Tag {#... id: 2, name: "新商品" }
+
+>>> $tag3 = \App\Models\Tag::create(['name' => 'セール中']);
+=> App\Models\Tag {#... id: 3, name: "セール中" }</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>3️⃣ 商品を取得</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">>>> $product = \App\Models\Product::first();
+=> App\Models\Product {#... id: 1, name: "ノートパソコン" }</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>4️⃣ 商品にタグを紐づける（attach）</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">// 1つずつ紐づける
+>>> $product->tags()->attach($tag1->id);
+>>> $product->tags()->attach($tag2->id);
+
+// または、配列でまとめて紐づける
+>>> $product->tags()->attach([1, 2]);
+
+// タグIDを直接指定してもOK
+>>> $product->tags()->attach(3);</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>5️⃣ 商品に紐づくタグを取得</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">>>> $product->tags;
+=> Illuminate\Database\Eloquent\Collection {#...
+     all: [
+       App\Models\Tag {#... id: 1, name: "人気" },
+       App\Models\Tag {#... id: 2, name: "新商品" },
+       App\Models\Tag {#... id: 3, name: "セール中" },
+     ],
+   }
+
+// タグ名だけ取得
+>>> $product->tags->pluck('name');
+=> Illuminate\Support\Collection {#...
+     all: ["人気", "新商品", "セール中"],
+   }</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>6️⃣ 逆方向: タグに紐づく商品を取得</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">>>> $tag = \App\Models\Tag::find(1);  // 「人気」タグ
+=> App\Models\Tag {#... id: 1, name: "人気" }
+
+>>> $tag->products;
+=> Illuminate\Database\Eloquent\Collection {#...
+     all: [
+       App\Models\Product {#... id: 1, name: "ノートパソコン" },
+       App\Models\Product {#... id: 2, name: "スマートフォン" },
+     ],
+   }</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>7️⃣ タグの紐づけを解除（detach）</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">// 特定のタグを解除
+>>> $product->tags()->detach(3);  // 「セール中」タグを解除
+
+// 複数のタグを解除
+>>> $product->tags()->detach([1, 2]);
+
+// 全てのタグを解除
+>>> $product->tags()->detach();</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>8️⃣ タグを同期（sync）</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">// 指定したタグIDだけを紐づける（それ以外は削除）
+>>> $product->tags()->sync([1, 3]);
+// 結果: 「人気」と「セール中」だけが紐づく
+
+// 既存のタグを保持しつつ、新しいタグを追加したい場合
+>>> $product->tags()->syncWithoutDetaching([2]);
+// 結果: 「人気」「セール中」「新商品」の3つが紐づく</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>9️⃣ Eager Loadingで一緒に取得</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">// ✅ 商品とタグをまとめて取得
+>>> $products = \App\Models\Product::with('tags')->get();
+
+>>> foreach ($products as $product) {
+...     echo $product->name . " のタグ: ";
+...     echo $product->tags->pluck('name')->implode(', ');
+...     echo "\n";
+... }
+ノートパソコン のタグ: 人気, 新商品, セール中
+スマートフォン のタグ: 人気
+冷蔵庫 のタグ:
+...</code></pre>
+
+                        <div class="glass-dark p-4 rounded-lg mt-4 mb-4 bg-yellow-500/10 border border-yellow-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>⚠️ attach と sync の違い</strong></p>
+                            <table class="w-full text-xs mt-2">
+                                <thead class="bg-white/10">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">メソッド</th>
+                                        <th class="px-3 py-2 text-left">動作</th>
+                                        <th class="px-3 py-2 text-left">既存のデータ</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white/5">
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>attach([1, 2])</code></td>
+                                        <td class="px-3 py-2">追加する</td>
+                                        <td class="px-3 py-2">保持される</td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>detach([1, 2])</code></td>
+                                        <td class="px-3 py-2">削除する</td>
+                                        <td class="px-3 py-2">指定分が削除される</td>
+                                    </tr>
+                                    <tr class="border-t border-white/10">
+                                        <td class="px-3 py-2"><code>sync([1, 2])</code></td>
+                                        <td class="px-3 py-2">指定したものだけにする</td>
+                                        <td class="px-3 py-2">全て削除して新規作成</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-lg mb-4 bg-green-500/10 border border-green-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>💡 多対多リレーションのまとめ</strong></p>
+                            <ul class="text-xs text-gray-300 list-disc list-inside space-y-1">
+                                <li>中間テーブル（ピボットテーブル）が必要</li>
+                                <li>両方のモデルで<code>belongsToMany()</code>を使う</li>
+                                <li><code>attach()</code>: タグを追加（既存は保持）</li>
+                                <li><code>detach()</code>: タグを削除</li>
+                                <li><code>sync()</code>: 指定したタグだけにする（それ以外は削除）</li>
+                                <li>Eager Loadingで<code>with('tags')</code>を使うとパフォーマンスが向上</li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <div class="content-section">
+                        <h3 class="mt-8">モデルの便利な機能</h3>
+                        <p class="text-xs text-gray-300 mb-3">
+                            リレーション以外にも、モデルには便利な機能があります。<br>
+                            「なぜEloquent ORMを使うのか」で触れた<strong>「問題3: モデルの機能が使えない」</strong>の具体例を見ていきましょう。
+                        </p>
+
+                        <h4 class="mt-6">カスタムメソッド（ビジネスロジック）</h4>
+                        <p class="text-xs text-gray-300 mb-3">
+                            モデルに独自のメソッドを追加して、ビジネスロジックをカプセル化できます。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-lg mb-4 bg-blue-500/10 border border-blue-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>💡 なぜカスタムメソッドを使うのか？</strong></p>
+                            <ul class="text-xs text-gray-300 list-disc list-inside space-y-1">
+                                <li><strong>コードの重複を防ぐ:</strong> 同じロジックを何度も書かなくて済む</li>
+                                <li><strong>可読性が上がる:</strong> 意図が明確になる</li>
+                                <li><strong>テストしやすい:</strong> ロジックが1箇所にまとまる</li>
+                                <li><strong>変更に強い:</strong> 仕様変更時の修正箇所が1つで済む</li>
+                            </ul>
+                        </div>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>例1: 高額商品かどうかを判定</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">// ❌ コントローラーやビューで毎回判定（悪い例）
+if ($product->price >= 100000) {
+    echo "高額商品";
+}
+
+// ✅ モデルにメソッドを定義（良い例）
+class Product extends Model
+{
+    public function isExpensive()
+    {
+        return $this->price >= 100000;
+    }
+}
+
+// 使用
+if ($product->isExpensive()) {
+    echo "高額商品";
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>例2: 在庫があるかチェック</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">class Product extends Model
+{
+    public function isInStock()
+    {
+        return $this->stock > 0;
+    }
+
+    public function hasLowStock()
+    {
+        return $this->stock > 0 && $this->stock <= 5;
+    }
+}
+
+// 使用
+if ($product->isInStock()) {
+    echo "購入可能";
+}
+
+if ($product->hasLowStock()) {
+    echo "残りわずか！";
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>例3: フォーマットされた価格を取得</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">class Product extends Model
+{
+    // 定数で税率を管理（マジックナンバーを避ける）
+    const TAX_RATE_STANDARD = 0.1;   // 標準税率10%
+    const TAX_RATE_REDUCED = 0.08;   // 軽減税率8%
+
+    public function getFormattedPrice()
+    {
+        return '¥' . number_format($this->price);
+    }
+
+    public function getPriceWithTax($taxRate = null)
+    {
+        // nullの場合は標準税率を使用
+        $rate = $taxRate ?? self::TAX_RATE_STANDARD;
+        $priceWithTax = $this->price * (1 + $rate);
+        return '¥' . number_format($priceWithTax);
+    }
+}
+
+// 使用
+echo $product->getFormattedPrice();                           // ¥120,000
+echo $product->getPriceWithTax();                             // ¥132,000（標準税率）
+echo $product->getPriceWithTax(Product::TAX_RATE_REDUCED);    // ¥129,600（軽減税率）</code></pre>
+
+                        <div class="glass-dark p-4 rounded-lg mb-3 bg-yellow-500/10 border border-yellow-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>💡 定数を使う理由</strong></p>
+                            <ul class="text-xs text-gray-300 list-disc list-inside space-y-1">
+                                <li><strong>マジックナンバーを避ける:</strong> 0.1が何を意味するか明確</li>
+                                <li><strong>変更に強い:</strong> 税率変更時は定数1箇所だけ修正すればOK</li>
+                                <li><strong>タイポ防止:</strong> 0.1と0.01を間違えるリスクがなくなる</li>
+                                <li><strong>IDE補完:</strong> <code>Product::TAX_RATE_</code>と打つと候補が出る</li>
+                            </ul>
+                        </div>
+
+                        <p class="text-xs text-gray-300 mt-3 mb-2"><strong>例4: 割引価格を計算</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">class Product extends Model
+{
+    public function getDiscountedPrice($discountPercent)
+    {
+        return $this->price * (1 - $discountPercent / 100);
+    }
+
+    public function isOnSale()
+    {
+        // tagsリレーションを使って「セール中」タグがあるかチェック
+        return $this->tags->contains('name', 'セール中');
+    }
+}
+
+// 使用
+if ($product->isOnSale()) {
+    $salePrice = $product->getDiscountedPrice(20);  // 20%オフ
+    echo "セール価格: ¥" . number_format($salePrice);
+}</code></pre>
+
+                        <h4 class="mt-6">🎯 Tinkerで試してみよう</h4>
+                        <p class="text-xs text-gray-300 mb-3">
+                            実際にカスタムメソッドを追加して、Tinkerで動作を確認してみます。
+                        </p>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>1️⃣ Productモデルにメソッドを追加</strong></p>
+                        <p class="text-xs text-gray-400 mb-2"><code>app/Models/Product.php</code></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">class Product extends Model
+{
+    // 既存のリレーション...
+
+    // 定数
+    const TAX_RATE_STANDARD = 0.1;   // 標準税率10%
+    const TAX_RATE_REDUCED = 0.08;   // 軽減税率8%
+
+    // カスタムメソッド
+    public function isExpensive()
+    {
+        return $this->price >= 100000;
+    }
+
+    public function isInStock()
+    {
+        return $this->stock > 0;
+    }
+
+    public function getFormattedPrice()
+    {
+        return '¥' . number_format($this->price);
+    }
+
+    public function getPriceWithTax($taxRate = null)
+    {
+        $rate = $taxRate ?? self::TAX_RATE_STANDARD;
+        $priceWithTax = $this->price * (1 + $rate);
+        return '¥' . number_format($priceWithTax);
+    }
+}</code></pre>
+
+                        <p class="text-xs text-gray-300 mb-2"><strong>2️⃣ Tinkerで試す</strong></p>
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-bash">php artisan tinker</code></pre>
+
+                        <pre class="text-sm bg-black/40 p-3 rounded mb-3"><code class="language-php">>>> $product = \App\Models\Product::first();
+=> App\Models\Product {#...
+     id: 1,
+     name: "ノートパソコン",
+     price: 120000,
+     stock: 5,
+   }
+
+// 高額商品かチェック
+>>> $product->isExpensive();
+=> true
+
+// 在庫チェック
+>>> $product->isInStock();
+=> true
+
+// フォーマットされた価格
+>>> $product->getFormattedPrice();
+=> "¥120,000"
+
+// 税込価格（デフォルトで標準税率）
+>>> $product->getPriceWithTax();
+=> "¥132,000"
+
+// 軽減税率を指定
+>>> $product->getPriceWithTax(Product::TAX_RATE_REDUCED);
+=> "¥129,600"
+
+// 定数の確認
+>>> Product::TAX_RATE_STANDARD;
+=> 0.1
+
+>>> Product::TAX_RATE_REDUCED;
+=> 0.08</code></pre>
+
+                        <div class="glass-dark p-4 rounded-lg mt-4 mb-4 bg-green-500/10 border border-green-500/30">
+                            <p class="text-xs text-gray-300 mb-2"><strong>💡 カスタムメソッドのメリット</strong></p>
+                            <ul class="text-xs text-gray-300 list-disc list-inside space-y-1">
+                                <li><strong>明示的:</strong> メソッド名で何をするかが明確</li>
+                                <li><strong>再利用可能:</strong> コントローラー、ビュー、どこからでも使える</li>
+                                <li><strong>テスト可能:</strong> ユニットテストが書きやすい</li>
+                                <li><strong>変更に強い:</strong> 「高額商品」の基準が変わっても、モデルの1箇所を修正するだけ</li>
+                                <li><strong>リレーションと組み合わせ可能:</strong> <code>$product->tags</code>などと連携できる</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">その他のモデル機能（参考）</h4>
+                        <p class="text-xs text-gray-300 mb-3">
+                            以下の機能も便利ですが、まずはカスタムメソッドをマスターしましょう。<br>
+                            詳細は<a href="https://laravel.com/docs/eloquent-mutators" target="_blank" class="text-blue-400 underline">公式ドキュメント</a>を参照してください。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-lg mb-4">
+                            <p class="text-xs text-gray-300 mb-3"><strong>キャスト（Casts）</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                データベースの値を自動的に型変換します。<strong>API開発では必須</strong>です。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-2 rounded mb-2"><code class="language-php">protected $casts = [
+    'price' => 'integer',        // 文字列 → 数値
+    'is_active' => 'boolean',    // "1" → true, "0" → false
+    'options' => 'array',        // JSON文字列 → 配列
+    'published_at' => 'datetime', // 文字列 → Carbonオブジェクト
+];</code></pre>
+                            <p class="text-xs text-gray-400">
+                                <strong>効果:</strong> React等のフロントエンドに渡す時、<code>"1"</code>ではなく<code>true</code>として渡せる
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-lg mb-4">
+                            <p class="text-xs text-gray-300 mb-3"><strong>アクセサ（Accessor）</strong> <span class="text-gray-500">※古い書き方（Laravel 8以前）</span></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                取得時に値を自動加工します。プロパティのように使えます。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-2 rounded mb-2"><code class="language-php">// getXxxAttribute() という命名規則
+public function getFullNameAttribute()
+{
+    return $this->first_name . ' ' . $this->last_name;
+}
+
+// 使用
+$user->full_name;  // "太郎 山田"（自動的にメソッドが呼ばれる）</code></pre>
+                            <p class="text-xs text-gray-400">
+                                <strong>注意:</strong><br>
+                                • 暗黙的な変換なので、デバッグしにくい<br>
+                                • Laravel 9以降は新しい書き方（Attributeクラス）があるが、<strong>カスタムメソッドの方が明示的で推奨</strong><br>
+                                • 既存コードを読めるように知識として知っておく程度でOK
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-lg mb-4">
+                            <p class="text-xs text-gray-300 mb-3"><strong>ミューテータ（Mutator）</strong> <span class="text-gray-500">※古い書き方（Laravel 8以前）</span></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                保存時に値を自動加工します。
+                            </p>
+                            <pre class="text-xs bg-black/40 p-2 rounded mb-2"><code class="language-php">// setXxxAttribute() という命名規則
+public function setNameAttribute($value)
+{
+    $this->attributes['name'] = strtoupper($value);  // 大文字に変換
+}
+
+// 使用
+$product->name = 'laptop';  // 保存時に自動的に "LAPTOP" になる</code></pre>
+                            <p class="text-xs text-gray-400">
+                                <strong>注意:</strong><br>
+                                • アクセサ同様、暗黙的な変換で予期しない動作の原因になりやすい<br>
+                                • 新しい書き方もあるが、<strong>基本的にはカスタムメソッドで明示的に処理する方が良い</strong><br>
+                                • 既存コードを読めるように知識として知っておく程度でOK
+                            </p>
+                        </div>
+
+                    </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function ()
+    {
+        return $query->where('price', '>=', 50000);
+    }
+
+    // 在庫あり
+    public function scopeInStock($query)
+    {
+        return $query->where('stock', '>', 0);
+    }
+
+    // 価格範囲指定（パラメータ付き）
+    public function scopePriceBetween($query, $min, $max)
+    {
+        return $query->whereBetween('price', [$min, $max]);
+    }
+}</code></pre>
+
+                        <h4>スコープの使い方</h4>
+                        <pre><code class="language-php">// 公開されている商品
+$products = Product::published()->get();
+
+// 公開 + 高額 + 在庫あり（チェーンできる！）
+$products = Product::published()
+                   ->expensive()
+                   ->inStock()
+                   ->get();
+
+// 価格範囲指定
+$products = Product::priceBetween(10000, 50000)->get();
+
+// 通常のクエリと組み合わせ
+$products = Product::published()
+                   ->where('category_id', 1)
+                   ->orderBy('price', 'asc')
+                   ->get();</code></pre>
+
+                        <h4>実践例: コントローラーでの使用</h4>
+                        <pre><code class="language-php">public function index()
+{
+    // スコープを使って簡潔に
+    $products = Product::published()
+                       ->inStock()
+                       ->orderBy('created_at', 'desc')
+                       ->get();
+
+    return view('products.index', compact('products'));
+}
+
+public function search(Request $request)
+{
+    $query = Product::published();
+
+    // 価格範囲フィルター
+    if ($request->min_price && $request->max_price) {
+        $query->priceBetween($request->min_price, $request->max_price);
+    }
+
+    // カテゴリーフィルター
+    if ($request->category_id) {
+        $query->where('category_id', $request->category_id);
+    }
+
+    $products = $query->get();
+
+    return view('products.search', compact('products'));
+}</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>💡 スコープのメリット</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ コードの重複を防げる</li>
+                                <li>✅ 可読性が向上する</li>
+                                <li>✅ メンテナンスが楽になる</li>
+                                <li>✅ ビジネスロジックをモデルに集約できる</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>アクセサ・ミューテータ</h3>
+                        <p>
+                            データの取得時・保存時に、自動で値を変換できます。
+                        </p>
+
+                        <h4>アクセサ（Accessor）- 取得時の変換</h4>
+                        <p>データベースから取得する際に、値を加工します。</p>
+
+                        <pre><code class="language-php">namespace App\Models;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    // 価格を税込み表示に変換
+    protected function priceWithTax(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => (int)($this->price * 1.1),
+        );
+    }
+
+    // 商品名を大文字に変換
+    protected function nameUpper(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => strtoupper($this->name),
+        );
+    }
+
+    // 在庫ステータスを文字列で取得
+    protected function stockStatus(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->stock > 0 ? '在庫あり' : '在庫切れ',
+        );
+    }
+}</code></pre>
+
+                        <h4>アクセサの使い方</h4>
+                        <pre><code class="language-php">$product = Product::find(1);
+
+echo $product->price;           // 10000
+echo $product->price_with_tax;  // 11000（税込み）
+echo $product->name_upper;      // NOTEBOOK PC
+echo $product->stock_status;    // 在庫あり</code></pre>
+
+                        <h4>ミューテータ（Mutator）- 保存時の変換</h4>
+                        <p>データベースに保存する際に、値を加工します。</p>
+
+                        <pre><code class="language-php">namespace App\Models;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    // 商品名を保存時に自動でトリム
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value,
+            set: fn ($value) => trim($value),
+        );
+    }
+
+    // 価格は必ず0以上に
+    protected function price(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value,
+            set: fn ($value) => max(0, (int)$value),
+        );
+    }
+}</code></pre>
+
+                        <h4>実践例</h4>
+                        <pre><code class="language-php">// ミューテータが自動で動く
+$product = new Product();
+$product->name = '  ノートPC  ';  // 前後に空白
+$product->price = -1000;           // マイナス値
+$product->save();
+
+// データベースには以下のように保存される
+// name: 'ノートPC'（空白削除）
+// price: 0（マイナスは0に変換）</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>💡 Laravel 9以降の書き方</strong></p>
+                            <p class="text-sm">
+                                Laravel 9以降では、<code>Attribute</code> クラスを使った書き方が推奨されています。<br>
+                                古い書き方（getXxxAttribute / setXxxAttribute）も動きますが、<br>
+                                新しいプロジェクトでは上記の書き方を使いましょう。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <p>
+                            この講座で学んだモデルとEloquent ORMの内容をまとめます。
+                        </p>
+
+                        <h4>CRUD操作</h4>
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">操作</th>
+                                    <th class="px-4 py-2 text-left">主なメソッド</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">作成</td>
+                                    <td class="px-4 py-2"><code>create()</code>, <code>save()</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">読み取り</td>
+                                    <td class="px-4 py-2"><code>all()</code>, <code>find()</code>, <code>where()->get()</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">更新</td>
+                                    <td class="px-4 py-2"><code>update()</code>, <code>save()</code></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">削除</td>
+                                    <td class="px-4 py-2"><code>delete()</code>, <code>destroy()</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>よく使うクエリメソッド</h4>
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">メソッド</th>
+                                    <th class="px-4 py-2 text-left">用途</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>where('column', 'value')</code></td>
+                                    <td class="px-4 py-2">条件指定</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>orderBy('column', 'asc')</code></td>
+                                    <td class="px-4 py-2">並び替え</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>take(5)</code></td>
+                                    <td class="px-4 py-2">件数制限</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>first()</code></td>
+                                    <td class="px-4 py-2">1件取得</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>findOrFail($id)</code></td>
+                                    <td class="px-4 py-2">見つからなければ404</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>with('relation')</code></td>
+                                    <td class="px-4 py-2">Eager Loading</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>モデルの重要な設定</h4>
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">プロパティ</th>
+                                    <th class="px-4 py-2 text-left">説明</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>$fillable</code></td>
+                                    <td class="px-4 py-2">一括代入を許可するカラム</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>$casts</code></td>
+                                    <td class="px-4 py-2">データ型の自動変換</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>$table</code></td>
+                                    <td class="px-4 py-2">テーブル名の指定</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>$timestamps</code></td>
+                                    <td class="px-4 py-2">タイムスタンプの有効/無効</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>ベストプラクティス</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <strong>$fillable を必ず設定</strong><br>
+                                    <span class="text-xs text-gray-300">Mass Assignment対策は必須</span>
+                                </li>
+                                <li>✅ <strong>findOrFail() を使う</strong><br>
+                                    <span class="text-xs text-gray-300">存在しないデータは404エラーに</span>
+                                </li>
+                                <li>✅ <strong>Eager Loadingを活用</strong><br>
+                                    <span class="text-xs text-gray-300">N+1問題を防ぐ</span>
+                                </li>
+                                <li>✅ <strong>スコープで共通処理を再利用</strong><br>
+                                    <span class="text-xs text-gray-300">コードの重複を防ぐ</span>
+                                </li>
+                                <li>✅ <strong>リレーションを適切に定義</strong><br>
+                                    <span class="text-xs text-gray-300">テーブル間の関連を明確に</span>
+                                </li>
+                                <li>⚠️ <strong>all() の使用は慎重に</strong><br>
+                                    <span class="text-xs text-gray-300">データ量が多い場合はページネーションを</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h4>次のステップ</h4>
+                        <p>
+                            モデルの基本とEloquent ORMの使い方を学びました。<br>
+                            次は<strong>DB実践</strong>で、実際にCRUDアプリケーションを作成します。
+                        </p>
+
+                        <div class="glass-dark p-6 rounded-xl mt-6 border-l-4 border-gradient-to-r from-primary-500 to-purple-500">
+                            <p class="text-lg mb-3">
+                                🎉 <strong>お疲れ様でした！</strong>
+                            </p>
+                            <p class="text-sm text-gray-300">
+                                Eloquent ORMは、Laravelの最も強力な機能の1つです。<br>
+                                実際にアプリケーションを作りながら、使い方を体で覚えていきましょう！
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Highlight.js 初期化
+            hljs.highlightAll();
+
+            // コピーボタンの追加
+            document.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.classList.add('copy-button');
+                btn.textContent = 'COPY';
+                btn.addEventListener('click', () => {
+                    const code = pre.querySelector('code');
+                    let textToCopy = code.textContent;
+
+                    // filename要素がある場合は除外
+                    const filename = pre.querySelector('code.filename');
+                    if (filename) {
+                        textToCopy = code.textContent.replace(filename.textContent, '').trim();
+                    }
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        btn.textContent = 'COPIED!';
+                        setTimeout(() => {
+                            btn.textContent = 'COPY';
+                        }, 2000);
+                    });
+                });
+                pre.appendChild(btn);
+            });
+
+            // h3の折り畳み機能と目次生成
+            const tocList = document.getElementById('toc-list');
+
+            document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                // h3にIDを付与（目次リンク用）
+                const id = `section-${index}`;
+                h3.id = id;
+
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('collapsible-content');
+
+                const contentSection = h3.parentElement;
+                let nextElement = h3.nextElementSibling;
+                const elementsToWrap = [];
+
+                // 同じcontent-section内のh3の次の要素を全て収集
+                while (nextElement) {
+                    elementsToWrap.push(nextElement);
+                    nextElement = nextElement.nextElementSibling;
+                }
+
+                // 要素をwrapperに移動
+                elementsToWrap.forEach(el => {
+                    wrapper.appendChild(el);
+                });
+
+                // wrapperをh3の後に挿入
+                contentSection.appendChild(wrapper);
+
+                // クリックイベント（折り畳み）
+                h3.addEventListener('click', () => {
+                    h3.classList.toggle('collapsed');
+                    wrapper.classList.toggle('collapsed');
+                });
+
+                // 目次リンク生成
+                const tocItem = document.createElement('a');
+                tocItem.href = `#${id}`;
+                tocItem.className = 'block px-3 py-2 rounded hover:bg-white/10 transition-colors duration-200 text-gray-300 hover:text-white text-xs cursor-pointer';
+                tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                tocItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('toc-modal').classList.add('hidden');
+                    h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                tocList.appendChild(tocItem);
+            });
+
+            // 目次ポップアップの制御
+            const tocButton = document.getElementById('toc-button');
+            const tocModal = document.getElementById('toc-modal');
+            const closeToc = document.getElementById('close-toc');
+
+            tocButton.addEventListener('click', () => {
+                tocModal.classList.toggle('hidden');
+            });
+
+            closeToc.addEventListener('click', () => {
+                tocModal.classList.add('hidden');
+            });
+
+            // 外側クリックで閉じる
+            document.addEventListener('click', (e) => {
+                if (!tocButton.contains(e.target) && !tocModal.contains(e.target)) {
+                    tocModal.classList.add('hidden');
+                }
+            });
+
+            // 全て閉じる/開くボタン
+            const toggleAllBtn = document.getElementById('toggle-all');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const toggleText = document.getElementById('toggle-text');
+            let allCollapsed = false;
+
+            toggleAllBtn.addEventListener('click', () => {
+                if (allCollapsed) {
+                    // 全て開く
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.remove('collapsed');
+                            wrapper.classList.remove('collapsed');
+                        }
+                    });
+                    // ボタンを「全て閉じる」に戻す
+                    toggleText.textContent = '全て閉じる';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    allCollapsed = false;
+                } else {
+                    // 全て閉じる
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.add('collapsed');
+                            wrapper.classList.add('collapsed');
+                        }
+                    });
+                    // ボタンを「全て開く」に変更
+                    toggleText.textContent = '全て開く';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+                    toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    allCollapsed = true;
+                }
+            });
+        });
+
+        // サイドバーの制御
+        const sidebar = document.getElementById('sidebar');
+        const openBtn = document.getElementById('open-sidebar');
+        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        };
+
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        // 上に戻るボタン
+        const scrollBtn = document.getElementById('scroll-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                scrollBtn.classList.add('opacity-0', 'pointer-events-none');
+            }
+        });
+
+        scrollBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+
+</html>

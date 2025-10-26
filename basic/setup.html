@@ -149,6 +149,39 @@
             margin-bottom: 16px;
             font-size: 24px;
             font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
         }
 
         .content-section h4 {
@@ -188,19 +221,6 @@
         .content-section strong {
             color: #fff;
             font-weight: 600;
-        }
-
-        /* ステップ番号 */
-        .step-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #3183ff, #8b5cf6);
-            border-radius: 50%;
-            font-weight: bold;
-            margin-right: 12px;
         }
     </style>
 </head>
@@ -269,6 +289,23 @@
     <!-- オーバーレイ -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
 
+    <!-- 目次ポップアップ -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">目次</h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav id="toc-list" class="space-y-1">
+                <!-- JavaScriptで動的に生成 -->
+            </nav>
+        </div>
+    </div>
+
     <!-- 上に戻るボタン -->
     <button id="scroll-to-top"
         class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
@@ -279,6 +316,23 @@
 
     <div class="min-h-screen flex flex-col">
 
+        <!-- 固定ボタン -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
         <!-- メインコンテンツ -->
         <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
             <div class="max-w-6xl mx-auto">
@@ -288,13 +342,16 @@
                 </h1>
 
                 <!-- タブリスト -->
-                <ul class="tab-list">
-                    <li><a href="setup-windows.html">Windows環境構築</a></li>
-                    <li><a href="setup.html" class="active">Mac環境構築</a></li>
-                    <li><a href="index.html">Laravelとは</a></li>
-                    <li><a href="routing.html">ルーティング</a></li>
-                    <li><a href="view.html">ビュー</a></li>
-                    <li><a href="controller.html">コントローラ</a></li>
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">DB実践</a></li>
                 </ul>
 
                 <!-- コンテンツ -->
@@ -320,7 +377,7 @@
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">1</span>VSCode のインストール</h3>
+                        <h3>VSCode のインストール</h3>
                         <p>
                             Visual Studio Code（VSCode）は、Microsoft が提供する無料のコードエディタです。<br>
                             軽量ながら強力な機能を持ち、世界中の開発者に愛用されています。
@@ -375,7 +432,7 @@
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">2</span>Homebrew のインストール</h3>
+                        <h3>Homebrew のインストール</h3>
                         <p>
                             Homebrew は Mac 用のパッケージマネージャです。<br>
                             以降のツールをインストールする際に使用するため、まず Homebrew をインストールします。
@@ -405,7 +462,7 @@
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">3</span>Node.js と npm のインストール</h3>
+                        <h3>Node.js と npm のインストール</h3>
                         <p>
                             Node.js は JavaScript をブラウザ外で実行するためのランタイム環境です。<br>
                             npm（Node Package Manager）は Node.js に付属するパッケージ管理ツールで、Laravel のフロントエンド開発で使用します。
@@ -431,7 +488,7 @@
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">4</span>Git のインストール</h3>
+                        <h3>Git のインストール</h3>
                         <p>
                             Git は、ソースコードのバージョン管理システムです。<br>
                             コードの変更履歴を管理したり、チーム開発で必須のツールです。
@@ -458,7 +515,7 @@ git config --list</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">5</span>Docker Desktop for Mac のインストール</h3>
+                        <h3>Docker Desktop for Mac のインストール</h3>
                         <p>
                             Docker は、アプリケーションをコンテナという単位で実行する仮想化技術です。<br>
                             Laravel の開発環境を簡単に構築・共有できます。
@@ -497,7 +554,7 @@ git config --list</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">6</span>Claude Code のインストール</h3>
+                        <h3>Claude Code のインストール</h3>
                         <p>
                             Claude Code は、Anthropic が提供する AI 開発アシスタントです。<br>
                             コード生成、リファクタリング、デバッグなどを AI がサポートしてくれます。
@@ -572,7 +629,7 @@ git config --list</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">7</span>Sequel Ace のインストール</h3>
+                        <h3>Sequel Ace のインストール</h3>
                         <p>
                             Sequel Ace は、MySQL/MariaDB データベースを管理するための GUI ツールです。<br>
                             テーブルの中身を確認したり、SQL を実行したりできます。
@@ -645,7 +702,7 @@ docker compose version</code></pre>
                             この講座では、講師が用意したプロジェクトテンプレートを使用します。
                         </p>
 
-                        <h4><span class="step-number">8</span>GitHubからプロジェクトを取得する</h4>
+                        <h4>GitHubからプロジェクトを取得する</h4>
 
                         <p>講師のGitHubリポジトリ：</p>
                         <pre><code class="language-bash">https://github.com/sbtest1218-oss/udemy-aws3-laravel-new</code></pre>
@@ -684,7 +741,7 @@ git clone https://github.com/あなたのユーザー名/リポジトリ名.git
 # クローンしたディレクトリに移動
 cd リポジトリ名</code></pre>
 
-                        <h4><span class="step-number">9</span>環境変数ファイルを準備する</h4>
+                        <h4>環境変数ファイルを準備する</h4>
 
                         <p><code>.env.example</code> をコピーして <code>.env</code> ファイルを作成します：</p>
                         <pre><code class="language-bash">cp .env.example .env</code></pre>
@@ -694,7 +751,7 @@ cd リポジトリ名</code></pre>
                             このファイルの値は <code>docker-compose.yml</code> で使用されます。
                         </p>
 
-                        <h4><span class="step-number">10</span>Dockerでプロジェクトを立ち上げる</h4>
+                        <h4>Dockerでプロジェクトを立ち上げる</h4>
 
                         <p>Docker コンテナを起動します：</p>
                         <pre><code class="language-bash">docker compose up -d</code></pre>
@@ -730,7 +787,7 @@ cd リポジトリ名</code></pre>
                         <p class="mt-4">インストールが完了したら、一旦コンテナから出ます：</p>
                         <pre><code class="language-bash">exit</code></pre>
 
-                        <h4><span class="step-number">11</span>Laravelのデータベース設定を編集する</h4>
+                        <h4>Laravelのデータベース設定を編集する</h4>
 
                         <p><code>src/.env</code> ファイルを開いて、データベース設定を編集します。</p>
 
@@ -756,7 +813,7 @@ docker compose down -v
 # コンテナを再起動
 docker compose up -d</code></pre>
 
-                        <h4><span class="step-number">12</span>データベースのマイグレーション</h4>
+                        <h4>データベースのマイグレーション</h4>
 
                         <p>再度appコンテナに入ります：</p>
                         <pre><code class="language-bash">docker compose exec app bash</code></pre>
@@ -786,7 +843,7 @@ docker compose up -d</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">13</span>よくあるトラブル4選と対処法</h3>
+                        <h3>よくあるトラブル4選と対処法</h3>
                         <p>プロジェクト立ち上げ時によく遭遇するトラブルと、その解決方法を紹介します。</p>
 
                         <h4>❌ トラブル1：ポート番号が被っている</h4>
@@ -899,7 +956,7 @@ php artisan migrate</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3><span class="step-number">14</span>Sequel AceでMySQLに接続する</h3>
+                        <h3>Sequel AceでMySQLに接続する</h3>
                         <p>
                             データベースクライアントツールを使って、MySQLに接続してみましょう。<br>
                             ステップ7でインストールした Sequel Ace を使用します。
@@ -1068,6 +1125,119 @@ php artisan migrate</code></pre>
                     });
                 });
                 pre.appendChild(btn);
+            });
+
+            // h3を折りたたみ可能にする
+            document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('collapsible-content');
+
+                let nextElement = h3.nextElementSibling;
+                while (nextElement && nextElement.tagName !== 'H2' && nextElement.tagName !== 'H3') {
+                    const elementToMove = nextElement;
+                    nextElement = nextElement.nextElementSibling;
+                    wrapper.appendChild(elementToMove);
+                }
+
+                h3.insertAdjacentElement('afterend', wrapper);
+
+                h3.addEventListener('click', () => {
+                    const isCollapsed = wrapper.style.maxHeight === '0px';
+                    if (isCollapsed) {
+                        wrapper.style.maxHeight = '10000px';
+                        wrapper.style.opacity = '1';
+                        h3.querySelector('span.arrow').style.transform = 'rotate(0deg)';
+                    } else {
+                        wrapper.style.maxHeight = '0';
+                        wrapper.style.opacity = '0';
+                        h3.querySelector('span.arrow').style.transform = 'rotate(-90deg)';
+                    }
+                });
+
+                // 矢印アイコンを追加
+                const arrow = document.createElement('span');
+                arrow.classList.add('arrow');
+                arrow.style.transition = 'transform 0.3s ease';
+                h3.appendChild(arrow);
+
+                // 目次用のIDを生成
+                if (!h3.id) {
+                    h3.id = `section-${index}`;
+                }
+
+                // 目次リストに追加
+                const tocList = document.getElementById('toc-list');
+                const tocItem = document.createElement('a');
+                tocItem.href = `#${h3.id}`;
+                tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                tocItem.classList.add('block', 'px-3', 'py-2', 'rounded-md', 'text-gray-300', 'hover:text-white', 'hover:bg-white/10', 'transition-colors', 'duration-200', 'text-sm');
+                tocItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    document.getElementById('toc-modal').classList.add('hidden');
+                });
+                tocList.appendChild(tocItem);
+            });
+
+            // 目次ボタンの制御
+            const tocButton = document.getElementById('toc-button');
+            const tocModal = document.getElementById('toc-modal');
+            const closeToc = document.getElementById('close-toc');
+
+            tocButton.addEventListener('click', () => {
+                tocModal.classList.toggle('hidden');
+            });
+
+            closeToc.addEventListener('click', () => {
+                tocModal.classList.add('hidden');
+            });
+
+            // モーダル外をクリックで閉じる
+            document.addEventListener('click', (e) => {
+                if (!tocModal.contains(e.target) && e.target !== tocButton && !tocButton.contains(e.target)) {
+                    tocModal.classList.add('hidden');
+                }
+            });
+
+            // 全て閉じる/開くボタン
+            const toggleAllBtn = document.getElementById('toggle-all');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleIcon = document.getElementById('toggle-icon');
+            let allExpanded = true;
+
+            toggleAllBtn.addEventListener('click', () => {
+                const wrappers = document.querySelectorAll('.collapsible-content');
+                const arrows = document.querySelectorAll('.content-section h3 .arrow');
+
+                if (allExpanded) {
+                    // 全て閉じる
+                    wrappers.forEach(wrapper => {
+                        wrapper.style.maxHeight = '0';
+                        wrapper.style.opacity = '0';
+                    });
+                    arrows.forEach(arrow => {
+                        arrow.style.transform = 'rotate(-90deg)';
+                    });
+                    toggleText.textContent = '全て開く';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />';
+                    toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    allExpanded = false;
+                } else {
+                    // 全て開く
+                    wrappers.forEach(wrapper => {
+                        wrapper.style.maxHeight = '10000px';
+                        wrapper.style.opacity = '1';
+                    });
+                    arrows.forEach(arrow => {
+                        arrow.style.transform = 'rotate(0deg)';
+                    });
+                    toggleText.textContent = '全て閉じる';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    allExpanded = true;
+                }
             });
         });
     </script>

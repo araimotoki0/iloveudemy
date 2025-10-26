@@ -8,7 +8,8 @@
     <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
 
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
 
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
@@ -41,7 +42,8 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
     <style>
         body {
             overflow-x: hidden;
@@ -148,6 +150,41 @@
             margin-bottom: 16px;
             font-size: 24px;
             font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
         }
 
         .content-section h4 {
@@ -163,7 +200,8 @@
             color: #d1d5db;
         }
 
-        .content-section ul, .content-section ol {
+        .content-section ul,
+        .content-section ol {
             margin: 12px 0;
             padding-left: 24px;
             color: #d1d5db;
@@ -192,55 +230,62 @@
 
 <body class="text-white font-inter">
     <!-- サイドバー -->
-    <aside id="sidebar" class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
         <div class="p-6">
             <div class="flex justify-between items-center mb-8">
-                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">メニュー</h2>
+                <h2
+                    class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
                 <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
             <nav class="space-y-2">
-            <nav class="space-y-2">
-                <a href="../index.html"
-                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
-                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    <span>クーポンリンク</span>
-                </a>
-                <div class="pt-4 pb-2">
-                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
-                </div>
-                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
-                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>【第四弾】Laravel入門</span>
-                </a>
-                <div class="pt-4 pb-2">
-                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
-                </div>
-                <a href="../miraichi/index.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
-                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    <div class="flex flex-col">
-                        <span>独学でエンジニア</span>
-                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                <nav class="space-y-2">
+                    <a href="../index.html"
+                        class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                        <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span>クーポンリンク</span>
+                    </a>
+                    <div class="pt-4 pb-2">
+                        <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
                     </div>
-                </a>
+                    <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                        <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>【第四弾】Laravel入門</span>
+                    </a>
+                    <div class="pt-4 pb-2">
+                        <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                    </div>
+                    <a href="../miraichi/index.html"
+                        class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                        <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        <div class="flex flex-col">
+                            <span>独学でエンジニア</span>
+                            <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                        </div>
+                    </a>
+                </nav>
             </nav>
-            </nav>        </div>
+        </div>
     </aside>
 
     <!-- ハンバーガーメニューボタン -->
-    <button id="open-sidebar" class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
         <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
@@ -249,8 +294,28 @@
     <!-- オーバーレイ -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
 
+    <!-- 目次ポップアップ（コンパクト版） -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">
+                    目次
+                </h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav id="toc-list" class="space-y-1">
+                <!-- JavaScriptで動的に生成 -->
+            </nav>
+        </div>
+    </div>
+
     <!-- 上に戻るボタン -->
-    <button id="scroll-to-top" class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
@@ -258,21 +323,60 @@
 
     <div class="min-h-screen flex flex-col">
 
+        <!-- 目次ボタンと全て閉じるボタン（固定位置） -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
         <!-- メインコンテンツ -->
         <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
             <div class="max-w-6xl mx-auto">
-                <h1 class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
                     【第四弾】Laravel入門資料
                 </h1>
 
                 <!-- タブリスト -->
-                <ul class="tab-list">
-                    <li><a href="setup-windows.html">Windows環境構築</a></li>
-                    <li><a href="setup.html">Mac環境構築</a></li>
-                    <li><a href="index.html">Laravelとは</a></li>
-                    <li><a href="routing.html">ルーティング</a></li>
-                    <li><a href="view.html">ビュー</a></li>
-                    <li><a href="controller.html" class="active">コントローラ</a></li>
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html"
+                            class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a>
+                    </li>
+                    <li><a href="setup.html"
+                            class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a>
+                    </li>
+                    <li><a href="index.html"
+                            class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a>
+                    </li>
+                    <li><a href="routing.html"
+                            class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a>
+                    </li>
+                    <li><a href="view.html"
+                            class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a>
+                    </li>
+                    <li><a href="controller.html"
+                            class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">コントローラ</a>
+                    </li>
+                    <li><a href="migration.html"
+                            class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a>
+                    </li>
+                    <li><a href="model.html"
+                            class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a>
+                    </li>
+                    <li><a href="database-practice.html"
+                            class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">DB実践</a>
+                    </li>
                 </ul>
 
                 <!-- コンテンツ -->
@@ -283,7 +387,7 @@
                             📚 <strong>Laravel公式ドキュメント - Controllers</strong>
                         </p>
                         <a href="https://laravel.com/docs/12.x/controllers" target="_blank"
-                           class="text-primary-400 hover:text-primary-300 underline text-base">
+                            class="text-primary-400 hover:text-primary-300 underline text-base">
                             https://laravel.com/docs/12.x/controllers
                         </a>
                         <p class="text-gray-400 text-sm mt-4 leading-relaxed">
@@ -313,6 +417,33 @@
                         <p>
                             役割を分けることで、コードの見通しが良くなり、保守性が向上します。
                         </p>
+
+                        <!-- MVCの汎用性を強調するコールアウト -->
+                        <div class="glass-dark p-6 rounded-lg border-l-4 border-yellow-400 my-6">
+                            <div class="flex items-start gap-4">
+                                <div class="text-3xl">💡</div>
+                                <div>
+                                    <h5 class="text-yellow-400 font-bold text-lg mb-3">重要：MVCは汎用的な知識です</h5>
+                                    <p class="mb-3">
+                                        <strong>MVCアーキテクチャはLaravel専用のものではありません。</strong>
+                                        世界中の多くのWebフレームワークで採用されている、普遍的な設計パターンです。
+                                    </p>
+                                    <p class="mb-3">ここで学ぶMVCの知識は、以下のようなフレームワークでも活用できます：</p>
+                                    <ul class="mb-3">
+                                        <li><strong>Ruby on Rails</strong>（Ruby）- MVC発祥のフレームワーク</li>
+                                        <li><strong>Django</strong>（Python）- MTV（Model-Template-View）として実装</li>
+                                        <li><strong>ASP.NET MVC</strong>（C#）- Microsoftの企業向けフレームワーク</li>
+                                        <li><strong>Spring MVC</strong>（Java）- エンタープライズ開発で広く使用</li>
+                                        <li><strong>Express.js</strong>（Node.js）- MVCパターンを採用可能</li>
+                                        <li><strong>CakePHP / Symfony</strong>（PHP）- 同じくPHPのMVCフレームワーク</li>
+                                    </ul>
+                                    <p class="text-green-300 font-semibold">
+                                        つまり、Laravelで学んだMVCの考え方は、他の言語やフレームワークに移っても使える「一生モノのスキル」です。
+                                        単なるLaravelの使い方ではなく、<strong>Webアプリケーション設計の基礎</strong>を学んでいるのだと理解してください。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="content-section">
@@ -344,7 +475,6 @@ Route::post('/users', function () {
                         </p>
                         <ul>
                             <li>routes/web.phpが肥大化する</li>
-                            <li>処理が分散して管理しづらい</li>
                             <li>再利用しづらい</li>
                             <li>テストがしづらい</li>
                         </ul>
@@ -420,6 +550,45 @@ Route::get('/users/{id}', [UserController::class, 'show']);</code></pre>
                             <li>ルートファイルがすっきりする</li>
                         </ul>
 
+                        <!-- ::class の補足説明 -->
+                        <div class="glass-dark p-5 rounded-lg my-4 border border-blue-500/30">
+                            <h5 class="text-blue-300 font-semibold mb-3 flex items-center gap-2">
+                                <span>📝</span>
+                                <span>補足：<code>::class</code> とは？</span>
+                            </h5>
+                            <p class="mb-3">
+                                <code>::class</code> は、<strong>クラスの完全修飾名を文字列で取得する</strong>PHP の記法です。
+                            </p>
+                            <pre><code class="language-php">UserController::class
+// 結果: 'App\Http\Controllers\UserController'</code></pre>
+
+                            <p class="mt-3 mb-2"><strong>なぜ使うのか？</strong></p>
+                            <ul class="space-y-2">
+                                <li>
+                                    <strong class="text-green-300">✅ タイプミスを防げる</strong><br>
+                                    <span class="text-sm text-gray-400">
+                                        文字列 <code>'UserContoller'</code> だと間違いに気づけないが、<br>
+                                        <code>UserContoller::class</code> ならクラスが存在しないとエラーが出る
+                                    </span>
+                                </li>
+                                <li>
+                                    <strong class="text-green-300">✅ IDEの補完が効く</strong><br>
+                                    <span class="text-sm text-gray-400">
+                                        VSCodeやPhpStormで自動補完やジャンプ機能が使える
+                                    </span>
+                                </li>
+                                <li>
+                                    <strong class="text-green-300">✅ リファクタリングに強い</strong><br>
+                                    <span class="text-sm text-gray-400">
+                                        クラス名を変更した時、IDEが自動で追従してくれる
+                                    </span>
+                                </li>
+                            </ul>
+                            <p class="mt-3 text-yellow-300 text-sm">
+                                💡 Laravel 8以降は <code>::class</code> 記法が推奨されています。
+                            </p>
+                        </div>
+
                         <p class="text-green-300 mt-4">
                             ✅ ルートファイルは「交通整理」だけを担当し、実際の処理はコントローラに任せます。
                         </p>
@@ -427,8 +596,65 @@ Route::get('/users/{id}', [UserController::class, 'show']);</code></pre>
 
                     <div class="content-section">
                         <h3>リソースコントローラ</h3>
+
+                        <h4>CRUDとは？</h4>
                         <p>
-                            CRUD操作（作成・読取・更新・削除）を行うコントローラは、
+                            <strong>CRUD</strong>は、データベース操作の基本的な4つの機能を表す頭文字です：
+                        </p>
+
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">CRUD</th>
+                                    <th class="px-4 py-2 text-left">意味</th>
+                                    <th class="px-4 py-2 text-left">SQL</th>
+                                    <th class="px-4 py-2 text-left">HTTPメソッド</th>
+                                    <th class="px-4 py-2 text-left">例</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><strong>C</strong>reate</td>
+                                    <td class="px-4 py-2">作成</td>
+                                    <td class="px-4 py-2">INSERT</td>
+                                    <td class="px-4 py-2">POST</td>
+                                    <td class="px-4 py-2">新しいユーザーを登録</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><strong>R</strong>ead</td>
+                                    <td class="px-4 py-2">読取</td>
+                                    <td class="px-4 py-2">SELECT</td>
+                                    <td class="px-4 py-2">GET</td>
+                                    <td class="px-4 py-2">ユーザー一覧・詳細を表示</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><strong>U</strong>pdate</td>
+                                    <td class="px-4 py-2">更新</td>
+                                    <td class="px-4 py-2">UPDATE</td>
+                                    <td class="px-4 py-2">PUT/PATCH</td>
+                                    <td class="px-4 py-2">ユーザー情報を編集</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><strong>D</strong>elete</td>
+                                    <td class="px-4 py-2">削除</td>
+                                    <td class="px-4 py-2">DELETE</td>
+                                    <td class="px-4 py-2">DELETE</td>
+                                    <td class="px-4 py-2">ユーザーを削除</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="bg-blue-500/10 border border-blue-500/30 rounded p-4 my-4">
+                            <p class="text-blue-300 font-semibold mb-2">💡 CRUDの重要性</p>
+                            <p class="text-gray-300">
+                                ほとんどのWebアプリケーションは、このCRUD操作の組み合わせで構成されています。<br>
+                                例：ブログ → 記事の作成・表示・編集・削除<br>
+                                例：ECサイト → 商品の登録・一覧表示・更新・削除
+                            </p>
+                        </div>
+
+                        <p class="mt-4">
+                            LaravelではCRUD操作を行うコントローラを、
                             <strong>リソースコントローラ</strong>として一括で作成できます。
                         </p>
 
@@ -554,167 +780,81 @@ Route::resource('users', UserController::class);</code></pre>
                             </tbody>
                         </table>
 
+                        <!-- PUT/PATCH の補足説明 -->
+                        <div class="glass-dark p-5 rounded-lg my-4 border border-purple-500/30">
+                            <h5 class="text-purple-300 font-semibold mb-3 flex items-center gap-2">
+                                <span>📝</span>
+                                <span>補足：PUT と PATCH の違い</span>
+                            </h5>
+                            <p class="mb-3">
+                                HTTPメソッドとして、<code>PUT</code>と<code>PATCH</code>は本来異なる意味を持ちます。
+                            </p>
+
+                            <div class="mb-3">
+                                <p class="font-semibold text-blue-300 mb-1">PUT</p>
+                                <p class="text-sm text-gray-300 ml-4">リソース全体を置き換える（すべてのフィールドを送信）</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <p class="font-semibold text-blue-300 mb-1">PATCH</p>
+                                <p class="text-sm text-gray-300 ml-4">リソースの一部を更新する（変更するフィールドだけ送信）</p>
+                            </div>
+
+                            <div class="bg-yellow-500/10 border border-yellow-500/30 rounded p-3 mb-3">
+                                <p class="text-yellow-300 font-semibold mb-2">⚠️ Laravelでは区別しない</p>
+                                <p class="text-sm">
+                                    実務では、<strong>PUTとPATCHを厳密に区別せず、両方とも同じ<code>update</code>メソッドで処理</strong>します。<br>
+                                    <code>Route::resource()</code> も自動的に両方のルートを同じメソッドに割り当てます。
+                                </p>
+                            </div>
+
+                            <pre><code class="language-php">// どちらも update メソッドを呼び出す
+Route::put('/users/{id}', [UserController::class, 'update']);
+Route::patch('/users/{id}', [UserController::class, 'update']);
+
+// または両方を一度に定義
+Route::match(['put', 'patch'], '/users/{id}', [UserController::class, 'update']);</code></pre>
+
+                            <p class="mt-3 text-sm text-gray-400">
+                                💡 Bladeテンプレートでは <code>@method('PUT')</code> または <code>@method('PATCH')</code>
+                                のどちらでもOKです。
+                            </p>
+                        </div>
+
                         <p class="text-blue-300 mt-4">
                             💡 <code>php artisan route:list</code> で定義されたルートを確認できます。
                         </p>
-                    </div>
 
-                    <div class="content-section">
-                        <h3>Requestオブジェクトの利用</h3>
-                        <p>
-                            フォームから送信されたデータを受け取るには、<code>Request</code> オブジェクトを使います。
-                        </p>
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>📚 HTMLフォームでPUT/DELETEメソッドを使う方法</strong></p>
+                            <p class="text-sm mb-3">
+                                HTMLの<code>&lt;form&gt;</code>タグは、<strong>GETとPOSTしか対応していません</strong>。<br>
+                                Laravelでは <code>@method</code> ディレクティブを使ってPUT/PATCH/DELETEを実現します。
+                            </p>
 
-                        <pre><code class="language-php">&lt;?php
+                            <p class="text-sm font-semibold text-purple-300 mb-2">更新フォーム (PUT/PATCH)</p>
+                            <pre class="text-sm"><code class="language-html">&lt;form action="/products/{{ $id }}" method="POST"&gt;
+    @csrf
+    @method('PUT')
 
-namespace App\Http\Controllers;
+    &lt;input type="text" name="name" value="{{ $product->name }}"&gt;
+    &lt;button type="submit"&gt;更新&lt;/button&gt;
+&lt;/form&gt;</code></pre>
 
-use Illuminate\Http\Request;
+                            <p class="text-sm font-semibold text-purple-300 mb-2 mt-3">削除フォーム (DELETE)</p>
+                            <pre class="text-sm"><code class="language-html">&lt;form action="/products/{{ $id }}" method="POST"&gt;
+    @csrf
+    @method('DELETE')
 
-class UserController extends Controller
-{
-    public function store(Request $request)
-    {
-        // 全てのデータを取得
-        $allData = $request->all();
+    &lt;button type="submit"&gt;削除&lt;/button&gt;
+&lt;/form&gt;</code></pre>
 
-        // 特定のデータを取得
-        $name = $request->input('name');
-        $email = $request->input('email');
-
-        // デフォルト値を指定
-        $age = $request->input('age', 20);
-
-        // 一部のデータのみ取得
-        $data = $request->only(['name', 'email']);
-
-        // 特定のデータ以外を取得
-        $data = $request->except(['password']);
-
-        return '登録完了';
-    }
-}</code></pre>
-
-                        <h4>バリデーション（入力チェック）</h4>
-                        <pre><code class="language-php">public function store(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|max:255',
-        'email' => 'required|email|unique:users',
-        'age' => 'required|integer|min:0|max:120',
-    ]);
-
-    // バリデーションOKの場合のみここに到達
-    // データベース保存処理など
-
-    return redirect('/users');
-}</code></pre>
-
-                        <p>主なバリデーションルール：</p>
-                        <ul>
-                            <li><code>required</code> - 必須</li>
-                            <li><code>email</code> - メール形式</li>
-                            <li><code>max:n</code> - 最大文字数</li>
-                            <li><code>min:n</code> - 最小値</li>
-                            <li><code>integer</code> - 整数</li>
-                            <li><code>unique:テーブル名</code> - 一意性チェック</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-section">
-                        <h3>リダイレクトとレスポンス</h3>
-
-                        <h4>リダイレクト</h4>
-                        <pre><code class="language-php">// URLへリダイレクト
-return redirect('/users');
-
-// ルート名でリダイレクト
-return redirect()->route('users.index');
-
-// 戻る
-return back();
-
-// フラッシュメッセージ付きリダイレクト
-return redirect('/users')->with('success', '登録しました');</code></pre>
-
-                        <h4>JSONレスポンス（API用）</h4>
-                        <pre><code class="language-php">// JSONを返す
-return response()->json([
-    'name' => '太郎',
-    'email' => 'taro@example.com'
-]);
-
-// ステータスコード指定
-return response()->json(['error' => 'Not Found'], 404);</code></pre>
-
-                        <h4>ダウンロードレスポンス</h4>
-                        <pre><code class="language-php">// ファイルダウンロード
-return response()->download($pathToFile);
-
-// ファイル名を指定
-return response()->download($pathToFile, 'filename.pdf');</code></pre>
-                    </div>
-
-                    <div class="content-section">
-                        <h3>依存性注入（Dependency Injection）</h3>
-                        <p>
-                            Laravelのコントローラでは、メソッドの引数に型を指定するだけで、
-                            必要なオブジェクトが自動的に渡されます（依存性注入）。
-                        </p>
-
-                        <pre><code class="language-php">use Illuminate\Http\Request;
-
-public function store(Request $request)
-{
-    // Requestオブジェクトが自動的に渡される
-    $name = $request->input('name');
-}</code></pre>
-
-                        <p>
-                            これは<strong>サービスコンテナ</strong>という仕組みによって実現されています。<br>
-                            今は「型を書けば自動で渡される」と覚えておきましょう。
-                        </p>
-                    </div>
-
-                    <div class="content-section">
-                        <h3>シングルアクションコントローラ</h3>
-                        <p>
-                            1つの処理だけを行うコントローラを作りたい場合は、
-                            <strong>シングルアクションコントローラ</strong>を使います。
-                        </p>
-
-                        <h4>作成方法</h4>
-                        <pre><code class="language-bash">php artisan make:controller SendEmailController --invokable</code></pre>
-
-                        <pre><code class="language-php">&lt;?php
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-
-class SendEmailController extends Controller
-{
-    /**
-     * Handle the incoming request.
-     */
-    public function __invoke(Request $request)
-    {
-        // メール送信処理
-        return 'メールを送信しました';
-    }
-}</code></pre>
-
-                        <h4>ルート定義</h4>
-                        <pre><code class="language-php">// routes/web.php
-
-use App\Http\Controllers\SendEmailController;
-
-Route::post('/send-email', SendEmailController::class);</code></pre>
-
-                        <p>
-                            メソッド名を指定せず、コントローラクラスだけを指定します。<br>
-                            自動的に <code>__invoke()</code> メソッドが呼ばれます。
-                        </p>
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 <code>@method('PUT')</code> を書くと、Laravelが内部的に
+                                <code>&lt;input type="hidden" name="_method" value="PUT"&gt;</code> を生成します。<br>
+                                実際の使い方は、次の講座(データベース編)で編集・削除機能を作る時に詳しく学びます。
+                            </p>
+                        </div>
                     </div>
 
                     <div class="content-section">
@@ -742,93 +882,1489 @@ Route::get('/admin/users', [UserController::class, 'index']);</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3>実践例：ユーザー管理機能</h3>
-                        <p>実際にユーザー管理機能を作る例を見てみましょう。</p>
+                        <h3>【実践1】商品一覧と詳細ページを作る</h3>
+                        <p>
+                            ここからは実際に手を動かして、コントローラを使ったページを作っていきましょう。<br>
+                            商品一覧と詳細ページを作成し、ページ遷移を実装します。
+                        </p>
 
+                        <h4>Step 1: コントローラを作成</h4>
+                        <p>ターミナルで以下のコマンドを実行します。</p>
+                        <pre><code class="language-bash">php artisan make:controller ProductController</code></pre>
+                        <p>
+                            <code>app/Http/Controllers/ProductController.php</code> が作成されます。
+                        </p>
+
+                        <h4>Step 2: コントローラにメソッドを追加</h4>
+                        <p>作成された ProductController にメソッドを追加します。</p>
                         <pre><code class="language-php">&lt;?php
 
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class UserController extends Controller
+class ProductController extends Controller
 {
-    // 一覧表示
+    // 商品一覧を表示
     public function index()
     {
-        $users = [
-            ['id' => 1, 'name' => '太郎', 'email' => 'taro@example.com'],
-            ['id' => 2, 'name' => '花子', 'email' => 'hanako@example.com'],
+        $products = [
+            ['id' => 1, 'name' => 'ノートPC', 'price' => 120000],
+            ['id' => 2, 'name' => 'マウス', 'price' => 3000],
+            ['id' => 3, 'name' => 'キーボード', 'price' => 8000],
         ];
 
-        return view('users.index', compact('users'));
+        return view('products.index', compact('products'));
     }
 
-    // 新規作成フォーム
-    public function create()
-    {
-        return view('users.create');
-    }
-
-    // データ保存
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|max:255',
-            'email' => 'required|email',
-        ]);
-
-        // ここでデータベースに保存（次の講座で学びます）
-
-        return redirect()->route('users.index')
-            ->with('success', 'ユーザーを作成しました');
-    }
-
-    // 個別表示
+    // 商品詳細を表示
     public function show($id)
     {
-        $user = ['id' => $id, 'name' => '太郎', 'email' => 'taro@example.com'];
+        $products = [
+            1 => ['id' => 1, 'name' => 'ノートPC', 'price' => 120000, 'description' => '高性能なノートパソコンです'],
+            2 => ['id' => 2, 'name' => 'マウス', 'price' => 3000, 'description' => 'ワイヤレスマウスです'],
+            3 => ['id' => 3, 'name' => 'キーボード', 'price' => 8000, 'description' => 'メカニカルキーボードです'],
+        ];
 
-        return view('users.show', compact('user'));
-    }
+        // 指定されたIDの商品を取得（存在しない場合はnull）
+        $product = $products[$id] ?? null;
 
-    // 編集フォーム
-    public function edit($id)
-    {
-        $user = ['id' => $id, 'name' => '太郎', 'email' => 'taro@example.com'];
+        // 商品が見つからない場合は404エラー
+        if (!$product) {
+            abort(404, '商品が見つかりません');
+        }
 
-        return view('users.edit', compact('user'));
-    }
-
-    // データ更新
-    public function update(Request $request, $id)
-    {
-        $validated = $request->validate([
-            'name' => 'required|max:255',
-            'email' => 'required|email',
-        ]);
-
-        // ここでデータベースを更新
-
-        return redirect()->route('users.show', $id)
-            ->with('success', 'ユーザーを更新しました');
-    }
-
-    // データ削除
-    public function destroy($id)
-    {
-        // ここでデータベースから削除
-
-        return redirect()->route('users.index')
-            ->with('success', 'ユーザーを削除しました');
+        return view('products.show', compact('product'));
     }
 }</code></pre>
 
+                        <p class="text-blue-300 mt-4">
+                            💡 今回は配列でデータを用意していますが、次の講座でデータベースから取得する方法を学びます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>📚 abort() によるエラーレスポンス</strong></p>
+                            <p class="text-sm mb-3">
+                                <code>abort(404)</code> は、指定したHTTPステータスコードでエラーページを表示する関数です。
+                            </p>
+                            <pre class="text-sm"><code class="language-php">// よく使うステータスコード
+abort(404);  // Not Found - ページが見つからない
+abort(403);  // Forbidden - アクセス権限がない
+abort(500);  // Internal Server Error - サーバーエラー
+
+// エラーメッセージを付ける
+abort(404, '商品が見つかりません');
+
+// 条件付きでabort
+abort_if(!$user, 403, 'アクセス権限がありません');
+abort_unless($user->isAdmin(), 403);</code></pre>
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 実務では、データが見つからない時やアクセス権限チェックでよく使います。
+                            </p>
+                        </div>
+
+                        <h4>Step 3: ルートを定義</h4>
+                        <p><code>routes/web.php</code> にルートを追加します。</p>
                         <pre><code class="language-php">// routes/web.php
 
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
 
-Route::resource('users', UserController::class);</code></pre>
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{id}', [ProductController::class, 'show']);</code></pre>
+
+                        <h4>Step 4: ビューを作成（一覧ページ）</h4>
+                        <p>
+                            <code>resources/views/products</code> ディレクトリを作成し、<br>
+                            <code>resources/views/products/index.blade.php</code> を作成します。
+                        </p>
+                        <pre><code class="language-html">&lt;!-- resources/views/products/index.blade.php --&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;商品一覧&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #f5f5f5;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        a {
+            color: #3183ff;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .price {
+            color: #666;
+            font-size: 16px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;商品一覧&lt;/h1&gt;
+    &lt;ul&gt;
+        @foreach($products as $product)
+            &lt;li&gt;
+                &lt;a href="/products/{{ $product['id'] }}"&gt;
+                    {{ $product['name'] }}
+                &lt;/a&gt;
+                &lt;span class="price"&gt; - {{ number_format($product['price']) }}円&lt;/span&gt;
+            &lt;/li&gt;
+        @endforeach
+    &lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <h4>Step 5: ビューを作成（詳細ページ）</h4>
+                        <p><code>resources/views/products/show.blade.php</code> を作成します。</p>
+                        <pre><code class="language-html">&lt;!-- resources/views/products/show.blade.php --&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;{{ $product['name'] }}&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .info {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .price {
+            font-size: 24px;
+            color: #3183ff;
+            font-weight: bold;
+        }
+        .description {
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #3183ff;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;{{ $product['name'] }}&lt;/h1&gt;
+
+    &lt;div class="info"&gt;
+        &lt;div class="price"&gt;{{ number_format($product['price']) }}円&lt;/div&gt;
+        &lt;div class="description"&gt;{{ $product['description'] }}&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;a href="/products" class="back-link"&gt;← 一覧に戻る&lt;/a&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <h4>Step 6: 動作確認</h4>
+                        <p>ブラウザで以下のURLにアクセスして確認しましょう。</p>
+                        <ul>
+                            <li><code>http://localhost/products</code> → 商品一覧が表示される</li>
+                            <li>商品名をクリック → 詳細ページに遷移</li>
+                            <li>「一覧に戻る」リンクをクリック → 一覧ページに戻る</li>
+                            <li><code>http://localhost/products/999</code> → 存在しないIDなので404エラー</li>
+                        </ul>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ これでコントローラを使った基本的なページ遷移が実装できました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>【実践2】フォームからデータを受け取る</h3>
+                        <p>
+                            次は、フォームからデータを送信して、コントローラで受け取る処理を実装します。<br>
+                            商品登録フォームを作成しましょう。
+                        </p>
+
+                        <h4>Step 1: コントローラにメソッドを追加</h4>
+                        <p>ProductController に create() と store() メソッドを追加します。</p>
+                        <pre><code class="language-php">// app/Http/Controllers/ProductController.php
+
+// 商品登録フォームを表示
+public function create()
+{
+    return view('products.create');
+}
+
+// フォームから送信されたデータを処理
+public function store(Request $request)
+{
+    // 送信されたデータを取得
+    $name = $request->input('name');
+    $price = $request->input('price');
+    $description = $request->input('description');
+
+    // 今回は画面に表示するだけ（次の講座でDBに保存します）
+    return "商品「{$name}」(価格: " . number_format($price) . "円) を受け取りました！<br>説明: {$description}";
+}</code></pre>
+
+                        <h4>Step 2: ルートを追加</h4>
+                        <p><code>routes/web.php</code> にルートを追加します。</p>
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/products/create', [ProductController::class, 'create']);
+Route::post('/products', [ProductController::class, 'store']);</code></pre>
+
+                        <p class="text-yellow-400 mt-4">
+                            ⚠️ 注意: <code>/products/create</code> は <code>/products/{id}</code>
+                            よりも<strong>前に</strong>定義してください。<br>
+                            順序を間違えると、「create」がIDとして認識されてしまいます。
+                        </p>
+
+                        <h4>Step 3: 登録フォームを作成</h4>
+                        <p><code>resources/views/products/create.blade.php</code> を作成します。</p>
+                        <pre><code class="language-html">&lt;!-- resources/views/products/create.blade.php --&gt;
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;商品登録&lt;/title&gt;
+    &lt;style&gt;
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            background: #f5f5f5;
+            padding: 30px;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            background: #3183ff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1a6cf5;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #3183ff;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;商品登録&lt;/h1&gt;
+
+    &lt;form action="/products" method="POST"&gt;
+        @csrf
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="name"&gt;商品名:&lt;/label&gt;
+            &lt;input type="text" id="name" name="name" required&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="price"&gt;価格:&lt;/label&gt;
+            &lt;input type="number" id="price" name="price" required&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label for="description"&gt;説明:&lt;/label&gt;
+            &lt;textarea id="description" name="description" required&gt;&lt;/textarea&gt;
+        &lt;/div&gt;
+
+        &lt;button type="submit"&gt;登録&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;a href="/products" class="back-link"&gt;← 一覧に戻る&lt;/a&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 <code>@csrf</code> は、CSRF（クロスサイトリクエストフォージェリ）攻撃を防ぐためのトークンです。<br>
+                            フォームには必ず記述しましょう。これがないとエラーになります。
+                        </p>
+
+                        <h4>Step 4: 一覧ページに登録リンクを追加</h4>
+                        <p><code>resources/views/products/index.blade.php</code> に登録ボタンを追加します。</p>
+                        <pre><code class="language-html">&lt;h1&gt;商品一覧&lt;/h1&gt;
+
+&lt;!-- この行を追加 --&gt;
+&lt;p&gt;&lt;a href="/products/create" style="background: #3183ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; margin-bottom: 20px;"&gt;新規登録&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+    @foreach($products as $product)
+        ...
+    @endforeach
+&lt;/ul&gt;</code></pre>
+
+                        <h4>Step 5: 動作確認</h4>
+                        <ol>
+                            <li><code>http://localhost/products</code> にアクセス</li>
+                            <li>「新規登録」ボタンをクリック</li>
+                            <li>フォームに以下を入力:
+                                <ul>
+                                    <li>商品名: スマートフォン</li>
+                                    <li>価格: 80000</li>
+                                    <li>説明: 最新モデルのスマートフォンです</li>
+                                </ul>
+                            </li>
+                            <li>「登録」ボタンをクリック</li>
+                            <li>送信した内容が画面に表示される</li>
+                        </ol>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ フォームからデータを送信し、コントローラで受け取ることができました！
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4">
+                            <p class="text-sm mb-3"><strong>🔍 補足: Requestオブジェクトの便利なメソッド</strong></p>
+                            <pre class="text-xs"><code class="language-php">// 全てのデータを取得
+$allData = $request->all();
+
+// 特定のデータのみ取得
+$data = $request->only(['name', 'price']);
+
+// 特定のデータ以外を取得
+$data = $request->except(['_token']);
+
+// デフォルト値を指定
+$category = $request->input('category', '未分類');</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>Request（リクエスト）とは？</h3>
+                        <p>
+                            コントローラで何度も登場している <code>Request $request</code> について理解を深めましょう。
+                        </p>
+
+                        <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 my-4">
+                            <h4 class="text-blue-300 font-semibold mb-3">Request = HTTPリクエストの情報が詰まった箱</h4>
+                            <p class="text-sm mb-3">
+                                ユーザーがフォームを送信したり、URLにアクセスしたりすると、<br>
+                                ブラウザからサーバーに「HTTPリクエスト」が送られます。<br>
+                                <strong>Request</strong> は、その情報をまとめて扱うためのオブジェクトです。
+                            </p>
+
+                            <pre><code class="language-php">public function store(Request $request)
+{
+    // フォームから送信されたデータを取得
+    $name = $request->input('name');
+    $price = $request->input('price');
+
+    // すべてのデータを取得
+    $all = $request->all();
+}</code></pre>
+                        </div>
+
+                        <h4>🤔 なぜ Request と書くだけでデータが取れるの？</h4>
+
+                        <div class="bg-white/5 rounded-lg p-4 my-4">
+                            <p class="font-semibold text-green-300 mb-2">答え：Laravelの「依存性注入」という仕組み</p>
+                            <p class="text-sm mb-3">
+                                コントローラのメソッドに <code>Request $request</code> と書くと、<br>
+                                Laravelが自動的にRequestオブジェクトを作って渡してくれます。
+                            </p>
+
+                            <div class="bg-white/10 rounded p-3 text-sm">
+                                <p class="font-semibold mb-2">簡単に言うと：</p>
+                                <ol class="ml-4 space-y-1">
+                                    <li>1. ユーザーがフォーム送信 → サーバーにリクエスト到達</li>
+                                    <li>2. Laravelが「このメソッドにはRequestが必要だな」と判断</li>
+                                    <li>3. Requestオブジェクトを自動作成して渡す</li>
+                                    <li>4. 開発者は受け取って使うだけ！</li>
+                                </ol>
+                            </div>
+
+                            <div class="bg-green-500/10 border border-green-500/30 rounded p-3 mt-3">
+                                <p class="text-green-300 font-semibold mb-2">💡 DIは現代のフレームワークの標準機能</p>
+                                <p class="text-sm mb-3">
+                                    <strong>依存性注入（Dependency Injection / DI）</strong>
+                                    は、Laravel以外のフレームワークでも広く使われている重要な設計パターンです。
+                                </p>
+                                <ul class="text-sm space-y-1 ml-4">
+                                    <li>• <strong>Spring Framework (Java)</strong> - DIコンテナが中心機能</li>
+                                    <li>• <strong>ASP.NET Core (C#)</strong> - 標準でDIをサポート</li>
+                                    <li>• <strong>Symfony (PHP)</strong> - サービスコンテナを採用</li>
+                                    <li>• <strong>NestJS (TypeScript)</strong> - Angularライクなディペンデンシーインジェクション</li>
+                                    <li>• <strong>Django (Python)</strong> - ミドルウェアやビューで活用</li>
+                                </ul>
+                                <p class="text-sm mt-3 text-blue-300">
+                                    📚 Laravelで学んだDIの概念は、他のフレームワークでも役立ちます！
+                                </p>
+                            </div>
+                        </div>
+
+                        <h4>📦 Request の中身を確認してみよう</h4>
+
+                        <div class="bg-orange-500/10 border border-orange-500/30 rounded p-4 my-4">
+                            <p class="text-sm mb-3">
+                                <code>dd()</code> を使うと、Requestの中身を確認できます。
+                            </p>
+
+                            <pre><code class="language-php">public function store(Request $request)
+{
+    // フォームデータを確認
+    dd($request->all());
+
+    // 出力例:
+    // [
+    //   "name" => "ノートPC"
+    //   "price" => "80000"
+    //   "description" => "高性能なノートパソコン"
+    // ]
+}</code></pre>
+
+                            <p class="text-sm mt-3 text-blue-300">
+                                💡 <code>dd($request->all())</code> を追加してフォーム送信すると、<br>
+                                どんなデータが送られてきたか確認できます。デバッグに便利！
+                            </p>
+                        </div>
+
+                        <h4>🔑 HTMLのname属性との関係</h4>
+
+                        <div class="bg-white/5 rounded-lg p-4 my-4">
+                            <p class="text-sm mb-3">
+                                <code>$request->input('name')</code> で取得する値は、<br>
+                                HTMLフォームの <strong>name属性</strong> に対応しています。
+                            </p>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm font-semibold text-green-300 mb-2">HTML（ビュー）</p>
+                                    <pre><code class="language-html">&lt;input
+  type="text"
+  name="product_name"
+  value="ノートPC"
+&gt;</code></pre>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-blue-300 mb-2">PHP（コントローラ）</p>
+                                    <pre><code class="language-php">$request->input('product_name');
+// "ノートPC" が取得できる</code></pre>
+                                </div>
+                            </div>
+
+                            <p class="text-sm mt-3 text-yellow-300">
+                                ⚠️ name属性と input() の引数は完全一致が必要です！
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>【実践3】バリデーションでエラーチェック</h3>
+                        <p>
+                            現在のフォームには入力チェックがないため、不正なデータも受け付けてしまいます。<br>
+                            バリデーション機能を追加して、正しいデータのみ処理できるようにしましょう。
+                        </p>
+
+                        <h4>Step 1: storeメソッドにバリデーションを追加</h4>
+                        <p>ProductController の store() メソッドを修正します。</p>
+                        <pre><code class="language-php">// app/Http/Controllers/ProductController.php
+
+public function store(Request $request)
+{
+    // バリデーション（入力チェック）
+    $validated = $request->validate([
+        'name' => 'required|max:100',
+        'price' => 'required|integer|min:0|max:10000000',
+        'description' => 'required|max:500',
+    ]);
+
+    // バリデーションが成功した場合のみここに到達
+    return "商品「{$validated['name']}」(価格: " . number_format($validated['price']) . "円) を受け取りました！<br>説明: {$validated['description']}";
+}</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-3 mb-4">
+                            <p class="text-sm mb-3"><strong>📚 主なバリデーションルール</strong></p>
+                            <ul class="text-sm space-y-1">
+                                <li><code>required</code> - 必須項目</li>
+                                <li><code>max:n</code> - 最大文字数（文字列）または最大値（数値）</li>
+                                <li><code>min:n</code> - 最小値</li>
+                                <li><code>integer</code> - 整数のみ</li>
+                                <li><code>email</code> - メール形式</li>
+                                <li><code>unique:テーブル名</code> - 一意性チェック（DB使用時）</li>
+                                <li><code>confirmed</code> - パスワード確認フィールドと一致</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-purple-500/10 border border-purple-500/30 rounded-lg p-5 my-6">
+                            <h4 class="text-purple-300 font-semibold mb-3">🤔 バリデーション失敗時に何が起きる？</h4>
+
+                            <h5 class="text-blue-300 font-semibold mt-4 mb-2">エラー時の自動処理</h5>
+                            <pre><code class="language-php">public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|max:100',
+    ]);
+
+    // ⬆️ バリデーション失敗すると、この下のコードは実行されない！
+    // Laravelが自動的にリダイレクト処理を行う
+
+    return "成功: {$validated['name']}";
+}</code></pre>
+
+                            <div class="bg-white/5 rounded p-4 my-3">
+                                <p class="font-semibold text-green-300 mb-2">Laravelの自動処理フロー</p>
+                                <ol class="text-sm space-y-2 ml-4">
+                                    <li>
+                                        <strong>1. バリデーションを実行</strong><br>
+                                        各フィールドがルールに合っているかチェック
+                                    </li>
+                                    <li>
+                                        <strong>2-A. 成功した場合</strong><br>
+                                        検証済みデータを配列で返す → 処理続行
+                                    </li>
+                                    <li>
+                                        <strong>2-B. 失敗した場合（ここが重要！）</strong><br>
+                                        Laravelが自動的に以下を実行：
+                                        <ul class="ml-4 mt-2 space-y-1">
+                                            <li>✅ 元のページ（フォーム）にリダイレクト</li>
+                                            <li>✅ エラーメッセージをセッションに保存</li>
+                                            <li>✅ 入力値（old値）をセッションに保存</li>
+                                            <li>✅ HTTPステータス 422（Unprocessable Entity）を返す</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </div>
+
+
+                            <h5 class="text-blue-300 font-semibold mt-4 mb-2">ビューで自動的に使える変数</h5>
+                            <p class="text-sm mb-3">
+                                バリデーション実行後、ビューで以下の変数が自動的に使えます：
+                            </p>
+
+                            <pre><code class="language-php">// resources/views/products/create.blade.php
+
+// ❶ $errors - エラー情報（Laravelが自動的に渡す）
+@if($errors->any())
+    @foreach($errors->all() as $error)
+        &lt;li&gt;{{ $error }}&lt;/li&gt;
+    @endforeach
+@endif
+
+// ❷ old() - 前回の入力値（セッションから取得）
+&lt;input name="name" value="{{ old('name') }}"&gt;
+
+// ❸ @error - 特定フィールドのエラーチェック（Bladeディレクティブ）
+@error('name')
+    &lt;span&gt;{{ $message }}&lt;/span&gt;
+@enderror</code></pre>
+
+                            <div class="bg-yellow-500/10 border border-yellow-500/30 rounded p-3 mt-3">
+                                <p class="text-yellow-300 font-semibold mb-1">📌 つまり</p>
+                                <p class="text-sm">
+                                    バリデーション失敗時、開発者は何もコードを書かなくても：<br>
+                                    <strong>1.</strong> 自動的に元のページにリダイレクト<br>
+                                    <strong>2.</strong> エラーメッセージが <code>$errors</code> で利用可能<br>
+                                    <strong>3.</strong> 入力値が <code>old()</code> で復元可能<br>
+                                    <br>
+                                    だから、たった数行でバリデーションが完結する！
+                                </p>
+                            </div>
+                        </div>
+
+                        <h4>Step 2: ビューにエラー表示を追加</h4>
+                        <p><code>resources/views/products/create.blade.php</code> を修正します。</p>
+                        <pre><code class="language-html">&lt;h1&gt;商品登録&lt;/h1&gt;
+
+&lt;!-- エラーメッセージの全体表示（追加） --&gt;
+@if($errors->any())
+    &lt;div style="background: #ffe0e0; border: 1px solid #ff0000; padding: 15px; border-radius: 4px; margin-bottom: 20px;"&gt;
+        &lt;strong style="color: #cc0000;"&gt;入力エラーがあります:&lt;/strong&gt;
+        &lt;ul style="margin: 10px 0 0 20px; color: #cc0000;"&gt;
+            @foreach($errors->all() as $error)
+                &lt;li&gt;{{ $error }}&lt;/li&gt;
+            @endforeach
+        &lt;/ul&gt;
+    &lt;/div&gt;
+@endif
+
+&lt;form action="/products" method="POST"&gt;
+    @csrf
+
+    &lt;div class="form-group"&gt;
+        &lt;label for="name"&gt;商品名: &lt;span style="color: red;"&gt;*&lt;/span&gt;&lt;/label&gt;
+        &lt;input type="text" id="name" name="name" value="{{ old('name') }}" required&gt;
+        &lt;!-- 個別エラーメッセージ（追加） --&gt;
+        @error('name')
+            &lt;span style="color: red; font-size: 14px;"&gt;{{ $message }}&lt;/span&gt;
+        @enderror
+    &lt;/div&gt;
+
+    &lt;div class="form-group"&gt;
+        &lt;label for="price"&gt;価格: &lt;span style="color: red;"&gt;*&lt;/span&gt;&lt;/label&gt;
+        &lt;input type="number" id="price" name="price" value="{{ old('price') }}" required&gt;
+        @error('price')
+            &lt;span style="color: red; font-size: 14px;"&gt;{{ $message }}&lt;/span&gt;
+        @enderror
+    &lt;/div&gt;
+
+    &lt;div class="form-group"&gt;
+        &lt;label for="description"&gt;説明: &lt;span style="color: red;"&gt;*&lt;/span&gt;&lt;/label&gt;
+        &lt;textarea id="description" name="description" required&gt;{{ old('description') }}&lt;/textarea&gt;
+        @error('description')
+            &lt;span style="color: red; font-size: 14px;"&gt;{{ $message }}&lt;/span&gt;
+        @enderror
+    &lt;/div&gt;
+
+    &lt;button type="submit"&gt;登録&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 <code>old('name')</code> は、エラー時に以前入力した値を保持する関数です。<br>
+                            ユーザーが再入力する手間を省けます。
+                        </p>
+
+                        <h4>Step 3: エラーメッセージを日本語化</h4>
+                        <p>
+                            デフォルトではエラーメッセージが英語で表示されます。<br>
+                            日本語化するには、<strong>Laravel-lang パッケージ</strong>を使うのが一般的です。
+                        </p>
+
+                        <!-- 実務での日本語化方法の説明 -->
+                        <div class="glass-dark p-5 rounded-lg my-4 border border-green-500/30">
+                            <h5 class="text-green-300 font-semibold mb-3 flex items-center gap-2">
+                                <span>💼</span>
+                                <span>実務での日本語化：3つの方法</span>
+                            </h5>
+
+                            <div class="mb-4">
+                                <p class="font-semibold text-blue-300 mb-2">1️⃣ Laravel-lang パッケージ（最も一般的⭐おすすめ）</p>
+                                <p class="text-sm mb-2">コミュニティが作成した公式日本語パッケージを使います。</p>
+                                <pre><code class="language-bash"># パッケージをインストール
+composer require laravel-lang/common --dev
+
+# 日本語ファイルを追加
+php artisan lang:add ja
+
+# config/app.php でロケールを変更
+'locale' => 'ja',</code></pre>
+                                <p class="text-sm text-green-300 mt-2">
+                                    ✅ バリデーション、認証、パスワードリセットなど、すべてのメッセージが自動的に日本語化されます
+                                </p>
+                            </div>
+
+                            <div class="mb-4">
+                                <p class="font-semibold text-blue-300 mb-2">2️⃣ 言語ファイルを手動作成</p>
+                                <p class="text-sm mb-2">自分で日本語ファイルを作成します。</p>
+                                <pre><code class="language-bash"># 言語ファイルを公開
+php artisan lang:publish
+
+# lang/ja/validation.php を作成して翻訳を記述</code></pre>
+                                <p class="text-sm text-gray-400 mt-2">
+                                    💡 完全なコントロールが可能ですが、初期設定が手間です
+                                </p>
+                            </div>
+
+                            <div class="mb-4">
+                                <p class="font-semibold text-blue-300 mb-2">3️⃣ カスタムメッセージ（特定の項目だけ変更）</p>
+                                <p class="text-sm mb-2">バリデーションごとに個別のメッセージを指定します。</p>
+                                <pre><code class="language-php">$request->validate([
+    'email' => 'required|email',
+    'age' => 'required|integer|min:18',
+], [
+    'age.min' => '18歳以上の方のみご利用いただけます', // 特別なメッセージ
+    // email は lang/ja/validation.php の設定を使用
+]);</code></pre>
+                                <p class="text-sm text-gray-400 mt-2">
+                                    💡 基本は言語ファイルで日本語化し、特別なメッセージだけカスタマイズするのが実務パターン
+                                </p>
+                            </div>
+
+                            <div class="bg-yellow-500/10 border border-yellow-500/30 rounded p-3">
+                                <p class="text-yellow-300 font-semibold mb-1">📌 実務でのおすすめ</p>
+                                <p class="text-sm">
+                                    <strong>Laravel-lang パッケージ + 必要に応じてカスタムメッセージ</strong><br>
+                                    パッケージで全体を日本語化し、特別な表現が必要な箇所だけカスタムメッセージを使います。
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class="mb-3"><strong>今回の実装：Laravel-lang パッケージを使用</strong></p>
+                        <p class="text-sm mb-3">
+                            以下のコマンドでパッケージをインストールし、日本語化します。
+                        </p>
+
+                        <pre><code class="language-bash"># ターミナルで実行
+composer require laravel-lang/common --dev
+php artisan lang:add ja</code></pre>
+
+                        <p class="mt-3 mb-3">次に、<code>config/app.php</code> を編集してロケールを日本語に変更します。</p>
+
+                        <pre><code class="language-php">// config/app.php
+
+'locale' => 'ja', // 'en' から 'ja' に変更
+'fallback_locale' => 'en',</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ これで、バリデーションエラーが自動的に日本語で表示されます。<br>
+                            コントローラのコードを変更する必要はありません。
+                        </p>
+
+                        <h4>Step 4: 動作確認</h4>
+                        <p>以下のパターンでテストしてみましょう。</p>
+
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">テストケース</th>
+                                    <th class="px-4 py-2 text-left">期待される結果</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">商品名を空欄にして送信</td>
+                                    <td class="px-4 py-2">「商品名は必須です」とエラー表示</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">価格に「-100」を入力</td>
+                                    <td class="px-4 py-2">「価格は0円以上で入力してください」</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">価格に「abc」を入力</td>
+                                    <td class="px-4 py-2">「価格は整数で入力してください」</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">説明に501文字入力</td>
+                                    <td class="px-4 py-2">「説明は500文字以内で入力してください」</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">全て正しく入力</td>
+                                    <td class="px-4 py-2">成功メッセージが表示される</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ バリデーションで不正なデータを防ぎ、エラーをわかりやすく表示できました！
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>⚡ バリデーションの仕組み</strong></p>
+                            <ol class="text-sm space-y-2">
+                                <li>1. フォームから送信されたデータをチェック</li>
+                                <li>2. エラーがあれば<strong>自動的に元のページにリダイレクト</strong></li>
+                                <li>3. エラーメッセージと入力値を<strong>セッションに保存</strong></li>
+                                <li>4. ビューで <code>@error</code> や <code>old()</code> を使って表示</li>
+                            </ol>
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 これらは全てLaravelが自動でやってくれます!
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>【実践4】リダイレクトと成功メッセージ</h3>
+                        <p>
+                            最後に、登録が成功したら一覧ページにリダイレクトし、<br>
+                            成功メッセージを表示する機能を実装します。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>🔄 リダイレクトとは？</strong></p>
+                            <p class="text-sm mb-3">
+                                <strong>リダイレクト（Redirect）</strong>は、ユーザーを<strong>別のページに自動的に移動させる</strong>仕組みです。
+                            </p>
+
+                            <div class="bg-white/5 rounded p-3 my-3">
+                                <p class="text-sm mb-2"><strong>通常のページ遷移との違い</strong></p>
+                                <ul class="text-sm space-y-2">
+                                    <li>
+                                        <strong>通常:</strong> <code>return view('products.index')</code><br>
+                                        <span class="text-gray-300">→ その場でビューを表示（URLは変わらない）</span>
+                                    </li>
+                                    <li>
+                                        <strong>リダイレクト:</strong> <code>return redirect('/products')</code><br>
+                                        <span class="text-gray-300">→ ブラウザに「別のURLに移動しろ」と指示（URLが変わる）</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <p class="text-sm mb-3">
+                                <strong>なぜリダイレクトが必要？</strong>
+                            </p>
+
+                            <div class="bg-white/5 rounded p-3 my-3">
+                                <p class="text-sm mb-2"><strong>❌ ダメな例: viewで別画面を返す</strong></p>
+                                <pre class="text-sm mb-2"><code class="language-php">public function store(Request $request)
+{
+    // データを保存する処理
+
+    // 一覧ページを表示
+    return view('products.index', ['products' => $products]);
+}</code></pre>
+                                <p class="text-sm mb-2">
+                                    この方法だと何が問題か？
+                                </p>
+                                <ul class="text-sm space-y-2 ml-4">
+                                    <li>
+                                        <strong>1. URLとページが一致しない</strong><br>
+                                        <span class="text-gray-300">画面は一覧ページなのに、URLは <code>POST /products</code> のまま<br>
+                                            （本来は <code>GET /products</code> であるべき）</span>
+                                    </li>
+                                    <li>
+                                        <strong>2. ブラウザの履歴に問題</strong><br>
+                                        <span class="text-gray-300">ブラウザの「戻る」ボタンを押したとき、POSTリクエストの履歴が残る<br>
+                                            → ブラウザが「フォームを再送信しますか？」と警告を出す</span>
+                                    </li>
+                                    <li>
+                                        <strong>3. リロード（F5）で再送信される！</strong><br>
+                                        <span class="text-gray-300">一覧画面でF5を押すと、ブラウザは「最後に実行したリクエスト」を再実行する。<br>
+                                            <strong>最後のリクエストが POST /products なので、登録処理が再度実行される！</strong></span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-green-500/10 border border-green-500/30 rounded p-3 my-3">
+                                <p class="text-sm mb-2"><strong>✅ 正しい方法: リダイレクトする（PRGパターン）</strong></p>
+                                <pre class="text-sm mb-2"><code class="language-php">public function store(Request $request)
+{
+    // データを保存する処理
+
+    // 一覧ページにリダイレクト
+    return redirect('/products');
+}</code></pre>
+                                <p class="text-sm mb-3">
+                                    <strong>PRGパターン（Post-Redirect-Get）とは？</strong>
+                                </p>
+                                <ol class="text-sm space-y-2 ml-4">
+                                    <li>
+                                        <strong>Post:</strong> フォームをPOSTで送信<br>
+                                        <span class="text-gray-300">→ <code>POST /products</code> で登録処理を実行</span>
+                                    </li>
+                                    <li>
+                                        <strong>Redirect:</strong> リダイレクト命令を返す<br>
+                                        <span class="text-gray-300">→ ブラウザに「<code>GET /products</code>
+                                            に移動しろ」と指示（HTTPステータス 302）</span>
+                                    </li>
+                                    <li>
+                                        <strong>Get:</strong> ブラウザが自動的にGETリクエストを送信<br>
+                                        <span class="text-gray-300">→ <code>GET /products</code> で一覧ページを表示</span>
+                                    </li>
+                                </ol>
+                                <p class="text-sm mt-3">
+                                    <strong>これにより:</strong>
+                                </p>
+                                <ul class="text-sm space-y-1 ml-4">
+                                    <li>✅ URLが <code>GET /products</code> になる（正しい状態）</li>
+                                    <li>✅ ブラウザの履歴には <code>GET /products</code> が残る</li>
+                                    <li>✅ F5でリロードしても、<code>GET /products</code> が実行されるだけ（登録処理は実行されない）</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-red-500/10 border border-red-500/30 rounded p-3 my-3">
+                                <p class="text-sm mb-2"><strong>🔍 重要な理解: ブラウザの動作</strong></p>
+                                <p class="text-sm mb-3">
+                                    「viewで別画面を返せば大丈夫」と思うかもしれませんが、実際には：
+                                </p>
+                                <pre class="text-sm mb-2"><code class="language-php">// この場合...
+public function store(Request $request)
+{
+    // 登録処理
+    return view('products.index'); // ← 一覧画面を表示
+}
+
+// ブラウザから見ると:
+// - リクエストは POST /products のまま
+// - 画面だけが一覧ページに変わっている
+// - URLバーには /products と表示されているが、内部的にはPOSTリクエスト
+// - F5を押すと → ブラウザは「POST /products」を再実行 → 登録処理が再度実行される！</code></pre>
+                                <p class="text-sm">
+                                    <strong>つまり:</strong> viewで別画面を返しても、<strong>ブラウザの履歴に残るのはPOSTリクエスト</strong>。<br>
+                                    画面が変わっただけで、リクエストの種類（POST）は変わっていません。
+                                </p>
+                            </div>
+
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 リダイレクトを使うことで、ブラウザに「新しいGETリクエストを送れ」と指示できます。<br>
+                                これがPRGパターンの本質です。実際には、バリデーション失敗時もLaravelが自動的にリダイレクトしています！
+                            </p>
+                        </div>
+
+                        <h4>Step 1: storeメソッドをリダイレクトに変更</h4>
+                        <p>ProductController の store() メソッドを修正します。</p>
+
+                        <pre><code class="language-php">// app/Http/Controllers/ProductController.php
+
+public function store(Request $request)
+{
+    // バリデーション（入力チェック）
+    // 第2引数のカスタムメッセージは、Laravel-langパッケージを使えば省略できます
+    $validated = $request->validate([
+        'name' => 'required|max:100',
+        'price' => 'required|integer|min:0|max:10000000',
+        'description' => 'required|max:500',
+    ], [
+        // カスタムメッセージ（学習用に明示的に記述）
+        // Laravel-langを使う場合は、この配列を省略して自動翻訳されたメッセージを使えます
+        'name.required' => '商品名は必須です',
+        'name.max' => '商品名は100文字以内で入力してください',
+        'price.required' => '価格は必須です',
+        'price.integer' => '価格は整数で入力してください',
+        'price.min' => '価格は0円以上で入力してください',
+        'price.max' => '価格は1000万円以下で入力してください',
+        'description.required' => '説明は必須です',
+        'description.max' => '説明は500文字以内で入力してください',
+    ]);
+
+    // ここでは実際の保存処理は行わない（次の講座でDB保存を学びます）
+
+    // 商品一覧ページにリダイレクトし、成功メッセージを表示
+    return redirect('/products')
+        ->with('success', "商品「{$validated['name']}」を登録しました！");
+}</code></pre>
+
+                        <p class="text-blue-300 mt-4">
+                            💡 <code>with('success', 'メッセージ')</code> で、次のページに一度だけ表示されるメッセージを送れます。<br>
+                            これを<strong>フラッシュメッセージ</strong>と呼びます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>⚠️ 注意: view()->with() とは別のメソッドです</strong></p>
+                            <p class="text-sm mb-3">
+                                同じ <code>with()</code> という名前ですが、<strong>全く違うメソッド</strong>です。
+                            </p>
+                            <ul class="text-sm space-y-2">
+                                <li>
+                                    <strong>view()->with('products', $products)</strong><br>
+                                    <span class="text-gray-300">→ ビューにデータを渡す（そのビュー内で使える）</span>
+                                </li>
+                                <li>
+                                    <strong>redirect()->with('success', 'メッセージ')</strong><br>
+                                    <span class="text-gray-300">→ 次のページに一時的なメッセージを送る（セッションに保存、1回のみ表示）</span>
+                                </li>
+                            </ul>
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 名前は同じでも、<strong>別のクラスのメソッド</strong>なので用途が違います!
+                            </p>
+                        </div>
+
+                        <h4>Step 2: 一覧ページに成功メッセージ表示を追加</h4>
+                        <p><code>resources/views/products/index.blade.php</code> を修正します。</p>
+                        <pre><code class="language-html">&lt;body&gt;
+    &lt;h1&gt;商品一覧&lt;/h1&gt;
+
+    &lt;!-- 成功メッセージの表示（追加） --&gt;
+    @if(session('success'))
+        &lt;div style="background: #d4edda; border: 1px solid #28a745; color: #155724; padding: 15px; border-radius: 4px; margin-bottom: 20px;"&gt;
+            ✅ {{ session('success') }}
+        &lt;/div&gt;
+    @endif
+
+    &lt;p&gt;&lt;a href="/products/create" style="background: #3183ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; margin-bottom: 20px;"&gt;新規登録&lt;/a&gt;&lt;/p&gt;
+
+    &lt;ul&gt;
+        @foreach($products as $product)
+            &lt;li&gt;
+                &lt;a href="/products/{{ $product['id'] }}"&gt;
+                    {{ $product['name'] }}
+                &lt;/a&gt;
+                &lt;span class="price"&gt; - {{ number_format($product['price']) }}円&lt;/span&gt;
+            &lt;/li&gt;
+        @endforeach
+    &lt;/ul&gt;
+&lt;/body&gt;</code></pre>
+
+                        <h4>Step 3: 動作確認</h4>
+                        <ol>
+                            <li><code>http://localhost/products</code> にアクセス</li>
+                            <li>「新規登録」ボタンをクリック</li>
+                            <li>フォームに正しいデータを入力して送信</li>
+                            <li>商品一覧ページにリダイレクトされる</li>
+                            <li>緑色の成功メッセージが表示される</li>
+                            <li>ページをリロードすると、メッセージが消える（フラッシュメッセージの特徴）</li>
+                        </ol>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ リダイレクトとフラッシュメッセージで、ユーザーに優しいフローが作れました！
+                        </p>
+
+                        <p class="text-yellow-400 mt-4">
+                            💡 フラッシュメッセージは<strong>セッション</strong>という仕組みを使っています。<br>
+                            セッションについては、次の【実践5】で詳しく学びます。
+                        </p>
+
+                        <h4>他のリダイレクト方法</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-3 mb-4">
+                            <p class="text-sm mb-3"><strong>🔄 よく使うリダイレクト</strong></p>
+                            <pre class="text-sm"><code class="language-php">// URLでリダイレクト
+return redirect('/products');
+
+// ルート名でリダイレクト（推奨）
+return redirect()->route('products.index');
+
+// 一つ前のページに戻る
+return back();
+
+// 複数のメッセージを送る
+return redirect('/products')
+    ->with('success', '登録しました')
+    ->with('info', '確認メールを送信しました');
+ 
+// エラーメッセージを送る
+return redirect('/products')
+    ->with('error', '処理に失敗しました');</code></pre>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>✨ 実践完了！</strong></p>
+                            <p class="text-sm mb-3">これで以下の機能が実装できました:</p>
+                            <ul class="text-sm space-y-1">
+                                <li>✅ コントローラを使ったページ遷移</li>
+                                <li>✅ 一覧表示と詳細表示</li>
+                                <li>✅ フォームからのデータ受信</li>
+                                <li>✅ バリデーション（入力チェック）</li>
+                                <li>✅ リダイレクトとフラッシュメッセージ</li>
+                            </ul>
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 次の講座では、配列ではなく<strong>データベース</strong>を使って、<br>
+                                実際にデータを保存・更新・削除する方法を学びます！
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>【実践5】セッションの仕組みを理解する</h3>
+                        <p>
+                            【実践4】で使ったフラッシュメッセージは、<strong>セッション</strong>という仕組みを使っています。<br>
+                            セッションは実務で頻繁に使う重要な概念なので、実際に動かして仕組みを理解しましょう。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>🤔 セッションとは？</strong></p>
+                            <p class="text-sm">
+                                セッションとは、<strong>ユーザーごとの一時的な保存場所</strong>です。<br>
+                                ログイン状態の保持、ショッピングカート、フラッシュメッセージなどに使われます。
+                            </p>
+                        </div>
+
+                        <h4>Step 1: セッションを使うルートを作成</h4>
+                        <p>まず、セッションにデータを保存するルートを作ります。</p>
+                        <pre><code class="language-php">// routes/web.php
+
+Route::get('/session-test', function () {
+    // セッションにデータを保存
+    session(['user_name' => '太郎']);
+    session(['cart_count' => 3]);
+    session(['last_page' => 'products']);
+
+    // HTMLタグを含む文字列を返す（Laravelは自動的にHTMLとして出力する）
+    return 'セッションにデータを保存しました！&lt;br&gt;&lt;a href="/session-show"&gt;セッションを確認&lt;/a&gt;';
+});
+
+Route::get('/session-show', function () {
+    // セッションからデータを取得
+    $userName = session('user_name');
+    $cartCount = session('cart_count');
+    $lastPage = session('last_page');
+
+    // 全てのセッションデータを表示
+    dd(session()->all());
+});</code></pre>
+
+                        <h4>Step 2: ブラウザでアクセスして確認</h4>
+                        <ol>
+                            <li><code>http://localhost/session-test</code> にアクセス</li>
+                            <li>「セッションにデータを保存しました！」と表示される</li>
+                            <li>画面に表示された<strong>「セッションを確認」リンク</strong>をクリック</li>
+                            <li>セッションの中身が表示される（<code>/session-show</code> に遷移）</li>
+                        </ol>
+
+                        <p class="text-blue-300 mt-3">
+                            💡 <code>dd()</code> で表示されるデータに、<code>user_name</code>, <code>cart_count</code>,
+                            <code>last_page</code> が保存されているのが確認できます。
+                        </p>
+
+                        <h4>Step 3: ブラウザのCookieを確認</h4>
+                        <p>セッションIDがCookieに保存されているか確認しましょう。</p>
+                        <ol>
+                            <li>ブラウザで <strong>DevTools</strong> を開く (F12キー)</li>
+                            <li><strong>Application</strong> タブ (Chromeの場合) をクリック</li>
+                            <li>左メニューの <strong>Cookies</strong> → <code>http://localhost</code> を選択</li>
+                            <li><code>laravel_session</code> という名前のCookieが見える</li>
+                        </ol>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-3">
+                            <p class="text-sm mb-2"><strong>📸 Cookieの内容例:</strong></p>
+                            <table class="w-full text-xs">
+                                <tr class="border-b border-white/10">
+                                    <td class="py-2 pr-4 text-gray-400">名前</td>
+                                    <td class="py-2"><code>laravel_session</code></td>
+                                </tr>
+                                <tr class="border-b border-white/10">
+                                    <td class="py-2 pr-4 text-gray-400">値</td>
+                                    <td class="py-2 text-xs break-all"><code>eyJpdiI6IktVQ3ZqTU...</code> (長い暗号化された文字列)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-4 text-gray-400">説明</td>
+                                    <td class="py-2 text-gray-300">これが「セッションID」です</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <p class="text-yellow-400 mt-3">
+                            ⚠️ Cookieには**セッションIDだけ**が保存されています。<br>
+                            実際のデータ（user_name, cart_countなど）は**サーバー側**に保存されています。
+                        </p>
+
+                        <h4>Step 4: データベースでセッションを確認</h4>
+                        <p class="text-sm mb-3">
+                            Laravel 11以降では、セッションは<strong>データベース</strong>に保存されます（デフォルト）。<br>
+                            実際に <code>sessions</code> テーブルを確認してみましょう。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4">
+                            <p class="text-sm mb-2"><strong>🗄️ データベース確認方法:</strong></p>
+                            <pre class="text-xs bg-black/40 p-3 rounded"><code class="language-sql">-- SQLで確認
+SELECT * FROM sessions;
+
+-- 結果例:
+id: NiWPZg8ZlznznHN7lAXy9iAs4Nt0ayDKaRTvSxGP
+user_id: NULL
+ip_address: 192.168.1.1
+user_agent: Mozilla/5.0...
+payload: YTo2OntzOjY6Il90b2tlbiI7czo0... (暗号化されたデータ)
+last_activity: 1761239128</code></pre>
+                            <p class="text-gray-300 text-xs mt-2">
+                                <code>payload</code> カラムに暗号化されたセッションデータが入っています。<br>
+                                この中に <code>user_name</code>, <code>cart_count</code>, <code>last_page</code> が保存されています。
+                            </p>
+                        </div>
+
+                        <div class="bg-blue-500/10 border border-blue-500/30 rounded p-3 my-3">
+                            <p class="text-sm mb-2"><strong>💡 重要なポイント</strong></p>
+                            <ul class="text-sm space-y-1">
+                                <li>• セッションデータは<strong>データベース</strong>に保存される（Laravel 11以降のデフォルト）</li>
+                                <li>• Cookieには<strong>セッションIDだけ</strong>が保存される</li>
+                                <li>• 実際のデータ（user_name等）は<strong>サーバー側のDB</strong>に保存される</li>
+                                <li>• 開発者は保存場所を意識せず、<code>session('key')</code> で取得できる</li>
+                            </ul>
+                        </div>
+
+                        <h4>Step 5: セッションの仕組みを理解する</h4>
+                        <p>ここまでの確認で、セッションの仕組みが理解できたと思います。</p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🔄 セッションの流れ</strong></p>
+                            <ol class="text-sm space-y-2">
+                                <li><strong>1. 初回アクセス時</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• Laravelがランダムな「セッションID」を生成</li>
+                                        <li>• セッションIDを暗号化してCookieに保存</li>
+                                        <li>• データベースの <code>sessions</code> テーブルに新しいレコードを作成</li>
+                                    </ul>
+                                </li>
+                                <li><strong>2. データ保存時</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• <code>session(['user_name' => '太郎'])</code> を実行</li>
+                                        <li>• セッションIDに紐づいたレコードの <code>payload</code> カラムにデータを保存</li>
+                                        <li>• ブラウザのCookieは変わらない（セッションIDは同じ）</li>
+                                    </ul>
+                                </li>
+                                <li><strong>3. 次のリクエスト時</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• ブラウザがCookieのセッションIDを送信</li>
+                                        <li>• LaravelがセッションIDで <code>sessions</code> テーブルを検索</li>
+                                        <li>• <code>payload</code> カラムからデータを読み込んで使える</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <h4>Step 6: フラッシュメッセージの仕組み</h4>
+                        <p>【実践4】で使ったフラッシュメッセージも、セッションを使っています。</p>
+
+                        <pre><code class="language-php">// これは...
+return redirect('/products')->with('success', '登録しました');
+
+// 内部的にこうなっている
+session()->flash('success', '登録しました');
+return redirect('/products');</code></pre>
+
+                        <p class="text-blue-300 mt-3">
+                            💡 <code>flash()</code> は、「次のリクエストで1回だけ取得できる」特殊なセッションデータです。<br>
+                            取得後は自動的に削除されます。
+                        </p>
+
+                        <h4>Step 7: セッションの保存場所（SESSION_DRIVER）</h4>
+                        <p>セッションはデータベース以外にも保存できます。<code>.env</code> の <code>SESSION_DRIVER</code> で設定します。</p>
+
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">保存方法</th>
+                                    <th class="px-4 py-2 text-left">説明</th>
+                                    <th class="px-4 py-2 text-left">用途</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>database</code></td>
+                                    <td class="px-4 py-2">データベースの <code>sessions</code> テーブル</td>
+                                    <td class="px-4 py-2"><strong>デフォルト（Laravel 11以降）</strong></td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>redis</code></td>
+                                    <td class="px-4 py-2">Redisサーバー</td>
+                                    <td class="px-4 py-2">高速アクセスが必要な場合</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>memcached</code></td>
+                                    <td class="px-4 py-2">Memcachedサーバー</td>
+                                    <td class="px-4 py-2">高速アクセスが必要な場合</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>file</code></td>
+                                    <td class="px-4 py-2"><code>storage/framework/sessions/</code></td>
+                                    <td class="px-4 py-2">古いバージョンのデフォルト</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="bg-green-500/10 border border-green-500/30 rounded p-3 my-3">
+                            <p class="text-sm mb-2"><strong>✅ Laravel 11からの変更点</strong></p>
+                            <p class="text-sm">
+                                Laravel 11以降では、デフォルトが <code>database</code> になりました。<br>
+                                Laravel 10以前では <code>file</code> がデフォルトでしたが、現在は<strong>データベース保存が標準</strong>です。
+                            </p>
+                        </div>
+
+                        <p class="text-sm text-gray-300 mt-3">
+                            設定ファイル: <code>config/session.php</code> または <code>.env</code> の <code>SESSION_DRIVER</code>
+                        </p>
+
+                        <h4>セッションの基本的な使い方</h4>
+                        <pre><code class="language-php">// データを保存
+session(['key' => 'value']);
+session()->put('key', 'value');
+
+// データを取得
+$value = session('key');
+$value = session('key', 'デフォルト値');
+$value = session()->get('key');
+
+// 全てのデータを取得
+$all = session()->all();
+
+// データが存在するか確認
+if (session()->has('key')) {
+    // ...
+}
+
+// データを削除
+session()->forget('key');
+session()->flush();  // 全削除
+
+// フラッシュデータ（1回だけ）
+session()->flash('message', '成功しました');
+return redirect('/products')->with('success', '登録しました');</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ セッションの仕組みが理解できました！<br>
+                            ログイン機能やショッピングカートなど、実務で頻繁に使う重要な技術です。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 重要なポイント</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>• セッションは<strong>ユーザーごと</strong>に独立している</li>
+                                <li>• Cookieには<strong>セッションIDだけ</strong>が保存される</li>
+                                <li>• 実際のデータは<strong>サーバー側</strong>に保存される</li>
+                                <li>• フラッシュメッセージは<strong>1回だけ表示されるセッション</strong></li>
+                                <li>• 本番環境では<strong>database</strong>や<strong>redis</strong>を推奨</li>
+                            </ul>
+                        </div>
+
+                        <h4>セッションはどこで使われている？</h4>
+                        <p>
+                            実は、これまでの講座で<strong>すでにセッションを使っていました！</strong><br>
+                            知らずに使っていた場所を確認してみましょう。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>📌 1. CSRF トークン (@csrf)</strong></p>
+                            <p class="text-sm mb-3">
+                                【実践2】【実践3】で使った <code>@csrf</code> は、<strong>セッションを使っています！</strong>
+                            </p>
+
+                            <pre class="text-sm mb-3"><code class="language-html">&lt;form action="/products" method="POST"&gt;
+    @csrf  &lt;!-- これがセッションを使っている！ --&gt;
+    ...
+&lt;/form&gt;</code></pre>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">仕組み:</p>
+                            <ol class="text-sm space-y-2 mb-3">
+                                <li><strong>1. フォーム表示時</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• Laravelがランダムなトークンを生成</li>
+                                        <li>• トークンを<strong>セッション</strong>に保存</li>
+                                        <li>• <code>@csrf</code> が hidden input として出力</li>
+                                    </ul>
+                                </li>
+                                <li><strong>2. フォーム送信時</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• セッションのトークンと送信されたトークンを照合</li>
+                                        <li>• 一致すれば処理続行、不一致なら 419 エラー</li>
+                                        <li>• CSRF攻撃を防ぐ仕組み</li>
+                                    </ul>
+                                </li>
+                            </ol>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">確認してみる:</p>
+                            <pre class="text-sm"><code class="language-php">// コントローラで
+dd(session()->all());
+
+// 出力に "_token" => "KhGxT8ZqF..." が入っている！</code></pre>
+
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 <code>@csrf</code> を書くだけで、Laravelが自動的にセッションを使ってセキュリティを守ってくれています！
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>📌 2. old() 関数（入力値の保持）</strong></p>
+                            <p class="text-sm mb-3">
+                                【実践3】で使った <code>old('name')</code> も、<strong>セッションを使っています！</strong>
+                            </p>
+
+                            <pre class="text-sm mb-3"><code class="language-html">&lt;input type="text" name="name" value="{{ old('name') }}"&gt;
+&lt;!-- エラー時、以前入力した値が表示される --&gt;</code></pre>
+
+                            <p class="text-sm font-semibold text-purple-300 mb-2">仕組み:</p>
+                            <ol class="text-sm space-y-2 mb-3">
+                                <li><strong>1. バリデーションエラー時</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• 送信されたデータを<strong>セッション</strong>に保存（フラッシュデータ）</li>
+                                        <li>• エラーページにリダイレクト</li>
+                                    </ul>
+                                </li>
+                                <li><strong>2. エラーページ表示時</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• <code>old('name')</code> がセッションから値を取得</li>
+                                        <li>• フォームに以前の入力値が表示される</li>
+                                        <li>• 次のリクエストで自動削除される（フラッシュデータ）</li>
+                                    </ul>
+                                </li>
+                            </ol>
+
+                            <p class="text-sm font-semibold text-purple-300 mb-2">確認してみる:</p>
+                            <pre class="text-sm"><code class="language-php">// バリデーションエラー時のセッション
+dd(session()->all());
+
+// "_old_input" => [
+//     "name" => "入力した商品名",
+//     "price" => "入力した価格",
+// ]</code></pre>
+
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 ユーザーが再入力する手間を省くために、Laravelが自動的にセッションを使ってくれています！
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-red-500">
+                            <p class="text-sm mb-3"><strong>📌 3. エラーメッセージ (@error)</strong></p>
+                            <p class="text-sm mb-3">
+                                【実践3】で使った <code>@error('name')</code> も、<strong>セッション経由</strong>です！
+                            </p>
+
+                            <pre class="text-sm mb-3"><code class="language-html">@error('name')
+    &lt;span style="color: red;"&gt;{{ $message }}&lt;/span&gt;
+@enderror</code></pre>
+
+                            <p class="text-sm mb-2">
+                                バリデーションエラー時、エラーメッセージは<strong>セッション</strong>に保存され、<br>
+                                次のページで <code>$errors</code> として取得できます。
+                            </p>
+
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 これもフラッシュデータなので、1回表示されると自動的に削除されます。
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>✨ まとめ: セッションの重要性</strong></p>
+                            <p class="text-sm mb-3">
+                                セッションは、Laravelの至る所で使われている<strong>基盤技術</strong>です。
+                            </p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <strong>すでに使っている:</strong> CSRF、old()、エラーメッセージ、フラッシュメッセージ</li>
+                                <li>✅ <strong>自動的に動く:</strong> Laravelが裏側でセッションを管理してくれる</li>
+                                <li>✅ <strong>意識して使う:</strong> カスタム機能でセッションを活用できる</li>
+                            </ul>
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 セッションの仕組みを理解することで、Laravelの動作原理が深く理解できます！
+                            </p>
+                        </div>
                     </div>
 
                     <div class="content-section">
@@ -852,6 +2388,315 @@ Route::resource('users', UserController::class);</code></pre>
                             次は<strong>モデル（Model）とデータベース</strong>について学び、
                             実際にデータを保存・取得できるようにしていきます。
                         </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>補足：クッキー（Cookie）とは？（読まなくてもOK）</h3>
+                        <p class="text-gray-400 text-sm">
+                            ※ この説明はフロントエンド寄りの内容のため、本編では省略しました。興味がある方だけお読みください。
+                        </p>
+
+                        <h4>クッキーの正体</h4>
+                        <p>
+                            【実践5】で「Cookie」という言葉が出てきましたが、<strong>クッキーとは何でしょうか？</strong>
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4">
+                            <p class="text-sm mb-3"><strong>🍪 クッキー（Cookie）とは</strong></p>
+                            <p class="text-sm mb-3">
+                                <strong>ブラウザに保存される小さなテキストデータ</strong>です。<br>
+                                サーバーが「このブラウザは誰か」を識別するために使います。
+                            </p>
+                            <div class="bg-white/5 rounded p-3 my-3">
+                                <p class="text-sm mb-2"><strong>現実世界の「会員証」に似ています:</strong></p>
+                                <ul class="text-xs space-y-2">
+                                    <li>
+                                        <strong>初回来店:</strong> お店が会員証を発行<br>
+                                        <span class="text-gray-300">→ 次回から、この証明書で本人確認</span>
+                                    </li>
+                                    <li>
+                                        <strong>次回来店:</strong> 会員証を提示<br>
+                                        <span class="text-gray-300">→ お店が「この人は○○さんだ」と識別</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <p class="text-sm">
+                                <strong>Webの世界:</strong><br>
+                                サーバーが「Cookie」をブラウザに保存し、次回アクセス時に自動的に送信することで、<br>
+                                「このブラウザは前回来た人だ」と識別できます。
+                            </p>
+                        </div>
+
+                        <h4>クッキーの具体的な流れ</h4>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>📌 初回アクセス時</strong></p>
+                            <ol class="text-sm space-y-2">
+                                <li>
+                                    <strong>あなた:</strong> <code>http://localhost:86</code> にアクセス
+                                </li>
+                                <li>
+                                    <strong>サーバー:</strong> 「初めてのお客さんだな。識別用のIDを発行しよう」<br>
+                                    <span class="text-xs text-gray-300">→ レスポンスヘッダーに追加: <code>Set-Cookie: laravel_session=暗号化されたID</code></span>
+                                </li>
+                                <li>
+                                    <strong>ブラウザ:</strong> 「了解！このIDを保存しておこう」<br>
+                                    <span class="text-xs text-gray-300">→ ブラウザ内部に保存（F12のApplicationタブで確認可能）</span>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>📌 2回目以降のアクセス</strong></p>
+                            <ol class="text-sm space-y-2">
+                                <li>
+                                    <strong>あなた:</strong> <code>http://localhost:86</code> に再度アクセス
+                                </li>
+                                <li>
+                                    <strong>ブラウザ:</strong> 「前回もらったIDがあるぞ。自動で送っておこう」<br>
+                                    <span class="text-xs text-gray-300">→ リクエストヘッダーに自動追加: <code>Cookie: laravel_session=暗号化されたID</code></span>
+                                </li>
+                                <li>
+                                    <strong>サーバー:</strong> 「このIDは前回来た人だ！セッションデータを確認しよう」<br>
+                                    <span class="text-xs text-gray-300">→ IDでデータベースを検索 → ログイン状態やカート内容を取得</span>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <h4>クッキーとセッションの関係</h4>
+                        <p>よくある誤解を整理しましょう。</p>
+
+                        <div class="bg-red-500/10 border border-red-500/30 rounded p-4 my-3">
+                            <p class="text-sm mb-2"><strong>❌ よくある誤解</strong></p>
+                            <p class="text-sm">
+                                「セッションはサーバー、クッキーはブラウザ」<br>
+                                → 半分正解、半分間違い
+                            </p>
+                        </div>
+
+                        <div class="bg-green-500/10 border border-green-500/30 rounded p-4 my-3">
+                            <p class="text-sm mb-3"><strong>✅ 正しい理解</strong></p>
+                            <table class="w-full text-xs">
+                                <tbody>
+                                    <tr class="border-b border-white/10">
+                                        <td class="py-2 pr-3 text-gray-400">セッションデータ</td>
+                                        <td class="py-2">サーバー（データベース）に保存</td>
+                                    </tr>
+                                    <tr class="border-b border-white/10">
+                                        <td class="py-2 pr-3 text-gray-400">セッションID</td>
+                                        <td class="py-2">クッキーに保存</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 pr-3 text-gray-400">役割</td>
+                                        <td class="py-2">クッキーでIDを受け渡し → サーバーがデータ取得</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4>クッキーの主な用途</h4>
+                        <ul class="text-sm space-y-2 my-3">
+                            <li>
+                                <strong>1. ログイン状態の維持</strong><br>
+                                <span class="text-xs text-gray-300">セッションIDをクッキーに保存 → ページ移動してもログイン状態を維持</span>
+                            </li>
+                            <li>
+                                <strong>2. ショッピングカート</strong><br>
+                                <span class="text-xs text-gray-300">カート情報はサーバーに保存、識別用IDはクッキーに保存</span>
+                            </li>
+                            <li>
+                                <strong>3. ユーザー設定</strong><br>
+                                <span class="text-xs text-gray-300">言語設定、テーマ（ダークモード）などを保存</span>
+                            </li>
+                        </ul>
+
+                        <h4>クッキーがないとどうなる？</h4>
+                        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded p-4 my-3">
+                            <p class="text-sm mb-2"><strong>⚠️ クッキーなしの世界</strong></p>
+                            <ul class="text-sm space-y-1">
+                                <li>❌ ページ移動するたびにログアウトされる</li>
+                                <li>❌ ショッピングカートが使えない（商品を追加しても次のページで消える）</li>
+                                <li>❌ ユーザー設定が保存できない（毎回選び直し）</li>
+                                <li>❌ パーソナライズ（おすすめ商品など）が不可能</li>
+                            </ul>
+                            <p class="text-blue-300 mt-2 text-sm">
+                                💡 クッキーのおかげで、便利なWebサイトが実現できています！
+                            </p>
+                        </div>
+
+                        <h4>セキュリティ機能</h4>
+                        <p class="text-sm mb-3">
+                            Laravelは、クッキーに以下のセキュリティ設定を自動で付けてくれます:
+                        </p>
+                        <table class="w-full text-sm mt-3 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-3 py-2 text-left">設定</th>
+                                    <th class="px-3 py-2 text-left">効果</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-3 py-2"><code>HttpOnly</code></td>
+                                    <td class="px-3 py-2 text-xs">JavaScriptから読めなくする（XSS対策）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-3 py-2"><code>Secure</code></td>
+                                    <td class="px-3 py-2 text-xs">HTTPS通信でのみ送信（盗聴防止）</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-3 py-2"><code>SameSite</code></td>
+                                    <td class="px-3 py-2 text-xs">他サイトからのリクエストで送信しない（CSRF対策）</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-2"><strong>💡 重要なポイント</strong></p>
+                            <ul class="text-sm space-y-1">
+                                <li>• クッキーは<strong>ブラウザに保存される小さなテキストデータ</strong></li>
+                                <li>• サーバーがブラウザを識別するための<strong>「会員証」</strong>のようなもの</li>
+                                <li>• <strong>自動的に送受信</strong>される（開発者が手動で送る必要なし）</li>
+                                <li>• セッションIDをクッキーに保存することで、ログイン状態を維持</li>
+                                <li>• Laravelが自動的にセキュリティ設定してくれる</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>補足：セッションIDの暗号化（読まなくてもOK）</h3>
+                        <p class="text-gray-400 text-sm">
+                            ※ この説明は理解しなくても、セッションは使えます。興味がある方だけお読みください。
+                        </p>
+
+                        <h4>データベースのIDとCookieの値が違う理由</h4>
+                        <p>
+                            【実践5】で見たように、データベースの <code>sessions</code> テーブルと、<br>
+                            ブラウザのCookieに保存されている値は<strong>異なります</strong>。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4">
+                            <p class="text-sm mb-3"><strong>📊 実際の例</strong></p>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">データベース（sessions テーブル）:</p>
+                            <pre class="text-xs bg-black/40 p-3 rounded mb-3"><code>id: NiWPZg8ZlznznHN7lAXy9iAs4Nt0ayDKaRTvSxGP</code></pre>
+
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">ブラウザのCookie（laravel_session）:</p>
+                            <pre class="text-xs bg-black/40 p-3 rounded"><code>eyJpdiI6IktVQ3ZqTU1rN0Zsb3BFcjJscTZ2cDJWazZvdkZVZVQwRkYyYkhRUEJyIiwid...</code></pre>
+                        </div>
+
+                        <h4>なぜ違うのか？</h4>
+                        <p>
+                            答えは<strong>セキュリティ</strong>のためです。<br>
+                            Laravelは、Cookieに保存する前に<strong>セッションIDを暗号化</strong>しています。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🔒 暗号化の流れ</strong></p>
+                            <ol class="text-sm space-y-2">
+                                <li><strong>1. セッションID生成</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• LaravelがランダムなセッションIDを生成</li>
+                                        <li>• 例: <code>NiWPZg8ZlznznHN7lAXy9iAs4Nt0ayDKaRTvSxGP</code></li>
+                                    </ul>
+                                </li>
+                                <li><strong>2. データベースに保存</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• <code>sessions</code> テーブルの <code>id</code> カラムに保存</li>
+                                        <li>• <strong>生のID</strong>のまま保存</li>
+                                    </ul>
+                                </li>
+                                <li><strong>3. 暗号化してCookieに送信</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• <code>.env</code> の <code>APP_KEY</code> を使って暗号化</li>
+                                        <li>• 例: <code>eyJpdiI6IktVQ3ZqTU...</code> に変換</li>
+                                        <li>• ブラウザに <code>laravel_session</code> という名前で送信</li>
+                                    </ul>
+                                </li>
+                                <li><strong>4. 次のリクエストで復号化</strong>
+                                    <ul class="ml-4 mt-1 space-y-1 text-xs text-gray-300">
+                                        <li>• ブラウザから暗号化された値を受信</li>
+                                        <li>• <code>APP_KEY</code> を使って復号化</li>
+                                        <li>• 生のID（<code>NiWPZg8Z...</code>）を取得</li>
+                                        <li>• データベースを検索してセッションデータを取得</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <h4>なぜ暗号化が必要なのか？</h4>
+
+                        <div class="bg-red-500/10 border border-red-500/30 rounded p-4 my-3">
+                            <p class="text-sm mb-3"><strong>❌ もし暗号化しなかったら...</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>
+                                    <strong>1. セッションハイジャック攻撃</strong><br>
+                                    <span class="text-gray-300 text-xs">攻撃者がCookieのセッションIDを盗んで、他人になりすますことができる</span>
+                                </li>
+                                <li>
+                                    <strong>2. セッションID予測攻撃</strong><br>
+                                    <span class="text-gray-300 text-xs">IDのパターンを推測して、他人のセッションにアクセスできる可能性</span>
+                                </li>
+                                <li>
+                                    <strong>3. Cookieの改ざん</strong><br>
+                                    <span class="text-gray-300 text-xs">攻撃者が自由にセッションIDを書き換えて、不正アクセスできる</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-green-500/10 border border-green-500/30 rounded p-4 my-3">
+                            <p class="text-sm mb-3"><strong>✅ 暗号化することで...</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>
+                                    <strong>1. IDの中身が見えない</strong><br>
+                                    <span class="text-gray-300 text-xs">暗号化された文字列からは、元のIDを推測できない</span>
+                                </li>
+                                <li>
+                                    <strong>2. 改ざん検知</strong><br>
+                                    <span class="text-gray-300 text-xs">Cookieが改ざんされると、復号化に失敗して不正を検知できる</span>
+                                </li>
+                                <li>
+                                    <strong>3. APP_KEYが必要</strong><br>
+                                    <span class="text-gray-300 text-xs">攻撃者は <code>APP_KEY</code> を知らないため、復号化できない</span>
+                                </li>
+                                <li>
+                                    <strong>4. セッション固定攻撃を防ぐ</strong><br>
+                                    <span class="text-gray-300 text-xs">ログイン時にセッションIDを再生成することで、攻撃を無効化</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h4>APP_KEYの重要性</h4>
+                        <p>
+                            <code>.env</code> ファイルの <code>APP_KEY</code> は、セッションIDだけでなく、<br>
+                            Laravel全体の暗号化に使われる<strong>超重要な秘密鍵</strong>です。
+                        </p>
+
+                        <pre class="mt-3"><code class="language-bash"># .env
+APP_KEY=base64:Vi0fyb2hqQBrmpYNqzqgmddOqctT0B8GIAq/aNalhHA=</code></pre>
+
+                        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded p-4 my-3">
+                            <p class="text-sm mb-2"><strong>⚠️ 重要な注意事項</strong></p>
+                            <ul class="text-sm space-y-1">
+                                <li>• <code>APP_KEY</code> を<strong>絶対に公開しない</strong>（GitHubなどにpushしない）</li>
+                                <li>• <code>APP_KEY</code> を変更すると、<strong>既存のセッションが無効</strong>になる</li>
+                                <li>• 本番環境では、<code>APP_KEY</code> を定期的に更新することを推奨</li>
+                            </ul>
+                        </div>
+
+                        <h4>まとめ</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 border-l-4 border-blue-500">
+                            <ul class="text-sm space-y-2">
+                                <li>• データベースには<strong>生のセッションID</strong>が保存される</li>
+                                <li>• Cookieには<strong>暗号化されたセッションID</strong>が保存される</li>
+                                <li>• 暗号化は<strong>セキュリティ</strong>のため（なりすまし、改ざん防止）</li>
+                                <li>• <code>APP_KEY</code> が暗号化と復号化に使われる</li>
+                                <li>• 開発者は暗号化を意識せず、<code>session()</code> で簡単に使える</li>
+                            </ul>
+                            <p class="text-blue-300 mt-3 text-sm">
+                                💡 Laravelが自動的にセキュリティを守ってくれているおかげで、安全なWebアプリが作れます！
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -915,7 +2760,7 @@ Route::resource('users', UserController::class);</code></pre>
         });
 
         // ページ読み込み時の処理
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // シンタックスハイライト
             hljs.highlightAll();
 
@@ -942,6 +2787,101 @@ Route::resource('users', UserController::class);</code></pre>
                     });
                 });
                 pre.appendChild(btn);
+            });
+
+            // h3の折り畳み機能と目次生成
+            const tocList = document.getElementById('toc-list');
+
+            document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                const id = `section-${index}`;
+                h3.id = id;
+
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('collapsible-content');
+
+                const contentSection = h3.parentElement;
+                let nextElement = h3.nextElementSibling;
+                const elementsToWrap = [];
+
+                while (nextElement) {
+                    elementsToWrap.push(nextElement);
+                    nextElement = nextElement.nextElementSibling;
+                }
+
+                elementsToWrap.forEach(el => {
+                    wrapper.appendChild(el);
+                });
+
+                contentSection.appendChild(wrapper);
+
+                h3.addEventListener('click', () => {
+                    h3.classList.toggle('collapsed');
+                    wrapper.classList.toggle('collapsed');
+                });
+
+                const tocItem = document.createElement('a');
+                tocItem.href = `#${id}`;
+                tocItem.className = 'block px-3 py-2 rounded hover:bg-white/10 transition-colors duration-200 text-gray-300 hover:text-white text-xs cursor-pointer';
+                tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                tocItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('toc-modal').classList.add('hidden');
+                    h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                tocList.appendChild(tocItem);
+            });
+
+            const tocButton = document.getElementById('toc-button');
+            const tocModal = document.getElementById('toc-modal');
+            const closeToc = document.getElementById('close-toc');
+
+            tocButton.addEventListener('click', () => {
+                tocModal.classList.toggle('hidden');
+            });
+
+            closeToc.addEventListener('click', () => {
+                tocModal.classList.add('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!tocButton.contains(e.target) && !tocModal.contains(e.target)) {
+                    tocModal.classList.add('hidden');
+                }
+            });
+
+            const toggleAllBtn = document.getElementById('toggle-all');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const toggleText = document.getElementById('toggle-text');
+            let allCollapsed = false;
+
+            toggleAllBtn.addEventListener('click', () => {
+                if (allCollapsed) {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.remove('collapsed');
+                            wrapper.classList.remove('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て閉じる';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    allCollapsed = false;
+                } else {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.add('collapsed');
+                            wrapper.classList.add('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て開く';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+                    toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    allCollapsed = true;
+                }
             });
         });
     </script>
