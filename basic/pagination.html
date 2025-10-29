@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【第四弾】Laravel入門資料</title>
+    <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section a {
+            color: #3183ff;
+            text-decoration: underline;
+        }
+
+        .content-section a:hover {
+            color: #8b5cf6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        pre {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre code {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="../miraichi/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 目次ポップアップ（コンパクト版） -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">
+                    目次
+                </h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="toc-list" class="space-y-1">
+                <!-- 目次項目はJavaScriptで動的に生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- 目次ボタンと全て閉じるボタン（固定位置） -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    【第四弾】Laravel入門資料
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
+                    <li><a href="search-filter.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">検索・フィルタ</a></li>
+                    <li><a href="pagination.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">ページネーション</a></li>
+                    <li><a href="image-upload.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">画像アップロード</a></li>
+                    <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
+                    <li><a href="authentication-implementation.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証実装</a></li>
+                    <li><a href="authentication-middleware.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ミドルウェア・ロール</a></li>
+                    <li><a href="comprehensive-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">総合実践</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント - Pagination</strong>
+                        </p>
+                        <a href="https://laravel.com/docs/12.x/pagination" target="_blank"
+                           class="text-primary-400 hover:text-primary-300 underline text-base">
+                            https://laravel.com/docs/12.x/pagination
+                        </a>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 この講座では、上記の公式ドキュメントを基に解説していきます。<br>
+                            公式ドキュメントは初学者には内容が難しいため、エッセンスを優しく噛み砕いて解説していきます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ページネーション - 大量データを快適に表示する</h3>
+                        <p>
+                            商品が100件、1000件と増えてきたとき、全てを一度に表示すると<strong>ページが重くなります</strong>。<br>
+                            ページネーション機能を実装して、データを分割表示する方法を学びます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 この章で学ぶこと</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ ページネーションの基本 - <code>paginate()</code> の使い方</li>
+                                <li>✅ ページネーションリンクの自動生成 - <code>{{ $products->links() }}</code></li>
+                                <li>✅ 表示件数のカスタマイズ方法</li>
+                                <li>✅ ソート順の指定方法 - <code>orderBy()</code></li>
+                                <li>✅ ページネーションとEager Loadingの組み合わせ</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 前提条件</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <code>products</code> テーブルと <code>categories</code> テーブルが作成済み</li>
+                                <li>✅ Product モデルと Category モデルが作成済み</li>
+                                <li>✅ リレーション（belongsTo）が設定済み</li>
+                            </ul>
+                            <p class="text-xs text-gray-400 mt-2">
+                                ※ 「ここまでの知識の実践」で作成したテーブルとモデルをそのまま使用します
+                            </p>
+                        </div>
+
+                        <h4>なぜページネーションが必要なのか？</h4>
+                        <div class="bg-red-500/10 border border-red-500/30 p-4 rounded mt-3 mb-3">
+                            <p class="text-sm text-gray-300 mb-2"><strong>❌ 全件取得の問題点</strong></p>
+                            <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 ml-2">
+                                <li>商品が1000件あると、1000件全てをデータベースから取得</li>
+                                <li>メモリを大量に消費</li>
+                                <li>ページの表示が遅くなる</li>
+                                <li>ユーザーが1000件全てを見ることはほぼない</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-green-500/10 border border-green-500/30 p-4 rounded mb-3">
+                            <p class="text-sm text-gray-300 mb-2"><strong>✅ ページネーションのメリット</strong></p>
+                            <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 ml-2">
+                                <li>必要なデータだけを取得（例: 10件ずつ）</li>
+                                <li>メモリ使用量が少ない</li>
+                                <li>ページ表示が高速</li>
+                                <li>ユーザーが見やすい</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ページネーションの基本実装</h3>
+                        <p>
+                            まずは、最もシンプルなページネーションを実装してみましょう。<br>
+                            <code>get()</code> を <code>paginate()</code> に変えるだけです。
+                        </p>
+
+                        <h4>ステップ1: ルーティングの設定</h4>
+                        <p class="text-sm text-gray-300"><code>routes/web.php</code></p>
+                        <pre><code class="language-php">use App\Http\Controllers\PaginationController;
+
+Route::get('/pagination', [PaginationController::class, 'index']);</code></pre>
+
+                        <h4>ステップ2: コントローラーの作成</h4>
+                        <p>ページネーション機能を持つコントローラーを作成します。</p>
+                        <pre><code class="language-bash">php artisan make:controller PaginationController</code></pre>
+
+                        <p><code>app/Http/Controllers/PaginationController.php</code> を以下のように編集します。</p>
+                        <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use Illuminate\Http\Request;
+
+class PaginationController extends Controller
+{
+    public function index()
+    {
+        // 1ページあたり10件でページネーション
+        // with('category')でN+1問題を回避（model.htmlで学習済み）
+        $products = Product::with('category')
+            ->paginate(10);
+
+        return view('pagination.index', compact('products'));
+    }
+}
+</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 paginate()メソッド</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>paginate(10)</code> は1ページあたり10件のデータを取得します。<br>
+                                自動的に現在のページ番号を検出し、適切なデータを取得してくれます。<br>
+                                <code>get()</code> との違いは、ページネーション用のメタ情報も一緒に返してくれる点です。
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 N+1問題の復習</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>with('category')</code> を使うことで、N+1問題を回避しています。<br>
+                                model.htmlで学習した通り、Eager Loadingにより以下のように改善されます：
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>❌ 使わない場合: 1 + N回のクエリ（N件の商品があれば N+1 回）</li>
+                                <li>✅ 使った場合: 2回のクエリのみ（商品取得1回 + カテゴリー取得1回）</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">ステップ3: ビューファイルの作成</h4>
+                        <p class="text-sm text-gray-300 mb-2">
+                            <code>resources/views/pagination/index.blade.php</code> を作成します。
+                        </p>
+                        <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;商品一覧（ページネーション）&lt;/title&gt;
+    &lt;style&gt;
+        body { font-family: sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        .pagination { display: flex; gap: 10px; margin-top: 20px; }
+        .pagination a, .pagination span {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-decoration: none;
+            color: #333;
+        }
+        .pagination .active { background-color: #4CAF50; color: white; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;商品一覧（ページネーション）&lt;/h1&gt;
+
+    &lt;table&gt;
+        &lt;thead&gt;
+            &lt;tr&gt;
+                &lt;th&gt;ID&lt;/th&gt;
+                &lt;th&gt;商品名&lt;/th&gt;
+                &lt;th&gt;カテゴリー&lt;/th&gt;
+                &lt;th&gt;価格&lt;/th&gt;
+                &lt;th&gt;在庫&lt;/th&gt;
+            &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+            @foreach($products as $product)
+            &lt;tr&gt;
+                &lt;td&gt;{{ $product-&gt;id }}&lt;/td&gt;
+                &lt;td&gt;{{ $product-&gt;name }}&lt;/td&gt;
+                &lt;td&gt;{{ $product-&gt;category-&gt;name }}&lt;/td&gt;
+                &lt;td&gt;¥{{ number_format($product-&gt;price) }}&lt;/td&gt;
+                &lt;td&gt;{{ $product-&gt;stock }}&lt;/td&gt;
+            &lt;/tr&gt;
+            @endforeach
+        &lt;/tbody&gt;
+    &lt;/table&gt;
+
+    {{-- ページネーションリンク --}}
+    {{ $products-&gt;links() }}
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 重要なポイント</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>{{ $products->links() }}</code> この1行だけで、ページネーションのリンクが自動生成されます。<br>
+                                前へ・次へボタン、ページ番号リンクなど、すべてLaravelが作ってくれます。
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>💡 ページネーションリンクの日本語化</strong></p>
+                            <p class="text-xs mt-2">
+                                デフォルトでは "Previous", "Next" などの英語表記になります。<br>
+                                <code>config/app.php</code> で <code>'locale' => 'ja'</code> に設定すると日本語化されます。
+                            </p>
+                            <pre class="text-xs mt-2"><code class="language-php">'locale' => 'ja',  // 'en' から 'ja' に変更</code></pre>
+                            <p class="text-xs mt-2 text-gray-400">
+                                ※ <code>laravel-lang/common</code> パッケージがインストール済みの場合のみ有効です。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">ステップ4: 確認</h4>
+                        <p>ブラウザで <code>/pagination</code> にアクセスして確認します。</p>
+                        <p class="text-sm text-gray-300 mt-2">
+                            商品が10件ずつ表示され、下部にページ番号のリンクが表示されているはずです。
+                        </p>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 基本的なページネーション機能が完成しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>クエリパラメータを使った動的な設定</h3>
+                        <p>
+                            ページネーションでは、ページ番号や表示件数などを<strong>クエリパラメータ</strong>で渡します。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 クエリパラメータとは？</strong></p>
+                            <p class="text-xs mt-2">
+                                URLの<code>?</code>以降に付けるパラメータのことです。<br>
+                                例: <code>/pagination?per_page=20&page=2</code>
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>?</code> の後にパラメータを記述</li>
+                                <li>• <code>キー=値</code> の形式</li>
+                                <li>• 複数のパラメータは <code>&</code> で繋ぐ</li>
+                                <li>• <code>page</code> はLaravelが自動で処理</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">クエリパラメータの取得</h4>
+                        <pre><code class="language-php">// コントローラーでクエリパラメータを取得
+$perPage = $request->input('per_page', 10);  // デフォルト: 10
+
+// URLが /pagination?per_page=20 の場合 → $perPage は 20
+// URLが /pagination の場合 → $perPage は 10（デフォルト値）</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>✅ クエリパラメータを使うメリット</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• URLに設定が表示される → ブックマーク可能</li>
+                                <li>• URLをシェアできる（「20件表示のページを見て！」）</li>
+                                <li>• ブラウザの戻るボタンが使える</li>
+                                <li>• サーバー側で状態を保持しなくていい</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>表示件数を変更できるようにする</h3>
+                        <p>
+                            ユーザーが表示件数を選択できるように、プルダウンで10件/20件/50件を切り替える機能を実装します。
+                        </p>
+
+                        <h4>コントローラーの更新</h4>
+                        <p><code>app/Http/Controllers/PaginationController.php</code></p>
+                        <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use Illuminate\Http\Request;
+
+class PaginationController extends Controller
+{
+    public function index(Request $request)
+    {
+        // クエリパラメータから表示件数を取得（デフォルト: 10件）
+        $perPage = $request->input('per_page', 10);
+
+        // 許可する件数を制限（セキュリティ対策）
+        $perPage = in_array($perPage, [10, 20, 50]) ? $perPage : 10;
+
+        // ページネーション
+        $products = Product::with('category')
+            ->paginate($perPage);
+
+        return view('pagination.index', compact('products', 'perPage'));
+    }
+}
+</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>⚠️ セキュリティ注意</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>in_array()</code> で許可する件数を制限しています。<br>
+                                ユーザーが <code>?per_page=999999</code> のような大きな値を指定しても、<br>
+                                デフォルトの10件に戻るため、サーバー負荷を防げます。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">ビューの更新</h4>
+                        <p>表示件数選択プルダウンを追加します。</p>
+                        <pre><code class="language-html">&lt;h1&gt;商品一覧（ページネーション）&lt;/h1&gt;
+
+{{-- 表示件数選択 --}}
+&lt;form method="GET" action="/pagination" style="margin-bottom: 20px;"&gt;
+    &lt;label&gt;表示件数: &lt;/label&gt;
+    &lt;select name="per_page" onchange="this.form.submit()"&gt;
+        &lt;option value="10" {{ $perPage == 10 ? 'selected' : '' }}&gt;10件&lt;/option&gt;
+        &lt;option value="20" {{ $perPage == 20 ? 'selected' : '' }}&gt;20件&lt;/option&gt;
+        &lt;option value="50" {{ $perPage == 50 ? 'selected' : '' }}&gt;50件&lt;/option&gt;
+    &lt;/select&gt;
+&lt;/form&gt;
+
+&lt;p&gt;全{{ $products-&gt;total() }}件中 {{ $products-&gt;firstItem() }}〜{{ $products-&gt;lastItem() }}件を表示&lt;/p&gt;
+
+&lt;table&gt;
+    {{-- テーブル内容 --}}
+&lt;/table&gt;
+
+{{-- ページネーションリンク（per_pageを保持） --}}
+{{ $products-&gt;appends(['per_page' => $perPage])-&gt;links() }}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 重要なポイント</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>onchange="this.form.submit()"</code> - プルダウン変更時に自動送信</li>
+                                <li>• <code>{{ $perPage == 10 ? 'selected' : '' }}</code> - 選択状態を保持</li>
+                                <li>• <code>appends(['per_page' => $perPage])</code> - ページ移動時も件数を保持</li>
+                                <li>• <code>$products->total()</code> - 総件数を表示</li>
+                                <li>• <code>$products->firstItem()</code> - 現在ページの最初のアイテム番号</li>
+                                <li>• <code>$products->lastItem()</code> - 現在ページの最後のアイテム番号</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">実際の動作</h4>
+                        <div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded mt-3 mb-3">
+                            <p class="text-sm text-gray-300 mb-2"><strong>URLの変化</strong></p>
+                            <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 ml-2">
+                                <li>10件選択時: <code>/pagination?per_page=10</code></li>
+                                <li>20件選択時: <code>/pagination?per_page=20</code></li>
+                                <li>2ページ目に移動: <code>/pagination?per_page=20&page=2</code></li>
+                            </ul>
+                            <p class="text-xs text-gray-400 mt-2">
+                                → クエリパラメータで表示件数とページ番号の両方を保持
+                            </p>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ ユーザーが表示件数を選択できるようになりました!
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ソート順を追加する</h3>
+                        <p>
+                            価格の高い順、安い順などでソートする機能も追加してみましょう。
+                        </p>
+
+                        <h4>コントローラーの更新</h4>
+                        <pre><code class="language-php">public function index(Request $request)
+{
+    $perPage = $request->input('per_page', 10);
+    $perPage = in_array($perPage, [10, 20, 50]) ? $perPage : 10;
+
+    // ソート順を取得
+    $sortBy = $request->input('sort_by', 'created_at');
+    $sortOrder = $request->input('sort_order', 'desc');
+
+    // 許可するソート項目を制限
+    $allowedSortBy = ['created_at', 'price', 'name', 'stock'];
+    $sortBy = in_array($sortBy, $allowedSortBy) ? $sortBy : 'created_at';
+
+    $products = Product::with('category')
+        ->orderBy($sortBy, $sortOrder)
+        ->paginate($perPage);
+
+    return view('pagination.index', compact('products', 'perPage', 'sortBy', 'sortOrder'));
+}</code></pre>
+
+                        <h4 class="mt-6">ビューの更新</h4>
+                        <pre><code class="language-html">{{-- ソート選択 --}}
+&lt;form method="GET" action="/pagination" style="margin-bottom: 20px;"&gt;
+    &lt;input type="hidden" name="per_page" value="{{ $perPage }}"&gt;
+
+    &lt;label&gt;並び順: &lt;/label&gt;
+    &lt;select name="sort_by" onchange="this.form.submit()"&gt;
+        &lt;option value="created_at" {{ $sortBy == 'created_at' ? 'selected' : '' }}&gt;登録日&lt;/option&gt;
+        &lt;option value="price" {{ $sortBy == 'price' ? 'selected' : '' }}&gt;価格&lt;/option&gt;
+        &lt;option value="name" {{ $sortBy == 'name' ? 'selected' : '' }}&gt;商品名&lt;/option&gt;
+        &lt;option value="stock" {{ $sortBy == 'stock' ? 'selected' : '' }}&gt;在庫数&lt;/option&gt;
+    &lt;/select&gt;
+
+    &lt;select name="sort_order" onchange="this.form.submit()"&gt;
+        &lt;option value="asc" {{ $sortOrder == 'asc' ? 'selected' : '' }}&gt;昇順&lt;/option&gt;
+        &lt;option value="desc" {{ $sortOrder == 'desc' ? 'selected' : '' }}&gt;降順&lt;/option&gt;
+    &lt;/select&gt;
+&lt;/form&gt;
+
+{{-- ページネーションリンク（全てのパラメータを保持） --}}
+{{ $products-&gt;appends([
+    'per_page' => $perPage,
+    'sort_by' => $sortBy,
+    'sort_order' => $sortOrder
+])-&gt;links() }}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>💡 複数パラメータの保持</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>appends()</code> に配列で複数のパラメータを渡すことで、<br>
+                                ページ移動時にすべての設定（表示件数・ソート順）を保持できます。
+                            </p>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ ソート機能も追加できました!
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <p>
+                            ページネーション機能の実装を学びました！
+                        </p>
+
+                        <h4>学んだこと</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <code>paginate(10)</code> で簡単にページネーション実装</li>
+                                <li>✅ <code>{{ $products->links() }}</code> でページ番号リンクを自動生成</li>
+                                <li>✅ <code>with('category')</code> でN+1問題を回避（model.htmlで学習済み）</li>
+                                <li>✅ クエリパラメータで表示件数を動的に変更</li>
+                                <li>✅ <code>in_array()</code> でセキュリティ対策（許可する値を制限）</li>
+                                <li>✅ <code>orderBy()</code> でソート順をカスタマイズ</li>
+                                <li>✅ <code>appends()</code> で複数パラメータを保持</li>
+                                <li>✅ <code>$products->total()</code>、<code>firstItem()</code>、<code>lastItem()</code> で表示情報</li>
+                            </ul>
+                        </div>
+
+                        <h4>次のステップ</h4>
+                        <p class="text-sm text-gray-300">
+                            ページネーションの基本と応用を習得しました。<br>
+                            次は「検索・フィルタリング」タブで、商品の絞り込み機能を学習しましょう！
+                        </p>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ ページネーション学習完了です!
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+    <script>
+        // Highlight.js 初期化
+        hljs.highlightAll();
+
+        // DOM読み込み完了後に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            // コピーボタンの追加
+            document.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.classList.add('copy-button');
+                btn.textContent = 'COPY';
+                btn.addEventListener('click', () => {
+                    const code = pre.querySelector('code');
+                    let textToCopy = code.textContent;
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        btn.textContent = 'COPIED!';
+                        setTimeout(() => {
+                            btn.textContent = 'COPY';
+                        }, 2000);
+                    });
+                });
+                pre.appendChild(btn);
+            });
+
+            // h3の折り畳み機能と目次生成
+            const tocList = document.getElementById('toc-list');
+
+            document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                const id = `section-${index}`;
+                h3.id = id;
+
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('collapsible-content');
+
+                const contentSection = h3.parentElement;
+                let nextElement = h3.nextElementSibling;
+                const elementsToWrap = [];
+
+                while (nextElement) {
+                    elementsToWrap.push(nextElement);
+                    nextElement = nextElement.nextElementSibling;
+                }
+
+                elementsToWrap.forEach(el => {
+                    wrapper.appendChild(el);
+                });
+
+                contentSection.appendChild(wrapper);
+
+                h3.addEventListener('click', () => {
+                    h3.classList.toggle('collapsed');
+                    wrapper.classList.toggle('collapsed');
+                });
+
+                const tocItem = document.createElement('a');
+                tocItem.href = `#${id}`;
+                tocItem.className = 'block px-3 py-2 rounded hover:bg-white/10 transition-colors duration-200 text-gray-300 hover:text-white text-xs cursor-pointer';
+                tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                tocItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('toc-modal').classList.add('hidden');
+                    h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                tocList.appendChild(tocItem);
+            });
+
+            const tocButton = document.getElementById('toc-button');
+            const tocModal = document.getElementById('toc-modal');
+            const closeToc = document.getElementById('close-toc');
+
+            tocButton.addEventListener('click', () => {
+                tocModal.classList.toggle('hidden');
+            });
+
+            closeToc.addEventListener('click', () => {
+                tocModal.classList.add('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!tocButton.contains(e.target) && !tocModal.contains(e.target)) {
+                    tocModal.classList.add('hidden');
+                }
+            });
+
+            const toggleAllBtn = document.getElementById('toggle-all');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const toggleText = document.getElementById('toggle-text');
+            let allCollapsed = false;
+
+            toggleAllBtn.addEventListener('click', () => {
+                if (allCollapsed) {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.remove('collapsed');
+                            wrapper.classList.remove('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て閉じる';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    allCollapsed = false;
+                } else {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.add('collapsed');
+                            wrapper.classList.add('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て開く';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+                    toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    allCollapsed = true;
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

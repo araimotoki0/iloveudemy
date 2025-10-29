@@ -316,7 +316,14 @@
                     <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
                     <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
                     <li><a href="model.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">モデル</a></li>
-                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">DB実践</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
+                    <li><a href="search-filter.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">検索・フィルタ</a></li>
+                    <li><a href="pagination.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ページネーション</a></li>
+                    <li><a href="image-upload.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">画像アップロード</a></li>
+                    <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
+                    <li><a href="authentication-implementation.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証実装</a></li>
+                    <li><a href="authentication-middleware.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ミドルウェア・ロール</a></li>
+                    <li><a href="comprehensive-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">総合実践</a></li>
                 </ul>
 
                 <!-- コンテンツ -->
@@ -2250,6 +2257,32 @@ if ($product->detail) {
                             <p class="text-xs text-gray-300 mb-2">
                                 多対多リレーションでは、<strong>中間テーブル（ピボットテーブル）</strong>が必要です。
                             </p>
+
+                            <div class="bg-red-500/10 border border-red-500/30 p-3 rounded mt-3 mb-3">
+                                <p class="text-xs text-gray-300 mb-2"><strong>❌ なぜ中間テーブルが必要か？</strong></p>
+                                <p class="text-xs text-gray-400 mb-2">
+                                    中間テーブルがない場合、1つのセルに複数のIDを保存することになり、以下の問題が発生します：
+                                </p>
+                                <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 ml-2">
+                                    <li><strong>データベースの正規化違反</strong> - 1つのセルに複数の値（例: "1,2,3"）を入れることになる</li>
+                                    <li><strong>外部キー制約が使えない</strong> - データの整合性を保証できない</li>
+                                    <li><strong>検索が困難</strong> - 特定のタグを持つ商品を効率的に探せない</li>
+                                    <li><strong>更新が複雑</strong> - IDの追加・削除が煩雑になる</li>
+                                    <li><strong>データの整合性問題</strong> - 存在しないIDが混入する可能性がある</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-green-500/10 border border-green-500/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-300 mb-2"><strong>✅ 中間テーブルを使うメリット</strong></p>
+                                <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 ml-2">
+                                    <li><strong>データベースの正規化</strong> - 各セルには1つの値のみ保存</li>
+                                    <li><strong>外部キー制約</strong> - データの整合性を自動的に保証</li>
+                                    <li><strong>検索が簡単</strong> - SQLで効率的に検索可能</li>
+                                    <li><strong>更新が簡単</strong> - レコードの追加・削除が単純</li>
+                                    <li><strong>追加情報を保存可能</strong> - 例: created_at（紐付け日時）など</li>
+                                </ul>
+                            </div>
+
                             <pre class="text-xs bg-black/40 p-2 rounded"><code>products テーブル
 ├─ id: 1 (ノートパソコン)
 ├─ id: 2 (スマートフォン)
@@ -2765,237 +2798,25 @@ $product->name = 'laptop';  // 保存時に自動的に "LAPTOP" になる</code
 
                     </div>
 
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- フッター -->
-        <footer class="glass mt-20 py-8">
-            <div class="max-w-4xl mx-auto px-4 text-center">
-                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
-                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
-            </div>
-        </footer>
-    </div>
-
-    <!-- Highlight.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function ()
-    {
-        return $query->where('price', '>=', 50000);
-    }
-
-    // 在庫あり
-    public function scopeInStock($query)
-    {
-        return $query->where('stock', '>', 0);
-    }
-
-    // 価格範囲指定（パラメータ付き）
-    public function scopePriceBetween($query, $min, $max)
-    {
-        return $query->whereBetween('price', [$min, $max]);
-    }
-}</code></pre>
-
-                        <h4>スコープの使い方</h4>
-                        <pre><code class="language-php">// 公開されている商品
-$products = Product::published()->get();
-
-// 公開 + 高額 + 在庫あり（チェーンできる！）
-$products = Product::published()
-                   ->expensive()
-                   ->inStock()
-                   ->get();
-
-// 価格範囲指定
-$products = Product::priceBetween(10000, 50000)->get();
-
-// 通常のクエリと組み合わせ
-$products = Product::published()
-                   ->where('category_id', 1)
-                   ->orderBy('price', 'asc')
-                   ->get();</code></pre>
-
-                        <h4>実践例: コントローラーでの使用</h4>
-                        <pre><code class="language-php">public function index()
-{
-    // スコープを使って簡潔に
-    $products = Product::published()
-                       ->inStock()
-                       ->orderBy('created_at', 'desc')
-                       ->get();
-
-    return view('products.index', compact('products'));
-}
-
-public function search(Request $request)
-{
-    $query = Product::published();
-
-    // 価格範囲フィルター
-    if ($request->min_price && $request->max_price) {
-        $query->priceBetween($request->min_price, $request->max_price);
-    }
-
-    // カテゴリーフィルター
-    if ($request->category_id) {
-        $query->where('category_id', $request->category_id);
-    }
-
-    $products = $query->get();
-
-    return view('products.search', compact('products'));
-}</code></pre>
-
-                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
-                            <p class="text-sm mb-3"><strong>💡 スコープのメリット</strong></p>
-                            <ul class="text-sm space-y-2">
-                                <li>✅ コードの重複を防げる</li>
-                                <li>✅ 可読性が向上する</li>
-                                <li>✅ メンテナンスが楽になる</li>
-                                <li>✅ ビジネスロジックをモデルに集約できる</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="content-section">
-                        <h3>アクセサ・ミューテータ</h3>
-                        <p>
-                            データの取得時・保存時に、自動で値を変換できます。
-                        </p>
-
-                        <h4>アクセサ（Accessor）- 取得時の変換</h4>
-                        <p>データベースから取得する際に、値を加工します。</p>
-
-                        <pre><code class="language-php">namespace App\Models;
-
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
-
-class Product extends Model
-{
-    // 価格を税込み表示に変換
-    protected function priceWithTax(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => (int)($this->price * 1.1),
-        );
-    }
-
-    // 商品名を大文字に変換
-    protected function nameUpper(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => strtoupper($this->name),
-        );
-    }
-
-    // 在庫ステータスを文字列で取得
-    protected function stockStatus(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->stock > 0 ? '在庫あり' : '在庫切れ',
-        );
-    }
-}</code></pre>
-
-                        <h4>アクセサの使い方</h4>
-                        <pre><code class="language-php">$product = Product::find(1);
-
-echo $product->price;           // 10000
-echo $product->price_with_tax;  // 11000（税込み）
-echo $product->name_upper;      // NOTEBOOK PC
-echo $product->stock_status;    // 在庫あり</code></pre>
-
-                        <h4>ミューテータ（Mutator）- 保存時の変換</h4>
-                        <p>データベースに保存する際に、値を加工します。</p>
-
-                        <pre><code class="language-php">namespace App\Models;
-
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
-
-class Product extends Model
-{
-    // 商品名を保存時に自動でトリム
-    protected function name(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $value,
-            set: fn ($value) => trim($value),
-        );
-    }
-
-    // 価格は必ず0以上に
-    protected function price(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $value,
-            set: fn ($value) => max(0, (int)$value),
-        );
-    }
-}</code></pre>
-
-                        <h4>実践例</h4>
-                        <pre><code class="language-php">// ミューテータが自動で動く
-$product = new Product();
-$product->name = '  ノートPC  ';  // 前後に空白
-$product->price = -1000;           // マイナス値
-$product->save();
-
-// データベースには以下のように保存される
-// name: 'ノートPC'（空白削除）
-// price: 0（マイナスは0に変換）</code></pre>
-
-                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
-                            <p class="text-sm mb-3"><strong>💡 Laravel 9以降の書き方</strong></p>
-                            <p class="text-sm">
-                                Laravel 9以降では、<code>Attribute</code> クラスを使った書き方が推奨されています。<br>
-                                古い書き方（getXxxAttribute / setXxxAttribute）も動きますが、<br>
-                                新しいプロジェクトでは上記の書き方を使いましょう。
-                            </p>
-                        </div>
-                    </div>
-
                     <div class="content-section">
                         <h3>まとめ</h3>
                         <p>
-                            この講座で学んだモデルとEloquent ORMの内容をまとめます。
+                            この章では、Laravelのモデル（Model）とEloquent ORMについて学びました。
                         </p>
 
-                        <h4>CRUD操作</h4>
-                        <table class="w-full text-sm mt-4 mb-4">
-                            <thead class="bg-white/10">
-                                <tr>
-                                    <th class="px-4 py-2 text-left">操作</th>
-                                    <th class="px-4 py-2 text-left">主なメソッド</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white/5">
-                                <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2">作成</td>
-                                    <td class="px-4 py-2"><code>create()</code>, <code>save()</code></td>
-                                </tr>
-                                <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2">読み取り</td>
-                                    <td class="px-4 py-2"><code>all()</code>, <code>find()</code>, <code>where()->get()</code></td>
-                                </tr>
-                                <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2">更新</td>
-                                    <td class="px-4 py-2"><code>update()</code>, <code>save()</code></td>
-                                </tr>
-                                <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2">削除</td>
-                                    <td class="px-4 py-2"><code>delete()</code>, <code>destroy()</code></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <h4>重要なポイント</h4>
+                        <ul>
+                            <li>モデルは <code>app/Models/</code> に配置</li>
+                            <li><code>php artisan make:model</code> で作成</li>
+                            <li>Eloquent ORMで安全にデータベース操作（SQLインジェクション対策が自動）</li>
+                            <li>CRUD操作: <code>create()</code>, <code>find()</code>, <code>update()</code>, <code>delete()</code></li>
+                            <li><code>$fillable</code> で一括代入を制御（Mass Assignment対策）</li>
+                            <li>リレーションで関連データを簡単に取得: <code>$product->category</code></li>
+                            <li>多対多リレーションでは中間テーブル（ピボットテーブル）が必要</li>
+                            <li><code>attach()</code>, <code>detach()</code>, <code>sync()</code> で中間テーブルを操作</li>
+                        </ul>
 
-                        <h4>よく使うクエリメソッド</h4>
+                        <h4>よく使うEloquentメソッド</h4>
                         <table class="w-full text-sm mt-4 mb-4">
                             <thead class="bg-white/10">
                                 <tr>
@@ -3005,56 +2826,88 @@ $product->save();
                             </thead>
                             <tbody class="bg-white/5">
                                 <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2"><code>where('column', 'value')</code></td>
-                                    <td class="px-4 py-2">条件指定</td>
+                                    <td class="px-4 py-2"><code>all()</code></td>
+                                    <td class="px-4 py-2">全件取得</td>
                                 </tr>
                                 <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2"><code>orderBy('column', 'asc')</code></td>
-                                    <td class="px-4 py-2">並び替え</td>
+                                    <td class="px-4 py-2"><code>find($id)</code></td>
+                                    <td class="px-4 py-2">IDで1件取得</td>
                                 </tr>
                                 <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2"><code>take(5)</code></td>
-                                    <td class="px-4 py-2">件数制限</td>
+                                    <td class="px-4 py-2"><code>where('column', 'value')->get()</code></td>
+                                    <td class="px-4 py-2">条件で検索</td>
                                 </tr>
                                 <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2"><code>first()</code></td>
-                                    <td class="px-4 py-2">1件取得</td>
+                                    <td class="px-4 py-2"><code>create([...])</code></td>
+                                    <td class="px-4 py-2">新規作成</td>
                                 </tr>
                                 <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2"><code>findOrFail($id)</code></td>
-                                    <td class="px-4 py-2">見つからなければ404</td>
+                                    <td class="px-4 py-2"><code>update([...])</code></td>
+                                    <td class="px-4 py-2">更新</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2"><code>delete()</code></td>
+                                    <td class="px-4 py-2">削除</td>
                                 </tr>
                                 <tr class="border-t border-white/10">
                                     <td class="px-4 py-2"><code>with('relation')</code></td>
-                                    <td class="px-4 py-2">Eager Loading</td>
+                                    <td class="px-4 py-2">Eager Loading（N+1問題対策）</td>
                                 </tr>
                             </tbody>
                         </table>
 
-                        <h4>モデルの重要な設定</h4>
+                        <h4>リレーションの種類</h4>
                         <table class="w-full text-sm mt-4 mb-4">
                             <thead class="bg-white/10">
                                 <tr>
-                                    <th class="px-4 py-2 text-left">プロパティ</th>
+                                    <th class="px-4 py-2 text-left">リレーション</th>
+                                    <th class="px-4 py-2 text-left">メソッド</th>
+                                    <th class="px-4 py-2 text-left">例</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/5">
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">1対多</td>
+                                    <td class="px-4 py-2"><code>hasMany()</code> / <code>belongsTo()</code></td>
+                                    <td class="px-4 py-2">1つのカテゴリーに複数の商品</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">1対1</td>
+                                    <td class="px-4 py-2"><code>hasOne()</code> / <code>belongsTo()</code></td>
+                                    <td class="px-4 py-2">1つの商品に1つの詳細情報</td>
+                                </tr>
+                                <tr class="border-t border-white/10">
+                                    <td class="px-4 py-2">多対多</td>
+                                    <td class="px-4 py-2"><code>belongsToMany()</code></td>
+                                    <td class="px-4 py-2">複数の商品に複数のタグ</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>多対多リレーション操作メソッド</h4>
+                        <table class="w-full text-sm mt-4 mb-4">
+                            <thead class="bg-white/10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">メソッド</th>
                                     <th class="px-4 py-2 text-left">説明</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white/5">
                                 <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2"><code>$fillable</code></td>
-                                    <td class="px-4 py-2">一括代入を許可するカラム</td>
+                                    <td class="px-4 py-2"><code>attach($id)</code></td>
+                                    <td class="px-4 py-2">中間テーブルに関連を追加</td>
                                 </tr>
                                 <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2"><code>$casts</code></td>
-                                    <td class="px-4 py-2">データ型の自動変換</td>
+                                    <td class="px-4 py-2"><code>detach($id)</code></td>
+                                    <td class="px-4 py-2">中間テーブルから関連を削除</td>
                                 </tr>
                                 <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2"><code>$table</code></td>
-                                    <td class="px-4 py-2">テーブル名の指定</td>
+                                    <td class="px-4 py-2"><code>sync([...])</code></td>
+                                    <td class="px-4 py-2">中間テーブルを指定した状態に同期</td>
                                 </tr>
                                 <tr class="border-t border-white/10">
-                                    <td class="px-4 py-2"><code>$timestamps</code></td>
-                                    <td class="px-4 py-2">タイムスタンプの有効/無効</td>
+                                    <td class="px-4 py-2"><code>toggle($id)</code></td>
+                                    <td class="px-4 py-2">関連をトグル（あれば削除、なければ追加）</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -3065,20 +2918,20 @@ $product->save();
                                 <li>✅ <strong>$fillable を必ず設定</strong><br>
                                     <span class="text-xs text-gray-300">Mass Assignment対策は必須</span>
                                 </li>
-                                <li>✅ <strong>findOrFail() を使う</strong><br>
-                                    <span class="text-xs text-gray-300">存在しないデータは404エラーに</span>
+                                <li>✅ <strong>Eloquent ORMを基本とする</strong><br>
+                                    <span class="text-xs text-gray-300">SQLインジェクション対策が自動で行われる</span>
                                 </li>
                                 <li>✅ <strong>Eager Loadingを活用</strong><br>
-                                    <span class="text-xs text-gray-300">N+1問題を防ぐ</span>
-                                </li>
-                                <li>✅ <strong>スコープで共通処理を再利用</strong><br>
-                                    <span class="text-xs text-gray-300">コードの重複を防ぐ</span>
+                                    <span class="text-xs text-gray-300">N+1問題を防ぐ（<code>with()</code>を使う）</span>
                                 </li>
                                 <li>✅ <strong>リレーションを適切に定義</strong><br>
-                                    <span class="text-xs text-gray-300">テーブル間の関連を明確に</span>
+                                    <span class="text-xs text-gray-300">テーブル間の関連を明確にする</span>
                                 </li>
-                                <li>⚠️ <strong>all() の使用は慎重に</strong><br>
-                                    <span class="text-xs text-gray-300">データ量が多い場合はページネーションを</span>
+                                <li>✅ <strong>カスタムメソッドでロジックをカプセル化</strong><br>
+                                    <span class="text-xs text-gray-300">コードの重複を防ぎ、可読性を向上</span>
+                                </li>
+                                <li>⚠️ <strong>多対多の中間テーブルは命名規則に従う</strong><br>
+                                    <span class="text-xs text-gray-300">アルファベット順、単数形、アンダースコア区切り</span>
                                 </li>
                             </ul>
                         </div>
@@ -3100,6 +2953,7 @@ $product->save();
                         </div>
                     </div>
 
+                    </div>
                 </div>
             </div>
         </main>

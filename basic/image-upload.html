@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【第四弾】Laravel入門資料</title>
+    <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section a {
+            color: #3183ff;
+            text-decoration: underline;
+        }
+
+        .content-section a:hover {
+            color: #8b5cf6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        pre {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre code {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="../miraichi/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 目次ポップアップ（コンパクト版） -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">
+                    目次
+                </h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="toc-list" class="space-y-1">
+                <!-- 目次項目はJavaScriptで動的に生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- 目次ボタンと全て閉じるボタン（固定位置） -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    【第四弾】Laravel入門資料
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
+                    <li><a href="search-filter.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">検索・フィルタ</a></li>
+                    <li><a href="pagination.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ページネーション</a></li>
+                    <li><a href="image-upload.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">画像アップロード</a></li>
+                    <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
+                    <li><a href="authentication-implementation.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証実装</a></li>
+                    <li><a href="authentication-middleware.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ミドルウェア・ロール</a></li>
+                    <li><a href="comprehensive-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">総合実践</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント - File Storage</strong>
+                        </p>
+                        <a href="https://laravel.com/docs/12.x/filesystem" target="_blank"
+                           class="text-primary-400 hover:text-primary-300 underline text-base">
+                            https://laravel.com/docs/12.x/filesystem
+                        </a>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 この講座では、上記の公式ドキュメントを基に解説していきます。<br>
+                            公式ドキュメントは初学者には内容が難しいため、エッセンスを優しく噛み砕いて解説していきます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>画像アップロード - 商品画像を登録する</h3>
+                        <p>
+                            商品に画像を追加することで、<strong>よりユーザーにわかりやすい</strong>情報を提供できます。<br>
+                            画像のアップロード、保存、表示の一連の流れを学びます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 この章で学ぶこと</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ ファイルアップロードの基本 - <code>enctype="multipart/form-data"</code></li>
+                                <li>✅ 画像の保存 - <code>$request->file()->store()</code></li>
+                                <li>✅ 画像の表示 - <code>Storage::url()</code> と シンボリックリンク</li>
+                                <li>✅ バリデーション - ファイルサイズ・種類の制限</li>
+                                <li>✅ 画像の削除 - 古い画像ファイルの削除処理</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 前提条件</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <code>products</code> テーブルが作成済み</li>
+                                <li>✅ Product モデルが作成済み</li>
+                            </ul>
+                            <p class="text-xs text-gray-400 mt-2">
+                                ※ 「ここまでの知識の実践」で作成したテーブルとモデルをそのまま使用します
+                            </p>
+                        </div>
+
+                        <h4>画像アップロードの流れ</h4>
+                        <div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded mt-3 mb-3">
+                            <p class="text-sm text-gray-300 mb-2"><strong>実装する機能の流れ</strong></p>
+                            <ol class="text-xs text-gray-400 list-decimal list-inside space-y-1 ml-2">
+                                <li>マイグレーションで画像カラムを追加</li>
+                                <li>フォームにファイルアップロード欄を追加</li>
+                                <li>コントローラーで画像を保存</li>
+                                <li>シンボリックリンクで画像を公開</li>
+                                <li>ビューで画像を表示</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>マイグレーションで画像カラムを追加</h3>
+                        <p>
+                            まず、<code>products</code> テーブルに画像ファイルのパスを保存するカラムを追加します。
+                        </p>
+
+                        <h4>マイグレーションファイルの作成</h4>
+                        <pre><code class="language-bash">php artisan make:migration add_image_to_products_table</code></pre>
+
+                        <p class="mt-4"><code>database/migrations/xxxx_add_image_to_products_table.php</code></p>
+                        <pre><code class="language-php">&lt;?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            $table->string('image')->nullable()->after('description');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            $table->dropColumn('image');
+        });
+    }
+};</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 nullable()とは？</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>nullable()</code> を付けると、NULL（空）を許可します。<br>
+                                画像は必須ではないため、nullable()を付けています。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">マイグレーション実行</h4>
+                        <pre><code class="language-bash">php artisan migrate</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ productsテーブルにimageカラムが追加されました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>シンボリックリンクの作成</h3>
+                        <p>
+                            Laravelでは、アップロードした画像は <code>storage/app/public</code> に保存されます。<br>
+                            ブラウザから画像にアクセスできるようにするため、<strong>シンボリックリンク</strong>を作成します。
+                        </p>
+
+                        <h4>シンボリックリンクとは？</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 シンボリックリンク（ショートカット）</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>public/storage</code> → <code>storage/app/public</code> へのショートカットを作ります。<br>
+                                これにより、<code>/storage/image.jpg</code> のURLで画像にアクセスできます。
+                            </p>
+                        </div>
+
+                        <h4>シンボリックリンクの作成コマンド</h4>
+                        <pre><code class="language-bash">php artisan storage:link</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-2">
+                            実行すると「The [public/storage] link has been connected to [storage/app/public].」と表示されます。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>⚠️ 注意</strong></p>
+                            <p class="text-xs mt-2">
+                                このコマンドは<strong>一度だけ</strong>実行すればOKです。<br>
+                                すでにリンクが存在する場合はエラーになりますが、問題ありません。
+                            </p>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ シンボリックリンクが作成されました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>画像アップロードフォームの作成</h3>
+                        <p>
+                            商品登録・編集フォームに画像アップロード欄を追加します。
+                        </p>
+
+                        <h4>重要: enctype属性</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-red-500">
+                            <p class="text-xs"><strong>⚠️ 超重要!</strong></p>
+                            <p class="text-xs mt-2">
+                                ファイルをアップロードする場合、formタグに<br>
+                                <code>enctype="multipart/form-data"</code> を<strong>必ず</strong>追加してください。<br>
+                                これがないと、ファイルが送信されません。
+                            </p>
+                        </div>
+
+                        <h4>ビューの作成</h4>
+                        <p><code>resources/views/products/create.blade.php</code></p>
+                        <pre><code class="language-html">&lt;form action="/products" method="POST" enctype="multipart/form-data"&gt;
+    @csrf
+
+    {{-- 商品名 --}}
+    &lt;label&gt;商品名&lt;/label&gt;
+    &lt;input type="text" name="name" value="{{ old('name') }}"&gt;
+
+    {{-- 説明 --}}
+    &lt;label&gt;説明&lt;/label&gt;
+    &lt;textarea name="description"&gt;{{ old('description') }}&lt;/textarea&gt;
+
+    {{-- 画像アップロード --}}
+    &lt;label&gt;商品画像&lt;/label&gt;
+    &lt;input type="file" name="image" accept="image/*"&gt;
+
+    {{-- その他のフィールド --}}
+    &lt;button type="submit"&gt;登録&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 accept属性</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>accept="image/*"</code> を付けると、画像ファイルのみ選択可能になります。<br>
+                                ユーザーが間違えてPDFなどを選択するのを防げます。
+                            </p>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 画像アップロードフォームができました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>コントローラーで画像を保存する</h3>
+                        <p>
+                            アップロードされた画像をサーバーに保存します。
+                        </p>
+
+                        <h4>ProductControllerの実装</h4>
+                        <p><code>app/Http/Controllers/ProductController.php</code></p>
+                        <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class ProductController extends Controller
+{
+    public function store(Request $request)
+    {
+        // バリデーション
+        $validated = $request->validate([
+            'name' => 'required|max:255',
+            'description' => 'nullable',
+            'image' => 'nullable|image|max:2048', // 2MB以下の画像のみ
+        ]);
+
+        // 画像がアップロードされた場合のみ保存
+        if ($request->hasFile('image')) {
+            // storage/app/public/products に保存
+            $imagePath = $request->file('image')->store('products', 'public');
+            $validated['image'] = $imagePath;
+        }
+
+        // 商品を作成
+        Product::create($validated);
+
+        return redirect('/products')->with('success', '商品を登録しました');
+    }
+}
+</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 重要なポイント</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>hasFile('image')</code> - ファイルがアップロードされたか確認</li>
+                                <li>• <code>store('products', 'public')</code> - storage/app/public/products に保存</li>
+                                <li>• 戻り値はファイルパス（例: products/abc123.jpg）</li>
+                                <li>• ファイル名は自動的にランダムな名前になる</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">バリデーションルールの説明</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>✅ 画像バリデーション</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>nullable</code> - 画像は任意（なくてもOK）</li>
+                                <li>• <code>image</code> - 画像ファイルのみ許可（jpg, png, gif, svg, webp）</li>
+                                <li>• <code>max:2048</code> - 最大2MB（2048KB）</li>
+                                <li>• その他: <code>mimes:jpeg,png</code> で拡張子を制限可能</li>
+                            </ul>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 画像保存機能が実装できました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ビューで画像を表示する</h3>
+                        <p>保存した画像をビューで表示してみましょう。</p>
+
+                        <h4 class="mt-6">Storage::url() を使った表示</h4>
+                        <pre><code class="language-php">use Illuminate\Support\Facades\Storage;
+
+// Bladeテンプレート
+@if($product->image)
+    &lt;img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}"&gt;
+@else
+    &lt;p&gt;画像がありません&lt;/p&gt;
+@endif</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 Storage::url() とは？</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>storage/app/public</code> 以下のファイルパスを、<br>
+                                <code>/storage/</code> で始まる公開URLに変換してくれます。
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• DBに保存: <code>products/abc123.jpg</code></li>
+                                <li>• Storage::url() の結果: <code>/storage/products/abc123.jpg</code></li>
+                                <li>• ブラウザからアクセス可能になる</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">商品一覧で画像を表示する例</h4>
+                        <pre><code class="language-php">// resources/views/products/index.blade.php
+@foreach($products as $product)
+    &lt;div class="product-card"&gt;
+        @if($product->image)
+            &lt;img src="{{ Storage::url($product->image) }}"
+                 alt="{{ $product->name }}"
+                 style="width: 100px; height: 100px; object-fit: cover;"&gt;
+        @else
+            &lt;div style="width: 100px; height: 100px; background: #ddd; display: flex; align-items: center; justify-content: center;"&gt;
+                No Image
+            &lt;/div&gt;
+        @endif
+        &lt;h3&gt;{{ $product->name }}&lt;/h3&gt;
+        &lt;p&gt;¥{{ number_format($product->price) }}&lt;/p&gt;
+    &lt;/div&gt;
+@endforeach</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>⚠️ シンボリックリンクを忘れずに！</strong></p>
+                            <p class="text-xs mt-2">
+                                画像が表示されない場合は、以下を確認してください：
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>✅ <code>php artisan storage:link</code> を実行したか？</li>
+                                <li>✅ <code>public/storage</code> フォルダが存在するか？</li>
+                                <li>✅ ブラウザの開発者ツールで404エラーが出ていないか？</li>
+                            </ul>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 画像表示ができました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>画像の更新と削除</h3>
+                        <p>商品編集時に画像を差し替える処理と、古い画像を削除する処理を実装します。</p>
+
+                        <h4 class="mt-6">編集フォーム</h4>
+                        <pre><code class="language-php">// resources/views/products/edit.blade.php
+&lt;form action="/products/{{ $product->id }}" method="POST" enctype="multipart/form-data"&gt;
+    @csrf
+    @method('PUT')
+
+    &lt;!-- 現在の画像を表示 --&gt;
+    @if($product->image)
+        &lt;div&gt;
+            &lt;p&gt;現在の画像：&lt;/p&gt;
+            &lt;img src="{{ Storage::url($product->image) }}"
+                 alt="{{ $product->name }}"
+                 style="width: 150px; height: 150px; object-fit: cover;"&gt;
+        &lt;/div&gt;
+    @endif
+
+    &lt;label&gt;新しい画像をアップロード&lt;/label&gt;
+    &lt;input type="file" name="image" accept="image/*"&gt;
+
+    &lt;button type="submit"&gt;更新&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                        <h4 class="mt-6">コントローラーで古い画像を削除</h4>
+                        <pre><code class="language-php">use Illuminate\Support\Facades\Storage;
+
+public function update(Request $request, Product $product)
+{
+    $validated = $request->validate([
+        'name' => 'required|max:255',
+        'description' => 'nullable',
+        'image' => 'nullable|image|max:2048',
+    ]);
+
+    // 新しい画像がアップロードされた場合
+    if ($request->hasFile('image')) {
+        // 🔥 古い画像を削除
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+
+        // 新しい画像を保存
+        $imagePath = $request->file('image')->store('products', 'public');
+        $validated['image'] = $imagePath;
+    }
+
+    $product->update($validated);
+
+    return redirect('/products')->with('success', '商品を更新しました');
+}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-red-500">
+                            <p class="text-xs"><strong>🔥 Storage::delete() の重要性</strong></p>
+                            <p class="text-xs mt-2">
+                                古い画像を削除しないと、画像を更新するたびに<br>
+                                不要なファイルが <code>storage/app/public</code> に溜まり続けます。
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>Storage::disk('public')->delete($path)</code> でファイル削除</li>
+                                <li>• 削除前に <code>if ($product->image)</code> で存在確認</li>
+                                <li>• ディスク容量の無駄を防ぐために必須の処理</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">商品削除時も画像を削除する</h4>
+                        <pre><code class="language-php">public function destroy(Product $product)
+{
+    // 商品に画像がある場合は削除
+    if ($product->image) {
+        Storage::disk('public')->delete($product->image);
+    }
+
+    $product->delete();
+
+    return redirect('/products')->with('success', '商品を削除しました');
+}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>🎯 Eloquentモデルイベントでの削除</strong></p>
+                            <p class="text-xs mt-2">
+                                モデルの <code>deleting</code> イベントを使えば、<br>
+                                商品削除時に自動で画像も削除できます（応用編）。
+                            </p>
+                            <pre class="text-xs mt-2 bg-black/30 p-2 rounded"><code>// app/Models/Product.php
+protected static function booted()
+{
+    static::deleting(function ($product) {
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+    });
+}</code></pre>
+                        </div>
+
+                        <h4 class="mt-6">画像のみ削除する機能</h4>
+                        <p class="text-gray-300 mt-2">商品は残したまま、画像だけ削除したい場合：</p>
+                        <pre><code class="language-php">// ルート
+Route::delete('/products/{product}/image', [ProductController::class, 'deleteImage']);
+
+// コントローラー
+public function deleteImage(Product $product)
+{
+    if ($product->image) {
+        Storage::disk('public')->delete($product->image);
+        $product->update(['image' => null]);
+    }
+
+    return redirect()->back()->with('success', '画像を削除しました');
+}</code></pre>
+
+                        <pre><code class="language-php">// Bladeテンプレート
+@if($product->image)
+    &lt;form action="/products/{{ $product->id }}/image" method="POST" style="display:inline;"&gt;
+        @csrf
+        @method('DELETE')
+        &lt;button type="submit" onclick="return confirm('画像を削除しますか？')"&gt;
+            画像を削除
+        &lt;/button&gt;
+    &lt;/form&gt;
+@endif</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 画像の更新・削除処理が実装できました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <p>画像アップロード機能の実装で学んだことをまとめます。</p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>✅ この章で学んだこと</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li><strong>1. マイグレーション</strong> - <code>string('image')->nullable()</code> で画像カラムを追加</li>
+                                <li><strong>2. シンボリックリンク</strong> - <code>php artisan storage:link</code> で公開フォルダとリンク</li>
+                                <li><strong>3. フォーム</strong> - <code>enctype="multipart/form-data"</code> は必須！</li>
+                                <li><strong>4. ファイル保存</strong> - <code>$request->file('image')->store('products', 'public')</code></li>
+                                <li><strong>5. バリデーション</strong> - <code>nullable|image|max:2048</code> でファイル検証</li>
+                                <li><strong>6. 画像表示</strong> - <code>Storage::url($product->image)</code> で公開URLに変換</li>
+                                <li><strong>7. ファイル削除</strong> - <code>Storage::disk('public')->delete($path)</code> で古い画像を削除</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">画像アップロードの全体フロー</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-blue-500">
+                            <pre class="text-xs"><code>1. 準備
+   ├─ マイグレーションでカラム追加
+   └─ php artisan storage:link 実行
+
+2. 新規作成
+   ├─ フォームに enctype="multipart/form-data" 追加
+   ├─ &lt;input type="file" name="image"&gt; で画像選択
+   ├─ コントローラーで hasFile() チェック
+   ├─ store('products', 'public') で保存
+   └─ DBにファイルパスを保存
+
+3. 表示
+   ├─ Storage::url($product->image) で公開URL取得
+   ├─ &lt;img src="{{ Storage::url(...) }}"&gt; で表示
+   └─ @if($product->image) で存在確認
+
+4. 更新
+   ├─ 古い画像を Storage::delete() で削除
+   ├─ 新しい画像を store() で保存
+   └─ DBを更新
+
+5. 削除
+   ├─ 商品削除時に画像も削除
+   └─ Storage::delete($product->image)</code></pre>
+                        </div>
+
+                        <h4 class="mt-6">よくあるエラーと対処法</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>⚠️ トラブルシューティング</strong></p>
+                            <table class="text-xs mt-2 w-full text-gray-300">
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2"><strong>エラー</strong></td>
+                                    <td class="py-2"><strong>原因</strong></td>
+                                    <td class="py-2"><strong>解決方法</strong></td>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">画像が表示されない</td>
+                                    <td class="py-2">シンボリックリンク未作成</td>
+                                    <td class="py-2"><code>php artisan storage:link</code> を実行</td>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">ファイルがアップロードされない</td>
+                                    <td class="py-2">enctype が未指定</td>
+                                    <td class="py-2"><code>enctype="multipart/form-data"</code> を追加</td>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">画像が巨大すぎる</td>
+                                    <td class="py-2">サーバーのアップロード上限</td>
+                                    <td class="py-2">php.ini の <code>upload_max_filesize</code> を確認</td>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">古い画像が残り続ける</td>
+                                    <td class="py-2">削除処理の未実装</td>
+                                    <td class="py-2">更新・削除時に <code>Storage::delete()</code> を実行</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <h4 class="mt-6">応用編：画像リサイズとサムネイル生成</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>🚀 さらに学びたい人向け</strong></p>
+                            <p class="text-xs mt-2">
+                                実務では、アップロードされた画像をリサイズして保存することが多いです。<br>
+                                Laravelでは <code>intervention/image</code> パッケージを使うのが一般的です。
+                            </p>
+                            <pre class="text-xs mt-2 bg-black/30 p-2 rounded"><code>composer require intervention/image
+
+use Intervention\Image\Facades\Image;
+
+$image = Image::make($request->file('image'))
+    ->resize(800, null, function ($constraint) {
+        $constraint->aspectRatio(); // アスペクト比を維持
+        $constraint->upsize(); // 拡大しない
+    });
+
+$filename = uniqid() . '.jpg';
+$image->save(storage_path('app/public/products/' . $filename));
+$product->image = 'products/' . $filename;</code></pre>
+                        </div>
+
+                        <div class="glass-dark p-6 rounded-xl mt-6 border-l-4 border-green-500">
+                            <p class="text-sm font-bold text-green-300">🎉 画像アップロード機能の実装完了！</p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                これでLaravelでの画像アップロード機能が実装できるようになりました。<br>
+                                次の章では、ユーザー認証（ログイン/ログアウト）機能について学びます。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+        <script>
+            // タブの切り替え
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    window.location.href = `${targetTab}.html`;
+                });
+            });
+        </script>
+    </body>
+</html>

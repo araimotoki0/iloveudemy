@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【第四弾】Laravel入門資料</title>
+    <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section a {
+            color: #3183ff;
+            text-decoration: underline;
+        }
+
+        .content-section a:hover {
+            color: #8b5cf6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        pre {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre code {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="../miraichi/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 目次ポップアップ（コンパクト版） -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">
+                    目次
+                </h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="toc-list" class="space-y-1">
+                <!-- 目次項目はJavaScriptで動的に生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- 目次ボタンと全て閉じるボタン（固定位置） -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    【第四弾】Laravel入門資料
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
+                    <li><a href="search-filter.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">検索・フィルタ</a></li>
+                    <li><a href="pagination.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ページネーション</a></li>
+                    <li><a href="image-upload.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">画像アップロード</a></li>
+                    <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
+                    <li><a href="authentication-implementation.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">認証実装</a></li>
+                    <li><a href="authentication-middleware.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ミドルウェア・ロール</a></li>
+                    <li><a href="comprehensive-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">総合実践</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント - Authentication</strong>
+                        </p>
+                        <a href="https://laravel.com/docs/12.x/authentication" target="_blank"
+                           class="text-primary-400 hover:text-primary-300 underline text-base">
+                            https://laravel.com/docs/12.x/authentication
+                        </a>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 この講座では、上記の公式ドキュメントを基に解説していきます。<br>
+                            公式ドキュメントは初学者には内容が難しいため、エッセンスを優しく噛み砕いて解説していきます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>スクラッチで認証機能を実装する</h3>
+                        <p>
+                            ライブラリに頼らず、自分の手で認証機能を作ります。<br>
+                            セッション、Cookie、ハッシュ化など、認証の仕組みを深く理解しましょう。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 この章で学ぶこと</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ 認証の仕組み（セッション・Cookie）</li>
+                                <li>✅ ユーザー登録機能の実装</li>
+                                <li>✅ ログイン機能の実装</li>
+                                <li>✅ ログアウト機能の実装</li>
+                                <li>✅ ログイン状態の確認方法</li>
+                                <li>✅ セキュリティの考慮事項</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>⚠️ 前提知識</strong></p>
+                            <ul class="text-sm space-y-2 text-gray-300">
+                                <li>• マイグレーション、モデル、コントローラーの基礎</li>
+                                <li>• ルーティングとビューの作成方法</li>
+                                <li>• バリデーションの基礎</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>認証の仕組み - セッションとは</h3>
+                        <p>Webアプリケーションの認証は、セッションを使って実現されます。</p>
+
+                        <h4 class="mt-6">HTTPはステートレス</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 ステートレスとは？</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                HTTPは「ステートレス」なプロトコルです。<br>
+                                つまり、リクエストごとに独立しており、前回のリクエストの情報を覚えていません。
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• リクエスト1: ログインする → サーバー「OK、認証成功」</li>
+                                <li>• リクエスト2: 商品一覧を見る → サーバー「あなた誰？」</li>
+                                <li>• 問題: 毎回ログイン情報を送る必要がある</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">セッションで状態を保持する</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>✅ セッションの仕組み</strong></p>
+                            <pre class="text-xs mt-2 bg-black/30 p-2 rounded"><code>1. ログイン成功
+   ├─ サーバーがセッションIDを発行（例: abc123）
+   ├─ セッションIDをCookieに保存
+   └─ サーバー側でセッションデータを保存（ユーザーID、名前など）
+
+2. 次回のリクエスト
+   ├─ ブラウザが自動的にCookieを送信（abc123）
+   ├─ サーバーがセッションIDからユーザー情報を取得
+   └─ 「あなたは田中さんですね！」と識別できる</code></pre>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>🔑 重要な用語</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <strong>セッションID</strong> - ユーザーを識別する一意のID</li>
+                                <li>• <strong>Cookie</strong> - ブラウザに保存される小さなデータ（セッションIDを格納）</li>
+                                <li>• <strong>セッションストア</strong> - サーバー側でセッションデータを保存する場所（ファイル、Redis、DBなど）</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ユーザー登録機能を作る</h3>
+                        <p>まずは、ユーザーがアカウントを作成できる機能を実装します。</p>
+
+                        <h4 class="mt-6">ステップ1: usersテーブルのマイグレーション</h4>
+                        <p class="text-gray-300 text-sm mt-2">Laravelの新規プロジェクトには、すでにusersテーブルのマイグレーションが含まれています。</p>
+                        <pre><code class="language-bash"># マイグレーション実行
+php artisan migrate</code></pre>
+
+                        <p class="text-gray-300 text-sm mt-3">生成されるテーブル構造：</p>
+                        <pre><code class="language-php">// database/migrations/xxxx_create_users_table.php
+public function up(): void
+{
+    Schema::create('users', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->string('email')->unique();
+        $table->timestamp('email_verified_at')->nullable();
+        $table->string('password');
+        $table->rememberToken();
+        $table->timestamps();
+    });
+}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 各カラムの意味</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>name</code> - ユーザー名</li>
+                                <li>• <code>email</code> - メールアドレス（ログインID、ユニーク制約）</li>
+                                <li>• <code>email_verified_at</code> - メール認証日時（今回は使用しない）</li>
+                                <li>• <code>password</code> - ハッシュ化されたパスワード</li>
+                                <li>• <code>rememberToken</code> - Remember Me機能用（今回は使用しない）</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">ステップ2: Userモデルの確認</h4>
+                        <p class="text-gray-300 text-sm mt-2">Userモデルもすでに用意されています。</p>
+                        <pre><code class="language-php">// app/Models/User.php
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed', // Laravel 10以降、自動的にハッシュ化
+    ];
+}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>💡 重要なポイント</strong></p>
+                            <ul class="text-xs mt-2 space-y-2 text-gray-300">
+                                <li>• <code>Authenticatable</code>を継承 - 認証機能を持つモデル</li>
+                                <li>
+                                    • <code>$fillable</code> - 一括代入可能な属性（セキュリティ対策）<br>
+                                    <span class="text-gray-400 ml-4">User::create()で指定できるカラムを制限します</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">$hidden の役割 - JSONレスポンスでパスワードを隠す</h4>
+                        <p class="text-gray-300 text-sm mt-2">
+                            <code>$hidden</code> は、モデルを<strong>JSON</strong>や<strong>配列</strong>に変換する際に、<strong class="text-yellow-300">特定の属性を隠す</strong>ための設定です。
+                        </p>
+
+                        <pre><code class="language-php">protected $hidden = [
+    'password',
+    'remember_token',
+];</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-red-500">
+                            <p class="text-xs"><strong>🔐 なぜ必要？</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                APIレスポンスやログ出力でユーザー情報をJSON化すると、<strong class="text-red-300">パスワードのハッシュ値も含まれてしまいます</strong>。<br>
+                                ハッシュ値でも流出すると攻撃のヒントになるため、$hiddenで除外します。
+                            </p>
+                        </div>
+
+                        <p class="text-gray-300 text-sm mt-4"><strong>$hidden がない場合:</strong></p>
+                        <pre><code class="language-php">// コントローラーでユーザー情報をJSON化
+$user = User::find(1);
+return response()->json($user);
+
+// ❌ レスポンス（パスワードのハッシュが含まれる）
+{
+    "id": 1,
+    "name": "田中太郎",
+    "email": "tanaka@example.com",
+    "password": "$2y$10$abc123def456...",  // ← 流出してしまう！
+    "created_at": "2025-01-01 00:00:00"
+}</code></pre>
+
+                        <p class="text-gray-300 text-sm mt-4"><strong>$hidden がある場合:</strong></p>
+                        <pre><code class="language-php">// 同じコード
+$user = User::find(1);
+return response()->json($user);
+
+// ✅ レスポンス（パスワードが自動的に除外される）
+{
+    "id": 1,
+    "name": "田中太郎",
+    "email": "tanaka@example.com",
+    "created_at": "2025-01-01 00:00:00"
+}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 $hidden の使い所</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• APIレスポンスでユーザー情報を返す時</li>
+                                <li>• ログにユーザー情報を出力する時</li>
+                                <li>• <code>toArray()</code> や <code>toJson()</code> を使う時</li>
+                                <li>• Bladeテンプレートで <code>{{ $user }}</code> と出力する時</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">$casts の役割 - 自動型変換とハッシュ化</h4>
+                        <p class="text-gray-300 text-sm mt-2">
+                            <code>$casts</code> は、データベースから取得した値や保存する値を<strong class="text-yellow-300">自動的に変換</strong>する設定です。
+                        </p>
+
+                        <pre><code class="language-php">protected $casts = [
+    'email_verified_at' => 'datetime',
+    'password' => 'hashed',  // Laravel 10以降
+];</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">1. 'datetime' キャストの動き</h5>
+                        <pre><code class="language-php">// データベースには文字列で保存されている
+// email_verified_at: "2025-01-01 12:00:00"
+
+$user = User::find(1);
+
+// ✅ 自動的にCarbonオブジェクトに変換される
+$user->email_verified_at->format('Y年m月d日');
+// => "2025年01月01日"
+
+$user->email_verified_at->addDays(7);
+// => 7日後の日時を計算できる</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">2. 'hashed' キャストの動き（Laravel 10以降）</h5>
+                        <p class="text-gray-300 text-sm mt-2">
+                            <code>'password' => 'hashed'</code> を設定すると、<strong class="text-yellow-300">保存時に自動的にハッシュ化</strong>されます。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>🎯 'hashed' キャストの仕組み</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                Laravelが内部で <code>Hash::make()</code> を自動実行してくれます。
+                            </p>
+                        </div>
+
+                        <p class="text-gray-300 text-sm mt-4"><strong>Laravel 9以前（'hashed' キャストがない場合）:</strong></p>
+                        <pre><code class="language-php">// ❌ 手動でHash::make()を書く必要がある
+$user = User::create([
+    'name' => '田中太郎',
+    'email' => 'tanaka@example.com',
+    'password' => Hash::make('password123'),  // 手動でハッシュ化
+]);</code></pre>
+
+                        <p class="text-gray-300 text-sm mt-4"><strong>Laravel 10以降（'hashed' キャストがある場合）:</strong></p>
+                        <pre><code class="language-php">// ✅ 自動的にハッシュ化される
+$user = User::create([
+    'name' => '田中太郎',
+    'email' => 'tanaka@example.com',
+    'password' => 'password123',  // 平文のまま渡してOK
+]);
+
+// 保存時に自動的に Hash::make('password123') が実行される
+// データベースには $2y$10$abc... のようなハッシュ値が保存される</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>⚠️ 注意点</strong></p>
+                            <ul class="text-xs mt-2 space-y-2 text-gray-300">
+                                <li>
+                                    • 'hashed' キャストは<strong>保存時のみ</strong>動作します<br>
+                                    <span class="text-gray-400 ml-4">取得時はハッシュ値のまま（元のパスワードには戻せない）</span>
+                                </li>
+                                <li>
+                                    • 更新時も自動的にハッシュ化されます<br>
+                                    <span class="text-gray-400 ml-4"><code>$user->update(['password' => 'newpassword'])</code> も自動ハッシュ化</span>
+                                </li>
+                                <li>
+                                    • すでにハッシュ化された値を再度保存すると<strong>二重ハッシュ化</strong>されるので注意<br>
+                                    <span class="text-gray-400 ml-4">パスワード更新時のみ代入するようにしましょう</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">3. 実践: 'hashed' キャストの動作確認</h5>
+                        <pre><code class="language-bash"># Tinkerを起動
+php artisan tinker</code></pre>
+
+                        <pre><code class="language-php">// ユーザーを作成（平文パスワードを渡す）
+$user = User::create([
+    'name' => 'テストユーザー',
+    'email' => 'test@example.com',
+    'password' => 'password123',  // 平文
+]);
+
+// データベースに保存されているパスワードを確認
+// （通常は$hiddenで隠されるが、getAttributesで生の値を取得できる）
+$user->getAttributes()['password'];
+// => "$2y$10$abc123def456..."  ← 自動的にハッシュ化されている！
+
+// ログインできるか確認
+Hash::check('password123', $user->password);
+// => true  ✅ ハッシュ化されたパスワードと照合できる
+
+// パスワード更新も自動ハッシュ化
+$user->update(['password' => 'newpassword']);
+$user->getAttributes()['password'];
+// => "$2y$10$xyz789..."  ← 新しいハッシュ値</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>✅ まとめ: $hidden と $casts の使い分け</strong></p>
+                            <table class="text-xs mt-3 w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-600">
+                                        <th class="text-left pb-2 text-blue-300">設定</th>
+                                        <th class="text-left pb-2 text-blue-300">目的</th>
+                                        <th class="text-left pb-2 text-blue-300">使い所</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2"><code>$hidden</code></td>
+                                        <td class="py-2">JSON/配列変換時に属性を隠す</td>
+                                        <td class="py-2">APIレスポンス、ログ出力</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2"><code>$casts</code></td>
+                                        <td class="py-2">データ型を自動変換</td>
+                                        <td class="py-2">日時操作、パスワードハッシュ化</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ユーザー登録のコントローラーとルート</h3>
+                        <p>登録フォームを表示し、ユーザー情報を保存するコントローラーを作成します。</p>
+
+                        <h4 class="mt-6">ステップ3: コントローラー作成</h4>
+                        <pre><code class="language-bash">php artisan make:controller Auth/RegisterController</code></pre>
+
+                        <pre><code class="language-php">// app/Http/Controllers/Auth/RegisterController.php
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
+class RegisterController extends Controller
+{
+    // 登録フォーム表示
+    public function showRegistrationForm()
+    {
+        return view('auth.register');
+    }
+
+    // ユーザー登録処理
+    public function register(Request $request)
+    {
+        // バリデーション
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // ユーザー作成
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        // 自動ログイン
+        Auth::login($user);
+
+        // ダッシュボードへリダイレクト
+        return redirect('/dashboard');
+    }
+}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-red-500">
+                            <p class="text-xs"><strong>🔐 Hash::make() の重要性</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                パスワードは<strong>必ずハッシュ化</strong>してDBに保存します。<br>
+                                平文で保存すると、データベースが漏洩した際に全ユーザーのパスワードが流出します。
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>Hash::make('password')</code> → <code>$2y$10$abc...</code>（不可逆）</li>
+                                <li>• ハッシュ化されたパスワードは元に戻せない</li>
+                                <li>• ログイン時は <code>Hash::check()</code> で照合</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">ステップ4: ルート設定</h4>
+                        <pre><code class="language-php">// routes/web.php
+use App\Http\Controllers\Auth\RegisterController;
+
+// 登録フォーム表示
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])
+    ->name('register');
+
+// 登録処理
+Route::post('/register', [RegisterController::class, 'register']);</code></pre>
+
+                        <h4 class="mt-6">ステップ5: ビュー作成</h4>
+                        <pre><code class="language-html">{{-- resources/views/auth/register.blade.php --}}
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;ユーザー登録&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;ユーザー登録&lt;/h1&gt;
+
+    @if ($errors->any())
+        &lt;div style="color: red;"&gt;
+            &lt;ul&gt;
+                @foreach ($errors->all() as $error)
+                    &lt;li&gt;{{ $error }}&lt;/li&gt;
+                @endforeach
+            &lt;/ul&gt;
+        &lt;/div&gt;
+    @endif
+
+    &lt;form method="POST" action="/register"&gt;
+        @csrf
+
+        &lt;label&gt;名前&lt;/label&gt;
+        &lt;input type="text" name="name" value="{{ old('name') }}" required&gt;
+
+        &lt;label&gt;メールアドレス&lt;/label&gt;
+        &lt;input type="email" name="email" value="{{ old('email') }}" required&gt;
+
+        &lt;label&gt;パスワード&lt;/label&gt;
+        &lt;input type="password" name="password" required&gt;
+
+        &lt;label&gt;パスワード確認&lt;/label&gt;
+        &lt;input type="password" name="password_confirmation" required&gt;
+
+        &lt;button type="submit"&gt;登録&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;p&gt;すでにアカウントをお持ちですか？ &lt;a href="/login"&gt;ログイン&lt;/a&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>⚠️ @csrf トークンの重要性</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                <code>@csrf</code> は<strong>CSRF攻撃</strong>を防ぐために必須です。<br>
+                                これがないと、フォーム送信時に419エラーが発生します。
+                            </p>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ ユーザー登録機能が完成しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>Tinkerでユーザー登録を試す</h3>
+                        <p>コマンドラインからユーザーを作成して、ハッシュ化の動作を確認しましょう。</p>
+
+                        <pre><code class="language-bash">php artisan tinker</code></pre>
+
+                        <h4 class="mt-6">実験1: Hash::make()でパスワードをハッシュ化</h4>
+                        <pre><code class="language-php">use Illuminate\Support\Facades\Hash;
+
+// パスワードをハッシュ化
+$hashed = Hash::make('password');
+echo $hashed;
+// 出力例: $2y$10$abc123def456...（毎回異なる値になる）
+
+// 同じパスワードでも毎回違うハッシュが生成される
+Hash::make('password'); // $2y$10$xyz...
+Hash::make('password'); // $2y$10$uvw...（異なる値）</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 なぜ同じパスワードで違うハッシュ？</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                bcryptは「salt」をランダムに生成してハッシュに含めるため、<br>
+                                同じパスワードでも毎回異なるハッシュ値になります。<br>
+                                これにより、レインボーテーブル攻撃を防げます。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">実験2: Hash::check()でパスワードを照合</h4>
+                        <pre><code class="language-php">// パスワードが一致するか確認
+Hash::check('password', $hashed); // true
+Hash::check('wrong-password', $hashed); // false</code></pre>
+
+                        <h4 class="mt-6">実験3: ユーザーを作成</h4>
+                        <pre><code class="language-php">use App\Models\User;
+
+// ユーザー作成
+$user = User::create([
+    'name' => 'テストユーザー',
+    'email' => 'test@example.com',
+    'password' => Hash::make('password123'),
+]);
+
+// 確認
+$user->id; // 1
+$user->name; // 'テストユーザー'
+$user->email; // 'test@example.com'
+$user->password; // '$2y$10$...' （ハッシュ化されている）
+
+// パスワードの照合
+Hash::check('password123', $user->password); // true
+Hash::check('wrong', $user->password); // false</code></pre>
+
+                        <h4 class="mt-6">実験4: Laravel 10以降の自動ハッシュ化</h4>
+                        <pre><code class="language-php">// Laravel 10以降は 'password' => 'hashed' が設定されていれば、
+// Hash::make() を使わなくても自動的にハッシュ化される
+
+$user = User::create([
+    'name' => 'テストユーザー2',
+    'email' => 'test2@example.com',
+    'password' => 'password123', // Hash::make()なしでもOK
+]);
+
+// 自動的にハッシュ化されている
+$user->password; // '$2y$10$...'</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>✅ Tinkerで確認したこと</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>Hash::make()</code> で平文パスワードをハッシュ化</li>
+                                <li>• 同じパスワードでも毎回異なるハッシュ値になる</li>
+                                <li>• <code>Hash::check()</code> でパスワード照合</li>
+                                <li>• Userモデルで自動ハッシュ化（Laravel 10以降）</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ログイン機能を作る</h3>
+                        <p>登録したユーザーでログインできるようにします。</p>
+
+                        <h4 class="mt-6">ステップ1: LoginController作成</h4>
+                        <pre><code class="language-bash">php artisan make:controller Auth/LoginController</code></pre>
+
+                        <pre><code class="language-php">// app/Http/Controllers/Auth/LoginController.php
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class LoginController extends Controller
+{
+    // ログインフォーム表示
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    // ログイン処理
+    public function login(Request $request)
+    {
+        // バリデーション
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        // 認証試行
+        if (Auth::attempt($credentials)) {
+            // セッション固定攻撃を防ぐ
+            $request->session()->regenerate();
+
+            return redirect()->intended('/dashboard');
+        }
+
+        // 認証失敗
+        return back()->withErrors([
+            'email' => 'メールアドレスまたはパスワードが正しくありません。',
+        ])->onlyInput('email');
+    }
+}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 Auth::attempt() の仕組み</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                <code>Auth::attempt(['email' => $email, 'password' => $password])</code> は以下を自動で行います：
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>1. emailでユーザーをDBから検索</li>
+                                <li>2. <code>Hash::check($password, $user->password)</code> でパスワード照合</li>
+                                <li>3. 成功したらセッションにユーザーIDを保存</li>
+                                <li>4. trueまたはfalseを返す</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-red-500">
+                            <p class="text-xs"><strong>🔐 session()->regenerate() の重要性</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                <strong>セッション固定攻撃</strong>を防ぐために、ログイン成功時に<br>
+                                セッションIDを再生成します。これは必須のセキュリティ対策です。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">ステップ2: ルート設定</h4>
+                        <pre><code class="language-php">// routes/web.php
+use App\Http\Controllers\Auth\LoginController;
+
+// ログインフォーム表示
+Route::get('/login', [LoginController::class, 'showLoginForm'])
+    ->name('login');
+
+// ログイン処理
+Route::post('/login', [LoginController::class, 'login']);</code></pre>
+
+                        <h4 class="mt-6">ステップ3: ログインビュー作成</h4>
+                        <pre><code class="language-html">{{-- resources/views/auth/login.blade.php --}}
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;ログイン&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;ログイン&lt;/h1&gt;
+
+    @if ($errors->any())
+        &lt;div style="color: red;"&gt;
+            &lt;ul&gt;
+                @foreach ($errors->all() as $error)
+                    &lt;li&gt;{{ $error }}&lt;/li&gt;
+                @endforeach
+            &lt;/ul&gt;
+        &lt;/div&gt;
+    @endif
+
+    &lt;form method="POST" action="/login"&gt;
+        @csrf
+
+        &lt;label&gt;メールアドレス&lt;/label&gt;
+        &lt;input type="email" name="email" value="{{ old('email') }}" required&gt;
+
+        &lt;label&gt;パスワード&lt;/label&gt;
+        &lt;input type="password" name="password" required&gt;
+
+        &lt;button type="submit"&gt;ログイン&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;p&gt;アカウントをお持ちでないですか？ &lt;a href="/register"&gt;新規登録&lt;/a&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ ログイン機能が完成しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">▼ ログアウト機能の実装</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ログアウトの仕組み</h4>
+                        <p class="text-gray-300 mb-4">
+                            ログアウトは、ログイン状態を<strong class="text-yellow-300">解除</strong>することです。具体的には以下の処理を行います:
+                        </p>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-yellow-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-yellow-300">ログアウトの流れ:</strong></p>
+                            <ol class="list-decimal ml-6 text-gray-300 space-y-1">
+                                <li><code class="text-blue-300">Auth::logout()</code> - ユーザーの認証状態をクリア</li>
+                                <li><code class="text-blue-300">session()->invalidate()</code> - 現在のセッションを無効化</li>
+                                <li><code class="text-blue-300">session()->regenerateToken()</code> - CSRFトークンを再生成（セキュリティ対策）</li>
+                                <li>トップページやログイン画面にリダイレクト</li>
+                            </ol>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">LogoutControllerの作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># コントローラー作成
+php artisan make:controller Auth/LogoutController</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">&lt;?php
+// app/Http/Controllers/Auth/LogoutController.php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class LogoutController extends Controller
+{
+    /**
+     * ログアウト処理
+     */
+    public function logout(Request $request)
+    {
+        // 1. 認証状態をクリア
+        Auth::logout();
+
+        // 2. セッションを無効化（古いセッションIDを使えないようにする）
+        $request->session()->invalidate();
+
+        // 3. CSRFトークンを再生成（セキュリティ対策）
+        $request->session()->regenerateToken();
+
+        // 4. トップページにリダイレクト
+        return redirect('/');
+    }
+}</code></pre>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">各メソッドの役割:</strong></p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-2">
+                                <li><code class="text-blue-300">Auth::logout()</code> - ユーザー情報をセッションから削除し、「ログアウト状態」にする</li>
+                                <li><code class="text-blue-300">session()->invalidate()</code> - セッションIDを無効化して新しいセッションを開始（セッション固定攻撃の対策）</li>
+                                <li><code class="text-blue-300">session()->regenerateToken()</code> - CSRFトークンを新しく生成（古いトークンでのリクエストを防ぐ）</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ルート設定</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
+
+use App\Http\Controllers\Auth\LogoutController;
+
+// ログアウト（POSTメソッドで実行）
+Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');</code></pre>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-purple-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-purple-300">なぜPOSTメソッド？</strong></p>
+                            <p class="text-gray-300">
+                                ログアウトは<strong class="text-yellow-300">状態を変更する操作</strong>なので、GETではなくPOSTを使います。
+                                GETでログアウトすると、検索エンジンのクローラーや画像の事前読み込みで意図せずログアウトされる可能性があります。
+                            </p>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ログアウトボタンの作成</h4>
+                        <p class="text-gray-300 mb-4">
+                            Bladeテンプレートで、ログアウトボタンを作成します。<strong class="text-yellow-300">必ずフォームでPOST送信</strong>してください:
+                        </p>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-blade">&lt;!-- resources/views/layouts/app.blade.php（または任意のビュー） --&gt;
+
+&lt;!-- ログアウトフォーム --&gt;
+&lt;form action="{{ route('logout') }}" method="POST"&gt;
+    @csrf
+    &lt;button type="submit" class="btn btn-danger"&gt;
+        ログアウト
+    &lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-red-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-red-300">重要:</strong></p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-1">
+                                <li><code class="text-blue-300">@csrf</code> ディレクティブを必ず含める（CSRF保護）</li>
+                                <li><code class="text-blue-300">method="POST"</code> を指定する</li>
+                                <li><code class="text-blue-300">&lt;a&gt;</code> タグでのログアウトは避ける（セキュリティリスク）</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">Tinkerでセッションを確認してみよう</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Tinkerを起動
+php artisan tinker</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// ログイン状態を確認
+Auth::check();
+// => true（ログイン中）
+
+Auth::user();
+// => App\Models\User {id: 1, name: "田中太郎", email: "tanaka@example.com"}
+
+// ログアウトしてみる
+Auth::logout();
+
+// 再度確認
+Auth::check();
+// => false（ログアウト状態）
+
+Auth::user();
+// => null（ユーザー情報が取得できない）</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ ログアウト機能が完成しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">▼ ログイン状態の確認</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">認証状態を確認する方法</h4>
+                        <p class="text-gray-300 mb-4">
+                            Laravelでは、<strong class="text-yellow-300">ユーザーがログインしているかどうか</strong>を簡単に確認できます。
+                        </p>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">1. コントローラーやルートで確認</h4>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">auth()->check()</strong> - ログインしているか確認</p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-php">if (auth()->check()) {
+    // ログイン中の処理
+    echo 'ログインしています';
+} else {
+    // ログアウト中の処理
+    echo 'ログインしていません';
+}</code></pre>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">auth()->user()</strong> - ログイン中のユーザー情報を取得</p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-php">$user = auth()->user();
+
+if ($user) {
+    // ログイン中
+    echo 'こんにちは、' . $user->name . 'さん！';
+    echo 'あなたのメールアドレスは ' . $user->email . ' です。';
+} else {
+    // ログアウト中
+    echo 'ログインしてください';
+}</code></pre>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">auth()->id()</strong> - ログイン中のユーザーIDを取得</p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-php">$userId = auth()->id();
+
+if ($userId) {
+    echo 'あなたのユーザーIDは ' . $userId . ' です';
+} else {
+    echo 'ログインしていません';
+}</code></pre>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">auth() と Auth:: の違い:</strong></p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-1">
+                                <li><code class="text-blue-300">auth()->check()</code> と <code class="text-blue-300">Auth::check()</code> は同じ</li>
+                                <li><code class="text-blue-300">auth()->user()</code> と <code class="text-blue-300">Auth::user()</code> も同じ</li>
+                                <li><code class="text-blue-300">auth()</code> はヘルパー関数、<code class="text-blue-300">Auth::</code> はファサード</li>
+                                <li>どちらを使っても問題ありませんが、<code class="text-blue-300">auth()</code> の方が短くて読みやすいです</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">2. Bladeテンプレートで確認</h4>
+                        <p class="text-gray-300 mb-4">
+                            Bladeテンプレートでは、<strong class="text-yellow-300">@auth</strong> と <strong class="text-yellow-300">@guest</strong> ディレクティブを使って簡単に分岐できます。
+                        </p>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-blade">&lt;!-- ログイン中のみ表示 --&gt;
+@auth
+    &lt;p&gt;こんにちは、{{ auth()->user()->name }}さん！&lt;/p&gt;
+    &lt;form action="{{ route('logout') }}" method="POST"&gt;
+        @csrf
+        &lt;button type="submit"&gt;ログアウト&lt;/button&gt;
+    &lt;/form&gt;
+@endauth
+
+&lt;!-- ログアウト中のみ表示 --&gt;
+@guest
+    &lt;p&gt;ようこそ、ゲストさん！&lt;/p&gt;
+    &lt;a href="{{ route('login') }}"&gt;ログイン&lt;/a&gt;
+    &lt;a href="{{ route('register') }}"&gt;新規登録&lt;/a&gt;
+@endguest</code></pre>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">@auth と @guest の使い分け:</strong></p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-blade">&lt;!-- どちらも表示する場合は @auth と @else --&gt;
+@auth
+    &lt;p&gt;ログイン中: {{ auth()->user()->name }}&lt;/p&gt;
+@else
+    &lt;p&gt;ログインしていません&lt;/p&gt;
+@endauth
+
+&lt;!-- ログイン中だけ表示する場合は @auth --&gt;
+@auth
+    &lt;p&gt;ダッシュボードへようこそ！&lt;/p&gt;
+@endauth
+
+&lt;!-- ログアウト中だけ表示する場合は @guest --&gt;
+@guest
+    &lt;p&gt;ログインしてください&lt;/p&gt;
+@endguest</code></pre>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">3. ミドルウェアで認証を必須にする</h4>
+                        <p class="text-gray-300 mb-4">
+                            <strong class="text-yellow-300">ログインしていないとアクセスできないページ</strong>を作る場合は、<code class="text-blue-300">auth</code> ミドルウェアを使います。
+                        </p>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
+
+// ダッシュボード（ログイン必須）
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware('auth');
+
+// プロフィール編集（ログイン必須）
+Route::get('/profile/edit', [ProfileController::class, 'edit'])
+    ->middleware('auth');
+
+// 複数のルートにまとめて適用
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::get('/settings', [SettingsController::class, 'index']);
+});</code></pre>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-purple-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-purple-300">authミドルウェアの動き:</strong></p>
+                            <ol class="list-decimal ml-6 text-gray-300 space-y-1">
+                                <li>ユーザーが <code class="text-blue-300">/dashboard</code> にアクセス</li>
+                                <li>ミドルウェアがログイン状態を確認</li>
+                                <li>ログインしていれば → ダッシュボードを表示</li>
+                                <li>ログインしていなければ → <code class="text-blue-300">/login</code> にリダイレクト</li>
+                            </ol>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">Tinkerで認証状態を確認してみよう</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Tinkerを起動
+php artisan tinker</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// ユーザーを取得
+$user = User::first();
+
+// ログインさせる
+Auth::login($user);
+
+// ログイン状態を確認
+auth()->check();
+// => true
+
+auth()->user();
+// => App\Models\User {id: 1, name: "田中太郎", ...}
+
+auth()->id();
+// => 1
+
+// ログアウト
+Auth::logout();
+
+auth()->check();
+// => false
+
+auth()->user();
+// => null</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">実践例: ダッシュボードページを作ろう</h4>
+
+                        <p class="text-gray-300 mb-4"><strong>ルート設定:</strong></p>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware('auth')->name('dashboard');</code></pre>
+
+                        <p class="text-gray-300 mb-4"><strong>ビューファイル:</strong></p>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-blade">&lt;!-- resources/views/dashboard.blade.php --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;ダッシュボード&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;ダッシュボード&lt;/h1&gt;
+
+    @auth
+        &lt;p&gt;ようこそ、{{ auth()->user()->name }}さん！&lt;/p&gt;
+        &lt;p&gt;メールアドレス: {{ auth()->user()->email }}&lt;/p&gt;
+
+        &lt;form action="{{ route('logout') }}" method="POST"&gt;
+            @csrf
+            &lt;button type="submit"&gt;ログアウト&lt;/button&gt;
+        &lt;/form&gt;
+    @endauth
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ これで、ログイン状態によって表示内容を切り替えることができます！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">▼ セキュリティ考慮事項</h3>
+
+                        <p class="text-gray-300 mb-4">
+                            認証機能を実装する際には、<strong class="text-yellow-300">セキュリティリスク</strong>に注意する必要があります。
+                        </p>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">1. パスワードのハッシュ化</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-red-500">
+                            <p class="text-red-300 mb-2"><strong>❌ 絶対にやってはいけないこと:</strong></p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-2"><code class="language-php">// パスワードを平文で保存（絶対ダメ！）
+User::create([
+    'password' => $request->password, // ❌ 平文保存
+]);</code></pre>
+                            <p class="text-gray-300 text-sm">
+                                データベースが流出した場合、すべてのユーザーのパスワードが漏洩します。
+                            </p>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-green-500">
+                            <p class="text-green-300 mb-2"><strong>✅ 正しい方法:</strong></p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-2"><code class="language-php">// パスワードをハッシュ化して保存
+User::create([
+    'password' => Hash::make($request->password), // ✅ ハッシュ化
+]);
+
+// Laravel 10以降なら自動でハッシュ化されるので、これでもOK
+User::create([
+    'password' => $request->password, // ✅ 自動ハッシュ化
+]);</code></pre>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">2. CSRF保護</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">CSRF（Cross-Site Request Forgery）とは？</strong></p>
+                            <p class="text-gray-300 mb-2">
+                                悪意のあるサイトから、ユーザーの意図しないリクエストを送信させる攻撃です。
+                            </p>
+                            <p class="text-gray-300 text-sm mb-2">
+                                例: ユーザーがログイン中に悪意のあるサイトを開くと、勝手にパスワード変更のリクエストが送信される。
+                            </p>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-green-500">
+                            <p class="text-green-300 mb-2"><strong>✅ 対策: @csrf ディレクティブを必ず含める</strong></p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-blade">&lt;form action="{{ route('login') }}" method="POST"&gt;
+    @csrf  &lt;!-- ✅ CSRFトークンを自動生成 --&gt;
+    &lt;input type="email" name="email"&gt;
+    &lt;input type="password" name="password"&gt;
+    &lt;button type="submit"&gt;ログイン&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+                            <p class="text-gray-300 text-sm mt-2">
+                                LaravelはCSRFトークンを自動的に検証し、不正なリクエストを拒否します。
+                            </p>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">3. セッション固定攻撃の防止</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">セッション固定攻撃とは？</strong></p>
+                            <p class="text-gray-300 text-sm mb-2">
+                                攻撃者が事前にセッションIDを用意し、ユーザーにそのセッションIDを使わせることで、ログイン後のセッションを乗っ取る攻撃です。
+                            </p>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-green-500">
+                            <p class="text-green-300 mb-2"><strong>✅ 対策: ログイン時にセッションIDを再生成</strong></p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-php">// LoginController.php
+if (Auth::attempt($credentials)) {
+    // ✅ セッションIDを再生成して、古いセッションIDを無効化
+    $request->session()->regenerate();
+    return redirect('/dashboard');
+}</code></pre>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">4. SQLインジェクション対策</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-red-500">
+                            <p class="text-red-300 mb-2"><strong>❌ 絶対にやってはいけないこと:</strong></p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-2"><code class="language-php">// 生のSQLに直接ユーザー入力を埋め込む（絶対ダメ！）
+$email = $request->email;
+$user = DB::select("SELECT * FROM users WHERE email = '$email'"); // ❌</code></pre>
+                            <p class="text-gray-300 text-sm">
+                                攻撃者が <code class="text-red-300">' OR '1'='1</code> のような入力をすると、全ユーザー情報が漏洩します。
+                            </p>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-green-500">
+                            <p class="text-green-300 mb-2"><strong>✅ 正しい方法: Eloquent ORM や Query Builder を使う</strong></p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-php">// ✅ Eloquent ORM（自動的にエスケープされる）
+$user = User::where('email', $request->email)->first();
+
+// ✅ Query Builderのプリペアドステートメント
+$user = DB::table('users')
+    ->where('email', $request->email)
+    ->first();</code></pre>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">5. XSS（クロスサイトスクリプティング）対策</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">XSSとは？</strong></p>
+                            <p class="text-gray-300 text-sm mb-2">
+                                悪意のあるスクリプトをWebページに埋め込んで実行させる攻撃です。
+                            </p>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-green-500">
+                            <p class="text-green-300 mb-2"><strong>✅ 対策: Bladeの {{ }} を使う（自動エスケープ）</strong></p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-2"><code class="language-blade">&lt;!-- ✅ 自動的にHTMLエスケープされる --&gt;
+&lt;p&gt;ようこそ、{{ $user->name }}さん！&lt;/p&gt;
+
+&lt;!-- ❌ エスケープされない（危険！） --&gt;
+&lt;p&gt;ようこそ、{!! $user->name !!}さん！&lt;/p&gt;</code></pre>
+                            <p class="text-gray-300 text-sm mt-2">
+                                <code class="text-blue-300">{{ }}</code> を使うと、<code class="text-red-300">&lt;script&gt;alert('XSS')&lt;/script&gt;</code> のような入力も安全に表示されます。
+                            </p>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">6. パスワードリセット時の注意点</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-yellow-500">
+                            <p class="text-yellow-300 mb-2"><strong>注意すべきこと:</strong></p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-2">
+                                <li>リセットトークンは<strong class="text-yellow-300">1回限り有効</strong>にする</li>
+                                <li>リセットトークンには<strong class="text-yellow-300">有効期限</strong>を設ける（通常60分）</li>
+                                <li>パスワードリセットのメールは<strong class="text-yellow-300">誰にでも送信できる</strong>ようにする（メールアドレスの存在を推測されないため）</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">7. レート制限（ログイン試行回数制限）</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-purple-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-purple-300">ブルートフォース攻撃対策:</strong></p>
+                            <p class="text-gray-300 mb-4">
+                                短時間に何度もログインを試行する攻撃を防ぐため、ログイン試行回数を制限します。
+                            </p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-php">// LoginController.php
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
+
+public function login(Request $request)
+{
+    // レート制限キー（メールアドレス＋IPアドレス）
+    $key = 'login:' . $request->email . ':' . $request->ip();
+
+    // 5回失敗したら1分間ロック
+    if (RateLimiter::tooManyAttempts($key, 5)) {
+        $seconds = RateLimiter::availableIn($key);
+        throw ValidationException::withMessages([
+            'email' => "ログイン試行回数が多すぎます。{$seconds}秒後に再試行してください。",
+        ]);
+    }
+
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    if (Auth::attempt($credentials)) {
+        // 成功したらカウンターをクリア
+        RateLimiter::clear($key);
+        $request->session()->regenerate();
+        return redirect('/dashboard');
+    }
+
+    // 失敗したらカウンターを増やす
+    RateLimiter::hit($key, 60); // 60秒間保持
+
+    return back()->withErrors([
+        'email' => 'メールアドレスまたはパスワードが正しくありません。',
+    ])->onlyInput('email');
+}</code></pre>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ セキュリティ対策を理解して、安全な認証機能を実装しましょう！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">▼ まとめ</h3>
+
+                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-green-500">
+                            <h4 class="text-xl font-bold text-green-400 mb-4">この章で学んだこと</h4>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">1. セッションとCookieの仕組み</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>HTTPはステートレス（状態を保持しない）</li>
+                                    <li>セッションでサーバー側にユーザー情報を保存</li>
+                                    <li>CookieでセッションIDをブラウザに保存</li>
+                                    <li>次回アクセス時にセッションIDでユーザーを識別</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">2. ユーザー登録機能</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>usersテーブルのマイグレーション</li>
+                                    <li>Userモデルの設定（$fillable, $hidden, $casts）</li>
+                                    <li>RegisterController でバリデーションとユーザー作成</li>
+                                    <li>Hash::make() でパスワードをハッシュ化</li>
+                                    <li>Laravel 10以降は自動ハッシュ化</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">3. Tinkerでの実験</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>Hash::make() で同じパスワードでも異なるハッシュが生成される（ソルト）</li>
+                                    <li>Hash::check() でパスワード検証</li>
+                                    <li>User::create() でユーザー作成を試す</li>
+                                    <li>Auth::login(), Auth::logout() で認証状態を変更</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">4. ログイン機能</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>LoginController でログイン処理</li>
+                                    <li>Auth::attempt() でメール・パスワード認証</li>
+                                    <li>session()->regenerate() でセッション固定攻撃を防ぐ</li>
+                                    <li>ログイン失敗時はエラーメッセージを表示</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">5. ログアウト機能</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>Auth::logout() で認証状態をクリア</li>
+                                    <li>session()->invalidate() でセッションを無効化</li>
+                                    <li>session()->regenerateToken() でCSRFトークン再生成</li>
+                                    <li>ログアウトはPOSTメソッドで実行</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">6. ログイン状態の確認</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>auth()->check() でログイン状態確認</li>
+                                    <li>auth()->user() でログイン中のユーザー情報取得</li>
+                                    <li>auth()->id() でユーザーID取得</li>
+                                    <li>Bladeで @auth / @guest ディレクティブを使う</li>
+                                    <li>auth ミドルウェアでルートを保護</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">7. セキュリティ対策</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>パスワードは必ずハッシュ化して保存</li>
+                                    <li>@csrf でCSRF攻撃を防ぐ</li>
+                                    <li>session()->regenerate() でセッション固定攻撃を防ぐ</li>
+                                    <li>Eloquent ORMでSQLインジェクションを防ぐ</li>
+                                    <li>{{ }} でXSS攻撃を防ぐ</li>
+                                    <li>RateLimiterでブルートフォース攻撃を防ぐ</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <h4 class="text-xl font-bold text-blue-400 mb-4">認証の全体フロー</h4>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>1. 新規登録
+   ├─ ユーザーが名前・メール・パスワードを入力
+   ├─ バリデーション（重複チェック、文字数制限など）
+   ├─ パスワードをハッシュ化してDBに保存
+   └─ 自動的にログイン状態にして /dashboard へリダイレクト
+
+2. ログイン
+   ├─ ユーザーがメール・パスワードを入力
+   ├─ Auth::attempt() でDBのハッシュと照合
+   ├─ 成功したらセッションIDを再生成（セキュリティ対策）
+   ├─ セッションにユーザー情報を保存
+   └─ /dashboard へリダイレクト
+
+3. ログイン状態の確認
+   ├─ auth()->check() でログイン中か確認
+   ├─ auth()->user() でユーザー情報を取得
+   └─ @auth / @guest でBladeテンプレートを分岐
+
+4. ログアウト
+   ├─ Auth::logout() でセッションからユーザー情報を削除
+   ├─ session()->invalidate() でセッションを無効化
+   ├─ session()->regenerateToken() でCSRFトークンを再生成
+   └─ トップページへリダイレクト</code></pre>
+                        </div>
+
+                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-purple-500">
+                            <h4 class="text-xl font-bold text-purple-400 mb-4">次のステップ</h4>
+                            <p class="text-gray-300 mb-4">
+                                この章では、<strong class="text-yellow-300">認証機能の基本</strong>を学びました。<br>
+                                次の章では、<strong class="text-yellow-300">ミドルウェアとロール（権限管理）</strong>を学びます。
+                            </p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-2 text-sm">
+                                <li><strong class="text-blue-300">認証と認可の違い</strong> - 「ログイン済み」と「権限あり」の違い</li>
+                                <li><strong class="text-blue-300">ミドルウェアの仕組み</strong> - リクエストを処理する前にチェック</li>
+                                <li><strong class="text-blue-300">ロールテーブルの設計</strong> - 管理者・編集者・閲覧者などの権限管理</li>
+                                <li><strong class="text-blue-300">カスタムミドルウェアの作成</strong> - 自分で認可ロジックを実装</li>
+                                <li><strong class="text-blue-300">Gate と Policy</strong> - より柔軟な権限管理</li>
+                                <li><strong class="text-blue-300">Tinkerで実践</strong> - ロール割り当てと権限チェック</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-green-900/50 to-blue-900/50 p-6 rounded-lg border border-green-500/30">
+                            <p class="text-green-300 text-lg font-bold mb-2">
+                                🎉 認証機能実装の章が完了しました！
+                            </p>
+                            <p class="text-gray-300 text-sm">
+                                Breezeなどのパッケージを使わずに、認証の仕組みを理解しながら実装できました。<br>
+                                次は「ミドルウェアとロール」の章で、より実践的な権限管理を学びましょう！
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Highlight.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+        <script>
+            // Highlight.js 初期化
+            hljs.highlightAll();
+
+            // DOM読み込み完了後に実行
+            document.addEventListener('DOMContentLoaded', function() {
+                // コピーボタンの追加
+                document.querySelectorAll('pre').forEach(pre => {
+                    const btn = document.createElement('button');
+                    btn.classList.add('copy-button');
+                    btn.textContent = 'COPY';
+                    btn.addEventListener('click', () => {
+                        const code = pre.querySelector('code');
+                        let textToCopy = code.textContent;
+
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            btn.textContent = 'COPIED!';
+                            setTimeout(() => {
+                                btn.textContent = 'COPY';
+                            }, 2000);
+                        });
+                    });
+                    pre.appendChild(btn);
+                });
+
+                // h3の折り畳み機能と目次生成
+                const tocList = document.getElementById('toc-list');
+
+                document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                    const id = `section-${index}`;
+                    h3.id = id;
+
+                    const wrapper = document.createElement('div');
+                    wrapper.classList.add('collapsible-content');
+
+                    const contentSection = h3.parentElement;
+                    let nextElement = h3.nextElementSibling;
+                    const elementsToWrap = [];
+
+                    while (nextElement) {
+                        elementsToWrap.push(nextElement);
+                        nextElement = nextElement.nextElementSibling;
+                    }
+
+                    elementsToWrap.forEach(el => {
+                        wrapper.appendChild(el);
+                    });
+
+                    contentSection.appendChild(wrapper);
+
+                    h3.addEventListener('click', () => {
+                        h3.classList.toggle('collapsed');
+                        wrapper.classList.toggle('collapsed');
+                    });
+
+                    const tocItem = document.createElement('a');
+                    tocItem.href = `#${id}`;
+                    tocItem.className = 'block px-3 py-2 rounded hover:bg-white/10 transition-colors duration-200 text-gray-300 hover:text-white text-xs cursor-pointer';
+                    tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                    tocItem.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        document.getElementById('toc-modal').classList.add('hidden');
+                        h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    });
+                    tocList.appendChild(tocItem);
+                });
+
+                // 目次ボタン
+                const tocButton = document.getElementById('toc-button');
+                const tocModal = document.getElementById('toc-modal');
+                const closeToc = document.getElementById('close-toc');
+
+                tocButton.addEventListener('click', () => {
+                    tocModal.classList.toggle('hidden');
+                });
+
+                closeToc.addEventListener('click', () => {
+                    tocModal.classList.add('hidden');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!tocButton.contains(e.target) && !tocModal.contains(e.target)) {
+                        tocModal.classList.add('hidden');
+                    }
+                });
+
+                // 全て閉じる/開くボタン
+                const toggleAllBtn = document.getElementById('toggle-all');
+                const toggleIcon = document.getElementById('toggle-icon');
+                const toggleText = document.getElementById('toggle-text');
+                let allCollapsed = false;
+
+                toggleAllBtn.addEventListener('click', () => {
+                    if (allCollapsed) {
+                        document.querySelectorAll('.content-section h3').forEach(h3 => {
+                            const wrapper = h3.nextElementSibling;
+                            if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                                h3.classList.remove('collapsed');
+                                wrapper.classList.remove('collapsed');
+                            }
+                        });
+                        toggleText.textContent = '全て閉じる';
+                        toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                        toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                        toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                        allCollapsed = false;
+                    } else {
+                        document.querySelectorAll('.content-section h3').forEach(h3 => {
+                            const wrapper = h3.nextElementSibling;
+                            if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                                h3.classList.add('collapsed');
+                                wrapper.classList.add('collapsed');
+                            }
+                        });
+                        toggleText.textContent = '全て開く';
+                        toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+                        toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                        toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                        allCollapsed = true;
+                    }
+                });
+
+                // サイドバー制御
+                const sidebar = document.getElementById('sidebar');
+                const openSidebarBtn = document.getElementById('open-sidebar');
+                const closeSidebarBtn = document.getElementById('close-sidebar');
+                const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+                openSidebarBtn.addEventListener('click', () => {
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebarOverlay.classList.remove('hidden');
+                });
+
+                closeSidebarBtn.addEventListener('click', () => {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebarOverlay.classList.add('hidden');
+                });
+
+                sidebarOverlay.addEventListener('click', () => {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebarOverlay.classList.add('hidden');
+                });
+
+                // 上に戻るボタン
+                const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 300) {
+                        scrollToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+                        scrollToTopBtn.classList.add('opacity-100');
+                    } else {
+                        scrollToTopBtn.classList.add('opacity-0', 'pointer-events-none');
+                        scrollToTopBtn.classList.remove('opacity-100');
+                    }
+                });
+
+                scrollToTopBtn.addEventListener('click', () => {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>

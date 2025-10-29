@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【第四弾】Laravel入門資料</title>
+    <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section a {
+            color: #3183ff;
+            text-decoration: underline;
+        }
+
+        .content-section a:hover {
+            color: #8b5cf6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        pre {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre code {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="../miraichi/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 目次ポップアップ（コンパクト版） -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">
+                    目次
+                </h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="toc-list" class="space-y-1">
+                <!-- 目次項目はJavaScriptで動的に生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- 目次ボタンと全て閉じるボタン（固定位置） -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    【第四弾】Laravel入門資料
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
+                    <li><a href="search-filter.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">検索・フィルタ</a></li>
+                    <li><a href="pagination.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ページネーション</a></li>
+                    <li><a href="image-upload.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">画像アップロード</a></li>
+                    <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
+                    <li><a href="authentication-implementation.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証実装</a></li>
+                    <li><a href="authentication-middleware.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ミドルウェア・ロール</a></li>
+                    <li><a href="comprehensive-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">総合実践</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント - Requests</strong>
+                        </p>
+                        <a href="https://laravel.com/docs/12.x/requests" target="_blank"
+                           class="text-primary-400 hover:text-primary-300 underline text-base">
+                            https://laravel.com/docs/12.x/requests
+                        </a>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 この講座では、上記の公式ドキュメントを基に解説していきます。<br>
+                            公式ドキュメントは初学者には内容が難しいため、エッセンスを優しく噛み砕いて解説していきます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>検索・フィルタリング - ユーザーが欲しいデータを見つける</h3>
+                        <p>
+                            商品が増えてくると、<strong>ユーザーが欲しい商品を見つけにくく</strong>なります。<br>
+                            検索機能とフィルタリング機能を実装して、データを絞り込む方法を学びます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 この章で学ぶこと</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ キーワード検索 - <code>where()</code> と <code>like</code> の使い方</li>
+                                <li>✅ カテゴリーフィルタリング - プルダウンで絞り込み</li>
+                                <li>✅ 複数条件の組み合わせ - <code>when()</code> メソッド</li>
+                                <li>✅ 検索フォームの作成とGETリクエストの処理</li>
+                                <li>✅ 検索条件の保持 - <code>request()->input()</code></li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 前提条件</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <code>products</code> テーブルと <code>categories</code> テーブルが作成済み</li>
+                                <li>✅ Product モデルと Category モデルが作成済み</li>
+                                <li>✅ リレーション（belongsTo）が設定済み</li>
+                            </ul>
+                            <p class="text-xs text-gray-400 mt-2">
+                                ※ 「ここまでの知識の実践」で作成したテーブルとモデルをそのまま使用します
+                            </p>
+                        </div>
+
+                        <h4>検索・フィルタリング機能の例</h4>
+                        <div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded mt-3 mb-3">
+                            <p class="text-sm text-gray-300 mb-2"><strong>実装する機能</strong></p>
+                            <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 ml-2">
+                                <li>キーワード検索: 商品名で部分一致検索</li>
+                                <li>カテゴリーフィルター: プルダウンでカテゴリーを選択</li>
+                                <li>検索条件の保持: 検索後もフォームに入力内容を保持</li>
+                                <li>検索とページネーションの組み合わせ</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>GETリクエストとクエリパラメータ</h3>
+                        <p>
+                            検索機能では<strong>GETリクエスト</strong>を使い、検索条件を<strong>クエリパラメータ</strong>（URLパラメータ）で渡します。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 クエリパラメータとは？</strong></p>
+                            <p class="text-xs mt-2">
+                                URLの<code>?</code>以降に付けるパラメータのことです。<br>
+                                例: <code>/search?keyword=ノート&category_id=1</code>
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>?</code> の後にパラメータを記述</li>
+                                <li>• <code>キー=値</code> の形式</li>
+                                <li>• 複数のパラメータは <code>&</code> で繋ぐ</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>✅ GETリクエストを使うメリット</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• URLに検索条件が表示される → ブックマーク可能</li>
+                                <li>• URLをシェアできる（「この検索結果を見て！」）</li>
+                                <li>• ブラウザの戻るボタンが使える</li>
+                                <li>• ページネーションと組み合わせやすい</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">クエリパラメータの取得方法</h4>
+                        <pre><code class="language-php">// コントローラーでの取得方法
+$keyword = $request->input('keyword');
+$categoryId = $request->input('category_id');
+
+// デフォルト値を指定することも可能
+$keyword = $request->input('keyword', '');  // デフォルトは空文字</code></pre>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>LIKE検索を理解する</h3>
+                        <p>
+                            部分一致検索を実装する前に、LIKE検索について詳しく学びましょう。
+                        </p>
+
+                        <h4>Tinkerで試してみよう</h4>
+                        <pre><code class="language-bash">php artisan tinker</code></pre>
+
+                        <h4 class="mt-4">1. 部分一致検索（前後に%）</h4>
+                        <pre><code class="language-php">// 「ノート」を含む商品を検索
+Product::where('name', 'like', '%ノート%')->get();
+
+// 実行されるSQL: SELECT * FROM products WHERE name LIKE '%ノート%'
+// ヒットする例: 「ノートPC」「大学ノート」「ノート型パソコン」</code></pre>
+
+                        <h4 class="mt-4">2. 前方一致検索（後ろに%）</h4>
+                        <pre><code class="language-php">// 「ノート」で始まる商品を検索
+Product::where('name', 'like', 'ノート%')->get();
+
+// ヒットする例: 「ノートPC」「ノート型パソコン」
+// ヒットしない例: 「大学ノート」（ノートが先頭にない）</code></pre>
+
+                        <h4 class="mt-4">3. 後方一致検索（前に%）</h4>
+                        <pre><code class="language-php">// 「ノート」で終わる商品を検索
+Product::where('name', 'like', '%ノート')->get();
+
+// ヒットする例: 「大学ノート」「方眼ノート」
+// ヒットしない例: 「ノートPC」（ノートが末尾にない）</code></pre>
+
+                        <h4 class="mt-4">4. 完全一致検索（%なし）</h4>
+                        <pre><code class="language-php">// 「ノート」と完全一致する商品を検索
+Product::where('name', 'like', 'ノート')->get();
+
+// これは where('name', '=', 'ノート') と同じ
+// ヒットする例: 「ノート」のみ</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>⚠️ LIKE検索のパフォーマンス注意</strong></p>
+                            <p class="text-xs mt-2">
+                                前方に<code>%</code>がある場合（<code>%キーワード%</code>や<code>%キーワード</code>）は、<br>
+                                インデックスが使われず、全件スキャンになるため遅くなります。<br>
+                                大量データの場合は、全文検索エンジン（Elasticsearch等）の利用を検討しましょう。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>基本的なキーワード検索の実装</h3>
+                        <p>
+                            それでは、学んだLIKE検索を使って商品検索機能を実装します。
+                        </p>
+
+                        <h4>ステップ1: ルーティングの設定</h4>
+                        <p class="text-sm text-gray-300"><code>routes/web.php</code></p>
+                        <pre><code class="language-php">use App\Http\Controllers\SearchController;
+
+Route::get('/search', [SearchController::class, 'index']);</code></pre>
+
+                        <h4>ステップ2: コントローラーの作成</h4>
+                        <p>検索機能を持つコントローラーを作成します。</p>
+                        <pre><code class="language-bash">php artisan make:controller SearchController</code></pre>
+
+                        <p><code>app/Http/Controllers/SearchController.php</code> を以下のように編集します。</p>
+                        <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use Illuminate\Http\Request;
+
+class SearchController extends Controller
+{
+    public function index(Request $request)
+    {
+        // リクエストからキーワードを取得
+        $keyword = $request->input('keyword');
+
+        // 検索クエリを構築
+        $query = Product::with('category');
+
+        // キーワードがある場合のみ検索条件を追加
+        if ($keyword) {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        // ページネーション付きで取得
+        $products = $query->paginate(10);
+
+        return view('search.index', compact('products', 'keyword'));
+    }
+}
+</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 LIKE検索とは？</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>where('name', 'like', "%{$keyword}%")</code> は部分一致検索を行います。<br>
+                                <code>%</code> はワイルドカード（任意の文字列）を表します。
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>"%キーワード%"</code> → 前後に任意の文字（部分一致）</li>
+                                <li>• <code>"キーワード%"</code> → 前方一致</li>
+                                <li>• <code>"%キーワード"</code> → 後方一致</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">ステップ3: ビューファイルの作成</h4>
+                        <p class="text-sm text-gray-300 mb-2">
+                            <code>resources/views/search/index.blade.php</code> を作成します。
+                        </p>
+                        <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;商品検索&lt;/title&gt;
+    &lt;style&gt;
+        body { font-family: sans-serif; padding: 20px; }
+        .search-form { margin-bottom: 20px; }
+        .search-form input { padding: 8px; width: 300px; }
+        .search-form button { padding: 8px 16px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-left; }
+        th { background-color: #4CAF50; color: white; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;商品検索&lt;/h1&gt;
+
+    {{-- 検索フォーム --}}
+    &lt;form method="GET" action="/search" class="search-form"&gt;
+        &lt;input type="text" name="keyword" placeholder="商品名で検索" value="{{ $keyword }}"&gt;
+        &lt;button type="submit"&gt;検索&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;p&gt;検索結果: {{ $products-&gt;total() }}件&lt;/p&gt;
+
+    &lt;table&gt;
+        &lt;thead&gt;
+            &lt;tr&gt;
+                &lt;th&gt;ID&lt;/th&gt;
+                &lt;th&gt;商品名&lt;/th&gt;
+                &lt;th&gt;カテゴリー&lt;/th&gt;
+                &lt;th&gt;価格&lt;/th&gt;
+                &lt;th&gt;在庫&lt;/th&gt;
+            &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+            @forelse($products as $product)
+            &lt;tr&gt;
+                &lt;td&gt;{{ $product-&gt;id }}&lt;/td&gt;
+                &lt;td&gt;{{ $product-&gt;name }}&lt;/td&gt;
+                &lt;td&gt;{{ $product-&gt;category-&gt;name }}&lt;/td&gt;
+                &lt;td&gt;¥{{ number_format($product-&gt;price) }}&lt;/td&gt;
+                &lt;td&gt;{{ $product-&gt;stock }}&lt;/td&gt;
+            &lt;/tr&gt;
+            @empty
+            &lt;tr&gt;
+                &lt;td colspan="5" style="text-align: center;"&gt;該当する商品が見つかりませんでした&lt;/td&gt;
+            &lt;/tr&gt;
+            @endforelse
+        &lt;/tbody&gt;
+    &lt;/table&gt;
+
+    {{-- ページネーションリンク（検索条件を保持） --}}
+    {{ $products-&gt;appends(['keyword' => $keyword])-&gt;links() }}
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 重要なポイント</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>value="{{ $keyword }}"</code> - 検索後も入力値を保持</li>
+                                <li>• <code>@forelse ... @empty</code> - データがない場合の表示</li>
+                                <li>• <code>$products->total()</code> - 検索結果の総件数を表示</li>
+                                <li>• <code>appends(['keyword' => $keyword])</code> - ページネーションに検索条件を追加</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">ステップ4: 確認</h4>
+                        <p>ブラウザで <code>/search</code> にアクセスして確認します。</p>
+                        <p class="text-sm text-gray-300 mt-2">
+                            検索フォームでキーワードを入力して検索してみましょう。
+                        </p>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 基本的なキーワード検索機能が完成しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>カテゴリーフィルタリングの追加</h3>
+                        <p>
+                            キーワード検索に加えて、カテゴリーでフィルタリングできるようにします。
+                        </p>
+
+                        <h4>コントローラーの更新</h4>
+                        <p><code>app/Http/Controllers/SearchController.php</code></p>
+                        <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use App\Models\Category;
+use Illuminate\Http\Request;
+
+class SearchController extends Controller
+{
+    public function index(Request $request)
+    {
+        // リクエストから検索条件を取得
+        $keyword = $request->input('keyword');
+        $categoryId = $request->input('category_id');
+
+        // 検索クエリを構築
+        $query = Product::with('category');
+
+        // キーワード検索
+        if ($keyword) {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        // カテゴリーフィルター
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        // ページネーション付きで取得
+        $products = $query->paginate(10);
+
+        // カテゴリー一覧を取得（プルダウン用）
+        $categories = Category::all();
+
+        return view('search.index', compact('products', 'keyword', 'categoryId', 'categories'));
+    }
+}
+</code></pre>
+
+                        <h4 class="mt-6">ビューの更新</h4>
+                        <p>検索フォームにカテゴリープルダウンを追加します。</p>
+                        <pre><code class="language-html">{{-- 検索フォーム --}}
+&lt;form method="GET" action="/search" class="search-form"&gt;
+    &lt;input type="text" name="keyword" placeholder="商品名で検索" value="{{ $keyword }}"&gt;
+
+    &lt;select name="category_id"&gt;
+        &lt;option value=""&gt;すべてのカテゴリー&lt;/option&gt;
+        @foreach($categories as $category)
+            &lt;option value="{{ $category-&gt;id }}" {{ $categoryId == $category-&gt;id ? 'selected' : '' }}&gt;
+                {{ $category-&gt;name }}
+            &lt;/option&gt;
+        @endforeach
+    &lt;/select&gt;
+
+    &lt;button type="submit"&gt;検索&lt;/button&gt;
+&lt;/form&gt;
+
+{{-- ページネーションリンク（検索条件を保持） --}}
+{{ $products-&gt;appends(['keyword' => $keyword, 'category_id' => $categoryId])-&gt;links() }}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>💡 複数条件の保持</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>appends()</code> に配列で複数の条件を渡すことで、<br>
+                                ページネーション時にすべての検索条件を保持できます。
+                            </p>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ カテゴリーフィルタリング機能が追加できました!
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>when()メソッドでコードをスッキリさせる</h3>
+                        <p>
+                            <code>if</code> 文で条件分岐する代わりに、<code>when()</code> メソッドを使うとコードがスッキリします。
+                        </p>
+
+                        <h4>Tinkerでwhen()を理解する</h4>
+                        <pre><code class="language-bash">php artisan tinker</code></pre>
+
+                        <h4 class="mt-4">1. 基本的な使い方</h4>
+                        <pre><code class="language-php">// 条件がtrueの時だけクエリを追加
+$keyword = 'ノート';
+Product::when($keyword, function ($query, $keyword) {
+    return $query->where('name', 'like', "%{$keyword}%");
+})->get();
+
+// $keywordが存在する → where条件が追加される
+// 実行されるSQL: SELECT * FROM products WHERE name LIKE '%ノート%'</code></pre>
+
+                        <h4 class="mt-4">2. 条件がfalseの場合</h4>
+                        <pre><code class="language-php">// 条件がnullや空文字の場合、when内は実行されない
+$keyword = null;  // または ''
+Product::when($keyword, function ($query, $keyword) {
+    return $query->where('name', 'like', "%{$keyword}%");
+})->get();
+
+// $keywordがnull → when内は実行されない
+// 実行されるSQL: SELECT * FROM products  （条件なし）</code></pre>
+
+                        <h4 class="mt-4">3. 複数のwhenを繋げる</h4>
+                        <pre><code class="language-php">$keyword = 'ノート';
+$categoryId = 1;
+
+Product::when($keyword, function ($query, $keyword) {
+        return $query->where('name', 'like', "%{$keyword}%");
+    })
+    ->when($categoryId, function ($query, $categoryId) {
+        return $query->where('category_id', $categoryId);
+    })
+    ->get();
+
+// 実行されるSQL:
+// SELECT * FROM products
+// WHERE name LIKE '%ノート%' AND category_id = 1</code></pre>
+
+                        <h4 class="mt-4">4. if文との比較</h4>
+                        <pre><code class="language-php">// ❌ if文を使った場合（冗長）
+$query = Product::query();
+
+if ($keyword) {
+    $query->where('name', 'like', "%{$keyword}%");
+}
+
+if ($categoryId) {
+    $query->where('category_id', $categoryId);
+}
+
+$products = $query->get();
+
+// ✅ when()を使った場合（スッキリ）
+$products = Product::when($keyword, function ($query, $keyword) {
+        return $query->where('name', 'like', "%{$keyword}%");
+    })
+    ->when($categoryId, function ($query, $categoryId) {
+        return $query->where('category_id', $categoryId);
+    })
+    ->get();</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 when()の仕組み</strong></p>
+                            <p class="text-xs mt-2">
+                                <code>when(条件, コールバック)</code> は以下のように動作します：
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• 第1引数が truthy（<code>true</code>、非0、非null、非空文字）→ コールバック実行</li>
+                                <li>• 第1引数が falsy（<code>false</code>、<code>0</code>、<code>null</code>、<code>''</code>）→ 何もしない</li>
+                                <li>• 第2引数のコールバックには、<code>$query</code>と<code>条件の値</code>が渡される</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>✅ when()のメリット</strong></p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>if</code> 文を書かなくていい → コード量が減る</li>
+                                <li>• メソッドチェーンで書ける → 読みやすい</li>
+                                <li>• 条件が多くなってもスッキリ → メンテナンスしやすい</li>
+                                <li>• Laravelらしい書き方 → チームで統一しやすい</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">コントローラーでの実装例</h4>
+                        <pre><code class="language-php">public function index(Request $request)
+{
+    $keyword = $request->input('keyword');
+    $categoryId = $request->input('category_id');
+
+    // when()メソッドで条件付きクエリを構築
+    $products = Product::with('category')
+        ->when($keyword, function ($query, $keyword) {
+            return $query->where('name', 'like', "%{$keyword}%");
+        })
+        ->when($categoryId, function ($query, $categoryId) {
+            return $query->where('category_id', $categoryId);
+        })
+        ->paginate(10);
+
+    $categories = Category::all();
+
+    return view('search.index', compact('products', 'keyword', 'categoryId', 'categories'));
+}</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ より洗練されたコードになりました!
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <p>
+                            検索・フィルタリング機能の実装を学びました！
+                        </p>
+
+                        <h4>学んだこと</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <code>where('name', 'like', "%{$keyword}%")</code> でキーワード検索</li>
+                                <li>✅ <code>where('category_id', $categoryId)</code> でカテゴリーフィルター</li>
+                                <li>✅ <code>when()</code> メソッドで条件付きクエリをスッキリ記述</li>
+                                <li>✅ <code>appends()</code> でページネーション時に検索条件を保持</li>
+                                <li>✅ <code>@forelse ... @empty</code> で検索結果0件の表示</li>
+                            </ul>
+                        </div>
+
+                        <h4>次のステップ</h4>
+                        <p class="text-sm text-gray-300">
+                            検索・フィルタリング機能を習得しました。<br>
+                            次は「画像アップロード」タブで、商品画像のアップロード機能を学習しましょう！
+                        </p>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 検索・フィルタリング学習完了です!
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+    <script>
+        // Highlight.js 初期化
+        hljs.highlightAll();
+
+        // DOM読み込み完了後に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            // コピーボタンの追加
+            document.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.classList.add('copy-button');
+                btn.textContent = 'COPY';
+                btn.addEventListener('click', () => {
+                    const code = pre.querySelector('code');
+                    let textToCopy = code.textContent;
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        btn.textContent = 'COPIED!';
+                        setTimeout(() => {
+                            btn.textContent = 'COPY';
+                        }, 2000);
+                    });
+                });
+                pre.appendChild(btn);
+            });
+
+            // h3の折り畳み機能と目次生成
+            const tocList = document.getElementById('toc-list');
+
+            document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                const id = `section-${index}`;
+                h3.id = id;
+
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('collapsible-content');
+
+                const contentSection = h3.parentElement;
+                let nextElement = h3.nextElementSibling;
+                const elementsToWrap = [];
+
+                while (nextElement) {
+                    elementsToWrap.push(nextElement);
+                    nextElement = nextElement.nextElementSibling;
+                }
+
+                elementsToWrap.forEach(el => {
+                    wrapper.appendChild(el);
+                });
+
+                contentSection.appendChild(wrapper);
+
+                h3.addEventListener('click', () => {
+                    h3.classList.toggle('collapsed');
+                    wrapper.classList.toggle('collapsed');
+                });
+
+                const tocItem = document.createElement('a');
+                tocItem.href = `#${id}`;
+                tocItem.className = 'block px-3 py-2 rounded hover:bg-white/10 transition-colors duration-200 text-gray-300 hover:text-white text-xs cursor-pointer';
+                tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                tocItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('toc-modal').classList.add('hidden');
+                    h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                tocList.appendChild(tocItem);
+            });
+
+            const tocButton = document.getElementById('toc-button');
+            const tocModal = document.getElementById('toc-modal');
+            const closeToc = document.getElementById('close-toc');
+
+            tocButton.addEventListener('click', () => {
+                tocModal.classList.toggle('hidden');
+            });
+
+            closeToc.addEventListener('click', () => {
+                tocModal.classList.add('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!tocButton.contains(e.target) && !tocModal.contains(e.target)) {
+                    tocModal.classList.add('hidden');
+                }
+            });
+
+            const toggleAllBtn = document.getElementById('toggle-all');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const toggleText = document.getElementById('toggle-text');
+            let allCollapsed = false;
+
+            toggleAllBtn.addEventListener('click', () => {
+                if (allCollapsed) {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.remove('collapsed');
+                            wrapper.classList.remove('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て閉じる';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    allCollapsed = false;
+                } else {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.add('collapsed');
+                            wrapper.classList.add('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て開く';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+                    toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    allCollapsed = true;
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

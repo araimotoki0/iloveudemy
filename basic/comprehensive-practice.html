@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【第四弾】Laravel入門資料</title>
+    <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section h5 {
+            color: #10b981;
+            margin: 16px 0 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section a {
+            color: #3183ff;
+            text-decoration: underline;
+        }
+
+        .content-section a:hover {
+            color: #8b5cf6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        pre {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre code {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="../miraichi/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 目次ポップアップ（コンパクト版） -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">
+                    目次
+                </h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="toc-list" class="space-y-1">
+                <!-- 目次項目はJavaScriptで動的に生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- 目次ボタンと全て閉じるボタン（固定位置） -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    【第四弾】Laravel入門資料
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
+                    <li><a href="search-filter.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">検索・フィルタ</a></li>
+                    <li><a href="pagination.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ページネーション</a></li>
+                    <li><a href="image-upload.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">画像アップロード</a></li>
+                    <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
+                    <li><a href="authentication-implementation.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証実装</a></li>
+                    <li><a href="authentication-middleware.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ミドルウェア・ロール</a></li>
+                    <li><a href="comprehensive-practice.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">総合実践</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント</strong>
+                        </p>
+                        <p class="text-gray-400 text-sm mb-3">
+                            この総合実践では、以下の公式ドキュメントで学んだ知識を全て統合します：
+                        </p>
+                        <div class="space-y-2">
+                            <a href="https://laravel.com/docs/12.x/authentication" target="_blank"
+                               class="text-primary-400 hover:text-primary-300 underline text-sm block">
+                                Authentication (認証)
+                            </a>
+                            <a href="https://laravel.com/docs/12.x/eloquent" target="_blank"
+                               class="text-primary-400 hover:text-primary-300 underline text-sm block">
+                                Eloquent ORM (CRUD・リレーション)
+                            </a>
+                            <a href="https://laravel.com/docs/12.x/pagination" target="_blank"
+                               class="text-primary-400 hover:text-primary-300 underline text-sm block">
+                                Pagination (ページネーション)
+                            </a>
+                            <a href="https://laravel.com/docs/12.x/authorization" target="_blank"
+                               class="text-primary-400 hover:text-primary-300 underline text-sm block">
+                                Authorization (権限管理)
+                            </a>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 これまでの学習を振り返りながら、実践的なアプリケーションを構築しましょう。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>総合実践: TODOアプリを作ろう</h3>
+                        <p>
+                            これまで学んだ全ての知識を使って、<strong class="text-yellow-300">実践的なTODOアプリ</strong>を作成します。<br>
+                            認証、CRUD、ロール管理、ページネーション、検索など、全てを統合したアプリケーションです。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 このアプリで使う技術</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <strong>認証</strong>: ユーザー登録・ログイン・ログアウト</li>
+                                <li>✅ <strong>CRUD</strong>: タスクの作成・表示・更新・削除</li>
+                                <li>✅ <strong>ロール管理</strong>: 管理者と一般ユーザーの権限分け</li>
+                                <li>✅ <strong>リレーション</strong>: ユーザーとタスクの1対多</li>
+                                <li>✅ <strong>ページネーション</strong>: タスク一覧のページ分け</li>
+                                <li>✅ <strong>検索・フィルタリング</strong>: ステータス別、キーワード検索</li>
+                                <li>✅ <strong>バリデーション</strong>: 入力値チェック</li>
+                                <li>✅ <strong>ミドルウェア</strong>: 認証・権限チェック</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>📋 アプリの機能</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>• <strong>一般ユーザー</strong>: 自分のタスクの作成・編集・削除・完了</li>
+                                <li>• <strong>管理者</strong>: 全ユーザーのタスクを閲覧・削除可能</li>
+                                <li>• <strong>ステータス管理</strong>: 未着手・進行中・完了の3状態</li>
+                                <li>• <strong>優先度</strong>: 低・中・高の3段階</li>
+                                <li>• <strong>期限設定</strong>: タスクの期限を設定</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ1: データベース設計</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">必要なテーブル</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>users テーブル
+├─ id
+├─ name
+├─ email (unique)
+├─ password
+├─ role (default: 'user')  ← 'user' or 'admin'
+├─ created_at
+└─ updated_at
+
+tasks テーブル
+├─ id
+├─ user_id (外部キー → users.id)
+├─ title
+├─ description (nullable)
+├─ status (default: 'pending')  ← 'pending', 'in_progress', 'completed'
+├─ priority (default: 'medium')  ← 'low', 'medium', 'high'
+├─ due_date (nullable)
+├─ completed_at (nullable)
+├─ created_at
+└─ updated_at</code></pre>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">マイグレーション作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Laravelプロジェクト作成（まだの場合）
+composer create-project laravel/laravel todo-app
+cd todo-app
+
+# usersテーブルにroleカラム追加
+php artisan make:migration add_role_to_users_table
+
+# tasksテーブル作成
+php artisan make:migration create_tasks_table</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// database/migrations/xxxx_add_role_to_users_table.php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('role')->default('user')->after('password');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('role');
+        });
+    }
+};</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// database/migrations/xxxx_create_tasks_table.php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('tasks', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->enum('status', ['pending', 'in_progress', 'completed'])->default('pending');
+            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
+            $table->date('due_date')->nullable();
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('tasks');
+    }
+};</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># マイグレーション実行
+php artisan migrate</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ データベース設計が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ2: モデル作成</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">Userモデルの修正</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Models/User.php
+
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    /**
+     * ユーザーが持つタスク
+     */
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /**
+     * 管理者かどうか
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * 特定のロールを持っているか
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+}</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">Taskモデルの作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Taskモデル作成
+php artisan make:model Task</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Models/Task.php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Task extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'title',
+        'description',
+        'status',
+        'priority',
+        'due_date',
+        'completed_at',
+    ];
+
+    protected $casts = [
+        'due_date' => 'date',
+        'completed_at' => 'datetime',
+    ];
+
+    /**
+     * タスクの所有者
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * 完了済みかどうか
+     */
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed';
+    }
+
+    /**
+     * 期限切れかどうか
+     */
+    public function isOverdue(): bool
+    {
+        if (!$this->due_date || $this->isCompleted()) {
+            return false;
+        }
+
+        return $this->due_date->isPast();
+    }
+
+    /**
+     * タスクを完了にする
+     */
+    public function markAsCompleted(): void
+    {
+        $this->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+    }
+
+    /**
+     * 優先度の色を取得（Tailwind CSS用）
+     */
+    public function getPriorityColor(): string
+    {
+        return match($this->priority) {
+            'low' => 'green',
+            'medium' => 'yellow',
+            'high' => 'red',
+            default => 'gray',
+        };
+    }
+
+    /**
+     * ステータスの色を取得
+     */
+    public function getStatusColor(): string
+    {
+        return match($this->status) {
+            'pending' => 'gray',
+            'in_progress' => 'blue',
+            'completed' => 'green',
+            default => 'gray',
+        };
+    }
+}</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ モデルの作成が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ3: 認証機能の実装</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">認証コントローラーの作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># コントローラー作成
+php artisan make:controller Auth/RegisterController
+php artisan make:controller Auth/LoginController
+php artisan make:controller Auth/LogoutController</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Http/Controllers/Auth/RegisterController.php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class RegisterController extends Controller
+{
+    public function showRegistrationForm()
+    {
+        return view('auth.register');
+    }
+
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+        ]);
+
+        Auth::login($user);
+
+        return redirect()->route('tasks.index')
+            ->with('success', 'アカウントを作成しました！');
+    }
+}</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Http/Controllers/Auth/LoginController.php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class LoginController extends Controller
+{
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+
+            return redirect()->intended(route('tasks.index'))
+                ->with('success', 'ログインしました！');
+        }
+
+        return back()->withErrors([
+            'email' => 'メールアドレスまたはパスワードが正しくありません。',
+        ])->onlyInput('email');
+    }
+}</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Http/Controllers/Auth/LogoutController.php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class LogoutController extends Controller
+{
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')
+            ->with('success', 'ログアウトしました。');
+    }
+}</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">認証ルートの設定</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
+
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\LogoutController;
+
+// ゲスト専用ルート
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register']);
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
+});
+
+// 認証済みユーザー専用
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
+});</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 認証機能の実装が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ4: タスクのCRUD実装</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">TaskControllerの作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># リソースコントローラー作成
+php artisan make:controller TaskController --resource</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Http/Controllers/TaskController.php
+
+namespace App\Http\Controllers;
+
+use App\Models\Task;
+use Illuminate\Http\Request;
+
+class TaskController extends Controller
+{
+    /**
+     * タスク一覧表示（ページネーション・検索付き）
+     */
+    public function index(Request $request)
+    {
+        $query = Task::query();
+
+        // ログインユーザーのタスクのみ（管理者は全タスク表示）
+        if (!auth()->user()->isAdmin()) {
+            $query->where('user_id', auth()->id());
+        } else {
+            // 管理者の場合はユーザー情報も一緒に取得
+            $query->with('user');
+        }
+
+        // ステータスフィルタ
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // 優先度フィルタ
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->priority);
+        }
+
+        // キーワード検索
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->search . '%')
+                  ->orWhere('description', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // 並び順（期限が近い順）
+        $query->orderByRaw("CASE WHEN status = 'completed' THEN 1 ELSE 0 END")
+              ->orderBy('due_date', 'asc')
+              ->orderBy('created_at', 'desc');
+
+        $tasks = $query->paginate(10)->withQueryString();
+
+        return view('tasks.index', compact('tasks'));
+    }
+
+    /**
+     * タスク作成フォーム表示
+     */
+    public function create()
+    {
+        return view('tasks.create');
+    }
+
+    /**
+     * タスク保存
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'priority' => 'required|in:low,medium,high',
+            'due_date' => 'nullable|date|after_or_equal:today',
+        ]);
+
+        auth()->user()->tasks()->create($validated);
+
+        return redirect()->route('tasks.index')
+            ->with('success', 'タスクを作成しました！');
+    }
+
+    /**
+     * タスク詳細表示
+     */
+    public function show(Task $task)
+    {
+        // 権限チェック
+        $this->authorize('view', $task);
+
+        return view('tasks.show', compact('task'));
+    }
+
+    /**
+     * タスク編集フォーム表示
+     */
+    public function edit(Task $task)
+    {
+        // 権限チェック
+        $this->authorize('update', $task);
+
+        return view('tasks.edit', compact('task'));
+    }
+
+    /**
+     * タスク更新
+     */
+    public function update(Request $request, Task $task)
+    {
+        // 権限チェック
+        $this->authorize('update', $task);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'required|in:pending,in_progress,completed',
+            'priority' => 'required|in:low,medium,high',
+            'due_date' => 'nullable|date',
+        ]);
+
+        // ステータスが完了に変わった場合、completed_atを設定
+        if ($validated['status'] === 'completed' && $task->status !== 'completed') {
+            $validated['completed_at'] = now();
+        } elseif ($validated['status'] !== 'completed') {
+            $validated['completed_at'] = null;
+        }
+
+        $task->update($validated);
+
+        return redirect()->route('tasks.index')
+            ->with('success', 'タスクを更新しました！');
+    }
+
+    /**
+     * タスク削除
+     */
+    public function destroy(Task $task)
+    {
+        // 権限チェック
+        $this->authorize('delete', $task);
+
+        $task->delete();
+
+        return redirect()->route('tasks.index')
+            ->with('success', 'タスクを削除しました。');
+    }
+
+    /**
+     * タスクを完了にする
+     */
+    public function complete(Task $task)
+    {
+        // 権限チェック
+        $this->authorize('update', $task);
+
+        $task->markAsCompleted();
+
+        return back()->with('success', 'タスクを完了しました！');
+    }
+}</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ルート設定</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
+
+use App\Http\Controllers\TaskController;
+
+Route::middleware('auth')->group(function () {
+    // タスク一覧をトップページに
+    Route::get('/', [TaskController::class, 'index'])->name('tasks.index');
+
+    // タスクのリソースルート
+    Route::resource('tasks', TaskController::class);
+
+    // タスク完了
+    Route::post('/tasks/{task}/complete', [TaskController::class, 'complete'])
+        ->name('tasks.complete');
+});</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ タスクのCRUD実装が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ5: ポリシーで権限管理</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">TaskPolicyの作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># ポリシー作成
+php artisan make:policy TaskPolicy --model=Task</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Policies/TaskPolicy.php
+
+namespace App\Policies;
+
+use App\Models\Task;
+use App\Models\User;
+
+class TaskPolicy
+{
+    /**
+     * タスクを表示できるか
+     */
+    public function view(User $user, Task $task): bool
+    {
+        // 管理者または自分のタスク
+        return $user->isAdmin() || $task->user_id === $user->id;
+    }
+
+    /**
+     * タスクを作成できるか
+     */
+    public function create(User $user): bool
+    {
+        // 認証済みユーザーなら誰でも作成可能
+        return true;
+    }
+
+    /**
+     * タスクを更新できるか
+     */
+    public function update(User $user, Task $task): bool
+    {
+        // 自分のタスクのみ更新可能（管理者は更新不可）
+        return $task->user_id === $user->id;
+    }
+
+    /**
+     * タスクを削除できるか
+     */
+    public function delete(User $user, Task $task): bool
+    {
+        // 管理者または自分のタスク
+        return $user->isAdmin() || $task->user_id === $user->id;
+    }
+}</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ポリシーの登録</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Providers/AppServiceProvider.php
+
+namespace App\Providers;
+
+use App\Models\Task;
+use App\Policies\TaskPolicy;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        // ポリシーの登録（Laravel 11では自動検出されるが明示的に登録も可能）
+        Gate::policy(Task::class, TaskPolicy::class);
+    }
+}</code></pre>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">Policyの使い方:</strong></p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-php">// コントローラーで
+$this->authorize('update', $task);
+
+// Bladeで
+@can('update', $task)
+    &lt;a href="{{ route('tasks.edit', $task) }}"&gt;編集&lt;/a&gt;
+@endcan
+
+// コードで
+if (auth()->user()->can('delete', $task)) {
+    // 削除処理
+}</code></pre>
+                        </div>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ ポリシーでの権限管理が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ6: 管理者用ミドルウェア</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">IsAdminミドルウェアの作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash">php artisan make:middleware IsAdmin</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Http/Middleware/IsAdmin.php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class IsAdmin
+{
+    public function handle(Request $request, Closure $next)
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'このページにアクセスする権限がありません。');
+        }
+
+        return $next($request);
+    }
+}</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ミドルウェアの登録</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// bootstrap/app.php
+
+use App\Http\Middleware\IsAdmin;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->alias([
+            'admin' => IsAdmin::class,
+        ]);
+    })
+    ->create();</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">管理者専用ルート（オプション）</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
+
+use App\Http\Controllers\Admin\DashboardController;
+
+// 管理者専用ルート
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/users', [DashboardController::class, 'users'])->name('users');
+});</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 管理者用ミドルウェアが完成しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ7: シーダーで初期データ作成</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">シーダーの作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># シーダー作成
+php artisan make:seeder UserSeeder
+php artisan make:seeder TaskSeeder</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// database/seeders/UserSeeder.php
+
+namespace Database\Seeders;
+
+use App\Models\User;
+use Illuminate\Database\Seeder;
+
+class UserSeeder extends Seeder
+{
+    public function run(): void
+    {
+        // 管理者ユーザー
+        User::create([
+            'name' => '管理者',
+            'email' => 'admin@example.com',
+            'password' => 'password',
+            'role' => 'admin',
+        ]);
+
+        // 一般ユーザー
+        User::create([
+            'name' => '田中太郎',
+            'email' => 'tanaka@example.com',
+            'password' => 'password',
+            'role' => 'user',
+        ]);
+
+        User::create([
+            'name' => '佐藤花子',
+            'email' => 'sato@example.com',
+            'password' => 'password',
+            'role' => 'user',
+        ]);
+    }
+}</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// database/seeders/TaskSeeder.php
+
+namespace Database\Seeders;
+
+use App\Models\Task;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+
+class TaskSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $tanaka = User::where('email', 'tanaka@example.com')->first();
+        $sato = User::where('email', 'sato@example.com')->first();
+
+        // 田中太郎のタスク
+        Task::create([
+            'user_id' => $tanaka->id,
+            'title' => 'Laravelの勉強',
+            'description' => 'ルーティング、コントローラー、モデルを学ぶ',
+            'status' => 'in_progress',
+            'priority' => 'high',
+            'due_date' => now()->addDays(3),
+        ]);
+
+        Task::create([
+            'user_id' => $tanaka->id,
+            'title' => 'TODOアプリの作成',
+            'description' => '認証機能とCRUD機能を実装',
+            'status' => 'pending',
+            'priority' => 'medium',
+            'due_date' => now()->addWeek(),
+        ]);
+
+        Task::create([
+            'user_id' => $tanaka->id,
+            'title' => 'データベース設計書を作成',
+            'description' => 'ER図とテーブル定義書',
+            'status' => 'completed',
+            'priority' => 'low',
+            'completed_at' => now()->subDays(2),
+        ]);
+
+        // 佐藤花子のタスク
+        Task::create([
+            'user_id' => $sato->id,
+            'title' => 'プレゼン資料作成',
+            'description' => '来週のミーティング用',
+            'status' => 'pending',
+            'priority' => 'high',
+            'due_date' => now()->addDays(5),
+        ]);
+
+        Task::create([
+            'user_id' => $sato->id,
+            'title' => 'コードレビュー',
+            'description' => 'プルリクエスト#123をレビュー',
+            'status' => 'in_progress',
+            'priority' => 'medium',
+            'due_date' => now()->addDay(),
+        ]);
+    }
+}</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// database/seeders/DatabaseSeeder.php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $this->call([
+            UserSeeder::class,
+            TaskSeeder::class,
+        ]);
+    }
+}</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># シーダー実行
+php artisan db:seed
+
+# または、マイグレーション＋シーダーを一度に実行
+php artisan migrate:fresh --seed</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 初期データの作成が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ8: Tinkerで動作確認</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">Tinkerで実践してみよう</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Tinker起動
+php artisan tinker</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">1. ユーザーとタスクの確認</h5>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// 全ユーザーを取得
+User::all();
+
+// 田中太郎のタスクを取得
+$tanaka = User::where('email', 'tanaka@example.com')->first();
+$tanaka->tasks;
+
+// タスク数をカウント
+$tanaka->tasks()->count();
+// => 3
+
+// 未完了のタスクのみ
+$tanaka->tasks()->where('status', '!=', 'completed')->get();</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">2. タスクの作成</h5>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// 新しいタスクを作成
+$tanaka->tasks()->create([
+    'title' => 'Tinkerから作成したタスク',
+    'description' => 'Tinkerでタスク作成をテスト',
+    'priority' => 'high',
+    'due_date' => now()->addDays(7),
+]);
+
+// 確認
+$tanaka->tasks()->latest()->first();</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">3. タスクの更新</h5>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// タスクを取得
+$task = Task::find(1);
+
+// ステータスを更新
+$task->update(['status' => 'in_progress']);
+
+// タスクを完了にする
+$task->markAsCompleted();
+
+// 確認
+$task->fresh();
+$task->status;
+// => "completed"
+$task->completed_at;
+// => Carbon\Carbon instance</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">4. リレーションの確認</h5>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// タスクから所有者を取得
+$task = Task::find(1);
+$task->user;
+// => User {name: "田中太郎", ...}
+
+$task->user->name;
+// => "田中太郎"
+
+// Eager Loading（N+1問題を回避）
+$tasks = Task::with('user')->get();
+
+foreach ($tasks as $task) {
+    echo $task->title . ' - ' . $task->user->name . "\n";
+}</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">5. 権限チェックのテスト</h5>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// 管理者ユーザー
+$admin = User::where('email', 'admin@example.com')->first();
+$admin->isAdmin();
+// => true
+
+// 一般ユーザー
+$tanaka = User::where('email', 'tanaka@example.com')->first();
+$tanaka->isAdmin();
+// => false
+
+// ログインシミュレーション
+Auth::login($tanaka);
+
+auth()->user()->name;
+// => "田中太郎"
+
+auth()->user()->isAdmin();
+// => false</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">6. 検索・フィルタリング</h5>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// ステータスでフィルタ
+Task::where('status', 'completed')->get();
+
+// 優先度が高いタスク
+Task::where('priority', 'high')->get();
+
+// 期限が近いタスク（7日以内）
+Task::where('due_date', '<=', now()->addDays(7))
+    ->where('status', '!=', 'completed')
+    ->orderBy('due_date', 'asc')
+    ->get();
+
+// キーワード検索
+Task::where('title', 'like', '%Laravel%')->get();
+
+// 複合検索
+Task::where('user_id', $tanaka->id)
+    ->where('status', 'pending')
+    ->where('priority', 'high')
+    ->get();</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">7. ページネーション</h5>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// ページネーション（1ページ10件）
+$tasks = Task::paginate(10);
+
+$tasks->total();      // 総件数
+$tasks->perPage();    // 1ページあたりの件数
+$tasks->currentPage(); // 現在のページ番号
+$tasks->lastPage();   // 最終ページ番号
+
+// 2ページ目を取得
+$tasks = Task::paginate(10, ['*'], 'page', 2);</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">8. 統計情報の取得</h5>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// 田中太郎のタスク統計
+$tanaka = User::where('email', 'tanaka@example.com')->first();
+
+// ステータス別カウント
+$pendingCount = $tanaka->tasks()->where('status', 'pending')->count();
+$inProgressCount = $tanaka->tasks()->where('status', 'in_progress')->count();
+$completedCount = $tanaka->tasks()->where('status', 'completed')->count();
+
+echo "未着手: {$pendingCount}\n";
+echo "進行中: {$inProgressCount}\n";
+echo "完了: {$completedCount}\n";
+
+// 期限切れタスク数
+$overdueCount = $tanaka->tasks()
+    ->where('due_date', '<', now())
+    ->where('status', '!=', 'completed')
+    ->count();
+
+echo "期限切れ: {$overdueCount}\n";</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ Tinkerでの動作確認が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+
+                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-green-500">
+                            <h4 class="text-xl font-bold text-green-400 mb-4">TODOアプリで使った技術</h4>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">1. データベース設計</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>マイグレーションでusers、tasksテーブル作成</li>
+                                    <li>外部キー制約でリレーション定義</li>
+                                    <li>enum型でステータス・優先度管理</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">2. モデルとリレーション</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>User hasMany Task（1対多）</li>
+                                    <li>Task belongsTo User</li>
+                                    <li>カスタムメソッド（isCompleted、isOverdue、markAsCompleted）</li>
+                                    <li>Eager Loadingでn+1問題回避</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">3. 認証機能</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>ユーザー登録・ログイン・ログアウト</li>
+                                    <li>パスワードのハッシュ化</li>
+                                    <li>セッション管理</li>
+                                    <li>guestミドルウェアでログイン済みはリダイレクト</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">4. CRUD操作</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>リソースコントローラーで7つのアクション</li>
+                                    <li>index（一覧）、create（作成フォーム）、store（保存）</li>
+                                    <li>show（詳細）、edit（編集フォーム）、update（更新）、destroy（削除）</li>
+                                    <li>バリデーションで入力チェック</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">5. 権限管理</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>ロール（admin、user）でアクセス制御</li>
+                                    <li>Policyで細かい権限チェック</li>
+                                    <li>自分のタスクのみ編集可能</li>
+                                    <li>管理者は全タスク閲覧・削除可能</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">6. 検索・フィルタリング</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>ステータス・優先度でフィルタ</li>
+                                    <li>キーワード検索（タイトル・説明文）</li>
+                                    <li>期限順・作成日順でソート</li>
+                                    <li>完了タスクは下に表示</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">7. ページネーション</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>paginate(10)で1ページ10件</li>
+                                    <li>withQueryString()で検索条件を保持</li>
+                                    <li>ページリンクの自動生成</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">8. シーダーとTinker</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>シーダーで初期データ作成</li>
+                                    <li>Tinkerでデータ操作・確認</li>
+                                    <li>リレーション・権限チェックのテスト</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <h4 class="text-xl font-bold text-blue-400 mb-4">学んだLaravelの機能一覧</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p class="text-blue-300 font-bold mb-2">基礎</p>
+                                    <ul class="list-disc ml-6 text-gray-300 space-y-1">
+                                        <li>ルーティング</li>
+                                        <li>コントローラー</li>
+                                        <li>ビュー（Blade）</li>
+                                        <li>マイグレーション</li>
+                                        <li>モデル</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-blue-300 font-bold mb-2">データベース</p>
+                                    <ul class="list-disc ml-6 text-gray-300 space-y-1">
+                                        <li>Eloquent ORM</li>
+                                        <li>リレーション</li>
+                                        <li>クエリビルダー</li>
+                                        <li>シーダー</li>
+                                        <li>Tinker</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-blue-300 font-bold mb-2">認証・権限</p>
+                                    <ul class="list-disc ml-6 text-gray-300 space-y-1">
+                                        <li>ユーザー認証</li>
+                                        <li>ミドルウェア</li>
+                                        <li>ロール管理</li>
+                                        <li>Policy</li>
+                                        <li>Gate</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-blue-300 font-bold mb-2">応用</p>
+                                    <ul class="list-disc ml-6 text-gray-300 space-y-1">
+                                        <li>ページネーション</li>
+                                        <li>検索・フィルタリング</li>
+                                        <li>バリデーション</li>
+                                        <li>フラッシュメッセージ</li>
+                                        <li>リダイレクト</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-purple-500">
+                            <h4 class="text-xl font-bold text-purple-400 mb-4">次のステップ</h4>
+                            <p class="text-gray-300 mb-4">
+                                TODOアプリの基本が完成しました！さらに機能を追加してみましょう:
+                            </p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-2 text-sm">
+                                <li><strong class="text-blue-300">カテゴリ機能</strong>: タスクをカテゴリ分け（仕事・プライベートなど）</li>
+                                <li><strong class="text-blue-300">タグ機能</strong>: 多対多リレーションでタグ管理</li>
+                                <li><strong class="text-blue-300">コメント機能</strong>: タスクにコメントを追加</li>
+                                <li><strong class="text-blue-300">ファイル添付</strong>: 画像アップロード機能の応用</li>
+                                <li><strong class="text-blue-300">通知機能</strong>: 期限が近いタスクをメール通知</li>
+                                <li><strong class="text-blue-300">API化</strong>: RESTful APIでSPA対応</li>
+                                <li><strong class="text-blue-300">テスト</strong>: PHPUnitでテストコード作成</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-green-900/50 to-blue-900/50 p-6 rounded-lg border border-green-500/30">
+                            <p class="text-green-300 text-lg font-bold mb-2">
+                                🎉 総合実践TODOアプリが完成しました！
+                            </p>
+                            <p class="text-gray-300 text-sm">
+                                これまで学んだ全ての知識を使って、実践的なアプリケーションを作成できました。<br>
+                                認証、CRUD、権限管理、リレーション、ページネーション、検索など、実務で必要な機能を全て実装しました。<br>
+                                この知識を活かして、さらに複雑なアプリケーションにチャレンジしてみましょう！
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+    <script>
+        // Highlight.js 初期化
+        hljs.highlightAll();
+
+        // DOM読み込み完了後に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            // コピーボタンの追加
+            document.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.classList.add('copy-button');
+                btn.textContent = 'COPY';
+                btn.addEventListener('click', () => {
+                    const code = pre.querySelector('code');
+                    let textToCopy = code.textContent;
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        btn.textContent = 'COPIED!';
+                        setTimeout(() => {
+                            btn.textContent = 'COPY';
+                        }, 2000);
+                    });
+                });
+                pre.appendChild(btn);
+            });
+
+            // h3の折り畳み機能と目次生成
+            const tocList = document.getElementById('toc-list');
+
+            document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                const id = `section-${index}`;
+                h3.id = id;
+
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('collapsible-content');
+
+                const contentSection = h3.parentElement;
+                let nextElement = h3.nextElementSibling;
+                const elementsToWrap = [];
+
+                while (nextElement) {
+                    elementsToWrap.push(nextElement);
+                    nextElement = nextElement.nextElementSibling;
+                }
+
+                elementsToWrap.forEach(el => {
+                    wrapper.appendChild(el);
+                });
+
+                contentSection.appendChild(wrapper);
+
+                h3.addEventListener('click', () => {
+                    h3.classList.toggle('collapsed');
+                    wrapper.classList.toggle('collapsed');
+                });
+
+                const tocItem = document.createElement('a');
+                tocItem.href = `#${id}`;
+                tocItem.className = 'block px-3 py-2 rounded hover:bg-white/10 transition-colors duration-200 text-gray-300 hover:text-white text-xs cursor-pointer';
+                tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                tocItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('toc-modal').classList.add('hidden');
+                    h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                tocList.appendChild(tocItem);
+            });
+
+            // 目次ボタン
+            const tocButton = document.getElementById('toc-button');
+            const tocModal = document.getElementById('toc-modal');
+            const closeToc = document.getElementById('close-toc');
+
+            tocButton.addEventListener('click', () => {
+                tocModal.classList.toggle('hidden');
+            });
+
+            closeToc.addEventListener('click', () => {
+                tocModal.classList.add('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!tocButton.contains(e.target) && !tocModal.contains(e.target)) {
+                    tocModal.classList.add('hidden');
+                }
+            });
+
+            // 全て閉じる/開くボタン
+            const toggleAllBtn = document.getElementById('toggle-all');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const toggleText = document.getElementById('toggle-text');
+            let allCollapsed = false;
+
+            toggleAllBtn.addEventListener('click', () => {
+                if (allCollapsed) {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.remove('collapsed');
+                            wrapper.classList.remove('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て閉じる';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    allCollapsed = false;
+                } else {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.add('collapsed');
+                            wrapper.classList.add('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て開く';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+                    toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    allCollapsed = true;
+                }
+            });
+
+            // サイドバー制御
+            const sidebar = document.getElementById('sidebar');
+            const openSidebarBtn = document.getElementById('open-sidebar');
+            const closeSidebarBtn = document.getElementById('close-sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            openSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.remove('-translate-x-full');
+                sidebarOverlay.classList.remove('hidden');
+            });
+
+            closeSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.add('hidden');
+            });
+
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.add('hidden');
+            });
+
+            // 上に戻るボタン
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    scrollToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+                    scrollToTopBtn.classList.add('opacity-100');
+                } else {
+                    scrollToTopBtn.classList.add('opacity-0', 'pointer-events-none');
+                    scrollToTopBtn.classList.remove('opacity-100');
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
