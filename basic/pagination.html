@@ -318,6 +318,7 @@
                     <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
                     <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
                     <li><a href="search-filter.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">検索・フィルタ</a></li>
+                    <li><a href="soft-delete.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ソフトデリート</a></li>
                     <li><a href="pagination.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">ページネーション</a></li>
                     <li><a href="image-upload.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">画像アップロード</a></li>
                     <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
@@ -371,6 +372,114 @@
                             <p class="text-xs text-gray-400 mt-2">
                                 ※ 「ここまでの知識の実践」で作成したテーブルとモデルをそのまま使用します
                             </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-orange-500">
+                            <p class="text-sm mb-3"><strong>🗄️ テストデータの準備 - ページネーション動作確認用</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                ページネーション機能を確認するには、<strong>十分なテストデータ</strong>が必要です。<br>
+                                <code>paginate(10)</code>を使う場合、ページネーションを表示するには<strong>11件以上</strong>のデータが必要になります。
+                            </p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>推奨:</strong> 40件のテストデータを作成（公開38件 + 非公開1件 + ソフトデリート1件）<br>
+                                → 検索時もページネーションが複数ページになり、<code>appends()</code>の動作確認ができます
+                            </p>
+
+                            <p class="text-xs font-semibold text-orange-300 mb-2">📝 ProductSeeder.php の編集</p>
+                            <p class="text-xs text-gray-400 mb-2"><code>database/seeders/ProductSeeder.php</code></p>
+                            <pre class="text-xs"><code class="language-php">&lt;?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class ProductSeeder extends Seeder
+{
+    public function run(): void
+    {
+        DB::table('products')->insert([
+            // 家電カテゴリー (15件)
+            ['name' => 'ノートPC', 'description' => '高性能ノートパソコン', 'price' => 89800, 'stock' => 15, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'デスクトップPC', 'description' => 'ゲーミングPC', 'price' => 120000, 'stock' => 8, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'マウス', 'description' => 'ワイヤレスマウス', 'price' => 2980, 'stock' => 50, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'キーボード', 'description' => 'メカニカルキーボード', 'price' => 8900, 'stock' => 30, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'モニター', 'description' => '27インチ4Kモニター', 'price' => 34800, 'stock' => 12, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'Webカメラ', 'description' => 'フルHD対応', 'price' => 6800, 'stock' => 25, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'ヘッドセット', 'description' => 'ノイズキャンセリング', 'price' => 12800, 'stock' => 18, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'プリンター', 'description' => 'カラーレーザー', 'price' => 28000, 'stock' => 10, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'スキャナー', 'description' => 'ドキュメント用', 'price' => 18000, 'stock' => 8, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => '外付けHDD', 'description' => '2TB', 'price' => 9800, 'stock' => 30, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'USBメモリ', 'description' => '64GB', 'price' => 1280, 'stock' => 100, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'スピーカー', 'description' => 'Bluetooth対応', 'price' => 5800, 'stock' => 20, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'ゲーミングチェア', 'description' => 'リクライニング機能', 'price' => 32000, 'stock' => 5, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'スマートウォッチ', 'description' => '在庫切れ・非公開テスト用', 'price' => 45000, 'stock' => 0, 'is_published' => false, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'タブレット', 'description' => 'ソフトデリートテスト用', 'price' => 58000, 'stock' => 5, 'is_published' => true, 'category_id' => 1, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => now()],
+
+            // 食品カテゴリー (10件)
+            ['name' => 'オーガニックコーヒー', 'description' => '香り高いコーヒー豆', 'price' => 1500, 'stock' => 30, 'is_published' => true, 'category_id' => 2, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => '緑茶', 'description' => '静岡産', 'price' => 980, 'stock' => 50, 'is_published' => true, 'category_id' => 2, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'はちみつ', 'description' => '国産100%', 'price' => 2800, 'stock' => 20, 'is_published' => true, 'category_id' => 2, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'オリーブオイル', 'description' => 'エキストラバージン', 'price' => 1680, 'stock' => 35, 'is_published' => true, 'category_id' => 2, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'パスタ', 'description' => 'デュラムセモリナ100%', 'price' => 380, 'stock' => 100, 'is_published' => true, 'category_id' => 2, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'トマトソース', 'description' => 'イタリア産', 'price' => 480, 'stock' => 60, 'is_published' => true, 'category_id' => 2, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'グラノーラ', 'description' => 'ナッツ&フルーツ', 'price' => 880, 'stock' => 40, 'is_published' => true, 'category_id' => 2, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'ジャム', 'description' => 'いちご', 'price' => 680, 'stock' => 45, 'is_published' => true, 'category_id' => 2, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'チョコレート', 'description' => 'ダークチョコ', 'price' => 580, 'stock' => 80, 'is_published' => true, 'category_id' => 2, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'マグカップ', 'description' => '陶器製', 'price' => 1200, 'stock' => 80, 'is_published' => true, 'category_id' => 2, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+
+            // 衣類カテゴリー (10件)
+            ['name' => 'Tシャツ', 'description' => 'コットン100%', 'price' => 2900, 'stock' => 100, 'is_published' => true, 'category_id' => 3, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'ジーンズ', 'description' => 'デニムパンツ', 'price' => 5980, 'stock' => 45, 'is_published' => true, 'category_id' => 3, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'スニーカー', 'description' => 'ランニングシューズ', 'price' => 7800, 'stock' => 20, 'is_published' => true, 'category_id' => 3, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'パーカー', 'description' => '裏起毛', 'price' => 4800, 'stock' => 60, 'is_published' => true, 'category_id' => 3, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'キャップ', 'description' => '調整可能', 'price' => 2400, 'stock' => 40, 'is_published' => true, 'category_id' => 3, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'ジャケット', 'description' => '防水加工', 'price' => 12800, 'stock' => 25, 'is_published' => true, 'category_id' => 3, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'マフラー', 'description' => 'ウール100%', 'price' => 3200, 'stock' => 35, 'is_published' => true, 'category_id' => 3, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => '手袋', 'description' => 'タッチパネル対応', 'price' => 1800, 'stock' => 50, 'is_published' => true, 'category_id' => 3, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'ベルト', 'description' => '本革', 'price' => 4200, 'stock' => 30, 'is_published' => true, 'category_id' => 3, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'ソックス', 'description' => '3足セット', 'price' => 980, 'stock' => 120, 'is_published' => true, 'category_id' => 3, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+
+            // 書籍カテゴリー (10件)
+            ['name' => 'Laravel入門書', 'description' => '初心者向けの解説書', 'price' => 2800, 'stock' => 20, 'is_published' => true, 'category_id' => 4, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'PHP実践ガイド', 'description' => '中級者向け', 'price' => 3200, 'stock' => 15, 'is_published' => true, 'category_id' => 4, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => '大学ノート', 'description' => 'B5サイズ', 'price' => 180, 'stock' => 200, 'is_published' => true, 'category_id' => 4, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'ボールペン', 'description' => '黒・赤・青', 'price' => 120, 'stock' => 300, 'is_published' => true, 'category_id' => 4, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'クリアファイル', 'description' => 'A4サイズ', 'price' => 100, 'stock' => 150, 'is_published' => true, 'category_id' => 4, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'マーカーペン', 'description' => '蛍光5色セット', 'price' => 580, 'stock' => 80, 'is_published' => true, 'category_id' => 4, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'ホッチキス', 'description' => '30枚とじ', 'price' => 680, 'stock' => 70, 'is_published' => true, 'category_id' => 4, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => '付箋', 'description' => '5色セット', 'price' => 320, 'stock' => 150, 'is_published' => true, 'category_id' => 4, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => 'クリップ', 'description' => '50個入り', 'price' => 200, 'stock' => 200, 'is_published' => true, 'category_id' => 4, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+            ['name' => '消しゴム', 'description' => 'プラスチック製', 'price' => 80, 'stock' => 500, 'is_published' => true, 'category_id' => 4, 'created_at' => now(), 'updated_at' => now(), 'deleted_at' => null],
+        ]);
+    }
+}</code></pre>
+
+                            <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded mt-3">
+                                <p class="text-xs text-gray-300 mb-2"><strong>💡 このデータの特徴</strong></p>
+                                <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 ml-2">
+                                    <li><strong>40件のデータ</strong> → <code>paginate(10)</code>で4ページ目まで表示</li>
+                                    <li><strong>家電15件、食品10件、衣類10件、書籍10件</strong> → カテゴリー検索でも複数ページになる</li>
+                                    <li>1件非公開（<code>is_published = false</code>） → フィルタリング動作確認</li>
+                                    <li>1件ソフトデリート（<code>deleted_at</code>あり） → 通常クエリでは除外される</li>
+                                    <li><strong>appends()の動作確認:</strong> カテゴリー検索（例:家電15件）でも2ページ目に移動でき、検索条件が保持されることを確認できる</li>
+                                </ul>
+                            </div>
+
+                            <p class="text-xs text-gray-300 mt-3 mb-2"><strong>🚀 シーダー実行コマンド</strong></p>
+                            <pre class="text-xs"><code class="language-bash"># データベースをリセットして再シード
+php artisan migrate:fresh --seed
+
+# または ProductSeeder のみ実行
+php artisan db:seed --class=ProductSeeder</code></pre>
+
+                            <div class="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded mt-3">
+                                <p class="text-xs text-yellow-300 mb-1"><strong>⚠️ 注意</strong></p>
+                                <p class="text-xs text-gray-300">
+                                    <code>migrate:fresh</code>は<strong>全データが削除</strong>されます。<br>
+                                    本番環境では絶対に実行しないでください！
+                                </p>
+                            </div>
                         </div>
 
                         <h4>なぜページネーションが必要なのか？</h4>
@@ -465,6 +574,7 @@ class PaginationController extends Controller
     &lt;meta charset="UTF-8"&gt;
     &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
     &lt;title&gt;商品一覧（ページネーション）&lt;/title&gt;
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
     &lt;style&gt;
         body { font-family: sans-serif; padding: 20px; }
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
@@ -599,11 +709,13 @@ class PaginationController extends Controller
 {
     public function index(Request $request)
     {
-        // クエリパラメータから表示件数を取得（デフォルト: 10件）
-        $perPage = $request->input('per_page', 10);
+        // バリデーション：Laravelの標準的な方法
+        $validated = $request->validate([
+            'per_page' => 'nullable|integer|in:10,20,50'
+        ]);
 
-        // 許可する件数を制限（セキュリティ対策）
-        $perPage = in_array($perPage, [10, 20, 50]) ? $perPage : 10;
+        // バリデーション済みの値を取得（デフォルト: 10件）
+        $perPage = $validated['per_page'] ?? 10;
 
         // ページネーション
         $products = Product::with('category')
@@ -614,12 +726,48 @@ class PaginationController extends Controller
 }
 </code></pre>
 
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-blue-500">
+                            <p class="text-xs font-semibold text-blue-300 mb-2">💡 バリデーションの解説</p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                <code>validate()</code> は<strong>Laravelの標準的なバリデーション方法</strong>です。
+                            </p>
+                            <div class="bg-black/30 p-3 rounded mt-2">
+                                <p class="text-xs text-gray-400 mb-2"><strong>バリデーションルール:</strong></p>
+                                <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 ml-2">
+                                    <li><code>nullable</code> → パラメータが無くてもOK</li>
+                                    <li><code>integer</code> → 整数のみ許可</li>
+                                    <li><code>in:10,20,50</code> → 10, 20, 50のいずれかのみ許可（ホワイトリスト）</li>
+                                </ul>
+                            </div>
+                        </div>
+
                         <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
-                            <p class="text-xs"><strong>⚠️ セキュリティ注意</strong></p>
-                            <p class="text-xs mt-2">
-                                <code>in_array()</code> で許可する件数を制限しています。<br>
-                                ユーザーが <code>?per_page=999999</code> のような大きな値を指定しても、<br>
-                                デフォルトの10件に戻るため、サーバー負荷を防げます。
+                            <p class="text-xs font-semibold text-yellow-300 mb-2">⚠️ なぜバリデーションが必要？（セキュリティ）</p>
+                            <div class="grid grid-cols-2 gap-3 mt-2">
+                                <div class="bg-red-500/10 p-3 rounded">
+                                    <p class="text-xs font-semibold text-red-300 mb-2">❌ バリデーションなし</p>
+                                    <pre class="text-xs text-gray-400"><code>// ユーザーが悪意を持って...
+?per_page=999999999
+
+// 結果
+→ 9億件取得を試みる
+→ メモリ不足
+→ サーバーダウン 💥</code></pre>
+                                </div>
+                                <div class="bg-green-500/10 p-3 rounded">
+                                    <p class="text-xs font-semibold text-green-300 mb-2">✅ バリデーションあり</p>
+                                    <pre class="text-xs text-gray-400"><code>// ユーザーが悪意を持って...
+?per_page=999999999
+
+// 結果
+→ バリデーションエラー
+→ 10件にフォールバック
+→ サーバー安全 ✨</code></pre>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>本番環境では必須</strong>のセキュリティ対策です。<br>
+                                中〜大規模プロジェクトでは、このようなバリデーションがないとセキュリティ監査で指摘されます。
                             </p>
                         </div>
 
@@ -685,23 +833,33 @@ class PaginationController extends Controller
                         <h4>コントローラーの更新</h4>
                         <pre><code class="language-php">public function index(Request $request)
 {
-    $perPage = $request->input('per_page', 10);
-    $perPage = in_array($perPage, [10, 20, 50]) ? $perPage : 10;
+    // バリデーション
+    $validated = $request->validate([
+        'per_page' => 'nullable|integer|in:10,20,50',
+        'sort_by' => 'nullable|string|in:created_at,price,name,stock',
+        'sort_order' => 'nullable|string|in:asc,desc'
+    ]);
 
-    // ソート順を取得
-    $sortBy = $request->input('sort_by', 'created_at');
-    $sortOrder = $request->input('sort_order', 'desc');
+    // バリデーション済みの値を取得（デフォルト値あり）
+    $perPage = $validated['per_page'] ?? 10;
+    $sortBy = $validated['sort_by'] ?? 'created_at';
+    $sortOrder = $validated['sort_order'] ?? 'desc';
 
-    // 許可するソート項目を制限
-    $allowedSortBy = ['created_at', 'price', 'name', 'stock'];
-    $sortBy = in_array($sortBy, $allowedSortBy) ? $sortBy : 'created_at';
-
+    // ページネーション
     $products = Product::with('category')
         ->orderBy($sortBy, $sortOrder)
         ->paginate($perPage);
 
     return view('pagination.index', compact('products', 'perPage', 'sortBy', 'sortOrder'));
 }</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs font-semibold text-green-300 mb-2">✅ 複数パラメータのバリデーション</p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                複数のパラメータを一度にバリデーションできます。<br>
+                                すべてのユーザー入力をホワイトリストで検証することで、安全なアプリケーションになります。
+                            </p>
+                        </div>
 
                         <h4 class="mt-6">ビューの更新</h4>
                         <pre><code class="language-html">{{-- ソート選択 --}}
@@ -753,19 +911,19 @@ class PaginationController extends Controller
                             <ul class="text-sm space-y-2">
                                 <li>✅ <code>paginate(10)</code> で簡単にページネーション実装</li>
                                 <li>✅ <code>{{ $products->links() }}</code> でページ番号リンクを自動生成</li>
-                                <li>✅ <code>with('category')</code> でN+1問題を回避（model.htmlで学習済み）</li>
+                                <li>✅ <code>with('category')</code> でN+1問題を回避（モデルで学習済み）</li>
                                 <li>✅ クエリパラメータで表示件数を動的に変更</li>
-                                <li>✅ <code>in_array()</code> でセキュリティ対策（許可する値を制限）</li>
+                                <li>✅ <code>validate()</code> + <code>in</code>ルールでセキュリティ対策（ホワイトリスト検証）</li>
                                 <li>✅ <code>orderBy()</code> でソート順をカスタマイズ</li>
                                 <li>✅ <code>appends()</code> で複数パラメータを保持</li>
-                                <li>✅ <code>$products->total()</code>、<code>firstItem()</code>、<code>lastItem()</code> で表示情報</li>
+                                <li>✅ <code>vendor:publish</code>でページネーションビューをカスタマイズ（Tailwind対応）</li>
                             </ul>
                         </div>
 
                         <h4>次のステップ</h4>
                         <p class="text-sm text-gray-300">
                             ページネーションの基本と応用を習得しました。<br>
-                            次は「検索・フィルタリング」タブで、商品の絞り込み機能を学習しましょう！
+                            次は「画像アップロード」タブで、商品画像のアップロード機能を学習しましょう！
                         </p>
 
                         <p class="text-green-300 mt-4">
@@ -907,6 +1065,26 @@ class PaginationController extends Controller
                     toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
                     allCollapsed = true;
                 }
+            });
+
+            // 上に戻るボタンの表示制御
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+                    scrollToTopBtn.classList.add('opacity-100', 'pointer-events-auto');
+                } else {
+                    scrollToTopBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                    scrollToTopBtn.classList.add('opacity-0', 'pointer-events-none');
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
             });
         });
     </script>

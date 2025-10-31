@@ -318,6 +318,7 @@
                     <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
                     <li><a href="database-practice.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">ここまでの知識の実践</a></li>
                     <li><a href="search-filter.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">検索・フィルタ</a></li>
+                    <li><a href="soft-delete.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ソフトデリート</a></li>
                     <li><a href="pagination.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ページネーション</a></li>
                     <li><a href="image-upload.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">画像アップロード</a></li>
                     <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
@@ -355,6 +356,148 @@
                             <li><strong>フロントエンド:</strong> Blade テンプレート</li>
                             <li><strong>CSS:</strong> Tailwind CSS</li>
                         </ul>
+
+                        <h4>Tailwind CSSとは</h4>
+                        <p>
+                            <strong>Tailwind CSS</strong>は、ユーティリティファーストのCSSフレームワークです。
+                            通常のCSSのようにクラス名を考える必要がなく、<code>bg-blue-500</code>や<code>text-center</code>のような
+                            小さなユーティリティクラスを組み合わせてデザインを構築します。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>🎨 Tailwind CSSの特徴</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <strong>CDN経由で簡単に導入可能:</strong> HTMLファイルに1行追加するだけで使える</li>
+                                <li>✅ <strong>直感的なクラス名:</strong> <code>text-red-500</code>、<code>p-4</code>、<code>rounded-lg</code>など、見ればわかるクラス名</li>
+                                <li>✅ <strong>レスポンシブデザインが簡単:</strong> <code>md:text-lg</code>のようにプレフィックスで対応</li>
+                                <li>✅ <strong>カスタマイズが容易:</strong> 設定ファイルで独自の色やサイズを定義可能</li>
+                            </ul>
+                        </div>
+
+                        <h4>このアプリでのTailwind CSSの使い方</h4>
+                        <p>
+                            今回のアプリでは、各Bladeテンプレートの<code>&lt;head&gt;</code>タグ内で
+                            <strong>CDN版のTailwind CSS</strong>を読み込んでいます:
+                        </p>
+                        <pre><code class="language-html">&lt;script src="https://cdn.tailwindcss.com">&lt;/script></code></pre>
+                        <p>
+                            この1行を追加するだけで、Tailwind CSSの全てのユーティリティクラスがHTMLで使えるようになります。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 Tailwind CSSクラスの例</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li><code>bg-gray-100</code> - 灰色の背景</li>
+                                <li><code>text-3xl</code> - 大きな文字サイズ</li>
+                                <li><code>font-bold</code> - 太字</li>
+                                <li><code>px-4 py-8</code> - 左右に16px、上下に32pxのパディング</li>
+                                <li><code>rounded-lg</code> - 大きめの角丸</li>
+                                <li><code>hover:bg-blue-600</code> - ホバー時に背景色を変更</li>
+                                <li><code>flex justify-between items-center</code> - フレックスボックスで要素を両端配置、垂直中央揃え</li>
+                            </ul>
+                        </div>
+
+                        <h4>Tailwind CSSを使った実際のHTML例</h4>
+                        <p>
+                            以下は、Tailwind CSSのクラスを使って、ボタンやカードをスタイリングする例です:
+                        </p>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">例1: ボタンのスタイリング</p>
+                        <pre><code class="language-html">&lt;!-- 青いボタン --&gt;
+&lt;button class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"&gt;
+    登録する
+&lt;/button&gt;
+
+&lt;!-- 赤いボタン --&gt;
+&lt;button class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600"&gt;
+    削除する
+&lt;/button&gt;
+
+&lt;!-- グレーのボタン --&gt;
+&lt;button class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"&gt;
+    キャンセル
+&lt;/button&gt;</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 クラスの説明</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li><code>bg-blue-500</code> - 背景色を青に</li>
+                                <li><code>text-white</code> - 文字色を白に</li>
+                                <li><code>px-6</code> - 左右のパディングを24px (6 × 4px)</li>
+                                <li><code>py-2</code> - 上下のパディングを8px (2 × 4px)</li>
+                                <li><code>rounded-lg</code> - 角を丸く</li>
+                                <li><code>hover:bg-blue-600</code> - ホバー時に背景色を濃い青に変更</li>
+                            </ul>
+                        </div>
+
+                        <p class="font-semibold text-purple-300 mt-6 mb-2">例2: カードのレイアウト</p>
+                        <pre><code class="language-html">&lt;div class="bg-white p-6 rounded-lg shadow-lg"&gt;
+    &lt;h2 class="text-2xl font-bold text-gray-800 mb-4"&gt;商品名&lt;/h2&gt;
+    &lt;p class="text-gray-600 mb-4"&gt;商品の説明文がここに入ります。&lt;/p&gt;
+    &lt;div class="flex justify-between items-center"&gt;
+        &lt;span class="text-3xl font-bold text-blue-600"&gt;¥1,200&lt;/span&gt;
+        &lt;button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"&gt;
+            購入する
+        &lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 クラスの説明</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li><code>bg-white</code> - 背景色を白に</li>
+                                <li><code>p-6</code> - 全方向のパディングを24px</li>
+                                <li><code>shadow-lg</code> - 大きな影を追加</li>
+                                <li><code>text-2xl</code> - 文字サイズを24pxに</li>
+                                <li><code>mb-4</code> - 下マージンを16px</li>
+                                <li><code>flex</code> - フレックスボックスを有効化</li>
+                                <li><code>justify-between</code> - 要素を両端に配置</li>
+                                <li><code>items-center</code> - 要素を垂直方向に中央揃え</li>
+                            </ul>
+                        </div>
+
+                        <p class="font-semibold text-purple-300 mt-6 mb-2">例3: フォームのスタイリング</p>
+                        <pre><code class="language-html">&lt;form class="space-y-4"&gt;
+    &lt;div&gt;
+        &lt;label class="block text-gray-700 font-bold mb-2"&gt;商品名&lt;/label&gt;
+        &lt;input
+            type="text"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="商品名を入力"
+        &gt;
+    &lt;/div&gt;
+
+    &lt;div&gt;
+        &lt;label class="block text-gray-700 font-bold mb-2"&gt;説明&lt;/label&gt;
+        &lt;textarea
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="4"
+            placeholder="商品の説明を入力"
+        &gt;&lt;/textarea&gt;
+    &lt;/div&gt;
+
+    &lt;button class="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600"&gt;
+        登録する
+    &lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 クラスの説明</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li><code>space-y-4</code> - 子要素間に16pxの縦方向の間隔を追加</li>
+                                <li><code>block</code> - ブロック要素として表示</li>
+                                <li><code>w-full</code> - 幅を100%に</li>
+                                <li><code>border</code> - ボーダーを追加</li>
+                                <li><code>border-gray-300</code> - ボーダーの色をグレーに</li>
+                                <li><code>focus:outline-none</code> - フォーカス時のアウトラインを非表示</li>
+                                <li><code>focus:ring-2</code> - フォーカス時に2pxのリングを表示</li>
+                                <li><code>focus:ring-blue-500</code> - リングの色を青に</li>
+                            </ul>
+                        </div>
+
+                        <p>
+                            公式ドキュメント: <a href="https://tailwindcss.com/" target="_blank" rel="noopener noreferrer">https://tailwindcss.com/</a>
+                        </p>
                     </div>
 
                     <div class="content-section">
@@ -465,18 +608,6 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
-    }
-
-    // スコープ: 公開されている商品のみ
-    public function scopePublished($query)
-    {
-        return $query->where('is_published', true);
-    }
-
-    // スコープ: 在庫あり
-    public function scopeInStock($query)
-    {
-        return $query->where('stock', '>', 0);
     }
 }</code></pre>
 
@@ -668,7 +799,7 @@ class ProductController extends Controller
     {
         // 公開されている商品を新しい順に取得（カテゴリー情報も一緒に）
         $products = Product::with('category')
-                           ->published()
+                           ->where('is_published', true)
                            ->latest()
                            ->get();
 
@@ -1010,14 +1141,14 @@ public function store(Request $request)
                         これがないと、エラー時に全ての入力内容が消えてしまいます。
                     &lt;/div>
 
-                    @error('name')
-                        &lt;p class="text-red-500 text-sm mt-1">{{ $message }}&lt;/p>
-                    @enderror
+                    @if($errors->has('name'))
+                        &lt;p class="text-red-500 text-sm mt-1">{{ $errors->first('name') }}&lt;/p>
+                    @endif
 
                     &lt;div class="bg-yellow-50 border border-yellow-200 p-2 rounded mt-2 text-xs">
-                        &lt;strong>💡 @error('name') とは？&lt;/strong>&lt;br>
+                        &lt;strong>💡 $errors->has('name') とは？&lt;/strong>&lt;br>
                         バリデーションエラーが発生した時のみ、エラーメッセージを表示します。&lt;br>
-                        &lt;code>{{ $message }}&lt;/code> には、コントローラで設定したエラーメッセージが入ります。
+                        &lt;code>$errors->first('name')&lt;/code> には、コントローラで設定したエラーメッセージが入ります。
                     &lt;/div>
                 &lt;/div>
 
@@ -1037,9 +1168,9 @@ public function store(Request $request)
                             &lt;/option>
                         @endforeach
                     &lt;/select>
-                    @error('category_id')
-                        &lt;p class="text-red-500 text-sm mt-1">{{ $message }}&lt;/p>
-                    @enderror
+                    @if($errors->has('category_id'))
+                        &lt;p class="text-red-500 text-sm mt-1">{{ $errors->first('category_id') }}&lt;/p>
+                    @endif
                 &lt;/div>
 
                 &lt;!-- 価格 -->
@@ -1051,9 +1182,9 @@ public function store(Request $request)
                            value="{{ old('price') }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                            required min="0">
-                    @error('price')
-                        &lt;p class="text-red-500 text-sm mt-1">{{ $message }}&lt;/p>
-                    @enderror
+                    @if($errors->has('price'))
+                        &lt;p class="text-red-500 text-sm mt-1">{{ $errors->first('price') }}&lt;/p>
+                    @endif
                 &lt;/div>
 
                 &lt;!-- 在庫数 -->
@@ -1065,9 +1196,9 @@ public function store(Request $request)
                            value="{{ old('stock', 0) }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                            required min="0">
-                    @error('stock')
-                        &lt;p class="text-red-500 text-sm mt-1">{{ $message }}&lt;/p>
-                    @enderror
+                    @if($errors->has('stock'))
+                        &lt;p class="text-red-500 text-sm mt-1">{{ $errors->first('stock') }}&lt;/p>
+                    @endif
                 &lt;/div>
 
                 &lt;!-- 説明 -->
@@ -1077,9 +1208,9 @@ public function store(Request $request)
                     &lt;/label>
                     &lt;textarea name="description" id="description" rows="4"
                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('description') }}&lt;/textarea>
-                    @error('description')
-                        &lt;p class="text-red-500 text-sm mt-1">{{ $message }}&lt;/p>
-                    @enderror
+                    @if($errors->has('description'))
+                        &lt;p class="text-red-500 text-sm mt-1">{{ $errors->first('description') }}&lt;/p>
+                    @endif
                 &lt;/div>
 
                 &lt;!-- 公開状態 -->
@@ -1112,7 +1243,7 @@ public function store(Request $request)
                             <p class="text-sm mb-3"><strong>💡 重要なポイント</strong></p>
                             <ul class="text-sm space-y-2">
                                 <li>• <code>old()</code> - バリデーションエラー時に入力値を保持</li>
-                                <li>• <code>@error</code> - バリデーションエラーメッセージの表示</li>
+                                <li>• <code>$errors->has()</code> - バリデーションエラーメッセージの表示</li>
                                 <li>• <code>@csrf</code> - CSRF対策トークン（必須）</li>
                                 <li>• <code>exists:categories,id</code> - 存在するカテゴリーIDかチェック</li>
                             </ul>
@@ -1239,9 +1370,9 @@ public function update(Request $request, $id)
                             &lt;/option>
                         @endforeach
                     &lt;/select>
-                    @error('category_id')
-                        &lt;p class="text-red-500 text-sm mt-1">{{ $message }}&lt;/p>
-                    @enderror
+                    @if($errors->has('category_id'))
+                        &lt;p class="text-red-500 text-sm mt-1">{{ $errors->first('category_id') }}&lt;/p>
+                    @endif
                 &lt;/div>
 
                 &lt;!-- 価格 -->
@@ -1253,9 +1384,9 @@ public function update(Request $request, $id)
                            value="{{ old('price', $product->price) }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                            required min="0">
-                    @error('price')
-                        &lt;p class="text-red-500 text-sm mt-1">{{ $message }}&lt;/p>
-                    @enderror
+                    @if($errors->has('price'))
+                        &lt;p class="text-red-500 text-sm mt-1">{{ $errors->first('price') }}&lt;/p>
+                    @endif
                 &lt;/div>
 
                 &lt;!-- 在庫数 -->
@@ -1267,9 +1398,9 @@ public function update(Request $request, $id)
                            value="{{ old('stock', $product->stock) }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                            required min="0">
-                    @error('stock')
-                        &lt;p class="text-red-500 text-sm mt-1">{{ $message }}&lt;/p>
-                    @enderror
+                    @if($errors->has('stock'))
+                        &lt;p class="text-red-500 text-sm mt-1">{{ $errors->first('stock') }}&lt;/p>
+                    @endif
                 &lt;/div>
 
                 &lt;!-- 説明 -->
@@ -1279,9 +1410,9 @@ public function update(Request $request, $id)
                     &lt;/label>
                     &lt;textarea name="description" id="description" rows="4"
                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('description', $product->description) }}&lt;/textarea>
-                    @error('description')
-                        &lt;p class="text-red-500 text-sm mt-1">{{ $message }}&lt;/p>
-                    @enderror
+                    @if($errors->has('description'))
+                        &lt;p class="text-red-500 text-sm mt-1">{{ $errors->first('description') }}&lt;/p>
+                    @endif
                 &lt;/div>
 
                 &lt;!-- 公開状態 -->
@@ -1369,7 +1500,7 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::with('category')
-                           ->published()
+                           ->where('is_published', true)
                            ->latest()
                            ->get();
 
@@ -1527,7 +1658,7 @@ class ProductController extends Controller
                                 <p class="font-semibold text-purple-300 mb-2">フロントエンド</p>
                                 <ul class="text-sm space-y-1">
                                     <li>• Blade テンプレート</li>
-                                    <li>• バリデーション表示（@error）</li>
+                                    <li>• バリデーション表示（$errors）</li>
                                     <li>• フラッシュメッセージ</li>
                                     <li>• 入力値保持（old()）</li>
                                     <li>• CSRF対策（@csrf）</li>

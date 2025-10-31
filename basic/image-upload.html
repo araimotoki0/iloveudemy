@@ -318,6 +318,7 @@
                     <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
                     <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
                     <li><a href="search-filter.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">検索・フィルタ</a></li>
+                    <li><a href="soft-delete.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ソフトデリート</a></li>
                     <li><a href="pagination.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ページネーション</a></li>
                     <li><a href="image-upload.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">画像アップロード</a></li>
                     <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
@@ -443,11 +444,72 @@ return new class extends Migration
 
                         <h4>シンボリックリンクとは？</h4>
                         <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
-                            <p class="text-xs"><strong>💡 シンボリックリンク（ショートカット）</strong></p>
-                            <p class="text-xs mt-2">
-                                <code>public/storage</code> → <code>storage/app/public</code> へのショートカットを作ります。<br>
-                                これにより、<code>/storage/image.jpg</code> のURLで画像にアクセスできます。
+                            <p class="text-xs font-semibold text-blue-300 mb-2">💡 シンボリックリンク（Symbolic Link）= ショートカット</p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>別の場所にあるフォルダへの「近道リンク」</strong>を作る機能です。<br>
+                                Windowsの「ショートカット」、Macの「エイリアス」と同じ仕組みです。
                             </p>
+
+                            <div class="bg-black/30 p-3 rounded">
+                                <p class="text-xs text-gray-400 mb-2"><strong>具体例:</strong></p>
+                                <pre class="text-xs text-gray-300"><code>public/storage → storage/app/public
+
+リンク元（ショートカット）   実体のフォルダ</code></pre>
+                            </div>
+
+                            <p class="text-xs text-gray-300 mt-3 mb-2"><strong>なぜ必要？</strong></p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-red-500/10 p-3 rounded">
+                                    <p class="text-xs font-semibold text-red-300 mb-2">❌ リンクがない場合</p>
+                                    <pre class="text-xs text-gray-400"><code>ブラウザ: /storage/image.jpg にアクセス
+↓
+public/storage/image.jpg を探す
+↓
+❌ 見つからない！
+（実体は storage/app/public にある）</code></pre>
+                                </div>
+                                <div class="bg-green-500/10 p-3 rounded">
+                                    <p class="text-xs font-semibold text-green-300 mb-2">✅ リンクがある場合</p>
+                                    <pre class="text-xs text-gray-400"><code>ブラウザ: /storage/image.jpg にアクセス
+↓
+public/storage → storage/app/public（リンク）
+↓
+✅ 画像が表示される！</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-purple-500">
+                            <p class="text-xs font-semibold text-purple-300 mb-2">🔍 メカニズムの詳細</p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>1. Laravelのフォルダ構造の問題</strong>
+                            </p>
+                            <pre class="text-xs text-gray-400 mb-3"><code>プロジェクトルート/
+├─ public/           ← ブラウザからアクセスできるフォルダ
+│  ├─ index.php
+│  └─ css/
+└─ storage/          ← ブラウザから直接アクセスできない
+   └─ app/
+      └─ public/    ← 画像はここに保存される</code></pre>
+
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>2. セキュリティ上の理由</strong><br>
+                                <code>storage/</code>フォルダには、ログ・キャッシュ・アップロードファイルなど機密情報が含まれます。<br>
+                                → <strong>全体を公開すると危険</strong>なので、ブラウザからアクセスできないようになっています。
+                            </p>
+
+                            <p class="text-xs text-gray-300 mb-2">
+                                <strong>3. シンボリックリンクで解決</strong>
+                            </p>
+                            <pre class="text-xs text-gray-400"><code>php artisan storage:link を実行
+↓
+public/storage/ というショートカットが作られる
+↓
+このショートカットは storage/app/public/ を指す
+↓
+ブラウザは public/storage/ にアクセスできる
+↓
+実際には storage/app/public/ の中身が見える</code></pre>
                         </div>
 
                         <h4>シンボリックリンクの作成コマンド</h4>
@@ -478,72 +540,441 @@ return new class extends Migration
 
                         <h4>重要: enctype属性</h4>
                         <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-red-500">
-                            <p class="text-xs"><strong>⚠️ 超重要!</strong></p>
-                            <p class="text-xs mt-2">
-                                ファイルをアップロードする場合、formタグに<br>
+                            <p class="text-xs font-semibold text-red-300 mb-2">⚠️ 超重要! enctype="multipart/form-data"</p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                ファイルをアップロードする場合、<code>&lt;form&gt;</code>タグに<br>
                                 <code>enctype="multipart/form-data"</code> を<strong>必ず</strong>追加してください。<br>
-                                これがないと、ファイルが送信されません。
+                                <strong>これがないと、ファイルが送信されません。</strong>
                             </p>
-                        </div>
 
-                        <h4>ビューの作成</h4>
-                        <p><code>resources/views/products/create.blade.php</code></p>
-                        <pre><code class="language-html">&lt;form action="/products" method="POST" enctype="multipart/form-data"&gt;
-    @csrf
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>enctype（エンコードタイプ）とは？</strong></p>
+                                <p class="text-xs text-gray-300 mb-2">
+                                    フォームデータを<strong>どのような形式でサーバーに送るか</strong>を指定する属性です。
+                                </p>
+                            </div>
 
-    {{-- 商品名 --}}
-    &lt;label&gt;商品名&lt;/label&gt;
-    &lt;input type="text" name="name" value="{{ old('name') }}"&gt;
-
-    {{-- 説明 --}}
-    &lt;label&gt;説明&lt;/label&gt;
-    &lt;textarea name="description"&gt;{{ old('description') }}&lt;/textarea&gt;
-
-    {{-- 画像アップロード --}}
-    &lt;label&gt;商品画像&lt;/label&gt;
-    &lt;input type="file" name="image" accept="image/*"&gt;
-
-    {{-- その他のフィールド --}}
-    &lt;button type="submit"&gt;登録&lt;/button&gt;
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div class="bg-blue-500/10 p-3 rounded">
+                                    <p class="text-xs font-semibold text-blue-300 mb-2">📝 通常のフォーム（デフォルト）</p>
+                                    <pre class="text-xs text-gray-400 mb-2"><code>&lt;form method="POST"&gt;
+  &lt;input name="name"&gt;
+  &lt;input name="email"&gt;
 &lt;/form&gt;</code></pre>
+                                    <p class="text-xs text-gray-400 mb-1"><strong>送信形式:</strong></p>
+                                    <pre class="text-xs text-gray-400"><code>name=太郎&email=test@example.com
 
-                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
-                            <p class="text-xs"><strong>💡 accept属性</strong></p>
-                            <p class="text-xs mt-2">
-                                <code>accept="image/*"</code> を付けると、画像ファイルのみ選択可能になります。<br>
-                                ユーザーが間違えてPDFなどを選択するのを防げます。
+↑ テキストデータのみ
+   シンプルで軽量</code></pre>
+                                </div>
+                                <div class="bg-green-500/10 p-3 rounded">
+                                    <p class="text-xs font-semibold text-green-300 mb-2">📁 ファイルアップロード</p>
+                                    <pre class="text-xs text-gray-400 mb-2"><code>&lt;form method="POST"
+      enctype="multipart/form-data"&gt;
+  &lt;input name="name"&gt;
+  &lt;input type="file" name="image"&gt;
+&lt;/form&gt;</code></pre>
+                                    <p class="text-xs text-gray-400 mb-1"><strong>送信形式:</strong></p>
+                                    <pre class="text-xs text-gray-400"><code>------boundary123
+Content-Disposition: form-data; name="name"
+
+太郎
+------boundary123
+Content-Disposition: form-data; name="image"; filename="photo.jpg"
+Content-Type: image/jpeg
+
+[画像のバイナリデータ]
+------boundary123--
+
+↑ バイナリデータも送信可能</code></pre>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded">
+                                <p class="text-xs font-semibold text-yellow-300 mb-2">⚠️ よくある間違い</p>
+                                <pre class="text-xs text-gray-400 mb-2"><code>❌ enctype を書き忘れた場合:
+&lt;form method="POST"&gt;  ← enctype がない！
+  &lt;input type="file" name="image"&gt;
+&lt;/form&gt;
+
+結果:
+$request->file('image')  // null
+$request->hasFile('image')  // false
+→ ファイル名だけ送信され、実体は送られない</code></pre>
+                                <pre class="text-xs text-gray-400"><code>✅ 正しい書き方:
+&lt;form method="POST" enctype="multipart/form-data"&gt;
+  &lt;input type="file" name="image"&gt;
+&lt;/form&gt;
+
+結果:
+$request->file('image')  // UploadedFile オブジェクト
+→ ファイルが正しく送信される</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-purple-500">
+                            <p class="text-xs font-semibold text-purple-300 mb-2">🔍 multipart/form-data の仕組み</p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>1. データを「パート（部品）」に分けて送信</strong>
+                            </p>
+                            <pre class="text-xs text-gray-400 mb-3"><code>通常のフォーム送信:
+name=太郎&price=1000   ← 1つの文字列
+
+multipart/form-data:
+------WebKitFormBoundary...   ← 境界線
+Content-Disposition: form-data; name="name"
+
+太郎
+------WebKitFormBoundary...   ← 境界線
+Content-Disposition: form-data; name="price"
+
+1000
+------WebKitFormBoundary...   ← 境界線
+Content-Disposition: form-data; name="image"; filename="product.jpg"
+Content-Type: image/jpeg
+
+[バイナリデータ...]
+------WebKitFormBoundary...--   ← 終了マーカー</code></pre>
+
+                            <p class="text-xs text-gray-300 mb-2">
+                                <strong>2. 各パートの構造</strong>
+                            </p>
+                            <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 ml-2 mb-3">
+                                <li><code>Content-Disposition</code> - フィールド名とファイル名</li>
+                                <li><code>Content-Type</code> - データの種類（image/jpeg, text/plainなど）</li>
+                                <li>空行の後に実際のデータ</li>
+                                <li>境界線（boundary）で各パートを区切る</li>
+                            </ul>
+
+                            <p class="text-xs text-gray-300">
+                                <strong>3. なぜこの形式が必要？</strong><br>
+                                テキストとバイナリ（画像・動画・PDF）を同時に送るため、<br>
+                                データを区切る「境界線」が必要になります。
                             </p>
                         </div>
 
-                        <p class="text-green-300 mt-4">
-                            ✅ 画像アップロードフォームができました！
-                        </p>
-                    </div>
+                        <h4 class="mt-6">multipart/form-data の歴史とメカニズム</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs font-semibold text-blue-300 mb-3">📜 歴史的背景: なぜ multipart/form-data が生まれたのか？</p>
 
-                    <div class="content-section">
-                        <h3>コントローラーで画像を保存する</h3>
-                        <p>
-                            アップロードされた画像をサーバーに保存します。
-                        </p>
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-300 mb-2"><strong>1990年代初頭 - インターネット黎明期</strong></p>
+                                <ul class="text-xs text-gray-400 space-y-1">
+                                    <li>• Web が登場した当初、フォームで送れるのは<strong>テキストのみ</strong></li>
+                                    <li>• メールでは既に添付ファイルが使われていた（MIME規格）</li>
+                                    <li>• 「Web でもファイルを送りたい」というニーズが発生</li>
+                                </ul>
+                            </div>
 
-                        <h4>ProductControllerの実装</h4>
-                        <p><code>app/Http/Controllers/ProductController.php</code></p>
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-300 mb-2"><strong>MIME（Multipurpose Internet Mail Extensions）の登場</strong></p>
+                                <ul class="text-xs text-gray-400 space-y-1">
+                                    <li>• <strong>1992年: RFC 1341</strong> で MIME が標準化（メール用）</li>
+                                    <li>• メールにテキスト・画像・添付ファイルを混在させる技術</li>
+                                    <li>• <code>multipart/mixed</code> というフォーマットで複数パートを境界線で区切る</li>
+                                    <li>• この技術が Web にも流用できることに気づく</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-300 mb-2"><strong>1995年: RFC 1867 - Form-based File Upload in HTML</strong></p>
+                                <ul class="text-xs text-gray-400 space-y-1">
+                                    <li>• HTML の <code>&lt;input type="file"&gt;</code> が提案される</li>
+                                    <li>• <code>multipart/form-data</code> がフォーム用に定義される</li>
+                                    <li>• MIME の <code>multipart</code> 技術を Web フォームに応用</li>
+                                    <li>• Netscape Navigator 2.0 で初めて実装される</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-green-500/10 p-3 rounded">
+                                <p class="text-xs text-gray-300 mb-2"><strong>現在（2025年）</strong></p>
+                                <ul class="text-xs text-gray-400 space-y-1">
+                                    <li>• すべてのブラウザで標準サポート</li>
+                                    <li>• HTML5 仕様で正式に標準化</li>
+                                    <li>• 30年前の技術が今も現役で使われている</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-purple-500">
+                            <p class="text-xs font-semibold text-purple-300 mb-3">🔬 HTTP と MIME の関係</p>
+
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>HTTP プロトコル自体は、ボディの中身のフォーマットを規定していません。</strong><br>
+                                HTTP は「ヘッダーとボディを区切る」枠組みだけを提供します。
+                            </p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>HTTP の役割（RFC 7230）:</strong></p>
+                                <pre class="text-xs text-gray-300"><code>POST /upload HTTP/1.1          ← リクエストライン
+Host: example.com              ← ヘッダー
+Content-Type: multipart/form-data; boundary=...
+Content-Length: 1234
+                               ← 空行でヘッダーとボディを区切る
+[ボディ]                        ← この中身のフォーマットは HTTP の範囲外</code></pre>
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>MIME の役割（RFC 2046）:</strong></p>
+                                <pre class="text-xs text-gray-300"><code>ボディの中を boundary で区切る具体的なルールを定義:
+
+------boundary123               ← パートの開始
+Content-Disposition: ...        ← パートのヘッダー
+                               ← 空行
+データ                          ← パートの内容
+------boundary123               ← 次のパート
+Content-Disposition: ...
+...
+------boundary123--             ← 終了マーカー（-- が2つ）</code></pre>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-blue-500/10 p-3 rounded">
+                                    <p class="text-xs font-semibold text-blue-300 mb-2">HTTP</p>
+                                    <ul class="text-xs text-gray-400 space-y-1">
+                                        <li>• リクエスト/レスポンスの構造</li>
+                                        <li>• ステータスコード</li>
+                                        <li>• ヘッダーの定義</li>
+                                        <li>• ボディの枠組みのみ</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-purple-500/10 p-3 rounded">
+                                    <p class="text-xs font-semibold text-purple-300 mb-2">MIME</p>
+                                    <ul class="text-xs text-gray-400 space-y-1">
+                                        <li>• ボディの中身のフォーマット</li>
+                                        <li>• boundary の使い方</li>
+                                        <li>• Content-Type の詳細</li>
+                                        <li>• パートの構造</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-gray-300 mt-3">
+                                <strong>つまり:</strong> HTTP は配送の枠組み、MIME は荷物の梱包方法
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs font-semibold text-green-300 mb-3">🔧 ブラウザが自動的にやってくれること</p>
+
+                            <p class="text-xs text-gray-300 mb-3">
+                                <code>enctype="multipart/form-data"</code> を指定すると、<strong>ブラウザが自動的に</strong>以下の処理を行います。<br>
+                                開発者が手動で boundary を作る必要はありません。
+                            </p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>ステップ1: ランダムな boundary を生成</strong></p>
+                                <pre class="text-xs text-gray-300"><code>----WebKitFormBoundaryXa7bK9qR2vZ5nP8L  ← ランダム生成
+
+他のデータと絶対に衝突しないように、長くてランダムな文字列を使用</code></pre>
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>ステップ2: Content-Type ヘッダーに boundary を含める</strong></p>
+                                <pre class="text-xs text-gray-300"><code>Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryXa7bK9qR2vZ5nP8L
+
+サーバーがこの boundary を使ってパートを区切ることができる</code></pre>
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>ステップ3: 各フィールドを boundary で区切る</strong></p>
+                                <pre class="text-xs text-gray-300"><code>------WebKitFormBoundaryXa7bK9qR2vZ5nP8L
+Content-Disposition: form-data; name="name"
+
+太郎
+------WebKitFormBoundaryXa7bK9qR2vZ5nP8L
+Content-Disposition: form-data; name="image"; filename="photo.jpg"
+Content-Type: image/jpeg
+
+[画像のバイナリデータ...]
+------WebKitFormBoundaryXa7bK9qR2vZ5nP8L--</code></pre>
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded">
+                                <p class="text-xs text-gray-400 mb-2"><strong>ステップ4: 終了マーカーを追加</strong></p>
+                                <pre class="text-xs text-gray-300"><code>------WebKitFormBoundaryXa7bK9qR2vZ5nP8L--
+                                                               ↑↑
+                                        最後のハイフン2つで「終了」を示す</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-orange-500">
+                            <p class="text-xs font-semibold text-orange-300 mb-3">🔍 Chrome DevTools で実際に確認する方法</p>
+
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>実際にブラウザがどのようなデータを送信しているか確認できます。</strong>
+                            </p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>手順1: DevTools を開く</strong></p>
+                                <ul class="text-xs text-gray-300 space-y-1">
+                                    <li>• Chrome で <code>F12</code> キーを押す</li>
+                                    <li>• または、右クリック → 「検証」</li>
+                                    <li>• <strong>Network</strong> タブをクリック</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>手順2: フォームを送信する</strong></p>
+                                <ul class="text-xs text-gray-300 space-y-1">
+                                    <li>• Network タブを開いた状態で、画像付きフォームを送信</li>
+                                    <li>• リクエスト一覧に新しいリクエストが追加される</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>手順3: Headers タブで Content-Type を確認</strong></p>
+                                <ul class="text-xs text-gray-300 space-y-1 mb-2">
+                                    <li>• リクエストをクリック</li>
+                                    <li>• <strong>Headers</strong> タブを選択</li>
+                                    <li>• <strong>Request Headers</strong> セクションを見る</li>
+                                </ul>
+                                <pre class="text-xs text-gray-300"><code>Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryXa7bK9qR2vZ5nP8L
+                                                           ↑
+                                        ブラウザが自動生成した boundary</code></pre>
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>手順4: Payload タブで実際のデータを確認</strong></p>
+                                <ul class="text-xs text-gray-300 space-y-1 mb-2">
+                                    <li>• <strong>Payload</strong> タブを選択</li>
+                                    <li>• デフォルトでは整形表示されている</li>
+                                    <li>• <strong>「view source」</strong> をクリックすると生データが見える</li>
+                                </ul>
+                                <pre class="text-xs text-gray-300"><code>------WebKitFormBoundaryXa7bK9qR2vZ5nP8L
+Content-Disposition: form-data; name="name"
+
+太郎
+------WebKitFormBoundaryXa7bK9qR2vZ5nP8L
+Content-Disposition: form-data; name="price"
+
+1000
+------WebKitFormBoundaryXa7bK9qR2vZ5nP8L
+Content-Disposition: form-data; name="image"; filename="product.jpg"
+Content-Type: image/jpeg
+
+���� JFIF ��  ... [binary data]
+------WebKitFormBoundaryXa7bK9qR2vZ5nP8L--</code></pre>
+                            </div>
+
+                            <div class="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded">
+                                <p class="text-xs font-semibold text-yellow-300 mb-2">💡 確認できること</p>
+                                <ul class="text-xs text-gray-300 space-y-1">
+                                    <li>✅ <strong>boundary</strong> が自動生成されている</li>
+                                    <li>✅ 各フィールドが <strong>boundary で区切られている</strong></li>
+                                    <li>✅ テキストとバイナリが<strong>混在して送信</strong>されている</li>
+                                    <li>✅ ファイル名と Content-Type が<strong>自動的に付与</strong>されている</li>
+                                    <li>✅ <code>enctype</code> なしで送信すると、画像は <code>[object File]</code> という文字列になる（ファイルが送られない）</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-red-500">
+                            <p class="text-xs font-semibold text-red-300 mb-3">⚠️ enctype なしで送信した場合の DevTools 確認</p>
+
+                            <p class="text-xs text-gray-300 mb-3">
+                                <code>enctype</code> を忘れると何が起こるか、DevTools で確認できます。
+                            </p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>Headers タブ:</strong></p>
+                                <pre class="text-xs text-gray-300"><code>Content-Type: application/x-www-form-urlencoded
+              ↑
+              デフォルトのフォーム送信形式（テキストのみ）</code></pre>
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded">
+                                <p class="text-xs text-gray-400 mb-2"><strong>Payload タブ:</strong></p>
+                                <pre class="text-xs text-gray-300"><code>name=%E5%A4%AA%E9%83%8E&price=1000&image=[object+File]
+                                                        ↑
+                                        ファイルが文字列になっている（送信失敗）
+
+サーバー側:
+$request->file('image')  // null
+$request->input('image') // "[object File]" という文字列</code></pre>
+                            </div>
+                        </div>
+
+                        <h4>ステップ1: ルーティングの設定</h4>
+                        <p class="text-sm text-gray-300"><code>routes/web.php</code></p>
+                        <pre><code class="language-php">use App\Http\Controllers\ImageUploadController;
+
+Route::get('/image-upload', [ImageUploadController::class, 'index']);          // 一覧表示
+Route::get('/image-upload/create', [ImageUploadController::class, 'create']);  // 登録フォーム
+Route::post('/image-upload', [ImageUploadController::class, 'store']);         // 登録処理</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-6 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-xs font-semibold text-yellow-300 mb-2">💡 なぜ ProductController ではなく ImageUploadController？</p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>実務では、画像アップロード機能は ProductController に統合するのが一般的です。</strong><br>
+                                商品の作成・更新・削除と画像は同じリソース（商品）の責務なので、1つのコントローラーにまとめます。
+                            </p>
+
+                            <div class="bg-blue-500/10 p-3 rounded mb-3">
+                                <p class="text-xs font-semibold text-blue-300 mb-2">📚 実務での構成例:</p>
+                                <pre class="text-xs text-gray-400"><code>ProductController
+├─ index()   // 一覧
+├─ create()  // 作成フォーム
+├─ store()   // 保存（画像も含む）
+├─ edit()    // 編集フォーム
+├─ update()  // 更新（画像も含む）
+└─ destroy() // 削除（画像も削除）
+
+→ 画像は store() と update() の中で処理</code></pre>
+                            </div>
+
+                            <div class="bg-green-500/10 p-3 rounded">
+                                <p class="text-xs font-semibold text-green-300 mb-2">✅ この教材で分ける理由:</p>
+                                <ul class="text-xs text-gray-300 space-y-1">
+                                    <li>• <strong>学習のしやすさ</strong> - 画像機能だけに集中できる</li>
+                                    <li>• <strong>独立性</strong> - 前の章のコードと干渉しない</li>
+                                    <li>• <strong>テストしやすさ</strong> - 途中から始めても動く</li>
+                                    <li>• <strong>段階的学習</strong> - 各章で1つの機能を完結させる</li>
+                                </ul>
+                            </div>
+
+                            <p class="text-xs text-gray-400 mt-3">
+                                <strong>※ 実際のプロジェクトでは、ProductController に統合することを推奨します。</strong>
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">ステップ2: コントローラーの作成</h4>
+                        <p class="text-sm text-gray-300 mb-2">画像アップロード専用のコントローラーを作成します。</p>
+                        <pre><code class="language-bash">php artisan make:controller ImageUploadController</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-4"><code>app/Http/Controllers/ImageUploadController.php</code></p>
                         <pre><code class="language-php">&lt;?php
 
 namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
-class ProductController extends Controller
+class ImageUploadController extends Controller
 {
+    // 一覧表示
+    public function index()
+    {
+        $products = Product::latest()->get();
+        return view('image-upload.index', compact('products'));
+    }
+
+    // 登録フォーム表示
+    public function create()
+    {
+        return view('image-upload.create');
+    }
+
+    // 登録処理
     public function store(Request $request)
     {
         // バリデーション
         $validated = $request->validate([
             'name' => 'required|max:255',
-            'description' => 'nullable',
+            'description' => 'nullable|max:1000',
+            'price' => 'required|integer|min:0',
+            'stock' => 'required|integer|min:0',
+            'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|max:2048', // 2MB以下の画像のみ
         ]);
 
@@ -557,67 +988,545 @@ class ProductController extends Controller
         // 商品を作成
         Product::create($validated);
 
-        return redirect('/products')->with('success', '商品を登録しました');
+        return redirect('/image-upload')->with('success', '商品を登録しました');
     }
 }
 </code></pre>
 
-                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
-                            <p class="text-xs"><strong>💡 重要なポイント</strong></p>
-                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
-                                <li>• <code>hasFile('image')</code> - ファイルがアップロードされたか確認</li>
-                                <li>• <code>store('products', 'public')</code> - storage/app/public/products に保存</li>
-                                <li>• 戻り値はファイルパス（例: products/abc123.jpg）</li>
-                                <li>• ファイル名は自動的にランダムな名前になる</li>
+                        <h4 class="mt-6">ファイルアップロード関連メソッドの詳細解説</h4>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs font-semibold text-blue-300 mb-3">📘 hasFile() メソッド</p>
+
+                            <p class="text-xs text-gray-300 mb-2"><strong>役割:</strong> ファイルがアップロードされたかを確認する</p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <pre class="text-xs text-gray-300"><code>if ($request->hasFile('image')) {
+    // ファイルがアップロードされた場合の処理
+}</code></pre>
+                            </div>
+
+                            <p class="text-xs text-gray-400 mb-2"><strong>内部で何をチェックしているか:</strong></p>
+                            <ul class="text-xs text-gray-300 space-y-1">
+                                <li>✅ フォームから 'image' という名前のファイルが送信されたか</li>
+                                <li>✅ ファイルが正常にアップロードされたか（エラーなし）</li>
+                                <li>✅ ファイルサイズが 0 より大きいか（空ファイルではない）</li>
                             </ul>
+
+                            <div class="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded mt-3">
+                                <p class="text-xs font-semibold text-yellow-300 mb-2">⚠️ hasFile() を使わないとどうなる？</p>
+                                <pre class="text-xs text-gray-400"><code>// ❌ ファイルがない場合でも store() を実行してエラー
+$imagePath = $request->file('image')->store('products', 'public');
+
+// ✅ hasFile() で確認してから実行
+if ($request->hasFile('image')) {
+    $imagePath = $request->file('image')->store('products', 'public');
+}</code></pre>
+                            </div>
                         </div>
 
-                        <h4 class="mt-6">バリデーションルールの説明</h4>
-                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
-                            <p class="text-xs"><strong>✅ 画像バリデーション</strong></p>
-                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
-                                <li>• <code>nullable</code> - 画像は任意（なくてもOK）</li>
-                                <li>• <code>image</code> - 画像ファイルのみ許可（jpg, png, gif, svg, webp）</li>
-                                <li>• <code>max:2048</code> - 最大2MB（2048KB）</li>
-                                <li>• その他: <code>mimes:jpeg,png</code> で拡張子を制限可能</li>
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs font-semibold text-green-300 mb-3">📗 store() メソッド</p>
+
+                            <p class="text-xs text-gray-300 mb-2"><strong>基本構文:</strong></p>
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <pre class="text-xs text-gray-300"><code>$path = $request->file('image')->store('フォルダ名', 'ディスク名');</code></pre>
+                            </div>
+
+                            <p class="text-xs text-gray-400 mb-2"><strong>例:</strong></p>
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <pre class="text-xs text-gray-300"><code>$imagePath = $request->file('image')->store('products', 'public');
+//                                           ↓           ↓        ↓
+//                                      ファイル名   フォルダ   ディスク
+
+// 結果: 'products/ランダムな文字列.jpg' （例: products/a1b2c3d4e5.jpg）
+// 実際の保存場所: storage/app/public/products/a1b2c3d4e5.jpg</code></pre>
+                            </div>
+
+                            <p class="text-xs text-gray-400 mb-2"><strong>store() が自動でやってくれること:</strong></p>
+                            <ul class="text-xs text-gray-300 space-y-1">
+                                <li>✅ ランダムなファイル名を生成（重複防止）</li>
+                                <li>✅ 指定したフォルダに保存（フォルダがなければ自動作成）</li>
+                                <li>✅ ファイルパスを返す（DB保存用）</li>
+                                <li>✅ 元の拡張子を保持（.jpg, .png など）</li>
                             </ul>
+
+                            <div class="bg-black/30 p-3 rounded mt-3">
+                                <p class="text-xs font-bold text-gray-400 mb-2">パラメータの詳細:</p>
+                                <table class="text-xs text-gray-300 w-full">
+                                    <tr class="border-b border-gray-600">
+                                        <th class="text-left py-2">パラメータ</th>
+                                        <th class="text-left py-2">説明</th>
+                                        <th class="text-left py-2">例</th>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2">第1引数</td>
+                                        <td class="py-2">保存先フォルダ</td>
+                                        <td class="py-2">'products'</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2">第2引数</td>
+                                        <td class="py-2">ディスク名（storage設定）</td>
+                                        <td class="py-2">'public'</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-purple-500">
+                            <p class="text-xs font-semibold text-purple-300 mb-3">🤔 store() メソッドはベストな方法？</p>
+
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>結論: 多くの場合は store() で十分ですが、場合によって使い分けます。</strong>
+                            </p>
+
+                            <h5 class="text-xs font-bold text-blue-300 mb-2">方法1: store()（最もシンプル）</h5>
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <pre class="text-xs text-gray-300"><code>$path = $request->file('image')->store('products', 'public');
+// 結果: products/a1b2c3d4e5.jpg
+
+✅ メリット:
+  - コードが短い（1行）
+  - ファイル名の重複を自動で防ぐ
+  - 拡張子を自動で保持
+
+❌ デメリット:
+  - ファイル名が指定できない（ランダム）
+  - 元のファイル名が失われる</code></pre>
+                            </div>
+
+                            <h5 class="text-xs font-bold text-blue-300 mb-2">方法2: storeAs()（ファイル名を指定）</h5>
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <pre class="text-xs text-gray-300"><code>// 実務でよく使われるパターン
+$filename = date('YmdHis') . '_' . $request->file('image')->getClientOriginalName();
+$path = $request->file('image')->storeAs('products', $filename, 'public');
+// 結果: products/20250131143025_sample.jpg
+
+✅ メリット:
+  - ファイル名を自分で指定できる
+  - 元のファイル名を保持できる
+  - ファイル名から日時がわかる（管理しやすい）
+  - 秒単位のタイムスタンプでほぼ一意
+
+❌ デメリット:
+  - 同じ秒に複数アップロードされると重複の可能性（低い）
+  - ファイル名のサニタイズが必要（セキュリティ）</code></pre>
+                            </div>
+
+                            <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded mb-3">
+                                <p class="text-xs font-semibold text-blue-300 mb-2">💡 実務でよく使われる storeAs() のパターン</p>
+
+                                <p class="text-xs text-gray-400 mb-2"><strong>パターン1: タイムスタンプ + 元のファイル名（最も一般的）</strong></p>
+                                <pre class="text-xs text-gray-300 mb-3"><code>$filename = date('YmdHis') . '_' . $request->file('image')->getClientOriginalName();
+// 例: 20250131143025_商品画像.jpg</code></pre>
+
+                                <p class="text-xs text-gray-400 mb-2"><strong>パターン2: タイムスタンプ + ランダム文字列（より安全）</strong></p>
+                                <pre class="text-xs text-gray-300 mb-3"><code>$filename = date('YmdHis') . '_' . uniqid() . '.' . $request->file('image')->extension();
+// 例: 20250131143025_65b9f2a1b3d4e.jpg</code></pre>
+
+                                <p class="text-xs text-gray-400 mb-2"><strong>パターン3: ユーザーID + タイムスタンプ（マルチテナント）</strong></p>
+                                <pre class="text-xs text-gray-300"><code>$filename = auth()->id() . '_' . time() . '.' . $request->file('image')->extension();
+// 例: 42_1706693425.jpg</code></pre>
+                            </div>
+
+                            <h5 class="text-xs font-bold text-blue-300 mb-2">方法3: move()（低レベルAPI）</h5>
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <pre class="text-xs text-gray-300"><code>$file = $request->file('image');
+$filename = uniqid() . '.' . $file->getClientOriginalExtension();
+$file->move(storage_path('app/public/products'), $filename);
+
+✅ メリット:
+  - 完全なコントロールが可能
+  - 細かい処理を自分で実装できる
+
+❌ デメリット:
+  - コードが長い
+  - 自分でパスを管理する必要がある
+  - エラーハンドリングを自分で実装</code></pre>
+                            </div>
+
+                            <h5 class="text-xs font-bold text-yellow-300 mb-2">どれを使うべき？</h5>
+                            <table class="text-xs text-gray-300 w-full mt-2">
+                                <tr class="border-b border-gray-600">
+                                    <th class="text-left py-2">ケース</th>
+                                    <th class="text-left py-2">推奨メソッド</th>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">基本的な画像アップロード</td>
+                                    <td class="py-2"><code>store()</code> ← 推奨</td>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">元のファイル名を保持したい</td>
+                                    <td class="py-2"><code>storeAs()</code></td>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">複雑な処理（リサイズなど）</td>
+                                    <td class="py-2"><code>move()</code> or Intervention/Image</td>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">S3などクラウドストレージ</td>
+                                    <td class="py-2"><code>store('path', 's3')</code></td>
+                                </tr>
+                            </table>
+
+                            <div class="bg-green-500/10 border border-green-500/30 p-3 rounded mt-3">
+                                <p class="text-xs font-semibold text-green-300 mb-2">✅ この教材では store() を使用</p>
+                                <p class="text-xs text-gray-400">
+                                    理由: シンプルで安全、Laravelの標準的な使い方、ファイル名の重複を自動で防ぐ
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-orange-500">
+                            <p class="text-xs font-semibold text-orange-300 mb-2">💡 コード全体の流れ</p>
+                            <div class="bg-black/30 p-3 rounded">
+                                <pre class="text-xs text-gray-300"><code>// ステップ1: ファイルがアップロードされたか確認
+if ($request->hasFile('image')) {
+
+    // ステップ2: storage/app/public/products に保存
+    $imagePath = $request->file('image')->store('products', 'public');
+    // $imagePath = "products/a1b2c3d4e5.jpg"
+
+    // ステップ3: DB に保存するデータに追加
+    $validated['image'] = $imagePath;
+}
+
+// ステップ4: DB に保存
+Product::create($validated);
+// → products テーブルの image カラムに "products/a1b2c3d4e5.jpg" が保存される</code></pre>
+                            </div>
+                        </div>
+
+                        <h4 class="mt-6">ステップ3-1: 一覧ビューの作成</h4>
+                        <p class="text-sm text-gray-300 mb-2">
+                            まず、<code>resources/views/image-upload/index.blade.php</code>（一覧表示）を作成します。
+                        </p>
+                        <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;商品一覧&lt;/title&gt;
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body class="bg-gray-100"&gt;
+    &lt;div class="max-w-6xl mx-auto p-8"&gt;
+        &lt;div class="flex justify-between items-center mb-8"&gt;
+            &lt;h1 class="text-3xl font-bold"&gt;商品一覧&lt;/h1&gt;
+            &lt;a href="/image-upload/create" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg"&gt;
+                新規登録
+            &lt;/a&gt;
+        &lt;/div&gt;
+
+        {{-- 成功メッセージ --}}
+        @if(session('success'))
+        &lt;div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6"&gt;
+            {{ session('success') }}
+        &lt;/div&gt;
+        @endif
+
+        {{-- 商品一覧（グリッド表示） --}}
+        &lt;div class="grid grid-cols-1 md:grid-cols-3 gap-6"&gt;
+            @foreach($products as $product)
+            &lt;div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition"&gt;
+                {{-- 画像表示 --}}
+                @if($product-&gt;image)
+                    &lt;img src="{{ asset('storage/' . $product-&gt;image) }}"
+                         alt="{{ $product-&gt;name }}"
+                         class="w-full h-48 object-cover"&gt;
+                @else
+                    &lt;div class="w-full h-48 bg-gray-200 flex items-center justify-center"&gt;
+                        &lt;span class="text-gray-500 text-sm"&gt;画像なし&lt;/span&gt;
+                    &lt;/div&gt;
+                @endif
+
+                {{-- 商品情報 --}}
+                &lt;div class="p-4"&gt;
+                    &lt;h3 class="font-bold text-xl mb-2 text-gray-800"&gt;{{ $product-&gt;name }}&lt;/h3&gt;
+                    &lt;p class="text-gray-600 text-sm mb-3"&gt;{{ $product-&gt;description }}&lt;/p&gt;
+                    &lt;div class="flex justify-between items-center"&gt;
+                        &lt;p class="text-blue-600 font-bold text-lg"&gt;¥{{ number_format($product-&gt;price) }}&lt;/p&gt;
+                        &lt;p class="text-gray-500 text-sm"&gt;在庫: {{ $product-&gt;stock }}&lt;/p&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            @endforeach
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <h4 class="mt-6">ステップ3-2: 登録フォームビューの作成</h4>
+                        <p class="text-sm text-gray-300 mb-2">
+                            次に、<code>resources/views/image-upload/create.blade.php</code>（登録フォーム）を作成します。
+                        </p>
+                        <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;商品登録&lt;/title&gt;
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body class="bg-gray-100"&gt;
+    &lt;div class="max-w-2xl mx-auto p-8"&gt;
+        &lt;div class="bg-white rounded-lg shadow-md p-8"&gt;
+            &lt;h1 class="text-2xl font-bold mb-6"&gt;商品登録&lt;/h1&gt;
+
+            {{-- 商品登録フォーム --}}
+            &lt;form action="/image-upload" method="POST" enctype="multipart/form-data"&gt;
+                @csrf
+
+                &lt;div class="mb-4"&gt;
+                    &lt;label class="block text-gray-700 font-bold mb-2"&gt;商品名 *&lt;/label&gt;
+                    &lt;input type="text" name="name" value="{{ old('name') }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required&gt;
+                    @error('name')
+                        &lt;span class="text-red-500 text-sm"&gt;{{ $message }}&lt;/span&gt;
+                    @enderror
+                &lt;/div&gt;
+
+                &lt;div class="mb-4"&gt;
+                    &lt;label class="block text-gray-700 font-bold mb-2"&gt;説明&lt;/label&gt;
+                    &lt;textarea name="description" rows="4"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"&gt;{{ old('description') }}&lt;/textarea&gt;
+                    @error('description')
+                        &lt;span class="text-red-500 text-sm"&gt;{{ $message }}&lt;/span&gt;
+                    @enderror
+                &lt;/div&gt;
+
+                &lt;div class="mb-4"&gt;
+                    &lt;label class="block text-gray-700 font-bold mb-2"&gt;価格 *&lt;/label&gt;
+                    &lt;input type="number" name="price" value="{{ old('price') }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required&gt;
+                    @error('price')
+                        &lt;span class="text-red-500 text-sm"&gt;{{ $message }}&lt;/span&gt;
+                    @enderror
+                &lt;/div&gt;
+
+                &lt;div class="mb-4"&gt;
+                    &lt;label class="block text-gray-700 font-bold mb-2"&gt;在庫数 *&lt;/label&gt;
+                    &lt;input type="number" name="stock" value="{{ old('stock') }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required&gt;
+                    @error('stock')
+                        &lt;span class="text-red-500 text-sm"&gt;{{ $message }}&lt;/span&gt;
+                    @enderror
+                &lt;/div&gt;
+
+                &lt;div class="mb-4"&gt;
+                    &lt;label class="block text-gray-700 font-bold mb-2"&gt;カテゴリー *&lt;/label&gt;
+                    &lt;select name="category_id"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required&gt;
+                        &lt;option value=""&gt;選択してください&lt;/option&gt;
+                        &lt;option value="1" {{ old('category_id') == 1 ? 'selected' : '' }}&gt;家電&lt;/option&gt;
+                        &lt;option value="2" {{ old('category_id') == 2 ? 'selected' : '' }}&gt;食品&lt;/option&gt;
+                        &lt;option value="3" {{ old('category_id') == 3 ? 'selected' : '' }}&gt;衣類&lt;/option&gt;
+                        &lt;option value="4" {{ old('category_id') == 4 ? 'selected' : '' }}&gt;書籍&lt;/option&gt;
+                    &lt;/select&gt;
+                    @error('category_id')
+                        &lt;span class="text-red-500 text-sm"&gt;{{ $message }}&lt;/span&gt;
+                    @enderror
+                &lt;/div&gt;
+
+                {{-- 画像アップロード --}}
+                &lt;div class="mb-6"&gt;
+                    &lt;label class="block text-gray-700 font-bold mb-2"&gt;商品画像&lt;/label&gt;
+                    &lt;input type="file" name="image" accept="image/*"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg"&gt;
+                    @error('image')
+                        &lt;span class="text-red-500 text-sm"&gt;{{ $message }}&lt;/span&gt;
+                    @enderror
+                &lt;/div&gt;
+
+                &lt;div class="flex gap-4"&gt;
+                    &lt;button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold"&gt;
+                        登録する
+                    &lt;/button&gt;
+                    &lt;a href="/image-upload" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-3 rounded-lg font-bold"&gt;
+                        キャンセル
+                    &lt;/a&gt;
+                &lt;/div&gt;
+            &lt;/form&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-blue-500">
+                            <p class="text-xs font-semibold text-blue-300 mb-2">💡 accept属性（HTML標準機能）</p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <code>accept="image/*"</code> は<strong>HTMLの標準属性</strong>で、Laravel固有の機能ではありません。<br>
+                                画像ファイルのみ選択可能にすることで、ユーザーが間違えてPDFなどを選択するのを防げます。
+                            </p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs text-gray-400 mb-2"><strong>acceptの値の例:</strong></p>
+                                <ul class="text-xs text-gray-300 space-y-1">
+                                    <li><code>accept="image/*"</code> → すべての画像形式（jpg, png, gif, webpなど）</li>
+                                    <li><code>accept="image/png, image/jpeg"</code> → PNGとJPEGのみ</li>
+                                    <li><code>accept=".pdf"</code> → PDFファイルのみ</li>
+                                    <li><code>accept="video/*"</code> → すべての動画形式</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded">
+                                <p class="text-xs font-semibold text-yellow-300 mb-2">⚠️ 注意: accept属性は「推奨」であり「強制」ではない</p>
+                                <p class="text-xs text-gray-400">
+                                    ブラウザのファイル選択ダイアログで画像を優先表示しますが、<br>
+                                    ユーザーは「すべてのファイル」を選択すれば他のファイルも選べます。<br>
+                                    → サーバー側でも必ず<code>validate(['image' => 'image'])</code>でチェックが必要です。
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs font-semibold text-green-300 mb-2">✅ 実装完了！</p>
+                            <p class="text-xs text-gray-300">
+                                ルート・コントローラー・ビューの3つが揃いました。<br>
+                                <code>http://localhost/image-upload</code> にアクセスして、画像付き商品を登録してみましょう！
+                            </p>
                         </div>
 
                         <p class="text-green-300 mt-4">
-                            ✅ 画像保存機能が実装できました！
+                            ✅ 画像アップロード機能の実装ができました！
                         </p>
                     </div>
 
                     <div class="content-section">
-                        <h3>ビューで画像を表示する</h3>
-                        <p>保存した画像をビューで表示してみましょう。</p>
+                        <h3>バリデーションルールの詳細</h3>
+                        <p>
+                            画像アップロードで使用するバリデーションルールについて詳しく学びましょう。
+                        </p>
 
-                        <h4 class="mt-6">Storage::url() を使った表示</h4>
-                        <pre><code class="language-php">use Illuminate\Support\Facades\Storage;
-
-// Bladeテンプレート
-@if($product->image)
-    &lt;img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}"&gt;
-@else
-    &lt;p&gt;画像がありません&lt;/p&gt;
-@endif</code></pre>
-
-                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
-                            <p class="text-xs"><strong>💡 Storage::url() とは？</strong></p>
-                            <p class="text-xs mt-2">
-                                <code>storage/app/public</code> 以下のファイルパスを、<br>
-                                <code>/storage/</code> で始まる公開URLに変換してくれます。
-                            </p>
-                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
-                                <li>• DBに保存: <code>products/abc123.jpg</code></li>
-                                <li>• Storage::url() の結果: <code>/storage/products/abc123.jpg</code></li>
-                                <li>• ブラウザからアクセス可能になる</li>
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs font-semibold text-green-300 mb-2">✅ 画像バリデーションのルール</p>
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <pre class="text-xs text-gray-300"><code>'image' => 'nullable|image|max:2048'</code></pre>
+                            </div>
+                            <ul class="text-xs space-y-2 text-gray-300">
+                                <li><strong><code>nullable</code></strong> - 画像は任意（なくてもOK）<br>
+                                    <span class="text-gray-400">→ 画像なしでも商品登録が可能になります</span></li>
+                                <li><strong><code>image</code></strong> - 画像ファイルのみ許可<br>
+                                    <span class="text-gray-400">→ jpg, jpeg, png, bmp, gif, svg, webp が許可されます</span></li>
+                                <li><strong><code>max:2048</code></strong> - 最大2MB（2048KB）<br>
+                                    <span class="text-gray-400">→ ファイルサイズを制限して、サーバー負荷を軽減</span></li>
                             </ul>
                         </div>
 
-                        <h4 class="mt-6">商品一覧で画像を表示する例</h4>
-                        <pre><code class="language-php">// resources/views/products/index.blade.php
-@foreach($products as $product)
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs font-semibold text-purple-300 mb-2">💡 その他の便利なバリデーション</p>
+                            <ul class="text-xs space-y-2 text-gray-300">
+                                <li><code>'image' => 'required|image'</code><br>
+                                    <span class="text-gray-400">→ 画像を必須にする場合</span></li>
+                                <li><code>'image' => 'nullable|image|mimes:jpeg,png'</code><br>
+                                    <span class="text-gray-400">→ JPEGとPNGのみに制限</span></li>
+                                <li><code>'image' => 'nullable|image|dimensions:min_width=100,min_height=100'</code><br>
+                                    <span class="text-gray-400">→ 最小サイズを指定（100x100px以上）</span></li>
+                                <li><code>'image' => 'nullable|image|max:5120'</code><br>
+                                    <span class="text-gray-400">→ 最大5MB（5120KB）に変更</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>画像表示の2つの方法</h3>
+                        <p>保存した画像をビューで表示する方法は2つあります。</p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 mb-6 border-l-4 border-green-500">
+                            <p class="text-xs font-semibold text-green-300 mb-3">💡 asset() ヘルパーの仕組み - なぜ画像にアクセスできるのか？</p>
+
+                            <h5 class="text-xs font-bold text-blue-300 mb-2">1. public ディレクトリは「Webサーバーのドキュメントルート」</h5>
+                            <p class="text-xs text-gray-300 mb-3">
+                                Laravelでは、<code>public</code> フォルダだけがブラウザからアクセス可能な領域です。<br>
+                                <code>app/</code> や <code>storage/</code> に直接アクセスすることはできません（セキュリティ対策）。
+                            </p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs font-bold text-gray-400 mb-2">フォルダ構造:</p>
+                                <pre class="text-xs text-gray-300"><code>your-project/
+├── app/
+├── storage/
+│   └── app/
+│       └── public/
+│           └── products/
+│               └── abc123.jpg  ← 実際のファイル（ブラウザから直接アクセス不可）
+├── public/  ← Webサーバーはここだけ公開
+│   ├── index.php
+│   ├── css/
+│   ├── js/
+│   └── storage/  ← シンボリックリンク
+│       └── products/
+│           └── abc123.jpg  ← storage/app/public へのリンク（アクセス可能）</code></pre>
+                            </div>
+
+                            <h5 class="text-xs font-bold text-blue-300 mb-2">2. シンボリックリンクで public/storage を作成</h5>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <code>php artisan storage:link</code> を実行すると:<br>
+                                <code>public/storage</code> → <code>storage/app/public</code> へのショートカットが作られる
+                            </p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs font-bold text-gray-400 mb-2">リンクの仕組み:</p>
+                                <pre class="text-xs text-gray-300"><code>ブラウザ: http://localhost:8000/storage/products/abc123.jpg
+              ↓
+public/storage/products/abc123.jpg にアクセス
+              ↓
+シンボリックリンクを辿る
+              ↓
+storage/app/public/products/abc123.jpg（実体）を返す</code></pre>
+                            </div>
+
+                            <h5 class="text-xs font-bold text-blue-300 mb-2">3. asset() ヘルパーの役割</h5>
+                            <p class="text-xs text-gray-300 mb-2">
+                                <code>asset()</code> は「public フォルダからの相対パス」を「フルURL」に変換します。
+                            </p>
+
+                            <div class="bg-black/30 p-3 rounded">
+                                <pre class="text-xs text-gray-300"><code>// DBに保存されている値
+$product->image = "products/abc123.jpg"
+
+// Blade テンプレート
+{{ asset('storage/' . $product->image) }}
+                ↓
+asset('storage/products/abc123.jpg')
+                ↓
+// 結果（フルURL）
+http://localhost:8000/storage/products/abc123.jpg
+
+// HTMLに出力される
+&lt;img src="http://localhost:8000/storage/products/abc123.jpg"&gt;</code></pre>
+                            </div>
+
+                            <h5 class="text-xs font-bold text-yellow-300 mb-2 mt-3">⚠️ なぜ storage/app/public に保存するのか？</h5>
+                            <ul class="text-xs text-gray-300 space-y-1">
+                                <li>• <strong>セキュリティ</strong> - public フォルダに直接保存すると、意図しないファイルがアップロードされるリスク</li>
+                                <li>• <strong>管理のしやすさ</strong> - アップロードファイルを一箇所に集約</li>
+                                <li>• <strong>バックアップ</strong> - storage フォルダだけバックアップすればOK</li>
+                                <li>• <strong>権限管理</strong> - シンボリックリンクを削除すれば、一時的にアクセス不可にできる</li>
+                            </ul>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div class="glass-dark p-4 rounded-xl border-l-4 border-blue-500">
+                                <p class="text-xs font-semibold text-blue-300 mb-2">方法1: asset() ヘルパー（推奨）</p>
+                                <pre class="text-xs text-gray-300 mb-2"><code>{{ asset('storage/' . $product->image) }}</code></pre>
+                                <p class="text-xs text-gray-400 mb-2"><strong>結果:</strong></p>
+                                <pre class="text-xs text-gray-400"><code>http://localhost:8000/storage/products/abc123.jpg</code></pre>
+                                <p class="text-xs text-green-300 mt-2">✅ シンプルで推奨</p>
+                            </div>
+
+                            <div class="glass-dark p-4 rounded-xl border-l-4 border-purple-500">
+                                <p class="text-xs font-semibold text-purple-300 mb-2">方法2: Storage::url()</p>
+                                <pre class="text-xs text-gray-300 mb-2"><code>{{ Storage::url($product->image) }}</code></pre>
+                                <p class="text-xs text-gray-400 mb-2"><strong>結果:</strong></p>
+                                <pre class="text-xs text-gray-400"><code>/storage/products/abc123.jpg</code></pre>
+                                <p class="text-xs text-blue-300 mt-2">ℹ️ use文が必要、S3等のクラウドストレージ使用時に便利</p>
+                            </div>
+                        </div>
+
+                        <h4 class="mt-6">ビューでの実装例</h4>
+                        <pre><code class="language-html">{{-- 画像表示（画像がある場合のみ） --}}
+@if($product->image)
     &lt;div class="product-card"&gt;
         @if($product->image)
             &lt;img src="{{ Storage::url($product->image) }}"
@@ -881,24 +1790,192 @@ $product->image = 'products/' . $filename;</code></pre>
                         <div class="glass-dark p-6 rounded-xl mt-6 border-l-4 border-green-500">
                             <p class="text-sm font-bold text-green-300">🎉 画像アップロード機能の実装完了！</p>
                             <p class="text-xs mt-2 text-gray-300">
-                                これでLaravelでの画像アップロード機能が実装できるようになりました。<br>
-                                次の章では、ユーザー認証（ログイン/ログアウト）機能について学びます。
+                                これでLaravelでの画像アップロード機能が実装できるようになりました。
                             </p>
                         </div>
+
+                        <h3 class="mt-8">実務では外部ストレージ（AWS S3 / Azure Blob）を使用</h3>
+                        <p class="text-sm text-gray-300 mb-4">
+                            この教材では <code>storage/app/public</code> にファイルを保存しましたが、<br>
+                            <strong>実務の本番環境では、AWS S3 や Azure Blob Storage などの外部ストレージを使うのが一般的です。</strong>
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-xs font-semibold text-yellow-300 mb-3">⚠️ ローカルストレージの問題点: 複数サーバー構成での同期</p>
+
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>アプリケーションサーバーを2台以上で冗長化した場合、ローカルストレージでは問題が発生します。</strong>
+                            </p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs font-bold text-gray-400 mb-2">構成図:</p>
+                                <pre class="text-xs text-gray-300"><code>【ローカルストレージの場合】
+
+ユーザー → ロードバランサー
+              ├─→ サーバー1 (storage/app/public/products/abc.jpg) ✅
+              └─→ サーバー2 (storage/app/public/products/???.jpg) ❌
+
+問題:
+1. ユーザーがサーバー1にアップロード → abc.jpg が保存される
+2. 次のリクエストがロードバランサーでサーバー2に振り分けられる
+3. サーバー2には abc.jpg が存在しない → 404エラー！</code></pre>
+                            </div>
+
+                            <p class="text-xs text-gray-400 mb-2"><strong>なぜ同期が取れない？</strong></p>
+                            <ul class="text-xs text-gray-300 space-y-1">
+                                <li>• 各サーバーは独立した <code>storage/app/public</code> を持つ</li>
+                                <li>• サーバー1にアップロードしたファイルは、サーバー2には自動で同期されない</li>
+                                <li>• rsync などで同期する方法もあるが、複雑でリアルタイム性がない</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs font-semibold text-green-300 mb-3">✅ 外部ストレージ（S3 / Azure Blob）による解決</p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs font-bold text-gray-400 mb-2">構成図:</p>
+                                <pre class="text-xs text-gray-300"><code>【外部ストレージの場合】
+
+ユーザー → ロードバランサー
+              ├─→ サーバー1 ─┐
+              └─→ サーバー2 ─┴─→ AWS S3 / Azure Blob Storage（共通ストレージ）
+
+メリット:
+✅ すべてのサーバーが同じストレージにアクセス
+✅ サーバーを何台増やしても問題なし
+✅ サーバーが落ちてもファイルは安全
+✅ ファイルの同期を考える必要がない</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs font-semibold text-blue-300 mb-3">💡 環境別の使い分け</p>
+
+                            <table class="text-xs text-gray-300 w-full">
+                                <tr class="border-b border-gray-600">
+                                    <th class="text-left py-2">環境</th>
+                                    <th class="text-left py-2">ストレージ</th>
+                                    <th class="text-left py-2">理由</th>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">開発環境</td>
+                                    <td class="py-2">ローカル (<code>storage/app/public</code>)</td>
+                                    <td class="py-2">開発しやすい、コスト不要</td>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">本番環境（1台）</td>
+                                    <td class="py-2">ローカルでもOK</td>
+                                    <td class="py-2">冗長化してなければ問題ない</td>
+                                </tr>
+                                <tr class="border-b border-gray-700">
+                                    <td class="py-2">本番環境（複数台）</td>
+                                    <td class="py-2">AWS S3 / Azure Blob</td>
+                                    <td class="py-2">必須（同期問題を回避）</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-xs font-semibold text-purple-300 mb-3">🚀 Laravelでの実装は簡単</p>
+
+                            <p class="text-xs text-gray-300 mb-2">
+                                <strong>コードはほぼ変更不要！設定だけで切り替え可能です。</strong>
+                            </p>
+
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs font-bold text-gray-400 mb-2">ローカルストレージ:</p>
+                                <pre class="text-xs text-gray-300"><code>$request->file('image')->store('products', 'public');</code></pre>
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded">
+                                <p class="text-xs font-bold text-gray-400 mb-2">AWS S3（1文字だけ変更）:</p>
+                                <pre class="text-xs text-gray-300"><code>$request->file('image')->store('products', 's3');
+                                          ↑
+                            ここを変えるだけ
+
+// config/filesystems.php で s3 の設定を追加するだけ
+'disks' => [
+    's3' => [
+        'driver' => 's3',
+        'key' => env('AWS_ACCESS_KEY_ID'),
+        'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        'region' => env('AWS_DEFAULT_REGION'),
+        'bucket' => env('AWS_BUCKET'),
+    ],
+],</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-4 border-l-4 border-orange-500">
+                            <p class="text-xs font-semibold text-orange-300 mb-2">📌 まとめ</p>
+                            <ul class="text-xs text-gray-300 space-y-2">
+                                <li>✅ <strong>開発環境</strong>: ローカルストレージ (<code>storage/app/public</code>) で十分</li>
+                                <li>✅ <strong>本番環境（複数サーバー）</strong>: 外部ストレージ（S3 / Azure Blob）が必須</li>
+                                <li>✅ <strong>理由</strong>: サーバー間でファイルの同期が取れないため</li>
+                                <li>✅ <strong>Laravel</strong>: 設定を変えるだけで簡単に切り替え可能</li>
+                            </ul>
+                        </div>
+
+                        <p class="text-green-300 mt-6">
+                            次の章では、ユーザー認証（ログイン/ログアウト）機能について学びます。
+                        </p>
                     </div>
                 </div>
             </main>
         </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
         <script>
-            // タブの切り替え
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.addEventListener('click', function() {
-                    const targetTab = this.getAttribute('data-tab');
-                    window.location.href = `${targetTab}.html`;
+            document.addEventListener('DOMContentLoaded', (event) => {
+                hljs.highlightAll();
+
+                // コピーボタンの追加
+                document.querySelectorAll('pre').forEach(pre => {
+                    const btn = document.createElement('button');
+                    btn.classList.add('copy-button');
+                    btn.textContent = 'COPY';
+                    btn.addEventListener('click', () => {
+                        const code = pre.querySelector('code');
+                        let textToCopy = code.textContent;
+
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            btn.textContent = 'COPIED!';
+                            setTimeout(() => {
+                                btn.textContent = 'COPY';
+                            }, 2000);
+                        });
+                    });
+                    pre.appendChild(btn);
+                });
+
+                // タブの切り替え
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const targetTab = this.getAttribute('data-tab');
+                        window.location.href = `${targetTab}.html`;
+                    });
+                });
+            });
+        </script>
+        <script>
+
+            // 上に戻るボタンの表示制御
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+                    scrollToTopBtn.classList.add('opacity-100', 'pointer-events-auto');
+                } else {
+                    scrollToTopBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                    scrollToTopBtn.classList.add('opacity-0', 'pointer-events-none');
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
                 });
             });
         </script>

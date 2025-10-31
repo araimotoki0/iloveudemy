@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【第四弾】Laravel入門資料</title>
+    <meta name="description" content="【第四弾】Laravel入門の補足資料とリソース集">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .content-section h3:hover {
+            background: rgba(49, 131, 255, 0.1);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section a {
+            color: #3183ff;
+            text-decoration: underline;
+        }
+
+        .content-section a:hover {
+            color: #8b5cf6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        pre {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        pre code {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="../miraichi/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 目次ポップアップ（コンパクト版） -->
+    <div id="toc-modal" class="fixed top-32 right-8 z-50 hidden">
+        <div class="glass-dark rounded-lg p-4 w-80 max-h-[70vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-white">
+                    目次
+                </h2>
+                <button id="close-toc" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="toc-list" class="space-y-1">
+                <!-- 目次項目はJavaScriptで動的に生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- 目次ボタンと全て閉じるボタン（固定位置） -->
+        <div class="fixed top-24 right-16 z-40 flex flex-col gap-2">
+            <button id="toc-button"
+                class="px-3 py-1.5 rounded-lg glass hover:bg-white/20 transition-colors duration-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                <span class="text-white text-xs">目次</span>
+            </button>
+            <button id="toggle-all" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 flex items-center justify-center gap-2 text-xs text-red-300 hover:text-red-200 border border-red-500/30">
+                <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span id="toggle-text" class="text-white text-xs">全て閉じる</span>
+            </button>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    【第四弾】Laravel入門資料
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
+                    <li><a href="search-filter.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">検索・フィルタ</a></li>
+                    <li><a href="soft-delete.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">ソフトデリート</a></li>
+                    <li><a href="pagination.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ページネーション</a></li>
+                    <li><a href="image-upload.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">画像アップロード</a></li>
+                    <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
+                    <li><a href="authentication-implementation.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証実装</a></li>
+                    <li><a href="authentication-middleware.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ミドルウェア・ロール</a></li>
+                    <li><a href="comprehensive-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">総合実践</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- 公式ドキュメントへのリンク -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📚 <strong>Laravel公式ドキュメント - Eloquent: Getting Started</strong>
+                        </p>
+                        <a href="https://laravel.com/docs/12.x/eloquent#soft-deleting" target="_blank"
+                           class="text-primary-400 hover:text-primary-300 underline text-base">
+                            https://laravel.com/docs/12.x/eloquent#soft-deleting
+                        </a>
+                        <p class="text-gray-400 text-sm mt-4 leading-relaxed">
+                            💡 この講座では、上記の公式ドキュメントを基に解説していきます。<br>
+                            公式ドキュメントは初学者には内容が難しいため、エッセンスを優しく噛み砕いて解説していきます。
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ソフトデリート（論理削除） - データを安全に削除する</h3>
+                        <p>
+                            <strong>ソフトデリート</strong>は、データベースから実際にレコードを削除せず、「削除フラグ」を立てて論理的に削除する機能です。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 ソフトデリートを使う理由</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <strong>データの復元が可能:</strong> 誤って削除してもデータを復旧できる</li>
+                                <li>✅ <strong>履歴の保持:</strong> 削除されたデータの履歴を追跡できる</li>
+                                <li>✅ <strong>関連データの保護:</strong> 外部キー制約による問題を回避</li>
+                                <li>✅ <strong>監査ログ:</strong> いつ誰が削除したかの記録を残せる</li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 この章で学ぶこと</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <code>SoftDeletes</code>トレイトの使い方</li>
+                                <li>✅ マイグレーションで<code>deleted_at</code>カラムを追加</li>
+                                <li>✅ 削除済みデータの取得・復元・完全削除</li>
+                                <li>✅ 削除済み商品一覧画面の実装</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">論理削除 vs 物理削除</h4>
+                        <p>
+                            削除方法には2種類あります。それぞれの違いを理解しましょう。
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-4">
+                            <div class="glass-dark p-4 rounded-xl border-l-4 border-red-500">
+                                <p class="text-sm font-semibold text-red-300 mb-2">❌ 物理削除（Physical Delete）</p>
+                                <p class="text-xs text-gray-300 mb-3">
+                                    データベースからレコードを<strong>完全に削除</strong>する方法
+                                </p>
+                                <pre class="text-xs mb-2"><code class="language-sql">DELETE FROM products WHERE id = 1;</code></pre>
+                                <p class="text-xs text-gray-400 mb-2"><strong>特徴:</strong></p>
+                                <ul class="text-xs text-gray-400 space-y-1 list-disc list-inside ml-2">
+                                    <li>データが永久に失われる</li>
+                                    <li>復元不可能</li>
+                                    <li>ディスク容量を節約</li>
+                                    <li>監査ログが残らない</li>
+                                </ul>
+                            </div>
+
+                            <div class="glass-dark p-4 rounded-xl border-l-4 border-green-500">
+                                <p class="text-sm font-semibold text-green-300 mb-2">✅ 論理削除（Logical Delete / Soft Delete）</p>
+                                <p class="text-xs text-gray-300 mb-3">
+                                    データは残したまま、<strong>削除フラグ</strong>を立てる方法
+                                </p>
+                                <pre class="text-xs mb-2"><code class="language-sql">UPDATE products
+SET deleted_at = '2025-10-30 12:00:00'
+WHERE id = 1;</code></pre>
+                                <p class="text-xs text-gray-400 mb-2"><strong>特徴:</strong></p>
+                                <ul class="text-xs text-gray-400 space-y-1 list-disc list-inside ml-2">
+                                    <li>データは残る</li>
+                                    <li>復元可能</li>
+                                    <li>履歴として保持</li>
+                                    <li>監査ログとして機能</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h4 class="mt-6">SoftDeletesトレイトは必須？</h4>
+                        <p>
+                            <code>SoftDeletes</code>トレイトを宣言しないとどうなるか、挙動の違いを理解しましょう。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-xs mb-3"><strong>⚠️ トレイトなしの場合の挙動</strong></p>
+
+                            <p class="text-xs font-semibold text-yellow-300 mb-2">1. delete()を実行した場合</p>
+                            <pre class="text-xs mb-2"><code class="language-php">// トレイトなし
+class Product extends Model
+{
+    // use SoftDeletes; ← これがない
+}
+
+$product = Product::find(1);
+$product->delete();</code></pre>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>結果:</strong> データベースから<strong>完全に削除</strong>される（物理削除）<br>
+                                → <code>deleted_at</code>カラムは更新されない<br>
+                                → データは永久に失われる<br>
+                                → <span class="text-green-300">エラーは出ない</span>
+                            </p>
+
+                            <p class="text-xs font-semibold text-yellow-300 mb-2 mt-4">2. ソフトデリート専用メソッドを使った場合</p>
+                            <pre class="text-xs mb-2"><code class="language-php">// トレイトなし
+Product::withTrashed()->get();  // ❌ エラー
+$product->restore();            // ❌ エラー
+Product::onlyTrashed()->get();  // ❌ エラー</code></pre>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>結果:</strong> <span class="text-red-300">Call to undefined method エラー</span>になる<br>
+                                → これらのメソッドはトレイトによって提供されるため
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs mb-3"><strong>📊 挙動の比較表</strong></p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs">
+                                    <thead>
+                                        <tr class="border-b border-gray-600">
+                                            <th class="text-left py-2 px-2 text-gray-300">操作</th>
+                                            <th class="text-left py-2 px-2 text-red-300">トレイトなし</th>
+                                            <th class="text-left py-2 px-2 text-green-300">トレイトあり</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-400">
+                                        <tr class="border-b border-gray-700">
+                                            <td class="py-2 px-2"><code>delete()</code></td>
+                                            <td class="py-2 px-2">物理削除される</td>
+                                            <td class="py-2 px-2 text-green-300">論理削除される</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-700">
+                                            <td class="py-2 px-2"><code>withTrashed()</code></td>
+                                            <td class="py-2 px-2 text-red-300">❌ エラー</td>
+                                            <td class="py-2 px-2 text-green-300">✅ 動作する</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-700">
+                                            <td class="py-2 px-2"><code>onlyTrashed()</code></td>
+                                            <td class="py-2 px-2 text-red-300">❌ エラー</td>
+                                            <td class="py-2 px-2 text-green-300">✅ 動作する</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-700">
+                                            <td class="py-2 px-2"><code>restore()</code></td>
+                                            <td class="py-2 px-2 text-red-300">❌ エラー</td>
+                                            <td class="py-2 px-2 text-green-300">✅ 動作する</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-2"><code>forceDelete()</code></td>
+                                            <td class="py-2 px-2 text-red-300">❌ エラー</td>
+                                            <td class="py-2 px-2 text-green-300">✅ 物理削除できる</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-purple-500">
+                            <p class="text-xs mb-2"><strong>💡 結論</strong></p>
+                            <p class="text-xs text-gray-300">
+                                <strong>SoftDeletesトレイトは必須ではありませんが:</strong><br>
+                                • <code>delete()</code>を使った場合 → エラーにならないが<strong>物理削除</strong>になる<br>
+                                • ソフトデリート専用メソッド → <strong>エラーになる</strong>（メソッドが存在しないため）<br>
+                                <br>
+                                <strong>ソフトデリート機能を使うには、必ずトレイトを宣言する必要があります。</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ1: マイグレーションの作成</h3>
+                        <p>
+                            既存の<code>products</code>テーブルに<code>deleted_at</code>カラムを追加します。
+                        </p>
+                        <pre><code class="language-bash"># 新しいマイグレーションファイルを作成
+php artisan make:migration add_soft_deletes_to_products_table</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-4">
+                            <code>database/migrations/xxxx_add_soft_deletes_to_products_table.php</code>
+                        </p>
+                        <pre><code class="language-php">&lt;?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            $table->softDeletes(); // deleted_at カラムを追加
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            $table->dropSoftDeletes();
+        });
+    }
+};</code></pre>
+
+                        <pre><code class="language-bash"># マイグレーションを実行
+php artisan migrate</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>💡 softDeletes()メソッドとは？</strong></p>
+                            <p class="text-sm">
+                                <code>softDeletes()</code>は、<code>deleted_at</code>という<strong>TIMESTAMP型のNULL許可カラム</strong>を自動的に追加します。<br>
+                                削除されていないデータは<code>deleted_at = NULL</code>、削除されたデータには削除日時が入ります。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ2: モデルの修正</h3>
+                        <p>
+                            <code>Product</code>モデルに<code>SoftDeletes</code>トレイトを追加します。
+                        </p>
+                        <p class="text-sm text-gray-300 mt-4"><code>app/Models/Product.php</code></p>
+                        <pre><code class="language-php">&lt;?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Product extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'stock',
+        'is_published',
+        'category_id',
+    ];
+
+    // この商品が属するカテゴリー
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+}</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 SoftDeletesトレイトが提供する機能</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>• <code>$product->delete()</code> - ソフトデリート実行（deleted_atに現在時刻を設定）</li>
+                                <li>• <code>$product->restore()</code> - 削除したデータを復元</li>
+                                <li>• <code>$product->forceDelete()</code> - 物理削除（完全削除）</li>
+                                <li>• <code>Product::withTrashed()</code> - 削除済みも含めて取得</li>
+                                <li>• <code>Product::onlyTrashed()</code> - 削除済みのみ取得</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ3: コントローラーの削除処理</h3>
+                        <p>
+                            削除処理は変更不要です。<code>delete()</code>メソッドが自動的にソフトデリートを実行します。
+                        </p>
+                        <p class="text-sm text-gray-300 mt-4"><code>app/Http/Controllers/ProductController.php</code></p>
+                        <pre><code class="language-php">// 商品削除
+public function destroy(Product $product)
+{
+    $product->delete(); // ソフトデリート実行（deleted_atに現在時刻が入る）
+
+    return redirect()->route('products.index')
+                     ->with('success', '商品を削除しました');
+}</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>⚠️ 重要なポイント</strong></p>
+                            <p class="text-sm">
+                                <code>SoftDeletes</code>トレイトを追加すると、<code>delete()</code>メソッドの動作が自動的に変わります。<br>
+                                データベースから実際に削除されるのではなく、<code>deleted_at</code>に現在時刻が入るだけになります。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ4: 削除済みデータの取得</h3>
+                        <p>
+                            通常のクエリでは削除済みデータは取得されません。削除済みデータを扱う方法を学びましょう。
+                        </p>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">通常の取得（削除済みは除外される）</p>
+                        <pre><code class="language-php">// deleted_at が NULL のデータのみ取得
+$products = Product::all();</code></pre>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">削除済みも含めて取得</p>
+                        <pre><code class="language-php">// deleted_at の値に関係なく全て取得
+$products = Product::withTrashed()->get();</code></pre>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">削除済みのみ取得</p>
+                        <pre><code class="language-php">// deleted_at が NULL でないデータのみ取得
+$products = Product::onlyTrashed()->get();</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm mb-3"><strong>💡 クエリの動作</strong></p>
+                            <table class="w-full text-sm mt-3">
+                                <thead>
+                                    <tr class="border-b border-gray-600">
+                                        <th class="text-left py-2 px-3">メソッド</th>
+                                        <th class="text-left py-2 px-3">取得されるデータ</th>
+                                        <th class="text-left py-2 px-3">SQL条件</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3"><code>Product::all()</code></td>
+                                        <td class="py-2 px-3">削除されていないデータのみ</td>
+                                        <td class="py-2 px-3"><code>deleted_at IS NULL</code></td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3"><code>Product::withTrashed()->get()</code></td>
+                                        <td class="py-2 px-3">全てのデータ</td>
+                                        <td class="py-2 px-3">条件なし</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 px-3"><code>Product::onlyTrashed()->get()</code></td>
+                                        <td class="py-2 px-3">削除済みデータのみ</td>
+                                        <td class="py-2 px-3"><code>deleted_at IS NOT NULL</code></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ5: 復元機能の実装</h3>
+                        <p>
+                            削除した商品を復元する機能を追加します。
+                        </p>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">ルート定義</p>
+                        <p class="text-sm text-gray-300"><code>routes/web.php</code></p>
+                        <pre><code class="language-php">// 削除済み商品一覧
+Route::get('/products/trashed', [ProductController::class, 'trashed'])->name('products.trashed');
+
+// 商品復元
+Route::patch('/products/{id}/restore', [ProductController::class, 'restore'])->name('products.restore');
+
+// 完全削除
+Route::delete('/products/{id}/force-delete', [ProductController::class, 'forceDelete'])->name('products.forceDelete');</code></pre>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">コントローラー</p>
+                        <p class="text-sm text-gray-300"><code>app/Http/Controllers/ProductController.php</code></p>
+                        <pre><code class="language-php">// 削除済み商品一覧
+public function trashed()
+{
+    $products = Product::onlyTrashed()
+                       ->with('category')
+                       ->latest('deleted_at')
+                       ->paginate(10);
+
+    return view('products.trashed', compact('products'));
+}
+
+// 商品復元
+public function restore($id)
+{
+    $product = Product::onlyTrashed()->findOrFail($id);
+    $product->restore();
+
+    return redirect()->route('products.trashed')
+                     ->with('success', '商品を復元しました');
+}
+
+// 完全削除
+public function forceDelete($id)
+{
+    $product = Product::onlyTrashed()->findOrFail($id);
+    $product->forceDelete();
+
+    return redirect()->route('products.trashed')
+                     ->with('success', '商品を完全に削除しました');
+}</code></pre>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
+                            <p class="text-sm mb-3"><strong>🎯 メソッドの説明</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>• <code>onlyTrashed()</code> - 削除済みデータのみを対象にする</li>
+                                <li>• <code>restore()</code> - deleted_atをNULLに戻して復元</li>
+                                <li>• <code>forceDelete()</code> - データベースから完全に削除</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ6: 削除済み商品一覧ビュー</h3>
+                        <p class="text-sm text-gray-300 mb-2">
+                            <code>resources/views/products/trashed.blade.php</code> を作成
+                        </p>
+                        <pre><code class="language-html">&lt;!DOCTYPE html>
+&lt;html lang="ja">
+&lt;head>
+    &lt;meta charset="UTF-8">
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0">
+    &lt;title>削除済み商品一覧&lt;/title>
+    &lt;script src="https://cdn.tailwindcss.com">&lt;/script>
+&lt;/head>
+&lt;body class="bg-gray-100">
+    &lt;div class="container mx-auto px-4 py-8">
+        &lt;div class="flex justify-between items-center mb-6">
+            &lt;h1 class="text-3xl font-bold text-gray-800">削除済み商品一覧&lt;/h1>
+            &lt;a href="{{ route('products.index') }}"
+               class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                通常一覧に戻る
+            &lt;/a>
+        &lt;/div>
+
+        @if(session('success'))
+            &lt;div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                {{ session('success') }}
+            &lt;/div>
+        @endif
+
+        &lt;div class="bg-white shadow-md rounded-lg overflow-hidden">
+            &lt;table class="min-w-full">
+                &lt;thead class="bg-gray-200">
+                    &lt;tr>
+                        &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">ID&lt;/th>
+                        &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">商品名&lt;/th>
+                        &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">カテゴリー&lt;/th>
+                        &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">削除日時&lt;/th>
+                        &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">操作&lt;/th>
+                    &lt;/tr>
+                &lt;/thead>
+                &lt;tbody class="bg-white divide-y divide-gray-200">
+                    @forelse($products as $product)
+                        &lt;tr>
+                            &lt;td class="px-6 py-4">{{ $product->id }}&lt;/td>
+                            &lt;td class="px-6 py-4">{{ $product->name }}&lt;/td>
+                            &lt;td class="px-6 py-4">{{ $product->category->name }}&lt;/td>
+                            &lt;td class="px-6 py-4">{{ $product->deleted_at->format('Y-m-d H:i') }}&lt;/td>
+                            &lt;td class="px-6 py-4">
+                                &lt;form action="{{ route('products.restore', $product->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    &lt;button type="submit"
+                                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm">
+                                        復元
+                                    &lt;/button>
+                                &lt;/form>
+                                &lt;form action="{{ route('products.forceDelete', $product->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    &lt;button type="submit"
+                                            onclick="return confirm('完全に削除します。よろしいですか？')"
+                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                        完全削除
+                                    &lt;/button>
+                                &lt;/form>
+                            &lt;/td>
+                        &lt;/tr>
+                    @empty
+                        &lt;tr>
+                            &lt;td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                削除済み商品はありません
+                            &lt;/td>
+                        &lt;/tr>
+                    @endforelse
+                &lt;/tbody>
+            &lt;/table>
+        &lt;/div>
+
+        &lt;div class="mt-6">
+            {{ $products->links() }}
+        &lt;/div>
+    &lt;/div>
+&lt;/body>
+&lt;/html></code></pre>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ7: 商品一覧に削除済み一覧へのリンクを追加</h3>
+                        <p>
+                            通常の商品一覧から削除済み商品一覧にアクセスできるようにします。
+                        </p>
+                        <p class="text-sm text-gray-300 mt-4"><code>resources/views/products/index.blade.php</code></p>
+                        <pre><code class="language-html">&lt;div class="flex justify-between items-center mb-6">
+    &lt;h1 class="text-3xl font-bold text-gray-800">商品一覧&lt;/h1>
+    &lt;div class="flex space-x-3">
+        &lt;a href="{{ route('products.trashed') }}"
+           class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+            削除済み商品
+        &lt;/a>
+        &lt;a href="{{ route('products.create') }}"
+           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+            新規登録
+        &lt;/a>
+    &lt;/div>
+&lt;/div></code></pre>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>動作確認</h3>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-sm mb-3"><strong>🔍 確認手順</strong></p>
+                            <ol class="text-sm space-y-2 list-decimal list-inside">
+                                <li>商品一覧で商品を削除 → 削除フラグが立つ（deleted_atに日時が入る）</li>
+                                <li>商品一覧から削除した商品が見えなくなる</li>
+                                <li>「削除済み商品」リンクをクリック</li>
+                                <li>削除した商品が表示される</li>
+                                <li>「復元」ボタンで商品を復元 → deleted_atがNULLになる</li>
+                                <li>通常一覧に戻ると復元した商品が表示される</li>
+                                <li>「完全削除」ボタンでデータベースから物理削除される</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>便利なメソッド</h3>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <p class="text-sm mb-3"><strong>💡 その他の便利なメソッド</strong></p>
+                            <ul class="text-sm space-y-2">
+                                <li>• <code>$product->trashed()</code> - 削除済みかどうかを判定（true/false）</li>
+                                <li>• <code>Product::withTrashed()->find($id)</code> - IDで検索（削除済みも対象）</li>
+                                <li>• <code>Product::withTrashed()->where(...)</code> - 条件検索（削除済みも対象）</li>
+                            </ul>
+                        </div>
+
+                        <p class="text-green-300 mt-6">
+                            ✅ ソフトデリートの実装が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <p>
+                            ソフトデリート（論理削除）機能の実装を学びました！
+                        </p>
+
+                        <h4>学んだこと</h4>
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-purple-500">
+                            <ul class="text-sm space-y-2">
+                                <li>✅ <code>SoftDeletes</code> トレイトでソフトデリートを実装</li>
+                                <li>✅ <code>deleted_at</code> カラムで削除日時を記録</li>
+                                <li>✅ <code>withTrashed()</code> で削除済みデータを含めて取得</li>
+                                <li>✅ <code>onlyTrashed()</code> で削除済みデータのみ取得</li>
+                                <li>✅ <code>restore()</code> でデータを復元</li>
+                                <li>✅ <code>forceDelete()</code> で完全削除</li>
+                            </ul>
+                        </div>
+
+                        <h4>次のステップ</h4>
+                        <p class="text-sm text-gray-300">
+                            ソフトデリート機能を習得しました。<br>
+                            次は「ページネーション」タブで、大量のデータを分割表示する方法を学習しましょう！
+                        </p>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ ソフトデリート学習完了です!
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+
+    <script>
+        // Highlight.js 初期化
+        hljs.highlightAll();
+
+        // DOM読み込み完了後に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            // コピーボタンの追加
+            document.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.classList.add('copy-button');
+                btn.textContent = 'COPY';
+                btn.addEventListener('click', () => {
+                    const code = pre.querySelector('code');
+                    let textToCopy = code.textContent;
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        btn.textContent = 'COPIED!';
+                        setTimeout(() => {
+                            btn.textContent = 'COPY';
+                        }, 2000);
+                    });
+                });
+                pre.appendChild(btn);
+            });
+
+            // h3の折り畳み機能と目次生成
+            const tocList = document.getElementById('toc-list');
+
+            document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                const id = `section-${index}`;
+                h3.id = id;
+
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('collapsible-content');
+
+                const contentSection = h3.parentElement;
+                let nextElement = h3.nextElementSibling;
+                const elementsToWrap = [];
+
+                while (nextElement) {
+                    elementsToWrap.push(nextElement);
+                    nextElement = nextElement.nextElementSibling;
+                }
+
+                elementsToWrap.forEach(el => {
+                    wrapper.appendChild(el);
+                });
+
+                contentSection.appendChild(wrapper);
+
+                h3.addEventListener('click', () => {
+                    h3.classList.toggle('collapsed');
+                    wrapper.classList.toggle('collapsed');
+                });
+
+                const tocItem = document.createElement('a');
+                tocItem.href = `#${id}`;
+                tocItem.className = 'block px-3 py-2 rounded hover:bg-white/10 transition-colors duration-200 text-gray-300 hover:text-white text-xs cursor-pointer';
+                tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                tocItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('toc-modal').classList.add('hidden');
+                    h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                tocList.appendChild(tocItem);
+            });
+
+            const tocButton = document.getElementById('toc-button');
+            const tocModal = document.getElementById('toc-modal');
+            const closeToc = document.getElementById('close-toc');
+
+            tocButton.addEventListener('click', () => {
+                tocModal.classList.toggle('hidden');
+            });
+
+            closeToc.addEventListener('click', () => {
+                tocModal.classList.add('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!tocButton.contains(e.target) && !tocModal.contains(e.target)) {
+                    tocModal.classList.add('hidden');
+                }
+            });
+
+            const toggleAllBtn = document.getElementById('toggle-all');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const toggleText = document.getElementById('toggle-text');
+            let allCollapsed = false;
+
+            toggleAllBtn.addEventListener('click', () => {
+                if (allCollapsed) {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.remove('collapsed');
+                            wrapper.classList.remove('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て閉じる';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                    toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    allCollapsed = false;
+                } else {
+                    document.querySelectorAll('.content-section h3').forEach(h3 => {
+                        const wrapper = h3.nextElementSibling;
+                        if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                            h3.classList.add('collapsed');
+                            wrapper.classList.add('collapsed');
+                        }
+                    });
+                    toggleText.textContent = '全て開く';
+                    toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+                    toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                    toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                    allCollapsed = true;
+                }
+            });
+
+            // 上に戻るボタンの表示制御
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+                    scrollToTopBtn.classList.add('opacity-100', 'pointer-events-auto');
+                } else {
+                    scrollToTopBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                    scrollToTopBtn.classList.add('opacity-0', 'pointer-events-none');
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

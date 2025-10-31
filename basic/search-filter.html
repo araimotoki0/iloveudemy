@@ -318,6 +318,7 @@
                     <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
                     <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
                     <li><a href="search-filter.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">検索・フィルタ</a></li>
+                    <li><a href="soft-delete.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ソフトデリート</a></li>
                     <li><a href="pagination.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ページネーション</a></li>
                     <li><a href="image-upload.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">画像アップロード</a></li>
                     <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
@@ -371,6 +372,78 @@
                             <p class="text-xs text-gray-400 mt-2">
                                 ※ 「ここまでの知識の実践」で作成したテーブルとモデルをそのまま使用します
                             </p>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-orange-500">
+                            <p class="text-sm mb-3"><strong>🗄️ テストデータの準備 - ページネーション動作確認用</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                検索・フィルタ・ページネーション機能を確認するには、<strong>十分なテストデータ</strong>が必要です。<br>
+                                <code>paginate(10)</code>を使う場合、ページネーションを表示するには<strong>11件以上</strong>のデータが必要になります。
+                            </p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                <strong>推奨:</strong> 13件のテストデータを作成（公開12件 + 非公開1件）
+                            </p>
+
+                            <p class="text-xs font-semibold text-orange-300 mb-2">📝 ProductSeeder.php の編集</p>
+                            <p class="text-xs text-gray-400 mb-2"><code>database/seeders/ProductSeeder.php</code></p>
+                            <pre class="text-xs"><code class="language-php">&lt;?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\Product;
+
+class ProductSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $products = [
+            ['name' => 'ノートPC', 'category_id' => 1, 'price' => 89800, 'stock' => 15, 'is_published' => true, 'description' => '高性能ノートパソコン'],
+            ['name' => 'デスクトップPC', 'category_id' => 1, 'price' => 120000, 'stock' => 8, 'is_published' => true, 'description' => 'ゲーミングPC'],
+            ['name' => 'マウス', 'category_id' => 1, 'price' => 2980, 'stock' => 50, 'is_published' => true, 'description' => 'ワイヤレスマウス'],
+            ['name' => 'キーボード', 'category_id' => 1, 'price' => 8900, 'stock' => 30, 'is_published' => true, 'description' => 'メカニカルキーボード'],
+            ['name' => 'モニター', 'category_id' => 1, 'price' => 34800, 'stock' => 12, 'is_published' => true, 'description' => '27インチ4Kモニター'],
+            ['name' => 'Tシャツ', 'category_id' => 2, 'price' => 2900, 'stock' => 100, 'is_published' => true, 'description' => 'コットン100%'],
+            ['name' => 'ジーンズ', 'category_id' => 2, 'price' => 5980, 'stock' => 45, 'is_published' => true, 'description' => 'デニムパンツ'],
+            ['name' => 'スニーカー', 'category_id' => 2, 'price' => 7800, 'stock' => 20, 'is_published' => true, 'description' => 'ランニングシューズ'],
+            ['name' => '大学ノート', 'category_id' => 3, 'price' => 180, 'stock' => 200, 'is_published' => true, 'description' => 'B5サイズ'],
+            ['name' => 'ボールペン', 'category_id' => 3, 'price' => 120, 'stock' => 300, 'is_published' => true, 'description' => '黒・赤・青'],
+            ['name' => 'クリアファイル', 'category_id' => 3, 'price' => 100, 'stock' => 150, 'is_published' => true, 'description' => 'A4サイズ'],
+            ['name' => 'マグカップ', 'category_id' => 4, 'price' => 1200, 'stock' => 80, 'is_published' => true, 'description' => '陶器製'],
+            ['name' => 'スマートウォッチ', 'category_id' => 1, 'price' => 45000, 'stock' => 0, 'is_published' => false, 'description' => '在庫切れ・非公開テスト用'],
+        ];
+
+        foreach ($products as $product) {
+            Product::create($product);
+        }
+    }
+}</code></pre>
+
+                            <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded mt-3">
+                                <p class="text-xs text-gray-300 mb-2"><strong>💡 このデータの特徴</strong></p>
+                                <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 ml-2">
+                                    <li>13件のデータ → ページネーション表示確認可能（2ページ目が表示される）</li>
+                                    <li>「ノート」キーワード → 「ノートPC」「大学ノート」の2件がヒット</li>
+                                    <li>複数カテゴリー → フィルタリング動作確認可能</li>
+                                    <li>1件非公開（<code>is_published = false</code>） → 検索結果に含まれない動作確認</li>
+                                    <li>在庫0の商品 → 在庫フィルター実装時に利用可能</li>
+                                </ul>
+                            </div>
+
+                            <p class="text-xs text-gray-300 mt-3 mb-2"><strong>🚀 シーダー実行コマンド</strong></p>
+                            <pre class="text-xs"><code class="language-bash"># データベースをリセットして再シード
+php artisan migrate:fresh --seed
+
+# または ProductSeeder のみ実行
+php artisan db:seed --class=ProductSeeder</code></pre>
+
+                            <div class="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded mt-3">
+                                <p class="text-xs text-yellow-300 mb-1"><strong>⚠️ 注意</strong></p>
+                                <p class="text-xs text-gray-300">
+                                    <code>migrate:fresh</code>は<strong>全データが削除</strong>されます。<br>
+                                    本番環境では絶対に実行しないでください！
+                                </p>
+                            </div>
                         </div>
 
                         <h4>検索・フィルタリング機能の例</h4>
@@ -540,6 +613,7 @@ class SearchController extends Controller
     &lt;meta charset="UTF-8"&gt;
     &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
     &lt;title&gt;商品検索&lt;/title&gt;
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
     &lt;style&gt;
         body { font-family: sans-serif; padding: 20px; }
         .search-form { margin-bottom: 20px; }
@@ -596,11 +670,70 @@ class SearchController extends Controller
                         <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
                             <p class="text-xs"><strong>💡 重要なポイント</strong></p>
                             <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <code>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</code> - Tailwind CSS CDN（ページネーションのスタイルに必須）</li>
                                 <li>• <code>value="{{ $keyword }}"</code> - 検索後も入力値を保持</li>
                                 <li>• <code>@forelse ... @empty</code> - データがない場合の表示</li>
                                 <li>• <code>$products->total()</code> - 検索結果の総件数を表示</li>
                                 <li>• <code>appends(['keyword' => $keyword])</code> - ページネーションに検索条件を追加</li>
                             </ul>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
+                            <p class="text-xs mb-2"><strong>⚠️ Tailwind CDNが必要な理由</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                Laravel 12のページネーション（<code>links()</code>）は、デフォルトで<strong>Tailwind CSSのクラス</strong>を使用しています。
+                            </p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                もしTailwind CSSを読み込まないと：
+                            </p>
+                            <ul class="text-xs text-gray-300 space-y-1 list-disc list-inside ml-2">
+                                <li>ページネーションのボタン（<code>&lt; &gt;</code>）のスタイルが崩れる</li>
+                                <li>レイアウトが正しく表示されない</li>
+                            </ul>
+                            <p class="text-xs text-gray-300 mt-2">
+                                本番環境では、CDNではなく<strong>Viteでビルド</strong>したTailwind CSSを使うことを推奨します。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">value属性で検索値を保持する仕組み</h4>
+                        <p>
+                            <code>value="{{ $keyword }}"</code> がないと、検索後にフォームが空になってしまいます。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-xs mb-2"><strong>🔍 実際の動作例</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                ユーザーが「ノート」と入力して検索ボタンをクリックした時：
+                            </p>
+                            <ol class="text-xs text-gray-300 space-y-2 list-decimal list-inside">
+                                <li>ブラウザが <code>/search?keyword=ノート</code> にGETリクエスト</li>
+                                <li>コントローラーが <code>$keyword = $request->input('keyword');</code> で「ノート」を取得</li>
+                                <li>検索実行後、ビューに <code>$keyword</code>（値は「ノート」）を渡す</li>
+                                <li>Bladeテンプレートで <code>value="{{ $keyword }}"</code> が <code>value="ノート"</code> に変換される</li>
+                                <li>検索フォームに「ノート」が表示されたままになる ✅</li>
+                            </ol>
+                        </div>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">❌ value属性がない場合</p>
+                        <pre><code class="language-html">&lt;input type="text" name="keyword" placeholder="商品名で検索"&gt;</code></pre>
+                        <p class="text-sm text-gray-300">
+                            → 検索後、フォームが空になってしまう<br>
+                            → 「何で検索したんだっけ？」となる（ユーザー体験が悪い）
+                        </p>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">✅ value属性がある場合</p>
+                        <pre><code class="language-html">&lt;input type="text" name="keyword" placeholder="商品名で検索" value="{{ $keyword }}"&gt;</code></pre>
+                        <p class="text-sm text-gray-300">
+                            → 検索後、フォームに「ノート」が残る<br>
+                            → 検索条件を確認・修正しやすい（ユーザー体験が良い）
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>💡 初回アクセス時の動作</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                初めて<code>/search</code>にアクセスした時は、<code>$keyword</code>が<code>null</code>なので、<br>
+                                <code>value=""</code>（空文字）になり、フォームは空で表示されます。
+                            </p>
                         </div>
 
                         <h4 class="mt-6">ステップ4: 確認</h4>
@@ -683,11 +816,196 @@ class SearchController extends Controller
 {{-- ページネーションリンク（検索条件を保持） --}}
 {{ $products-&gt;appends(['keyword' => $keyword, 'category_id' => $categoryId])-&gt;links() }}</code></pre>
 
-                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                        <h4 class="mt-6">ページネーション表示のカスタマイズ</h4>
+                        <p>
+                            Laravel 12の<code>links()</code>は、デフォルトで<strong>英語の翻訳</strong>と<strong>Tailwind CSSのスタイル</strong>を使用します。<br>
+                            日本語表示を自然にするには、翻訳ファイルとビューファイルのカスタマイズが必要です。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs mb-2"><strong>📝 ページネーションの表示問題</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                <code>links()</code>を使うと、以下のような問題が発生することがあります：
+                            </p>
+                            <ul class="text-xs text-gray-300 space-y-1 list-disc list-inside ml-2">
+                                <li>「表示中 1 に 10 の 13 結果」という不自然な日本語</li>
+                                <li>ボタン（<code>&lt; &gt;</code>）のスタイルが崩れる</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-4">解決策1: ページネーションビューのカスタマイズ（推奨）</h4>
+                        <p class="text-sm text-gray-300 mb-2">
+                            ページネーションビューを公開して、日本語の文章構造に合わせて編集します。
+                        </p>
+                        <pre><code class="language-bash"># ページネーションビューを公開
+php artisan vendor:publish --tag=laravel-pagination</code></pre>
+
+                        <p class="text-sm text-gray-300 mt-3 mb-2">
+                            公開先: <code>resources/views/vendor/pagination/tailwind.blade.php</code>
+                        </p>
+
+                        <p class="text-sm text-gray-300 mt-3 mb-2">
+                            <strong>編集箇所:</strong> 26行目付近の表示テキスト部分
+                        </p>
+                        <pre><code class="language-html">{{-- 変更前 --}}
+&lt;p class="text-sm text-gray-700 leading-5 dark:text-gray-400"&gt;
+    {!! __('Showing') !!}
+    @if ($paginator-&gt;firstItem())
+        &lt;span class="font-medium"&gt;{{ $paginator-&gt;firstItem() }}&lt;/span&gt;
+        {!! __('to') !!}
+        &lt;span class="font-medium"&gt;{{ $paginator-&gt;lastItem() }}&lt;/span&gt;
+    @else
+        {{ $paginator-&gt;count() }}
+    @endif
+    {!! __('of') !!}
+    &lt;span class="font-medium"&gt;{{ $paginator-&gt;total() }}&lt;/span&gt;
+    {!! __('results') !!}
+&lt;/p&gt;
+
+{{-- 変更後（自然な日本語） --}}
+&lt;p class="text-sm text-gray-700 leading-5 dark:text-gray-400"&gt;
+    全 &lt;span class="font-medium"&gt;{{ $paginator-&gt;total() }}&lt;/span&gt; 件中
+    @if ($paginator-&gt;firstItem())
+        &lt;span class="font-medium"&gt;{{ $paginator-&gt;firstItem() }}&lt;/span&gt; 〜
+        &lt;span class="font-medium"&gt;{{ $paginator-&gt;lastItem() }}&lt;/span&gt; 件を表示
+    @else
+        {{ $paginator-&gt;count() }} 件を表示
+    @endif
+&lt;/p&gt;</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs mb-2"><strong>✅ カスタマイズ後の表示</strong></p>
+                            <p class="text-xs text-gray-300">
+                                「全 13 件中 1 〜 10 件を表示」のような自然な日本語になります。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-4">解決策2: 翻訳ファイルの編集（簡易的）</h4>
+                        <p class="text-sm text-gray-300 mb-2">
+                            <code>lang/ja.json</code>を編集して翻訳を調整します（完全には自然な日本語にならない）。
+                        </p>
+                        <pre><code class="language-json">{
+    "Showing": "表示中",
+    "to": "〜",
+    "of": "件中",
+    "results": "件"
+}</code></pre>
+                        <p class="text-xs text-gray-300 mt-2">
+                            → 「表示中 1 〜 10 件中 13 件」となり、やや改善されますが完璧ではありません。
+                        </p>
+
+                        <h4 class="mt-4">links()の仕組み - どうやってHTMLが生成されるのか</h4>
+                        <p>
+                            <code>{{ $products->links() }}</code> と書くだけでページネーションが表示される裏側の仕組みを理解しましょう。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs mb-2"><strong>🔄 links()の内部動作フロー</strong></p>
+                            <ol class="text-xs text-gray-300 space-y-2 list-decimal list-inside">
+                                <li><strong>Bladeで呼び出し:</strong> <code>{{ $products->links() }}</code></li>
+                                <li><strong>どのビューを使うか判定:</strong> デフォルトは <code>tailwind.blade.php</code></li>
+                                <li><strong>ビューファイルを探す優先順位:</strong>
+                                    <ul class="ml-6 mt-1 space-y-1 list-disc list-inside">
+                                        <li><code>resources/views/vendor/pagination/tailwind.blade.php</code> ← まずここを探す</li>
+                                        <li><code>vendor/laravel/framework/.../pagination/.../tailwind.blade.php</code> ← なければフレームワーク内のデフォルトを使う</li>
+                                    </ul>
+                                </li>
+                                <li><strong>$paginator オブジェクトを渡してレンダリング:</strong> ページ情報を含むオブジェクトがビューに渡される</li>
+                                <li><strong>HTML出力:</strong> ボタンやページ番号のHTMLが生成される</li>
+                            </ol>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-purple-500">
+                            <p class="text-xs mb-2"><strong>💡 $paginator オブジェクトで使えるメソッド</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                ビューファイル内で以下のメソッドが使えます：
+                            </p>
+                            <pre class="text-xs mt-2"><code class="language-php">$paginator->total()       // 総件数: 13
+$paginator->firstItem()   // 現在ページの最初の番号: 1
+$paginator->lastItem()    // 現在ページの最後の番号: 10
+$paginator->currentPage() // 現在のページ番号: 1
+$paginator->hasPages()    // ページが複数あるか: true/false
+$paginator->hasMorePages() // 次のページがあるか: true/false</code></pre>
+                        </div>
+
+                        <h4 class="mt-4">他のページネーションビューを使う</h4>
+                        <p class="text-sm text-gray-300 mb-2">
+                            Tailwind以外のスタイルも選択できます。
+                        </p>
+                        <pre><code class="language-php">// デフォルト（Tailwind CSS）
+{{ $products->links() }}
+
+// Bootstrap 5
+{{ $products->links('pagination::bootstrap-5') }}
+
+// シンプル版（前へ・次へのみ）
+{{ $products->links('pagination::simple-tailwind') }}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs mb-2"><strong>✅ なぜ vendor:publish が必要なのか</strong></p>
+                            <p class="text-xs text-gray-300">
+                                デフォルトのビューは<code>vendor/</code>ディレクトリ内にあり、直接編集すると<strong>Composerアップデート時に上書き</strong>されます。<br>
+                                <code>php artisan vendor:publish --tag=laravel-pagination</code>でコピーすることで、<br>
+                                <code>resources/views/vendor/pagination/</code>に配置され、安全にカスタマイズできます。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">appends()でページネーションに検索条件を追加</h4>
+                        <p>
+                            ページネーションのリンクをクリックした時、検索条件が消えてしまう問題を解決します。
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-xs mb-2"><strong>⚠️ appends()がない場合の問題</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                「ノート」で検索して、2ページ目に移動した時：
+                            </p>
+                            <ol class="text-xs text-gray-300 space-y-2 list-decimal list-inside">
+                                <li>1ページ目: <code>/search?keyword=ノート</code> → 「ノート」の検索結果が表示される ✅</li>
+                                <li>2ページ目のリンクをクリック: <code>/search?page=2</code> になる</li>
+                                <li>2ページ目: <code>keyword</code>パラメータが消えている → 全商品が表示される ❌</li>
+                                <li>検索条件が失われる → ユーザー体験が悪い 😢</li>
+                            </ol>
+                        </div>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">❌ appends()なしの場合</p>
+                        <pre><code class="language-html">{{ $products->links() }}</code></pre>
+                        <p class="text-sm text-gray-300">
+                            → ページネーションのURLが <code>/search?page=2</code> になる<br>
+                            → 検索条件（keyword, category_id）が消える
+                        </p>
+
+                        <p class="font-semibold text-purple-300 mt-4 mb-2">✅ appends()ありの場合</p>
+                        <pre><code class="language-html">{{ $products->appends(['keyword' => $keyword, 'category_id' => $categoryId])->links() }}</code></pre>
+                        <p class="text-sm text-gray-300">
+                            → ページネーションのURLが <code>/search?keyword=ノート&category_id=1&page=2</code> になる<br>
+                            → 検索条件が保持される ✅
+                        </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs mb-2"><strong>💡 appends()の仕組み</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                <code>appends()</code>は、ページネーションリンクに追加のクエリパラメータを付与します。
+                            </p>
+                            <pre class="text-xs mt-2"><code>// 生成されるページネーションリンク
+1ページ目: /search?keyword=ノート&category_id=1&page=1
+2ページ目: /search?keyword=ノート&category_id=1&page=2
+3ページ目: /search?keyword=ノート&category_id=1&page=3</code></pre>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
                             <p class="text-xs"><strong>💡 複数条件の保持</strong></p>
                             <p class="text-xs mt-2">
                                 <code>appends()</code> に配列で複数の条件を渡すことで、<br>
                                 ページネーション時にすべての検索条件を保持できます。
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-purple-500">
+                            <p class="text-xs mb-2"><strong>📝 補足: ページネーションの詳細</strong></p>
+                            <p class="text-xs text-gray-300">
+                                ページネーションの詳しい仕組みは、次の「ページネーション」タブで学習します。<br>
+                                ここでは「<code>appends()</code>を使うと検索条件が保持される」と理解しておけばOKです！
                             </p>
                         </div>
 
@@ -701,6 +1019,50 @@ class SearchController extends Controller
                         <p>
                             <code>if</code> 文で条件分岐する代わりに、<code>when()</code> メソッドを使うとコードがスッキリします。
                         </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs mb-2"><strong>💡 when()とは？</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                Laravelの<code>when()</code>は、<strong>クエリビルダーに条件を動的に追加</strong>するためのメソッドです。
+                            </p>
+                            <p class="text-xs text-gray-300">
+                                検索条件の有無によってクエリを変えたい時に、<code>if</code>文を書かずにスッキリと記述できます。
+                            </p>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-xs mb-2"><strong>⚠️ SQLのCASE WHENとは別物</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                SQLにも<code>WHEN</code>がありますが、用途が全く異なります：
+                            </p>
+                            <div class="grid grid-cols-2 gap-3 mt-2">
+                                <div class="bg-purple-500/10 border border-purple-500/30 p-2 rounded">
+                                    <p class="text-xs font-semibold text-purple-300 mb-1">SQLのCASE WHEN</p>
+                                    <p class="text-xs text-gray-400 mb-2">→ <strong>値の条件分岐</strong></p>
+                                    <pre class="text-xs"><code class="language-sql">SELECT
+  CASE
+    WHEN price < 1000 THEN '安い'
+    WHEN price < 5000 THEN '普通'
+    ELSE '高い'
+  END
+FROM products</code></pre>
+                                    <p class="text-xs text-gray-400 mt-1">価格帯の判定など</p>
+                                </div>
+                                <div class="bg-green-500/10 border border-green-500/30 p-2 rounded">
+                                    <p class="text-xs font-semibold text-green-300 mb-1">Laravelのwhen()</p>
+                                    <p class="text-xs text-gray-400 mb-2">→ <strong>クエリの条件分岐</strong></p>
+                                    <pre class="text-xs"><code class="language-php">Product::when($keyword,
+  function ($q, $keyword) {
+    return $q->where(
+      'name', 'like',
+      "%{$keyword}%"
+    );
+  }
+)->get()</code></pre>
+                                    <p class="text-xs text-gray-400 mt-1">検索条件の動的追加</p>
+                                </div>
+                            </div>
+                        </div>
 
                         <h4>Tinkerでwhen()を理解する</h4>
                         <pre><code class="language-bash">php artisan tinker</code></pre>
@@ -832,7 +1194,7 @@ $products = Product::when($keyword, function ($query, $keyword) {
                         <h4>次のステップ</h4>
                         <p class="text-sm text-gray-300">
                             検索・フィルタリング機能を習得しました。<br>
-                            次は「画像アップロード」タブで、商品画像のアップロード機能を学習しましょう！
+                            次は「ソフトデリート」タブで、データを論理削除する方法を学習しましょう！
                         </p>
 
                         <p class="text-green-300 mt-4">
@@ -974,6 +1336,26 @@ $products = Product::when($keyword, function ($query, $keyword) {
                     toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
                     allCollapsed = true;
                 }
+            });
+
+            // 上に戻るボタンの表示制御
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+                    scrollToTopBtn.classList.add('opacity-100', 'pointer-events-auto');
+                } else {
+                    scrollToTopBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                    scrollToTopBtn.classList.add('opacity-0', 'pointer-events-none');
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
             });
         });
     </script>
