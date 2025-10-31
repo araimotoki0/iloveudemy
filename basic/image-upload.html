@@ -938,6 +938,39 @@ Route::post('/image-upload', [ImageUploadController::class, 'store']);         /
                             </p>
                         </div>
 
+                        <h4 class="mt-6">ステップ1.5: モデルの $fillable に image を追加</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-red-500">
+                            <p class="text-xs mb-2"><strong>⚠️ 重要: これがないと画像パスが保存されません！</strong></p>
+                            <p class="text-xs text-gray-300 mb-3">
+                                Laravelは<strong>Mass Assignment保護</strong>により、<code>$fillable</code>に指定していないカラムは<code>create()</code>や<code>update()</code>で保存できません。
+                            </p>
+                        </div>
+
+                        <p class="text-sm text-gray-300 mb-2"><code>app/Models/Product.php</code></p>
+                        <pre><code class="language-php">protected $fillable = [
+    'name',
+    'description',
+    'price',
+    'stock',
+    'is_published',
+    'category_id',
+    'image',  // ⭐ これを追加！
+];</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-xs text-yellow-300"><strong>💡 なぜ必要？</strong></p>
+                            <div class="bg-black/30 p-2 rounded mt-2 mb-2">
+                                <p class="text-xs text-gray-300">❌ <code>$fillable</code>にない場合</p>
+                                <pre class="text-xs text-gray-400 mt-1"><code>Product::create(['image' => 'xxx.jpg']);
+// → imageは無視される（保存されない）</code></pre>
+                            </div>
+                            <div class="bg-black/30 p-2 rounded">
+                                <p class="text-xs text-gray-300">✅ <code>$fillable</code>に追加した場合</p>
+                                <pre class="text-xs text-gray-400 mt-1"><code>Product::create(['image' => 'xxx.jpg']);
+// → 正常に保存される！</code></pre>
+                            </div>
+                        </div>
+
                         <h4 class="mt-6">ステップ2: コントローラーの作成</h4>
                         <p class="text-sm text-gray-300 mb-2">画像アップロード専用のコントローラーを作成します。</p>
                         <pre><code class="language-bash">php artisan make:controller ImageUploadController</code></pre>
@@ -1036,11 +1069,12 @@ if ($request->hasFile('image')) {
                             <p class="text-xs text-gray-400 mb-2"><strong>例:</strong></p>
                             <div class="bg-black/30 p-3 rounded mb-3">
                                 <pre class="text-xs text-gray-300"><code>$imagePath = $request->file('image')->store('products', 'public');
-//                                           ↓           ↓        ↓
-//                                      ファイル名   フォルダ   ディスク
+//                                                    ↓           ↓
+//                                                フォルダ名    ディスク名
 
 // 結果: 'products/ランダムな文字列.jpg' （例: products/a1b2c3d4e5.jpg）
-// 実際の保存場所: storage/app/public/products/a1b2c3d4e5.jpg</code></pre>
+// 実際の保存場所: storage/app/public/products/a1b2c3d4e5.jpg
+// ※ ファイル名は自動生成されます（重複を避けるため）</code></pre>
                             </div>
 
                             <p class="text-xs text-gray-400 mb-2"><strong>store() が自動でやってくれること:</strong></p>
@@ -1429,111 +1463,75 @@ Product::create($validated);
                     </div>
 
                     <div class="content-section">
-                        <h3>画像表示の2つの方法</h3>
-                        <p>保存した画像をビューで表示する方法は2つあります。</p>
+                        <h3>画像の表示方法</h3>
+                        <p>保存した画像をビューで表示する方法を学びます。</p>
 
                         <div class="glass-dark p-4 rounded-xl mt-4 mb-6 border-l-4 border-green-500">
-                            <p class="text-xs font-semibold text-green-300 mb-3">💡 asset() ヘルパーの仕組み - なぜ画像にアクセスできるのか？</p>
-
-                            <h5 class="text-xs font-bold text-blue-300 mb-2">1. public ディレクトリは「Webサーバーのドキュメントルート」</h5>
-                            <p class="text-xs text-gray-300 mb-3">
-                                Laravelでは、<code>public</code> フォルダだけがブラウザからアクセス可能な領域です。<br>
-                                <code>app/</code> や <code>storage/</code> に直接アクセスすることはできません（セキュリティ対策）。
-                            </p>
+                            <p class="text-xs font-semibold text-green-300 mb-3">💡 初心者の疑問: asset('storage/xxx.jpg') に public がないのになぜアクセスできる？</p>
 
                             <div class="bg-black/30 p-3 rounded mb-3">
-                                <p class="text-xs font-bold text-gray-400 mb-2">フォルダ構造:</p>
-                                <pre class="text-xs text-gray-300"><code>your-project/
-├── app/
-├── storage/
-│   └── app/
-│       └── public/
-│           └── products/
-│               └── abc123.jpg  ← 実際のファイル（ブラウザから直接アクセス不可）
-├── public/  ← Webサーバーはここだけ公開
-│   ├── index.php
-│   ├── css/
-│   ├── js/
-│   └── storage/  ← シンボリックリンク
-│       └── products/
-│           └── abc123.jpg  ← storage/app/public へのリンク（アクセス可能）</code></pre>
-                            </div>
+                                <p class="text-xs font-bold text-blue-300 mb-2">1. Webサーバーの root 設定が public を指している</p>
+                                <pre class="text-xs text-gray-400"><code>// Nginx の設定（default.conf）
+root /data/public;  ← これが重要！
 
-                            <h5 class="text-xs font-bold text-blue-300 mb-2">2. シンボリックリンクで public/storage を作成</h5>
-                            <p class="text-xs text-gray-300 mb-3">
-                                <code>php artisan storage:link</code> を実行すると:<br>
-                                <code>public/storage</code> → <code>storage/app/public</code> へのショートカットが作られる
-                            </p>
+// Apache の設定（httpd.conf）
+DocumentRoot "/var/www/html/public"
+
+// php artisan serve の場合
+php -S localhost:8000 -t public  ← -t オプションで指定</code></pre>
+                            </div>
 
                             <div class="bg-black/30 p-3 rounded mb-3">
-                                <p class="text-xs font-bold text-gray-400 mb-2">リンクの仕組み:</p>
-                                <pre class="text-xs text-gray-300"><code>ブラウザ: http://localhost:8000/storage/products/abc123.jpg
-              ↓
-public/storage/products/abc123.jpg にアクセス
-              ↓
-シンボリックリンクを辿る
-              ↓
-storage/app/public/products/abc123.jpg（実体）を返す</code></pre>
+                                <p class="text-xs font-bold text-blue-300 mb-2">2. URLの / は public/ を指している</p>
+                                <pre class="text-xs text-gray-300"><code>{{ asset('storage/image.jpg') }}
+    ↓
+http://localhost:8000/storage/image.jpg
+                      ↑ / から始まる = root からの相対パス
+    ↓
+Webサーバーが root 設定を参照
+    ↓
+root /data/public  + /storage/image.jpg
+    ↓
+/data/public/storage/image.jpg にアクセス</code></pre>
                             </div>
 
-                            <h5 class="text-xs font-bold text-blue-300 mb-2">3. asset() ヘルパーの役割</h5>
-                            <p class="text-xs text-gray-300 mb-2">
-                                <code>asset()</code> は「public フォルダからの相対パス」を「フルURL」に変換します。
-                            </p>
+                            <div class="bg-black/30 p-3 rounded mb-3">
+                                <p class="text-xs font-bold text-blue-300 mb-2">3. シンボリックリンクで実ファイルにアクセス</p>
+                                <pre class="text-xs text-gray-300"><code>public/storage  → storage/app/public へのリンク
 
-                            <div class="bg-black/30 p-3 rounded">
-                                <pre class="text-xs text-gray-300"><code>// DBに保存されている値
-$product->image = "products/abc123.jpg"
-
-// Blade テンプレート
-{{ asset('storage/' . $product->image) }}
-                ↓
-asset('storage/products/abc123.jpg')
-                ↓
-// 結果（フルURL）
-http://localhost:8000/storage/products/abc123.jpg
-
-// HTMLに出力される
-&lt;img src="http://localhost:8000/storage/products/abc123.jpg"&gt;</code></pre>
+/data/public/storage/image.jpg
+    ↓ (シンボリックリンク)
+/data/storage/app/public/image.jpg  ← 実ファイル</code></pre>
                             </div>
 
-                            <h5 class="text-xs font-bold text-yellow-300 mb-2 mt-3">⚠️ なぜ storage/app/public に保存するのか？</h5>
-                            <ul class="text-xs text-gray-300 space-y-1">
-                                <li>• <strong>セキュリティ</strong> - public フォルダに直接保存すると、意図しないファイルがアップロードされるリスク</li>
-                                <li>• <strong>管理のしやすさ</strong> - アップロードファイルを一箇所に集約</li>
-                                <li>• <strong>バックアップ</strong> - storage フォルダだけバックアップすればOK</li>
-                                <li>• <strong>権限管理</strong> - シンボリックリンクを削除すれば、一時的にアクセス不可にできる</li>
-                            </ul>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 mt-4">
-                            <div class="glass-dark p-4 rounded-xl border-l-4 border-blue-500">
-                                <p class="text-xs font-semibold text-blue-300 mb-2">方法1: asset() ヘルパー（推奨）</p>
-                                <pre class="text-xs text-gray-300 mb-2"><code>{{ asset('storage/' . $product->image) }}</code></pre>
-                                <p class="text-xs text-gray-400 mb-2"><strong>結果:</strong></p>
-                                <pre class="text-xs text-gray-400"><code>http://localhost:8000/storage/products/abc123.jpg</code></pre>
-                                <p class="text-xs text-green-300 mt-2">✅ シンプルで推奨</p>
+                            <div class="bg-green-500/10 border border-green-500/30 p-3 rounded">
+                                <p class="text-xs font-bold text-green-300 mb-2">✅ これがセキュリティの仕組み</p>
+                                <p class="text-xs text-gray-300">
+                                    • <code>root</code> 設定により、URLは必ず <code>public/</code> 配下を参照<br>
+                                    • <code>/../.env</code> のような攻撃も防げる（<code>../</code> は正規化される）<br>
+                                    • <code>public/</code> 外のファイル（config/, storage/app/）にはアクセス不可
+                                </p>
                             </div>
 
-                            <div class="glass-dark p-4 rounded-xl border-l-4 border-purple-500">
-                                <p class="text-xs font-semibold text-purple-300 mb-2">方法2: Storage::url()</p>
-                                <pre class="text-xs text-gray-300 mb-2"><code>{{ Storage::url($product->image) }}</code></pre>
-                                <p class="text-xs text-gray-400 mb-2"><strong>結果:</strong></p>
-                                <pre class="text-xs text-gray-400"><code>/storage/products/abc123.jpg</code></pre>
-                                <p class="text-xs text-blue-300 mt-2">ℹ️ use文が必要、S3等のクラウドストレージ使用時に便利</p>
+                            <div class="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded mt-3">
+                                <p class="text-xs font-bold text-yellow-300 mb-2">⚠️ 重要</p>
+                                <p class="text-xs text-gray-300">
+                                    シンボリックリンクでも <code>.php</code> ファイルは実行される！<br>
+                                    → <strong>バリデーション（<code>image</code>ルール）が必須</strong>
+                                </p>
                             </div>
                         </div>
 
-                        <h4 class="mt-6">ビューでの実装例</h4>
-                        <pre><code class="language-html">{{-- 画像表示（画像がある場合のみ） --}}
-@if($product->image)
+                        <h4 class="mt-6">asset() ヘルパーで画像を表示（推奨）</h4>
+                        <pre><code class="language-html">{{-- 商品一覧での画像表示例 --}}
+@foreach($products as $product)
     &lt;div class="product-card"&gt;
         @if($product->image)
-            &lt;img src="{{ Storage::url($product->image) }}"
+            &lt;img src="{{ asset('storage/' . $product->image) }}"
                  alt="{{ $product->name }}"
-                 style="width: 100px; height: 100px; object-fit: cover;"&gt;
+                 style="width: 200px; height: 200px; object-fit: cover;"&gt;
         @else
-            &lt;div style="width: 100px; height: 100px; background: #ddd; display: flex; align-items: center; justify-content: center;"&gt;
+            &lt;div style="width: 200px; height: 200px; background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af;"&gt;
                 No Image
             &lt;/div&gt;
         @endif
@@ -1541,6 +1539,60 @@ http://localhost:8000/storage/products/abc123.jpg
         &lt;p&gt;¥{{ number_format($product->price) }}&lt;/p&gt;
     &lt;/div&gt;
 @endforeach</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs font-bold text-blue-300 mb-2">💡 asset() の動作</p>
+                            <pre class="text-xs text-gray-300"><code>{{ asset('storage/' . $product->image) }}
+                ↓
+{{ asset('storage/products/abc123.jpg') }}
+                ↓
+http://localhost:8000/storage/products/abc123.jpg  ← 完全なURLを生成</code></pre>
+                            <p class="text-xs text-gray-400 mt-2">
+                                <code>asset()</code> は自動的にドメインを付けた完全なURLを生成します。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">Storage::url() を使う方法（応用）</h4>
+                        <pre><code class="language-html">{{-- Storage::url() を使う場合 --}}
+@if($product->image)
+    &lt;img src="{{ Storage::url($product->image) }}"
+         alt="{{ $product->name }}"&gt;
+@endif</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-purple-500">
+                            <p class="text-xs font-bold text-purple-300 mb-2">💡 Storage::url() の動作</p>
+                            <pre class="text-xs text-gray-300"><code>{{ Storage::url($product->image) }}
+                ↓
+{{ Storage::url('products/abc123.jpg') }}
+                ↓
+/storage/products/abc123.jpg  ← / から始まる相対パス</code></pre>
+
+                            <p class="text-xs font-bold text-orange-300 mt-3 mb-2">🤔 なぜ http:// がないのにアクセスできる？</p>
+                            <div class="bg-black/30 p-3 rounded mb-2">
+                                <p class="text-xs text-gray-300 mb-2"><strong>答え: ブラウザが自動補完するから</strong></p>
+                                <pre class="text-xs text-gray-400"><code>&lt;img src="/storage/products/abc123.jpg"&gt;
+         ↑ / で始まるパス
+    ↓
+ブラウザが解釈
+    ↓
+&lt;img src="http://localhost:8000/storage/products/abc123.jpg"&gt;
+         ↑ 現在のドメインを自動で付ける</code></pre>
+                            </div>
+
+                            <p class="text-xs text-gray-300 mb-2"><strong>HTMLの仕様:</strong></p>
+                            <ul class="text-xs text-gray-400 space-y-1">
+                                <li>• <code>/storage/xxx.jpg</code> （/始まり） = 絶対パス → ドメインを自動補完</li>
+                                <li>• <code>images/xxx.jpg</code> （/なし） = 相対パス → 現在のURLに追加</li>
+                                <li>• <code>http://xxx.jpg</code> = 完全なURL → そのまま使用</li>
+                            </ul>
+
+                            <p class="text-xs text-blue-300 mt-3"><strong>ℹ️ いつ使う？</strong></p>
+                            <ul class="text-xs text-gray-300 space-y-1 mt-1">
+                                <li>• S3などクラウドストレージを使う場合に便利</li>
+                                <li>• <code>use Illuminate\Support\Facades\Storage;</code> が必要</li>
+                                <li>• 基本は <code>asset()</code> で十分</li>
+                            </ul>
+                        </div>
 
                         <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
                             <p class="text-xs"><strong>⚠️ シンボリックリンクを忘れずに！</strong></p>
@@ -1561,31 +1613,277 @@ http://localhost:8000/storage/products/abc123.jpg
 
                     <div class="content-section">
                         <h3>画像の更新と削除</h3>
-                        <p>商品編集時に画像を差し替える処理と、古い画像を削除する処理を実装します。</p>
+                        <p>商品の編集・削除機能を実装し、画像の差し替えや削除も行えるようにします。</p>
 
-                        <h4 class="mt-6">編集フォーム</h4>
-                        <pre><code class="language-php">// resources/views/products/edit.blade.php
-&lt;form action="/products/{{ $product->id }}" method="POST" enctype="multipart/form-data"&gt;
-    @csrf
-    @method('PUT')
+                        <div class="glass-dark p-4 rounded-xl mt-4 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs mb-2"><strong>📋 この章で作るもの</strong></p>
+                            <ul class="text-xs text-gray-300 space-y-1">
+                                <li>✅ 商品一覧ページ（編集・削除ボタン付き）</li>
+                                <li>✅ 商品編集ページ（画像の差し替え機能）</li>
+                                <li>✅ 画像の更新・削除処理</li>
+                                <li>✅ ルート定義（index, edit, update, destroy）</li>
+                            </ul>
+                        </div>
 
-    &lt;!-- 現在の画像を表示 --&gt;
-    @if($product->image)
-        &lt;div&gt;
-            &lt;p&gt;現在の画像：&lt;/p&gt;
-            &lt;img src="{{ Storage::url($product->image) }}"
-                 alt="{{ $product->name }}"
-                 style="width: 150px; height: 150px; object-fit: cover;"&gt;
-        &lt;/div&gt;
+                        <h4 class="mt-6">ステップ1: ルーティングの設定</h4>
+                        <p class="text-sm text-gray-300 mb-2"><code>routes/web.php</code></p>
+                        <pre><code class="language-php">use App\Http\Controllers\ImageUploadController;
+
+// 商品一覧
+Route::get('/image-upload/list', [ImageUploadController::class, 'index']);
+
+// 商品編集フォーム表示
+Route::get('/image-upload/{product}/edit', [ImageUploadController::class, 'edit']);
+
+// 商品更新
+Route::put('/image-upload/{product}', [ImageUploadController::class, 'update']);
+
+// 商品削除
+Route::delete('/image-upload/{product}', [ImageUploadController::class, 'destroy']);</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>💡 補足</strong></p>
+                            <p class="text-xs text-gray-300 mt-2">
+                                画像アップロード機能の作成ルート（<code>Route::get('/image-upload')</code>）は既に作成済みです。<br>
+                                ここでは一覧・編集・削除機能を <code>ImageUploadController</code> に追加します。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">ステップ2: 商品一覧ページの作成</h4>
+                        <p class="text-sm text-gray-300 mb-2"><code>resources/views/image-upload/index.blade.php</code></p>
+                        <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;商品一覧&lt;/title&gt;
+    &lt;style&gt;
+        body { font-family: sans-serif; padding: 20px; }
+        .success { background: #d4edda; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #4CAF50; color: white; }
+        img { border-radius: 4px; }
+        .btn { padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 5px; }
+        .btn-edit { background: #2196F3; color: white; }
+        .btn-delete { background: #f44336; color: white; border: none; cursor: pointer; }
+        .btn-create { background: #4CAF50; color: white; padding: 10px 20px; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;商品一覧&lt;/h1&gt;
+
+    @if(session('success'))
+        &lt;div class="success"&gt;{{ session('success') }}&lt;/div&gt;
     @endif
 
-    &lt;label&gt;新しい画像をアップロード&lt;/label&gt;
-    &lt;input type="file" name="image" accept="image/*"&gt;
+    &lt;a href="/image-upload" class="btn btn-create"&gt;新規登録&lt;/a&gt;
 
-    &lt;button type="submit"&gt;更新&lt;/button&gt;
-&lt;/form&gt;</code></pre>
+    &lt;table&gt;
+        &lt;thead&gt;
+            &lt;tr&gt;
+                &lt;th&gt;画像&lt;/th&gt;
+                &lt;th&gt;ID&lt;/th&gt;
+                &lt;th&gt;商品名&lt;/th&gt;
+                &lt;th&gt;価格&lt;/th&gt;
+                &lt;th&gt;在庫&lt;/th&gt;
+                &lt;th&gt;操作&lt;/th&gt;
+            &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+            @foreach($products as $product)
+            &lt;tr&gt;
+                &lt;td&gt;
+                    @if($product-&gt;image)
+                        &lt;img src="{{ asset('storage/' . $product-&gt;image) }}"
+                             alt="{{ $product-&gt;name }}"
+                             style="width: 50px; height: 50px; object-fit: cover;"&gt;
+                    @else
+                        No Image
+                    @endif
+                &lt;/td&gt;
+                &lt;td&gt;{{ $product-&gt;id }}&lt;/td&gt;
+                &lt;td&gt;{{ $product-&gt;name }}&lt;/td&gt;
+                &lt;td&gt;¥{{ number_format($product-&gt;price) }}&lt;/td&gt;
+                &lt;td&gt;{{ $product-&gt;stock }}&lt;/td&gt;
+                &lt;td&gt;
+                    &lt;a href="/image-upload/{{ $product-&gt;id }}/edit" class="btn btn-edit"&gt;編集&lt;/a&gt;
+                    &lt;form action="/image-upload/{{ $product-&gt;id }}" method="POST" style="display:inline;"&gt;
+                        @csrf
+                        @method('DELETE')
+                        &lt;button type="submit" class="btn btn-delete"
+                                onclick="return confirm('本当に削除しますか？')"&gt;
+                            削除
+                        &lt;/button&gt;
+                    &lt;/form&gt;
+                &lt;/td&gt;
+            &lt;/tr&gt;
+            @endforeach
+        &lt;/tbody&gt;
+    &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
 
-                        <h4 class="mt-6">コントローラーで古い画像を削除</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>💡 ポイント</strong></p>
+                            <ul class="text-xs text-gray-300 space-y-1 mt-2">
+                                <li>• <code>@if(session('success'))</code> - 成功メッセージを表示</li>
+                                <li>• <code>asset('storage/' . $product->image)</code> - 画像のURLを生成</li>
+                                <li>• 編集ボタン - <code>/image-upload/{id}/edit</code> に遷移</li>
+                                <li>• 削除ボタン - フォームで <code>@method('DELETE')</code> を使用</li>
+                                <li>• <code>onclick="return confirm()"</code> - 削除前に確認ダイアログ</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">ステップ3: コントローラーに index メソッドを追加</h4>
+                        <p class="text-sm text-gray-300 mb-2"><code>app/Http/Controllers/ImageUploadController.php</code></p>
+                        <pre><code class="language-php">public function index()
+{
+    $products = Product::with('category')->get();
+    return view('image-upload.index', compact('products'));
+}</code></pre>
+
+                        <h4 class="mt-6">ステップ4: 編集フォーム（全文）</h4>
+                        <p class="text-sm text-gray-300 mb-2"><code>resources/views/image-upload/edit.blade.php</code></p>
+                        <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;商品編集&lt;/title&gt;
+    &lt;style&gt;
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input[type="text"], input[type="number"], textarea, input[type="file"], select {
+            width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;
+        }
+        button { padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #45a049; }
+        .current-image { margin: 10px 0; }
+        .current-image img { border: 2px solid #ddd; border-radius: 8px; }
+        .error { color: red; font-size: 14px; margin-top: 5px; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;商品編集&lt;/h1&gt;
+
+    &lt;form action="/image-upload/{{ $product-&gt;id }}" method="POST" enctype="multipart/form-data"&gt;
+        @csrf
+        @method('PUT')
+
+        &lt;div class="form-group"&gt;
+            &lt;label&gt;商品名&lt;/label&gt;
+            &lt;input type="text" name="name" value="{{ old('name', $product-&gt;name) }}" required&gt;
+            @error('name')
+                &lt;div class="error"&gt;{{ $message }}&lt;/div&gt;
+            @enderror
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label&gt;説明&lt;/label&gt;
+            &lt;textarea name="description" rows="4"&gt;{{ old('description', $product-&gt;description) }}&lt;/textarea&gt;
+            @error('description')
+                &lt;div class="error"&gt;{{ $message }}&lt;/div&gt;
+            @enderror
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label&gt;価格&lt;/label&gt;
+            &lt;input type="number" name="price" value="{{ old('price', $product-&gt;price) }}" required&gt;
+            @error('price')
+                &lt;div class="error"&gt;{{ $message }}&lt;/div&gt;
+            @enderror
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label&gt;在庫数&lt;/label&gt;
+            &lt;input type="number" name="stock" value="{{ old('stock', $product-&gt;stock) }}" required&gt;
+            @error('stock')
+                &lt;div class="error"&gt;{{ $message }}&lt;/div&gt;
+            @enderror
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label&gt;カテゴリー&lt;/label&gt;
+            &lt;select name="category_id" required&gt;
+                &lt;option value=""&gt;選択してください&lt;/option&gt;
+                @foreach($categories as $category)
+                    &lt;option value="{{ $category-&gt;id }}"
+                        {{ old('category_id', $product-&gt;category_id) == $category-&gt;id ? 'selected' : '' }}&gt;
+                        {{ $category-&gt;name }}
+                    &lt;/option&gt;
+                @endforeach
+            &lt;/select&gt;
+            @error('category_id')
+                &lt;div class="error"&gt;{{ $message }}&lt;/div&gt;
+            @enderror
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label&gt;
+                &lt;input type="checkbox" name="is_published" value="1"
+                    {{ old('is_published', $product-&gt;is_published) ? 'checked' : '' }}&gt;
+                公開する
+            &lt;/label&gt;
+        &lt;/div&gt;
+
+        &lt;div class="form-group"&gt;
+            &lt;label&gt;商品画像&lt;/label&gt;
+
+            {{-- 現在の画像を表示 --}}
+            @if($product-&gt;image)
+                &lt;div class="current-image"&gt;
+                    &lt;p&gt;現在の画像：&lt;/p&gt;
+                    &lt;img src="{{ asset('storage/' . $product-&gt;image) }}"
+                         alt="{{ $product-&gt;name }}"
+                         style="width: 200px; height: 200px; object-fit: cover;"&gt;
+                &lt;/div&gt;
+            @endif
+
+            &lt;label&gt;新しい画像をアップロード（変更する場合のみ）&lt;/label&gt;
+            &lt;input type="file" name="image" accept="image/*"&gt;
+            &lt;small style="color: #666;"&gt;※ 画像を選択しない場合は、現在の画像がそのまま保持されます&lt;/small&gt;
+
+            @error('image')
+                &lt;div class="error"&gt;{{ $message }}&lt;/div&gt;
+            @enderror
+        &lt;/div&gt;
+
+        &lt;button type="submit"&gt;更新&lt;/button&gt;
+        &lt;a href="/image-upload/list" style="margin-left: 10px;"&gt;キャンセル&lt;/a&gt;
+    &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 ポイント</strong></p>
+                            <ul class="text-xs text-gray-300 space-y-1 mt-2">
+                                <li>• <code>old('name', $product->name)</code> - バリデーションエラー時は入力値、初回表示時はDB値</li>
+                                <li>• <code>@if($product->image)</code> - 画像が登録済みの場合のみ表示</li>
+                                <li>• <code>asset('storage/' . $product->image)</code> - 公開URLを生成</li>
+                                <li>• <code>accept="image/*"</code> - 画像ファイルのみ選択可能</li>
+                                <li>• 画像を選択しない場合は現在の画像が保持される</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">ステップ5: コントローラーに edit メソッドを追加</h4>
+                        <p class="text-sm mt-2">編集フォームを表示するためのメソッドです。</p>
+                        <pre><code class="language-php">public function edit(Product $product)
+{
+    $categories = Category::all();
+    return view('image-upload.edit', compact('product', 'categories'));
+}</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 ポイント</strong></p>
+                            <ul class="text-xs text-gray-300 space-y-1 mt-2">
+                                <li>• ルートモデルバインディングで <code>Product $product</code> を自動取得</li>
+                                <li>• <code>compact('product', 'categories')</code> で両方のデータをビューに渡す</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="mt-6">ステップ6: コントローラーに update メソッドを追加（古い画像を削除）</h4>
                         <pre><code class="language-php">use Illuminate\Support\Facades\Storage;
 
 public function update(Request $request, Product $product)
@@ -1593,6 +1891,9 @@ public function update(Request $request, Product $product)
     $validated = $request->validate([
         'name' => 'required|max:255',
         'description' => 'nullable',
+        'price' => 'required|numeric|min:0',
+        'stock' => 'required|integer|min:0',
+        'category_id' => 'required|exists:categories,id',
         'image' => 'nullable|image|max:2048',
     ]);
 
@@ -1610,7 +1911,7 @@ public function update(Request $request, Product $product)
 
     $product->update($validated);
 
-    return redirect('/products')->with('success', '商品を更新しました');
+    return redirect('/image-upload/list')->with('success', '商品を更新しました');
 }</code></pre>
 
                         <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-red-500">
@@ -1620,13 +1921,18 @@ public function update(Request $request, Product $product)
                                 不要なファイルが <code>storage/app/public</code> に溜まり続けます。
                             </p>
                             <ul class="text-xs mt-2 space-y-1 text-gray-300">
-                                <li>• <code>Storage::disk('public')->delete($path)</code> でファイル削除</li>
+                                <li>• <code>Storage::delete()</code> でファイル削除（シンプルな書き方）</li>
                                 <li>• 削除前に <code>if ($product->image)</code> で存在確認</li>
                                 <li>• ディスク容量の無駄を防ぐために必須の処理</li>
                             </ul>
+                            <p class="text-xs mt-2 text-gray-400">
+                                💡 <code>Storage::disk('public')->delete()</code> と書くこともできますが、<br>
+                                <code>Storage::delete('public/products/xxx.jpg')</code> の方が一般的です。
+                            </p>
                         </div>
 
-                        <h4 class="mt-6">商品削除時も画像を削除する</h4>
+                        <h4 class="mt-6">ステップ7: コントローラーに destroy メソッドを追加</h4>
+                        <p class="text-sm mt-2">商品削除時は画像ファイルも一緒に削除します。</p>
                         <pre><code class="language-php">public function destroy(Product $product)
 {
     // 商品に画像がある場合は削除
@@ -1636,55 +1942,66 @@ public function update(Request $request, Product $product)
 
     $product->delete();
 
-    return redirect('/products')->with('success', '商品を削除しました');
+    return redirect('/image-upload/list')->with('success', '商品を削除しました');
 }</code></pre>
 
-                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
-                            <p class="text-xs"><strong>🎯 Eloquentモデルイベントでの削除</strong></p>
-                            <p class="text-xs mt-2">
-                                モデルの <code>deleting</code> イベントを使えば、<br>
-                                商品削除時に自動で画像も削除できます（応用編）。
-                            </p>
-                            <pre class="text-xs mt-2 bg-black/30 p-2 rounded"><code>// app/Models/Product.php
-protected static function booted()
-{
-    static::deleting(function ($product) {
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
-    });
-}</code></pre>
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>⚠️ 重要</strong></p>
+                            <ul class="text-xs text-gray-300 space-y-1 mt-2">
+                                <li>• 商品を削除する前に画像ファイルを削除</li>
+                                <li>• <code>$product->delete()</code> 後は <code>$product->image</code> にアクセスできなくなる</li>
+                                <li>• 削除確認は JavaScript の <code>confirm()</code> で実装済み</li>
+                            </ul>
                         </div>
 
-                        <h4 class="mt-6">画像のみ削除する機能</h4>
-                        <p class="text-gray-300 mt-2">商品は残したまま、画像だけ削除したい場合：</p>
-                        <pre><code class="language-php">// ルート
-Route::delete('/products/{product}/image', [ProductController::class, 'deleteImage']);
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 実務での削除はケースバイケース</strong></p>
+                            <p class="text-xs mt-2">
+                                上記は物理削除（完全削除）の実装ですが、実務では要件によって使い分けます。
+                            </p>
 
-// コントローラー
-public function deleteImage(Product $product)
-{
-    if ($product->image) {
-        Storage::disk('public')->delete($product->image);
-        $product->update(['image' => null]);
-    }
+                            <div class="mt-3">
+                                <p class="text-xs font-bold text-blue-300">📌 ケース1: 物理削除（Storage::delete を使う）</p>
+                                <ul class="text-xs text-gray-300 space-y-1 mt-1 ml-4">
+                                    <li>• ECサイトで在庫切れ商品を完全削除する</li>
+                                    <li>• 一時的なファイル（キャッシュ、プレビュー画像）を削除</li>
+                                    <li>• 管理者が「完全削除」を明示的に実行した時</li>
+                                    <li>• GDPR対応でユーザーのデータ削除権に応える時</li>
+                                </ul>
+                            </div>
 
-    return redirect()->back()->with('success', '画像を削除しました');
-}</code></pre>
+                            <div class="mt-3">
+                                <p class="text-xs font-bold text-green-300">📌 ケース2: 論理削除（ソフトデリート）</p>
+                                <ul class="text-xs text-gray-300 space-y-1 mt-1 ml-4">
+                                    <li>• ユーザーが誤って削除する可能性がある</li>
+                                    <li>• 削除履歴や監査ログが必要（金融系、医療系）</li>
+                                    <li>• 統計・分析データとして残す必要がある</li>
+                                    <li>• 関連データとの整合性を保つ必要がある</li>
+                                    <li>→ この場合、<code>Storage::delete()</code> は呼ばず画像も残す</li>
+                                </ul>
+                            </div>
 
-                        <pre><code class="language-php">// Bladeテンプレート
-@if($product->image)
-    &lt;form action="/products/{{ $product->id }}/image" method="POST" style="display:inline;"&gt;
-        @csrf
-        @method('DELETE')
-        &lt;button type="submit" onclick="return confirm('画像を削除しますか？')"&gt;
-            画像を削除
-        &lt;/button&gt;
-    &lt;/form&gt;
-@endif</code></pre>
+                            <p class="text-xs mt-3 text-yellow-200">
+                                💡 どちらを使うかはプロジェクトの要件次第です。<br>
+                                迷ったらまず論理削除で実装し、必要に応じて物理削除機能を追加するのが安全です。
+                            </p>
+                        </div>
+
+                        <h4 class="mt-6">動作確認の手順</h4>
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>✅ テストしてみましょう</strong></p>
+                            <ol class="text-xs mt-2 space-y-2 text-gray-300">
+                                <li><strong>1. 一覧表示:</strong> <code>http://localhost:8000/image-upload/list</code> にアクセス</li>
+                                <li><strong>2. 編集:</strong> 「編集」ボタンをクリック → 画像を変更 → 保存</li>
+                                <li><strong>3. 確認:</strong> <code>storage/app/public/products</code> を確認 → 古い画像が削除されている</li>
+                                <li><strong>4. 削除:</strong> 「削除」ボタンをクリック → 確認ダイアログで OK</li>
+                                <li><strong>5. 確認:</strong> 商品とファイルの両方が削除されている</li>
+                            </ol>
+                        </div>
 
                         <p class="text-green-300 mt-4">
-                            ✅ 画像の更新・削除処理が実装できました！
+                            ✅ 画像の更新・削除処理が実装できました！<br>
+                            これで完全なCRUD（作成・読取・更新・削除）機能が完成です。
                         </p>
                     </div>
 
@@ -1700,37 +2017,10 @@ public function deleteImage(Product $product)
                                 <li><strong>3. フォーム</strong> - <code>enctype="multipart/form-data"</code> は必須！</li>
                                 <li><strong>4. ファイル保存</strong> - <code>$request->file('image')->store('products', 'public')</code></li>
                                 <li><strong>5. バリデーション</strong> - <code>nullable|image|max:2048</code> でファイル検証</li>
-                                <li><strong>6. 画像表示</strong> - <code>Storage::url($product->image)</code> で公開URLに変換</li>
+                                <li><strong>6. 画像表示</strong> - <code>asset('storage/' . $product->image)</code> で公開URLに変換</li>
                                 <li><strong>7. ファイル削除</strong> - <code>Storage::disk('public')->delete($path)</code> で古い画像を削除</li>
+                                <li><strong>8. CRUD実装</strong> - index, edit, update, destroy メソッドで完全な機能を実装</li>
                             </ul>
-                        </div>
-
-                        <h4 class="mt-6">画像アップロードの全体フロー</h4>
-                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-blue-500">
-                            <pre class="text-xs"><code>1. 準備
-   ├─ マイグレーションでカラム追加
-   └─ php artisan storage:link 実行
-
-2. 新規作成
-   ├─ フォームに enctype="multipart/form-data" 追加
-   ├─ &lt;input type="file" name="image"&gt; で画像選択
-   ├─ コントローラーで hasFile() チェック
-   ├─ store('products', 'public') で保存
-   └─ DBにファイルパスを保存
-
-3. 表示
-   ├─ Storage::url($product->image) で公開URL取得
-   ├─ &lt;img src="{{ Storage::url(...) }}"&gt; で表示
-   └─ @if($product->image) で存在確認
-
-4. 更新
-   ├─ 古い画像を Storage::delete() で削除
-   ├─ 新しい画像を store() で保存
-   └─ DBを更新
-
-5. 削除
-   ├─ 商品削除時に画像も削除
-   └─ Storage::delete($product->image)</code></pre>
                         </div>
 
                         <h4 class="mt-6">よくあるエラーと対処法</h4>
@@ -1926,6 +2216,25 @@ $product->image = 'products/' . $filename;</code></pre>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
         <script>
+            // サイドバーの制御
+            const sidebar = document.getElementById('sidebar');
+            const openBtn = document.getElementById('open-sidebar');
+            const closeBtn = document.getElementById('close-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            openBtn.addEventListener('click', () => {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            });
+
+            const closeSidebar = () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            };
+
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+
             document.addEventListener('DOMContentLoaded', (event) => {
                 hljs.highlightAll();
 
@@ -1948,12 +2257,99 @@ $product->image = 'products/' . $filename;</code></pre>
                     pre.appendChild(btn);
                 });
 
-                // タブの切り替え
-                document.querySelectorAll('.tab-button').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const targetTab = this.getAttribute('data-tab');
-                        window.location.href = `${targetTab}.html`;
+                // h3の折り畳み機能と目次生成
+                const tocList = document.getElementById('toc-list');
+
+                document.querySelectorAll('.content-section h3').forEach((h3, index) => {
+                    const id = `section-${index}`;
+                    h3.id = id;
+
+                    const wrapper = document.createElement('div');
+                    wrapper.classList.add('collapsible-content');
+
+                    const contentSection = h3.parentElement;
+                    let nextElement = h3.nextElementSibling;
+                    const elementsToWrap = [];
+
+                    while (nextElement) {
+                        elementsToWrap.push(nextElement);
+                        nextElement = nextElement.nextElementSibling;
+                    }
+
+                    elementsToWrap.forEach(el => {
+                        wrapper.appendChild(el);
                     });
+
+                    contentSection.appendChild(wrapper);
+
+                    h3.addEventListener('click', () => {
+                        h3.classList.toggle('collapsed');
+                        wrapper.classList.toggle('collapsed');
+                    });
+
+                    const tocItem = document.createElement('a');
+                    tocItem.href = `#${id}`;
+                    tocItem.className = 'block px-3 py-2 rounded hover:bg-white/10 transition-colors duration-200 text-gray-300 hover:text-white text-xs cursor-pointer';
+                    tocItem.textContent = h3.textContent.replace('▼', '').replace('▶', '').trim();
+                    tocItem.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        document.getElementById('toc-modal').classList.add('hidden');
+                        h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    });
+                    tocList.appendChild(tocItem);
+                });
+
+                const tocButton = document.getElementById('toc-button');
+                const tocModal = document.getElementById('toc-modal');
+                const closeToc = document.getElementById('close-toc');
+
+                tocButton.addEventListener('click', () => {
+                    tocModal.classList.toggle('hidden');
+                });
+
+                closeToc.addEventListener('click', () => {
+                    tocModal.classList.add('hidden');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!tocButton.contains(e.target) && !tocModal.contains(e.target)) {
+                        tocModal.classList.add('hidden');
+                    }
+                });
+
+                const toggleAllBtn = document.getElementById('toggle-all');
+                const toggleIcon = document.getElementById('toggle-icon');
+                const toggleText = document.getElementById('toggle-text');
+                let allCollapsed = false;
+
+                toggleAllBtn.addEventListener('click', () => {
+                    if (allCollapsed) {
+                        document.querySelectorAll('.content-section h3').forEach(h3 => {
+                            const wrapper = h3.nextElementSibling;
+                            if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                                h3.classList.remove('collapsed');
+                                wrapper.classList.remove('collapsed');
+                            }
+                        });
+                        toggleText.textContent = '全て閉じる';
+                        toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                        toggleAllBtn.classList.remove('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                        toggleAllBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                        allCollapsed = false;
+                    } else {
+                        document.querySelectorAll('.content-section h3').forEach(h3 => {
+                            const wrapper = h3.nextElementSibling;
+                            if (wrapper && wrapper.classList.contains('collapsible-content')) {
+                                h3.classList.add('collapsed');
+                                wrapper.classList.add('collapsed');
+                            }
+                        });
+                        toggleText.textContent = '全て開く';
+                        toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+                        toggleAllBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300', 'hover:text-red-200');
+                        toggleAllBtn.classList.add('bg-green-500/20', 'hover:bg-green-500/30', 'border-green-500/30', 'text-green-300', 'hover:text-green-200');
+                        allCollapsed = true;
+                    }
                 });
             });
         </script>
