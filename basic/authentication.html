@@ -389,10 +389,34 @@
                             </ul>
 
                             <p class="text-xs mt-3"><strong>💡 インストール</strong></p>
-                            <pre class="text-xs mt-2 bg-black/30 p-2 rounded"><code>composer require laravel/breeze --dev
+                            <pre class="text-xs mt-2 bg-black/30 p-2 rounded"><code>composer require laravel/breeze
 php artisan breeze:install blade
 npm install && npm run dev
 php artisan migrate</code></pre>
+
+                            <div class="mt-3 bg-black/20 p-3 rounded">
+                                <p class="text-xs font-bold text-purple-300 mb-2">🔍 各コマンドが生成するファイル</p>
+
+                                <p class="text-xs font-semibold text-blue-300 mt-3 mb-1">① composer require laravel/breeze</p>
+                                <p class="text-xs text-gray-400">→ Breezeパッケージをインストール（足場ツール）</p>
+
+                                <p class="text-xs font-semibold text-blue-300 mt-3 mb-1">② php artisan breeze:install blade</p>
+                                <p class="text-xs text-gray-400 mb-1">→ 以下のファイルを自動生成:</p>
+                                <ul class="text-xs text-gray-300 ml-4 space-y-0.5">
+                                    <li>• <code>app/Http/Controllers/Auth/*</code> - 認証コントローラー（ログイン/登録/パスワードリセット）</li>
+                                    <li>• <code>resources/views/auth/*</code> - 認証画面（Blade + Tailwind CSS）</li>
+                                    <li>• <code>resources/views/dashboard.blade.php</code> - ログイン後のダッシュボード</li>
+                                    <li>• <code>resources/views/profile/*</code> - プロフィール編集画面</li>
+                                    <li>• <code>routes/auth.php</code> - 認証ルート定義</li>
+                                    <li>• <code>database/migrations/*</code> - users/sessions/password_reset_tokensテーブル</li>
+                                </ul>
+
+                                <p class="text-xs font-semibold text-blue-300 mt-3 mb-1">③ npm install && npm run dev</p>
+                                <p class="text-xs text-gray-400">→ Tailwind CSSのビルド（認証画面のスタイル適用）</p>
+
+                                <p class="text-xs font-semibold text-blue-300 mt-3 mb-1">④ php artisan migrate</p>
+                                <p class="text-xs text-gray-400">→ users/sessions/password_reset_tokensテーブルを作成</p>
+                            </div>
                         </div>
 
                         <h4 class="mt-6">2. Laravel Jetstream</h4>

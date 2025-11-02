@@ -362,15 +362,6 @@
                                 <li>✅ セキュリティの考慮事項</li>
                             </ul>
                         </div>
-
-                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-yellow-500">
-                            <p class="text-sm mb-3"><strong>⚠️ 前提知識</strong></p>
-                            <ul class="text-sm space-y-2 text-gray-300">
-                                <li>• マイグレーション、モデル、コントローラーの基礎</li>
-                                <li>• ルーティングとビューの作成方法</li>
-                                <li>• バリデーションの基礎</li>
-                            </ul>
-                        </div>
                     </div>
 
                     <div class="content-section">
@@ -538,7 +529,6 @@ return response()->json($user);
                                 <li>• APIレスポンスでユーザー情報を返す時</li>
                                 <li>• ログにユーザー情報を出力する時</li>
                                 <li>• <code>toArray()</code> や <code>toJson()</code> を使う時</li>
-                                <li>• Bladeテンプレートで <code>{{ $user }}</code> と出力する時</li>
                             </ul>
                         </div>
 
@@ -546,6 +536,26 @@ return response()->json($user);
                         <p class="text-gray-300 text-sm mt-2">
                             <code>$casts</code> は、データベースから取得した値や保存する値を<strong class="text-yellow-300">自動的に変換</strong>する設定です。
                         </p>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
+                            <p class="text-xs"><strong>⚠️ 重要: データベースは全て文字列で返す</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                MySQLやPostgreSQLからデータを取得すると、<strong>全て文字列</strong>として返されます。<br>
+                                そのため、castを使わないと毎回手動で型変換が必要になります。
+                            </p>
+                            <pre class="text-xs mt-2 bg-black/30 p-2 rounded"><code>// cast なし
+$user->is_admin;           // "1" (文字列)
+$user->price;              // "1000" (文字列)
+$user->email_verified_at;  // "2024-01-01 12:34:56" (文字列)
+
+// 毎回変換が必要
+if ($user->is_admin === '1') { }  // ❌ めんどくさい
+$price = (int)$user->price;       // ❌ めんどくさい
+
+// cast あり
+if ($user->is_admin) { }  // ✅ 自動でboolean
+$price = $user->price;    // ✅ 自動でinteger</code></pre>
+                        </div>
 
                         <pre><code class="language-php">protected $casts = [
     'email_verified_at' => 'datetime',
@@ -564,6 +574,25 @@ $user->email_verified_at->format('Y年m月d日');
 
 $user->email_verified_at->addDays(7);
 // => 7日後の日時を計算できる</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 Carbon とは？</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                <strong>Carbon</strong> は PHP の日時操作ライブラリです（Laravel専用ではありません）。<br>
+                                <code>'datetime'</code> キャストを使うと、文字列が自動で Carbon オブジェクトに変換されます。
+                            </p>
+                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
+                                <li>• <strong>パッケージ名:</strong> <code>nesbot/carbon</code></li>
+                                <li>• <strong>開発元:</strong> Brian Nesbitt（Laravel公式ではない）</li>
+                                <li>• <strong>Laravel との関係:</strong> Laravelが内部で使っている外部ライブラリ</li>
+                                <li>• <strong>利点:</strong> 日時の計算・フォーマットが簡単になる</li>
+                            </ul>
+                            <pre class="text-xs mt-2 bg-black/30 p-2 rounded"><code>// Carbon でできること
+$date->format('Y年m月d日');    // フォーマット変換
+$date->addDays(7);             // 日付計算
+$date->diffForHumans();        // "3日前" のような相対表現
+$date->isWeekend();            // 週末判定</code></pre>
+                        </div>
 
                         <h5 class="text-md font-bold text-green-400 mt-4">2. 'hashed' キャストの動き（Laravel 10以降）</h5>
                         <p class="text-gray-300 text-sm mt-2">
@@ -666,7 +695,7 @@ $user->getAttributes()['password'];
                     </div>
 
                     <div class="content-section">
-                        <h3>ユーザー登録のコントローラーとルート</h3>
+                        <h3>ユーザー登録のコントローラーとルート・Facadeの解説</h3>
                         <p>登録フォームを表示し、ユーザー情報を保存するコントローラーを作成します。</p>
 
                         <h4 class="mt-6">ステップ3: コントローラー作成</h4>
@@ -703,7 +732,7 @@ class RegisterController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => $validated['password'], // castで自動ハッシュ化
         ]);
 
         // 自動ログイン
@@ -714,31 +743,264 @@ class RegisterController extends Controller
     }
 }</code></pre>
 
-                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-red-500">
-                            <p class="text-xs"><strong>🔐 Hash::make() の重要性</strong></p>
-                            <p class="text-xs mt-2 text-gray-300">
-                                パスワードは<strong>必ずハッシュ化</strong>してDBに保存します。<br>
-                                平文で保存すると、データベースが漏洩した際に全ユーザーのパスワードが流出します。
-                            </p>
-                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
-                                <li>• <code>Hash::make('password')</code> → <code>$2y$10$abc...</code>（不可逆）</li>
-                                <li>• ハッシュ化されたパスワードは元に戻せない</li>
-                                <li>• ログイン時は <code>Hash::check()</code> で照合</li>
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>🔍 バリデーションルールの解説</strong></p>
+                            <ul class="text-xs mt-2 space-y-2 text-gray-300">
+                                <li>
+                                    <strong>unique:users</strong><br>
+                                    → usersテーブルで重複チェック（メールアドレスが既に存在しないか）<br>
+                                    → DBにもUNIQUE制約があるが、バリデーションで先にチェックする理由:
+                                    <ul class="ml-4 mt-1 space-y-1">
+                                        <li>• エラーメッセージがユーザーフレンドリー</li>
+                                        <li>• パスワードのハッシュ化（重い処理）を避けられる</li>
+                                        <li>• DBエラーを隠してセキュリティ向上</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong>confirmed</strong><br>
+                                    → パスワード確認フィールド（<code>password_confirmation</code>）と一致するかチェック<br>
+                                    → フィールド名は必ず <code>{フィールド名}_confirmation</code> にする（命名規則固定）<br>
+                                    → 例: <code>'password' => 'confirmed'</code> は <code>password_confirmation</code> フィールドを自動で探す
+                                </li>
                             </ul>
                         </div>
 
-                        <h4 class="mt-6">ステップ4: ルート設定</h4>
-                        <pre><code class="language-php">// routes/web.php
-use App\Http\Controllers\Auth\RegisterController;
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>🔑 Auth::login($user) の仕組み</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                <code>Auth::login($user)</code> を実行すると、ユーザーを「ログイン状態」にします。
+                            </p>
 
-// 登録フォーム表示
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])
-    ->name('register');
+                            <div class="mt-2">
+                                <p class="text-xs font-bold text-yellow-300">Auth::とは？（Facade の説明）</p>
+                                <p class="text-xs mt-1 text-gray-300">
+                                    <code>Auth::</code> は<strong>Facade（ファサード）</strong>と呼ばれる仕組みです。<br>
+                                    複雑なクラスに対して、シンプルな静的メソッドでアクセスできるようにします。
+                                </p>
 
-// 登録処理
-Route::post('/register', [RegisterController::class, 'register']);</code></pre>
+                                <div class="mt-2 bg-blue-900/30 p-3 rounded border-l-2 border-blue-400">
+                                    <p class="text-xs font-bold text-blue-300 mb-2">📚 Facade とヘルパー関数の違い</p>
 
-                        <h4 class="mt-6">ステップ5: ビュー作成</h4>
+                                    <p class="text-xs text-blue-200 font-semibold mt-2">Facade（ファサード）</p>
+                                    <ul class="text-xs text-gray-300 ml-3 space-y-0.5">
+                                        <li>• Laravel が用意した便利なクラス</li>
+                                        <li>• <code>use Illuminate\Support\Facades\XXX;</code> でインポート</li>
+                                        <li>• <code>XXX::method()</code> で静的メソッドのように使える</li>
+                                    </ul>
+
+                                    <p class="text-xs text-blue-200 font-semibold mt-2">ヘルパー関数</p>
+                                    <ul class="text-xs text-gray-300 ml-3 space-y-0.5">
+                                        <li>• <code>auth()</code>, <code>session()</code>, <code>route()</code> など</li>
+                                        <li>• <code>use</code> 不要でどこでも使える</li>
+                                        <li>• PHP のグローバル関数</li>
+                                    </ul>
+                                </div>
+
+                                <pre class="text-xs mt-2 bg-black/30 p-2 rounded"><code>// Facade を使う（シンプル）
+use Illuminate\Support\Facades\Auth;
+Auth::login($user);
+
+// Facade を使わない場合（複雑）
+use Illuminate\Auth\AuthManager;
+$auth = app(AuthManager::class);
+$auth->guard()->login($user);</code></pre>
+                            </div>
+
+                            <div class="mt-2">
+                                <p class="text-xs font-bold text-yellow-300">このセクションで出てくるFacade</p>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
+// Auth Facade
+Auth::login($user);
+Auth::logout();
+Auth::check();
+Auth::user();
+
+// Hash Facade
+Hash::make('password');
+Hash::check('password', $hash);</code></pre>
+                                <p class="text-xs mt-1 text-gray-300">
+                                    💡 Facadeは <code>Illuminate\Support\Facades</code> 名前空間にあります。<br>
+                                    使う前に <code>use</code> でインポートが必要です。
+                                </p>
+                            </div>
+
+                            <div class="mt-2">
+                                <p class="text-xs font-bold text-yellow-300">auth() ヘルパー関数と Auth:: Facade の違い</p>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>// ヘルパー関数（use不要、どこでも使える）
+auth()->login($user);
+auth()->check();
+auth()->user();
+
+// Facade（useが必要、静的メソッド）
+use Illuminate\Support\Facades\Auth;
+Auth::login($user);
+Auth::check();
+Auth::user();
+
+// どちらも内部的には同じ処理</code></pre>
+                            </div>
+
+                            <div class="mt-2">
+                                <p class="text-xs font-bold text-yellow-300">どちらを使うべき？</p>
+                                <ul class="text-xs mt-1 space-y-1 text-gray-300">
+                                    <li>• <strong>Blade（ビュー）</strong>: <code>auth()</code> ヘルパーを使う（useが不要なので楽）</li>
+                                    <li>• <strong>コントローラー</strong>: どちらでもOK（チームの規約に従う）</li>
+                                    <li>• <strong>Laravel公式</strong>: ヘルパー関数を推奨（短くてシンプル）</li>
+                                    <li>• <strong>テスト</strong>: Facadeの方がモック化しやすい</li>
+                                </ul>
+                                <p class="text-xs mt-1 text-gray-300">
+                                    💡 迷ったら <code>auth()</code> ヘルパーを使いましょう。
+                                </p>
+                            </div>
+
+                            <div class="mt-2">
+                                <p class="text-xs font-bold text-yellow-300">Tinkerで試してみよう</p>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>php artisan tinker
+
+// Facade を使う
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+// まずテストユーザーを作成
+$user = User::create([
+    'name' => 'テストユーザー',
+    'email' => 'test@example.com',
+    'password' => 'password123',  // castで自動ハッシュ化
+]);
+
+// Auth Facade
+Auth::login($user);
+Auth::check();  // => true
+Auth::user()->name;  // => "テストユーザー"
+Auth::logout();
+Auth::check();  // => false
+
+// Hash Facade
+$hashed = Hash::make('password');
+Hash::check('password', $hashed);  // => true
+
+// DB Facade
+DB::table('users')->count();  // => 1
+DB::table('users')->where('id', 1)->first();
+
+// Log Facade
+Log::info('テスト実行');
+Log::warning('警告メッセージ');
+Log::error('エラー発生');
+// storage/logs/laravel.log に出力される</code></pre>
+                                <p class="text-xs mt-1 text-gray-400">
+                                    ⚠️ Tinker では <code>auth()</code> などのヘルパー関数が使えない場合があります。<br>
+                                    その場合は Facade（<code>Auth::</code>）を使ってください。
+                                </p>
+                            </div>
+
+                            <div class="mt-2">
+                                <p class="text-xs font-bold text-yellow-300">セッションに保存される内容</p>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>// ログイン前のセッション
+[
+    "_token" => "abc123...",  // CSRFトークン
+]
+
+// Auth::login($user) 実行後
+[
+    "_token" => "abc123...",
+    "login_web_xxxxx" => 1,   // ← ユーザーIDが追加される
+]</code></pre>
+                            </div>
+
+                            <div class="mt-2">
+                                <p class="text-xs font-bold text-yellow-300">重要ポイント</p>
+                                <ul class="text-xs mt-1 space-y-1 text-gray-300">
+                                    <li>• セッションには<strong>ユーザーIDのみ</strong>保存される（名前やメールは保存されない）</li>
+                                    <li>• <code>auth()->user()</code> を呼ぶと、セッションからIDを取得してDBから全情報を取得</li>
+                                    <li>• セキュリティ上、最小限の情報だけセッションに保存</li>
+                                </ul>
+                            </div>
+
+                            <div class="mt-2">
+                                <p class="text-xs font-bold text-yellow-300">ユーザー情報取得の流れ</p>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>// auth()->user() を呼ぶと
+1. セッションからユーザーIDを取得（例: 1）
+2. SELECT * FROM users WHERE id = 1 を実行
+3. User オブジェクトを返す
+
+// つまり、auth()->user() を呼ぶたびにDBクエリが発生
+// （ただし1リクエスト内ではキャッシュされる）</code></pre>
+                            </div>
+
+                            <div class="mt-2">
+                                <p class="text-xs font-bold text-yellow-300">よく使う Facade 一覧とメソッド例</p>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>// Auth - 認証
+Auth::login($user);
+Auth::logout();
+Auth::check();
+Auth::user();
+
+// Hash - ハッシュ化
+Hash::make('password');
+Hash::check('password', $hash);
+
+// DB - データベース操作
+DB::table('users')->get();
+DB::table('users')->where('id', 1)->first();
+DB::insert('insert into users (name) values (?)', ['太郎']);
+
+// Storage - ファイル操作
+Storage::exists('file.txt');
+Storage::delete('file.txt');
+Storage::download('file.pdf');
+
+// Log - ログ出力
+Log::info('情報ログ');
+Log::warning('警告ログ');
+Log::error('エラーログ');
+
+// Mail - メール送信
+Mail::to('user@example.com')->send(new WelcomeMail());
+
+// Session - セッション
+Session::put('key', 'value');
+Session::get('key');
+Session::forget('key');
+Session::flash('message', '保存しました');
+
+// Cookie - クッキー
+Cookie::queue('name', 'value', 60);
+Cookie::get('name');
+
+// Config - 設定値取得
+Config::get('app.name');
+Config::set('app.debug', false);
+
+// View - ビュー
+View::make('welcome');
+View::exists('auth.login');
+
+// Redirect - リダイレクト
+Redirect::to('/home');
+Redirect::route('dashboard');
+Redirect::back();
+
+// Validator - バリデーション
+Validator::make($data, $rules);
+Validator::make($data, ['email' => 'required|email']);</code></pre>
+                                <p class="text-xs mt-1 text-gray-300">
+                                    💡 実務では <code>Auth</code>, <code>Hash</code>, <code>DB</code>, <code>Storage</code>, <code>Log</code> をよく使います。<br>
+                                    すべて覚える必要はありません。必要になったら公式ドキュメントで調べましょう。
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ルートとviewの作成とヘルパー関数の解説</h3>
+
+                        <h4 class="mt-6">ステップ4: 登録フォームのビュー作成</h4>
                         <pre><code class="language-html">{{-- resources/views/auth/register.blade.php --}}
 &lt;!DOCTYPE html&gt;
 &lt;html lang="ja"&gt;
@@ -782,93 +1044,308 @@ Route::post('/register', [RegisterController::class, 'register']);</code></pre>
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
-                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-yellow-500">
-                            <p class="text-xs"><strong>⚠️ @csrf トークンの重要性</strong></p>
-                            <p class="text-xs mt-2 text-gray-300">
-                                <code>@csrf</code> は<strong>CSRF攻撃</strong>を防ぐために必須です。<br>
-                                これがないと、フォーム送信時に419エラーが発生します。
+                        <h4 class="mt-6">ステップ5: ダッシュボードのビュー作成</h4>
+                        <pre><code class="language-html">{{-- resources/views/dashboard.blade.php --}}
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;ダッシュボード&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;ダッシュボード&lt;/h1&gt;
+
+    @auth
+        &lt;p&gt;ようこそ、{{ auth()->user()->name }}さん！&lt;/p&gt;
+        &lt;p&gt;メールアドレス: {{ auth()->user()->email }}&lt;/p&gt;
+
+        &lt;form action="{{ route('logout') }}" method="POST" style="margin-top: 20px;"&gt;
+            @csrf
+            &lt;button type="submit"&gt;ログアウト&lt;/button&gt;
+        &lt;/form&gt;
+    @endauth
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-blue-500">
+                            <p class="text-xs"><strong>💡 @auth ディレクティブ</strong></p>
+                            <p class="text-xs mt-1 text-gray-300">
+                                <code>@auth</code> は「ログイン中のみ表示」するBladeディレクティブです。
                             </p>
+                            <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>@auth
+    &lt;p&gt;ログイン中の表示&lt;/p&gt;
+@endauth
+
+@guest
+    &lt;p&gt;ログアウト中の表示&lt;/p&gt;
+@endguest</code></pre>
                         </div>
 
-                        <p class="text-green-300 mt-4">
-                            ✅ ユーザー登録機能が完成しました！
-                        </p>
-                    </div>
-
-                    <div class="content-section">
-                        <h3>Tinkerでユーザー登録を試す</h3>
-                        <p>コマンドラインからユーザーを作成して、ハッシュ化の動作を確認しましょう。</p>
-
-                        <pre><code class="language-bash">php artisan tinker</code></pre>
-
-                        <h4 class="mt-6">実験1: Hash::make()でパスワードをハッシュ化</h4>
-                        <pre><code class="language-php">use Illuminate\Support\Facades\Hash;
-
-// パスワードをハッシュ化
-$hashed = Hash::make('password');
-echo $hashed;
-// 出力例: $2y$10$abc123def456...（毎回異なる値になる）
-
-// 同じパスワードでも毎回違うハッシュが生成される
-Hash::make('password'); // $2y$10$xyz...
-Hash::make('password'); // $2y$10$uvw...（異なる値）</code></pre>
-
-                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
-                            <p class="text-xs"><strong>💡 なぜ同じパスワードで違うハッシュ？</strong></p>
-                            <p class="text-xs mt-2 text-gray-300">
-                                bcryptは「salt」をランダムに生成してハッシュに含めるため、<br>
-                                同じパスワードでも毎回異なるハッシュ値になります。<br>
-                                これにより、レインボーテーブル攻撃を防げます。
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 auth()->user() の使い方</strong></p>
+                            <p class="text-xs mt-1 text-gray-300">
+                                <code>auth()->user()</code> でログイン中のユーザー情報を取得できます。<br>
+                                コントローラーから渡さなくても、Bladeで直接使えます（グローバル関数のため）。
                             </p>
+                            <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>&lt;p&gt;{{ auth()->user()->name }}&lt;/p&gt;
+&lt;p&gt;{{ auth()->user()->email }}&lt;/p&gt;</code></pre>
                         </div>
-
-                        <h4 class="mt-6">実験2: Hash::check()でパスワードを照合</h4>
-                        <pre><code class="language-php">// パスワードが一致するか確認
-Hash::check('password', $hashed); // true
-Hash::check('wrong-password', $hashed); // false</code></pre>
-
-                        <h4 class="mt-6">実験3: ユーザーを作成</h4>
-                        <pre><code class="language-php">use App\Models\User;
-
-// ユーザー作成
-$user = User::create([
-    'name' => 'テストユーザー',
-    'email' => 'test@example.com',
-    'password' => Hash::make('password123'),
-]);
-
-// 確認
-$user->id; // 1
-$user->name; // 'テストユーザー'
-$user->email; // 'test@example.com'
-$user->password; // '$2y$10$...' （ハッシュ化されている）
-
-// パスワードの照合
-Hash::check('password123', $user->password); // true
-Hash::check('wrong', $user->password); // false</code></pre>
-
-                        <h4 class="mt-6">実験4: Laravel 10以降の自動ハッシュ化</h4>
-                        <pre><code class="language-php">// Laravel 10以降は 'password' => 'hashed' が設定されていれば、
-// Hash::make() を使わなくても自動的にハッシュ化される
-
-$user = User::create([
-    'name' => 'テストユーザー2',
-    'email' => 'test2@example.com',
-    'password' => 'password123', // Hash::make()なしでもOK
-]);
-
-// 自動的にハッシュ化されている
-$user->password; // '$2y$10$...'</code></pre>
 
                         <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-green-500">
-                            <p class="text-xs"><strong>✅ Tinkerで確認したこと</strong></p>
-                            <ul class="text-xs mt-2 space-y-1 text-gray-300">
-                                <li>• <code>Hash::make()</code> で平文パスワードをハッシュ化</li>
-                                <li>• 同じパスワードでも毎回異なるハッシュ値になる</li>
-                                <li>• <code>Hash::check()</code> でパスワード照合</li>
-                                <li>• Userモデルで自動ハッシュ化（Laravel 10以降）</li>
-                            </ul>
+                            <p class="text-xs font-bold text-green-300 mb-2">📚 ヘルパー関数とは？</p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                ヘルパー関数は、Laravelが提供する<strong>グローバル関数</strong>です。<br>
+                                <code>use</code>不要でどこでも使えます。
+                            </p>
+                            <p class="text-xs text-gray-300">
+                                実は、これまでのコードで既に何度も使っています！
+                            </p>
                         </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-blue-500">
+                            <p class="text-xs font-bold text-blue-300 mb-2">これまで使ってきたヘルパー関数</p>
+
+                            <div class="space-y-2">
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">auth()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// ログイン処理で使用
+auth()->login($user);
+
+// ダッシュボードで使用
+auth()->user()->name</code></pre>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">view()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// コントローラーで使用
+return view('auth.register');</code></pre>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">redirect()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// 登録後のリダイレクト
+return redirect()->route('dashboard');</code></pre>
+                                    <p class="text-xs mt-1 text-blue-200">
+                                        💡 <code>redirect()</code>は<code>route()</code>で名前付きルートを使いましょう。<br>
+                                        URLを直接書くと、ルート変更時に全て修正が必要になります。
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">old()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// バリデーションエラー時に前回の入力値を復元
+&lt;input type="email" name="email" value="{{ old('email') }}"&gt;</code></pre>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">route()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// 名前付きルートのURL生成
+&lt;a href="{{ route('dashboard') }}"&gt;ダッシュボード&lt;/a&gt;
+
+// パラメータ付き
+route('products.show', ['id' => 1])  // "/products/1"</code></pre>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">dd()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// デバッグ用：変数の中身を見て処理を止める
+dd($user);</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs font-bold text-purple-300 mb-2">実務でよく使うその他のヘルパー関数</p>
+
+                            <div class="space-y-2">
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">session()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// セッションに保存
+session(['cart' => $items]);
+
+// セッションから取得
+$cart = session('cart');
+
+// フラッシュメッセージ（1回だけ表示）
+session()->flash('success', '登録しました');</code></pre>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">config()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// 設定値取得
+config('app.name');      // "Laravel"
+config('app.timezone');  // "Asia/Tokyo"</code></pre>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">env()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// .envから環境変数取得
+env('APP_ENV');      // "local"
+env('DB_DATABASE'); // "laravel"</code></pre>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">now() / today()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// 現在日時（Carbon）
+now();                          // 2025-01-15 10:30:00
+now()->format('Y年m月d日');      // "2025年01月15日"
+
+// 今日の日付（Carbon）
+today();                        // 2025-01-15 00:00:00</code></pre>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-bold text-yellow-300">bcrypt()</p>
+                                    <pre class="text-xs bg-black/30 p-2 rounded mt-1"><code>// パスワードをハッシュ化（Hash::make()と同じ）
+bcrypt('password123');</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 class="mt-6">ステップ6: ルート設定（まとめて）</h4>
+                        <pre><code class="language-php">// routes/web.php
+use App\Http\Controllers\Auth\RegisterController;
+
+// 登録フォーム表示
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])
+    ->name('register');
+
+// 登録処理
+Route::post('/register', [RegisterController::class, 'register']);
+
+// ダッシュボード（ログイン必須）
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware('auth')->name('dashboard');
+
+// ログアウト
+Route::post('/logout', function (Request $request) {
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect('/');
+})->name('logout');</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-red-500">
+                            <p class="text-xs font-bold text-red-300 mb-2">🔐 ログアウトの3ステップ</p>
+
+                            <div class="mt-3">
+                                <p class="text-xs font-bold text-yellow-300">1. Auth::logout()</p>
+                                <p class="text-xs mt-1 text-gray-300">
+                                    <strong>セッションのpayloadからユーザーID（login_web_*）を削除</strong>します。
+                                </p>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>// DBの sessionsテーブルのpayloadカラム内のデータ
+
+// ログアウト前のpayload
+{
+  "_token": "abc123...",
+  "login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d": 1,  ← これが消える
+  "_previous": {...},
+  "_flash": {...}
+}
+
+// Auth::logout() 実行後のpayload
+{
+  "_token": "abc123...",
+  "_previous": {...},
+  "_flash": {...}
+}
+// login_web_* が削除され、auth()->check() が false になる</code></pre>
+                                <p class="text-xs mt-1 text-gray-300">
+                                    💡 <code>login_web_*</code>のキー名は、ログインガードのハッシュ値です。<br>
+                                    この値が消えると、Laravelは「ログインしていない」と判断します。
+                                </p>
+                            </div>
+
+                            <div class="mt-3">
+                                <p class="text-xs font-bold text-yellow-300">2. session()->invalidate()</p>
+                                <p class="text-xs mt-1 text-gray-300">
+                                    <strong>セッションID自体を無効化</strong>して、<strong>新しいセッションIDを発行</strong>します。<br>
+                                    以下の3つの処理を行います：
+                                </p>
+                                <ul class="text-xs text-gray-300 ml-3 space-y-1 mt-1">
+                                    <li>① <strong>DBのsessionsテーブルから古いレコードを削除</strong></li>
+                                    <li>② <strong>新しいセッションIDを生成</strong></li>
+                                    <li>③ <strong>クッキーに新しいセッションIDをセット</strong></li>
+                                </ul>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>// ① DBのsessionsテーブル
+DELETE FROM sessions WHERE id = 'old_session_id_abc123';
+
+// ② 新しいセッションID生成
+新しいセッションID: xyz789
+
+// ③ クッキーに新しいセッションIDをセット
+Set-Cookie: laravel_session=xyz789; HttpOnly; SameSite=Lax</code></pre>
+                                <p class="text-xs mt-1 text-red-200">
+                                    ⚠️ <strong>なぜ必要？セッション固定攻撃を防ぐため</strong>
+                                </p>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>// 攻撃シナリオ（invalidate()しない場合）
+1. 攻撃者が古いセッションID（abc123）を盗む
+2. ユーザーがログアウト（Auth::logout()のみ）
+   → DBのpayloadから login_web_* は消える
+   → でもセッションID（abc123）は有効なまま
+3. 攻撃者が盗んだセッションID（abc123）で再ログイン
+4. セッションID（abc123）が再利用される → 危険
+
+// invalidate()すると
+1. ログアウト時にセッションID（abc123）を無効化
+   → DBから削除され、新しいID（xyz789）を発行
+2. 古いセッションID（abc123）は使えない → 安全</code></pre>
+                            </div>
+
+                            <div class="mt-3">
+                                <p class="text-xs font-bold text-yellow-300">3. regenerateToken()</p>
+                                <p class="text-xs mt-1 text-gray-300">
+                                    <strong>CSRFトークンを新しく生成</strong>します。<br>
+                                    セッションのpayloadにある<code>_token</code>の値を変更します。
+                                </p>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>// DBの sessionsテーブルのpayloadカラム
+
+// ログアウト前のpayload
+{
+  "_token": "abc123...",  ← これが変わる
+  "_previous": {...}
+}
+
+// regenerateToken() 実行後のpayload
+{
+  "_token": "xyz789...",  ← 新しいトークン
+  "_previous": {...}
+}
+
+// 古いトークン（abc123）でPOSTリクエストすると419エラーになる</code></pre>
+                                <p class="text-xs mt-1 text-red-200">
+                                    ⚠️ <strong>なぜ必要？古いフォームからの送信を無効化するため</strong>
+                                </p>
+                                <pre class="text-xs mt-1 bg-black/30 p-2 rounded"><code>// シナリオ
+1. ユーザーがログアウト前にフォームを開いている
+   → フォーム内の @csrf に古いトークン（abc123）が埋め込まれている
+2. ログアウト後、そのフォームを送信
+   → 古いトークン（abc123）で送信される
+3. regenerateToken()していれば、419エラーで弾かれる → 安全</code></pre>
+                            </div>
+
+                            <div class="mt-3">
+                                <p class="text-xs font-bold text-red-300">⚠️ 重要：3つの処理の関係</p>
+                                <ul class="text-xs text-gray-300 ml-3 space-y-1">
+                                    <li>• <code>Auth::logout()</code> → <strong>セッションのpayloadから認証情報削除</strong></li>
+                                    <li>• <code>invalidate()</code> → <strong>セッションID自体を無効化（DB削除 + Cookie更新）</strong></li>
+                                    <li>• <code>regenerateToken()</code> → <strong>CSRFトークンを新規生成</strong></li>
+                                    <li class="mt-2 text-red-300">→ <strong>3つセットで実行しないと、セキュリティホールが残る</strong></li>
+                                </ul>
+                                <p class="text-xs mt-2 text-gray-400">
+                                    💡 <code>Auth::logout()</code>だけでもログアウトは機能しますが、<br>
+                                    セキュリティを重視するなら3つセットが推奨されます（Laravel公式も推奨）。<br>
+                                    <br>
+                                    <strong>実務では？</strong><br>
+                                    • 金融・医療系など高セキュリティ案件 → 必ず3つセット<br>
+                                    • 一般的なWebアプリ → 3つセットが主流（念のため）<br>
+                                    • 社内ツールや小規模案件 → <code>Auth::logout()</code>だけのことも
+                                </p>
+                            </div>
+                        </div>
+
                     </div>
 
                     <div class="content-section">
@@ -907,15 +1384,39 @@ class LoginController extends Controller
             // セッション固定攻撃を防ぐ
             $request->session()->regenerate();
 
-            return redirect()->intended('/dashboard');
+            // ログイン前にアクセスしようとしていたページへリダイレクト
+            // なければダッシュボードへ
+            return redirect()->intended(route('dashboard'));
         }
 
         // 認証失敗
+        // onlyInput('email'): パスワードは復元しない（セキュリティのため）
         return back()->withErrors([
             'email' => 'メールアドレスまたはパスワードが正しくありません。',
         ])->onlyInput('email');
     }
 }</code></pre>
+
+                        <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-green-500">
+                            <p class="text-xs"><strong>💡 intended() とは？</strong></p>
+                            <p class="text-xs mt-2 text-gray-300">
+                                <code>redirect()->intended()</code> は、<strong>ログイン前にアクセスしようとしていたページ</strong>にリダイレクトします。
+                            </p>
+                            <pre class="text-xs mt-2 bg-black/30 p-2 rounded"><code>// シナリオ
+1. 未ログインで /products/123 にアクセス
+2. authミドルウェアが /login にリダイレクト
+   （このとき、元のURL /products/123 をセッションに保存）
+3. ログイン成功
+4. intended() が保存されたURL /products/123 に戻す
+
+// 元のURLがない場合（直接 /login にアクセスした場合）
+→ 引数のデフォルトURL（route('dashboard')）にリダイレクト</code></pre>
+                            <p class="text-xs mt-2 text-gray-400">
+                                📚 <strong>authミドルウェアの詳細は次の章で解説します</strong><br>
+                                • 未ログイン時に自動的に /login にリダイレクトする仕組み<br>
+                                • リダイレクト先のカスタマイズ方法
+                            </p>
+                        </div>
 
                         <div class="glass-dark p-4 rounded-xl mt-3 mb-4 border-l-4 border-blue-500">
                             <p class="text-xs"><strong>💡 Auth::attempt() の仕組み</strong></p>
@@ -993,134 +1494,7 @@ Route::post('/login', [LoginController::class, 'login']);</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">▼ ログアウト機能の実装</h3>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">ログアウトの仕組み</h4>
-                        <p class="text-gray-300 mb-4">
-                            ログアウトは、ログイン状態を<strong class="text-yellow-300">解除</strong>することです。具体的には以下の処理を行います:
-                        </p>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-yellow-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-yellow-300">ログアウトの流れ:</strong></p>
-                            <ol class="list-decimal ml-6 text-gray-300 space-y-1">
-                                <li><code class="text-blue-300">Auth::logout()</code> - ユーザーの認証状態をクリア</li>
-                                <li><code class="text-blue-300">session()->invalidate()</code> - 現在のセッションを無効化</li>
-                                <li><code class="text-blue-300">session()->regenerateToken()</code> - CSRFトークンを再生成（セキュリティ対策）</li>
-                                <li>トップページやログイン画面にリダイレクト</li>
-                            </ol>
-                        </div>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">LogoutControllerの作成</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># コントローラー作成
-php artisan make:controller Auth/LogoutController</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">&lt;?php
-// app/Http/Controllers/Auth/LogoutController.php
-
-namespace App\Http\Controllers\Auth;
-
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-
-class LogoutController extends Controller
-{
-    /**
-     * ログアウト処理
-     */
-    public function logout(Request $request)
-    {
-        // 1. 認証状態をクリア
-        Auth::logout();
-
-        // 2. セッションを無効化（古いセッションIDを使えないようにする）
-        $request->session()->invalidate();
-
-        // 3. CSRFトークンを再生成（セキュリティ対策）
-        $request->session()->regenerateToken();
-
-        // 4. トップページにリダイレクト
-        return redirect('/');
-    }
-}</code></pre>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">各メソッドの役割:</strong></p>
-                            <ul class="list-disc ml-6 text-gray-300 space-y-2">
-                                <li><code class="text-blue-300">Auth::logout()</code> - ユーザー情報をセッションから削除し、「ログアウト状態」にする</li>
-                                <li><code class="text-blue-300">session()->invalidate()</code> - セッションIDを無効化して新しいセッションを開始（セッション固定攻撃の対策）</li>
-                                <li><code class="text-blue-300">session()->regenerateToken()</code> - CSRFトークンを新しく生成（古いトークンでのリクエストを防ぐ）</li>
-                            </ul>
-                        </div>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">ルート設定</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
-
-use App\Http\Controllers\Auth\LogoutController;
-
-// ログアウト（POSTメソッドで実行）
-Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');</code></pre>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-purple-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-purple-300">なぜPOSTメソッド？</strong></p>
-                            <p class="text-gray-300">
-                                ログアウトは<strong class="text-yellow-300">状態を変更する操作</strong>なので、GETではなくPOSTを使います。
-                                GETでログアウトすると、検索エンジンのクローラーや画像の事前読み込みで意図せずログアウトされる可能性があります。
-                            </p>
-                        </div>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">ログアウトボタンの作成</h4>
-                        <p class="text-gray-300 mb-4">
-                            Bladeテンプレートで、ログアウトボタンを作成します。<strong class="text-yellow-300">必ずフォームでPOST送信</strong>してください:
-                        </p>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-blade">&lt;!-- resources/views/layouts/app.blade.php（または任意のビュー） --&gt;
-
-&lt;!-- ログアウトフォーム --&gt;
-&lt;form action="{{ route('logout') }}" method="POST"&gt;
-    @csrf
-    &lt;button type="submit" class="btn btn-danger"&gt;
-        ログアウト
-    &lt;/button&gt;
-&lt;/form&gt;</code></pre>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-red-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-red-300">重要:</strong></p>
-                            <ul class="list-disc ml-6 text-gray-300 space-y-1">
-                                <li><code class="text-blue-300">@csrf</code> ディレクティブを必ず含める（CSRF保護）</li>
-                                <li><code class="text-blue-300">method="POST"</code> を指定する</li>
-                                <li><code class="text-blue-300">&lt;a&gt;</code> タグでのログアウトは避ける（セキュリティリスク）</li>
-                            </ul>
-                        </div>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">Tinkerでセッションを確認してみよう</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Tinkerを起動
-php artisan tinker</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// ログイン状態を確認
-Auth::check();
-// => true（ログイン中）
-
-Auth::user();
-// => App\Models\User {id: 1, name: "田中太郎", email: "tanaka@example.com"}
-
-// ログアウトしてみる
-Auth::logout();
-
-// 再度確認
-Auth::check();
-// => false（ログアウト状態）
-
-Auth::user();
-// => null（ユーザー情報が取得できない）</code></pre>
-
-                        <p class="text-green-300 mt-4">
-                            ✅ ログアウト機能が完成しました！
-                        </p>
-                    </div>
-
-                    <div class="content-section">
-                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">▼ ログイン状態の確認</h3>
+                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">ログイン状態の確認</h3>
 
                         <h4 class="text-xl font-bold text-green-400 mb-3">認証状態を確認する方法</h4>
                         <p class="text-gray-300 mb-4">
@@ -1249,6 +1623,20 @@ Route::middleware(['auth'])->group(function () {
                             </ol>
                         </div>
 
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">📚 詳しくは次の章で！</strong></p>
+                            <p class="text-gray-300">
+                                ミドルウェアの仕組みや、カスタムミドルウェアの作成、ロール（権限）の実装については、<br>
+                                次の<strong class="text-yellow-300">「ミドルウェア・ロール」</strong>の章で詳しく解説します。
+                            </p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-1 mt-2">
+                                <li>ミドルウェアの内部の仕組み</li>
+                                <li>カスタムミドルウェアの作成方法</li>
+                                <li>リダイレクト先のカスタマイズ（/login 以外にする方法）</li>
+                                <li>ロール（管理者・一般ユーザーなど）の実装</li>
+                            </ul>
+                        </div>
+
                         <h4 class="text-xl font-bold text-green-400 mb-3">Tinkerで認証状態を確認してみよう</h4>
                         <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Tinkerを起動
 php artisan tinker</code></pre>
@@ -1278,45 +1666,13 @@ auth()->check();
 auth()->user();
 // => null</code></pre>
 
-                        <h4 class="text-xl font-bold text-green-400 mb-3">実践例: ダッシュボードページを作ろう</h4>
-
-                        <p class="text-gray-300 mb-4"><strong>ルート設定:</strong></p>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth')->name('dashboard');</code></pre>
-
-                        <p class="text-gray-300 mb-4"><strong>ビューファイル:</strong></p>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-blade">&lt;!-- resources/views/dashboard.blade.php --&gt;
-&lt;!DOCTYPE html&gt;
-&lt;html lang="ja"&gt;
-&lt;head&gt;
-    &lt;meta charset="UTF-8"&gt;
-    &lt;title&gt;ダッシュボード&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;h1&gt;ダッシュボード&lt;/h1&gt;
-
-    @auth
-        &lt;p&gt;ようこそ、{{ auth()->user()->name }}さん！&lt;/p&gt;
-        &lt;p&gt;メールアドレス: {{ auth()->user()->email }}&lt;/p&gt;
-
-        &lt;form action="{{ route('logout') }}" method="POST"&gt;
-            @csrf
-            &lt;button type="submit"&gt;ログアウト&lt;/button&gt;
-        &lt;/form&gt;
-    @endauth
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
-
                         <p class="text-green-300 mt-4">
                             ✅ これで、ログイン状態によって表示内容を切り替えることができます！
                         </p>
                     </div>
 
                     <div class="content-section">
-                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">▼ セキュリティ考慮事項</h3>
+                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">セキュリティ考慮事項</h3>
 
                         <p class="text-gray-300 mb-4">
                             認証機能を実装する際には、<strong class="text-yellow-300">セキュリティリスク</strong>に注意する必要があります。
@@ -1372,21 +1728,77 @@ User::create([
                         </div>
 
                         <h4 class="text-xl font-bold text-green-400 mb-3">3. セッション固定攻撃の防止</h4>
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">セッション固定攻撃とは？</strong></p>
-                            <p class="text-gray-300 text-sm mb-2">
-                                攻撃者が事前にセッションIDを用意し、ユーザーにそのセッションIDを使わせることで、ログイン後のセッションを乗っ取る攻撃です。
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-red-500">
+                            <p class="text-red-300 mb-2"><strong>⚠️ セッション固定攻撃の具体例</strong></p>
+                            <p class="text-gray-300 text-sm mb-3">
+                                攻撃者が事前にセッションIDを用意し、ユーザーにそのセッションIDを使わせることで、<br>
+                                ログイン後のセッションを乗っ取る攻撃です。
                             </p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code>// 攻撃の流れ（regenerate()しない場合）
+
+1. 攻撃者が自分のブラウザでアプリにアクセス
+   → セッションID: abc123 が発行される
+
+2. 攻撃者が被害者に罠リンクを送る
+   https://example.com/login?session_id=abc123
+   または
+   &lt;script&gt;document.cookie="laravel_session=abc123"&lt;/script&gt;
+
+3. 被害者がリンクをクリック
+   → セッションID: abc123 が被害者のブラウザにセットされる
+
+4. 被害者がログイン成功
+   → でもセッションID: abc123 のまま（regenerateしてないから）
+
+5. 攻撃者が自分のブラウザでアクセス
+   → セッションID: abc123 で被害者のアカウントにログイン状態
+   → 被害者のアカウントを完全に乗っ取り成功 🔥</code></pre>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <p class="text-blue-300 mb-2"><strong>🔍 なぜこの攻撃が成立するのか？</strong></p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-2 text-sm">
+                                <li><strong>ログイン前後で同じセッションIDを使い続ける</strong>から</li>
+                                <li>攻撃者が事前に知っているセッションID（abc123）が、ログイン後も有効なまま</li>
+                                <li>攻撃者と被害者が<strong>同じセッションIDを共有</strong>している状態になる</li>
+                            </ul>
                         </div>
 
                         <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-green-500">
                             <p class="text-green-300 mb-2"><strong>✅ 対策: ログイン時にセッションIDを再生成</strong></p>
-                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code class="language-php">// LoginController.php
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-3"><code class="language-php">// LoginController.php
 if (Auth::attempt($credentials)) {
     // ✅ セッションIDを再生成して、古いセッションIDを無効化
     $request->session()->regenerate();
     return redirect('/dashboard');
 }</code></pre>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto"><code>// regenerate() すると
+
+1. 攻撃者が被害者に罠リンクを送る
+   → セッションID: abc123 がセットされる
+
+2. 被害者がログイン成功
+   → regenerate() が実行される
+   → 古いセッションID（abc123）は削除される
+   → 新しいセッションID（xyz789）が発行される
+
+3. 攻撃者が自分のブラウザでアクセス
+   → セッションID: abc123 で試みる
+   → でもabc123は既に無効化されている
+   → ログインできない ✅ 攻撃失敗</code></pre>
+                            <p class="text-gray-300 text-sm mt-3">
+                                💡 <code>regenerate()</code> は、<strong>DBのsessionsテーブルから古いレコードを削除し、新しいIDを発行</strong>します。<br>
+                                これにより、攻撃者が事前に知っているセッションIDは使えなくなります。
+                            </p>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-yellow-500">
+                            <p class="text-yellow-300 mb-2"><strong>🔐 実装のポイント</strong></p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                <li><strong>ログイン成功時</strong>に必ず <code>regenerate()</code> を実行</li>
+                                <li><strong>ログアウト時</strong>には <code>invalidate()</code> + <code>regenerateToken()</code> を実行</li>
+                                <li>権限が変わる操作（管理者昇格など）の後も <code>regenerate()</code> を実行</li>
+                            </ul>
                         </div>
 
                         <h4 class="text-xl font-bold text-green-400 mb-3">4. SQLインジェクション対策</h4>
@@ -1479,6 +1891,7 @@ public function login(Request $request)
     // 失敗したらカウンターを増やす
     RateLimiter::hit($key, 60); // 60秒間保持
 
+    // onlyInput('email'): パスワードは復元しない（セキュリティのため）
     return back()->withErrors([
         'email' => 'メールアドレスまたはパスワードが正しくありません。',
     ])->onlyInput('email');
@@ -1491,111 +1904,22 @@ public function login(Request $request)
                     </div>
 
                     <div class="content-section">
-                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">▼ まとめ</h3>
+                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2 cursor-pointer hover:text-blue-200 transition">まとめ</h3>
 
                         <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-green-500">
                             <h4 class="text-xl font-bold text-green-400 mb-4">この章で学んだこと</h4>
 
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">1. セッションとCookieの仕組み</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>HTTPはステートレス（状態を保持しない）</li>
-                                    <li>セッションでサーバー側にユーザー情報を保存</li>
-                                    <li>CookieでセッションIDをブラウザに保存</li>
-                                    <li>次回アクセス時にセッションIDでユーザーを識別</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">2. ユーザー登録機能</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>usersテーブルのマイグレーション</li>
-                                    <li>Userモデルの設定（$fillable, $hidden, $casts）</li>
-                                    <li>RegisterController でバリデーションとユーザー作成</li>
-                                    <li>Hash::make() でパスワードをハッシュ化</li>
-                                    <li>Laravel 10以降は自動ハッシュ化</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">3. Tinkerでの実験</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>Hash::make() で同じパスワードでも異なるハッシュが生成される（ソルト）</li>
-                                    <li>Hash::check() でパスワード検証</li>
-                                    <li>User::create() でユーザー作成を試す</li>
-                                    <li>Auth::login(), Auth::logout() で認証状態を変更</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">4. ログイン機能</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>LoginController でログイン処理</li>
-                                    <li>Auth::attempt() でメール・パスワード認証</li>
-                                    <li>session()->regenerate() でセッション固定攻撃を防ぐ</li>
-                                    <li>ログイン失敗時はエラーメッセージを表示</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">5. ログアウト機能</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>Auth::logout() で認証状態をクリア</li>
-                                    <li>session()->invalidate() でセッションを無効化</li>
-                                    <li>session()->regenerateToken() でCSRFトークン再生成</li>
-                                    <li>ログアウトはPOSTメソッドで実行</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">6. ログイン状態の確認</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>auth()->check() でログイン状態確認</li>
-                                    <li>auth()->user() でログイン中のユーザー情報取得</li>
-                                    <li>auth()->id() でユーザーID取得</li>
-                                    <li>Bladeで @auth / @guest ディレクティブを使う</li>
-                                    <li>auth ミドルウェアでルートを保護</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">7. セキュリティ対策</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>パスワードは必ずハッシュ化して保存</li>
-                                    <li>@csrf でCSRF攻撃を防ぐ</li>
-                                    <li>session()->regenerate() でセッション固定攻撃を防ぐ</li>
-                                    <li>Eloquent ORMでSQLインジェクションを防ぐ</li>
-                                    <li>{{ }} でXSS攻撃を防ぐ</li>
-                                    <li>RateLimiterでブルートフォース攻撃を防ぐ</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-blue-500">
-                            <h4 class="text-xl font-bold text-blue-400 mb-4">認証の全体フロー</h4>
-                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>1. 新規登録
-   ├─ ユーザーが名前・メール・パスワードを入力
-   ├─ バリデーション（重複チェック、文字数制限など）
-   ├─ パスワードをハッシュ化してDBに保存
-   └─ 自動的にログイン状態にして /dashboard へリダイレクト
-
-2. ログイン
-   ├─ ユーザーがメール・パスワードを入力
-   ├─ Auth::attempt() でDBのハッシュと照合
-   ├─ 成功したらセッションIDを再生成（セキュリティ対策）
-   ├─ セッションにユーザー情報を保存
-   └─ /dashboard へリダイレクト
-
-3. ログイン状態の確認
-   ├─ auth()->check() でログイン中か確認
-   ├─ auth()->user() でユーザー情報を取得
-   └─ @auth / @guest でBladeテンプレートを分岐
-
-4. ログアウト
-   ├─ Auth::logout() でセッションからユーザー情報を削除
-   ├─ session()->invalidate() でセッションを無効化
-   ├─ session()->regenerateToken() でCSRFトークンを再生成
-   └─ トップページへリダイレクト</code></pre>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-2">
+                                <li><strong>セッション</strong> - HTTPはステートレス、セッションでログイン状態を保持</li>
+                                <li><strong>Userモデル</strong> - $fillable、$hidden、$casts（パスワード自動ハッシュ化）</li>
+                                <li><strong>Facade</strong> - Auth::、Hash::、DB:: などの便利なクラス</li>
+                                <li><strong>ヘルパー関数</strong> - auth()、view()、redirect()、route()、old()、dd()</li>
+                                <li><strong>ユーザー登録</strong> - バリデーション、ハッシュ化、自動ログイン</li>
+                                <li><strong>ログイン</strong> - Auth::attempt()、intended()、セッション再生成</li>
+                                <li><strong>ログアウト</strong> - Auth::logout()、invalidate()、regenerateToken() の3ステップ</li>
+                                <li><strong>認証状態確認</strong> - auth()->check()、auth()->user()、@auth / @guest</li>
+                                <li><strong>セキュリティ</strong> - CSRF保護、セッション固定攻撃、SQLインジェクション、XSS</li>
+                            </ul>
                         </div>
 
                         <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-purple-500">
