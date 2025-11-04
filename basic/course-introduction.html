@@ -260,6 +260,113 @@
                     </div>
                 </div>
 
+                <!-- このコースで学ぶ内容 -->
+                <div class="content-section">
+                    <h3 class="flex items-center">
+                        <span class="text-3xl mr-3">📚</span>
+                        このコースで学ぶ内容
+                    </h3>
+
+                    <div class="space-y-4">
+                        <!-- 環境構築 -->
+                        <div class="glass p-6 rounded-xl">
+                            <h4 class="text-xl font-bold text-primary-300 mb-3 flex items-center">
+                                <span class="mr-2">🔧</span> 環境構築
+                            </h4>
+                            <ul class="space-y-1 text-gray-300 text-sm ml-6">
+                                <li>• Docker環境でのLaravel開発環境構築</li>
+                                <li>• VSCode、Claude Code（AI開発アシスタント）の設定</li>
+                                <li>• データベース管理ツール（Sequel Ace、A5M2）の使い方</li>
+                                <li>• Composer、Artisanコマンドの基本操作</li>
+                            </ul>
+                        </div>
+
+                        <!-- Laravelの基礎 -->
+                        <div class="glass p-6 rounded-xl">
+                            <h4 class="text-xl font-bold text-primary-300 mb-3 flex items-center">
+                                <span class="mr-2">🎯</span> Laravelの基礎
+                            </h4>
+                            <ul class="space-y-1 text-gray-300 text-sm ml-6">
+                                <li>• <strong>MVCアーキテクチャ</strong>の仕組みと役割分離</li>
+                                <li>• <strong>ルーティング</strong> - HTTPメソッド（GET/POST/PUT/DELETE）、動的パラメータ、Named Routes、ルートグループ</li>
+                                <li>• <strong>ビュー（Blade）</strong> - テンプレートエンジン、制御構文、レイアウト、コンポーネント</li>
+                                <li>• <strong>コントローラ</strong> - リソースコントローラ、リクエスト処理、レスポンス、リダイレクト</li>
+                                <li>• <strong>Facade（ファサード）</strong>パターンの理解</li>
+                            </ul>
+                        </div>
+
+                        <!-- データベース -->
+                        <div class="glass p-6 rounded-xl">
+                            <h4 class="text-xl font-bold text-primary-300 mb-3 flex items-center">
+                                <span class="mr-2">🗄️</span> データベース
+                            </h4>
+                            <ul class="space-y-1 text-gray-300 text-sm ml-6">
+                                <li>• <strong>マイグレーション</strong> - テーブル構造管理、カラムタイプ、外部キー制約、ロールバック</li>
+                                <li>• <strong>Eloquent ORM</strong> - モデルの作成、$fillable、CRUD操作</li>
+                                <li>• <strong>リレーション</strong> - 1対多（hasMany/belongsTo）、1対1（hasOne）、多対多（belongsToMany）</li>
+                                <li>• <strong>中間テーブル</strong> - ピボットテーブル、attach/detach/sync</li>
+                                <li>• <strong>クエリビルダー</strong> - where、find、all、get、終端メソッド</li>
+                                <li>• <strong>シーダー</strong> - 初期データ投入、ダミーデータ生成</li>
+                                <li>• <strong>Tinker</strong> - 対話型REPL、デバッグ</li>
+                            </ul>
+                        </div>
+
+                        <!-- フォームとバリデーション -->
+                        <div class="glass p-6 rounded-xl">
+                            <h4 class="text-xl font-bold text-primary-300 mb-3 flex items-center">
+                                <span class="mr-2">📝</span> フォームとバリデーション
+                            </h4>
+                            <ul class="space-y-1 text-gray-300 text-sm ml-6">
+                                <li>• <strong>バリデーション</strong> - validate()メソッド、バリデーションルール</li>
+                                <li>• <strong>CSRF保護</strong> - @csrfトークン、セキュリティ対策</li>
+                                <li>• <strong>エラー表示</strong> - $errors変数、old()ヘルパー</li>
+                                <li>• <strong>フォーム送信</strong> - POSTリクエスト、リダイレクト、フラッシュメッセージ</li>
+                            </ul>
+                        </div>
+
+                        <!-- 実務機能 -->
+                        <div class="glass p-6 rounded-xl">
+                            <h4 class="text-xl font-bold text-primary-300 mb-3 flex items-center">
+                                <span class="mr-2">⚙️</span> 実務頻出機能
+                            </h4>
+                            <ul class="space-y-1 text-gray-300 text-sm ml-6">
+                                <li>• <strong>検索・フィルタ</strong> - LIKE検索、when()メソッド、複数条件、クエリパラメータ</li>
+                                <li>• <strong>ページネーション</strong> - paginate()、動的な表示件数変更、ソート機能</li>
+                                <li>• <strong>ソフトデリート</strong> - 論理削除、SoftDeletesトレイト、復元（restore）、完全削除（forceDelete）</li>
+                                <li>• <strong>画像アップロード</strong> - ファイル保存（store）、MIMEタイプ検証、ファイルサイズ制限、Storage::url()、シンボリックリンク</li>
+                            </ul>
+                        </div>
+
+                        <!-- 認証とセキュリティ -->
+                        <div class="glass p-6 rounded-xl">
+                            <h4 class="text-xl font-bold text-primary-300 mb-3 flex items-center">
+                                <span class="mr-2">🔐</span> 認証とセキュリティ
+                            </h4>
+                            <ul class="space-y-1 text-gray-300 text-sm ml-6">
+                                <li>• <strong>セッション管理</strong> - セッションの仕組み、Cookie、セッションID、暗号化</li>
+                                <li>• <strong>ユーザー認証</strong> - 登録、ログイン、ログアウト</li>
+                                <li>• <strong>パスワードハッシング</strong> - Hashファサード、bcrypt</li>
+                                <li>• <strong>認証状態の確認</strong> - auth()->check()、auth()->user()</li>
+                                <li>• <strong>ミドルウェア</strong> - authミドルウェア、カスタムミドルウェア作成、handle()メソッド、$next($request)</li>
+                                <li>• <strong>ロール管理</strong> - 管理者権限、isAdmin()メソッド、権限チェック</li>
+                                <li>• <strong>認可（Authorization）</strong> - 認証と認可の違い、abort(403)</li>
+                            </ul>
+                        </div>
+
+                        <!-- 総合実践 -->
+                        <div class="glass p-6 rounded-xl">
+                            <h4 class="text-xl font-bold text-primary-300 mb-3 flex items-center">
+                                <span class="mr-2">🚀</span> 総合実践
+                            </h4>
+                            <ul class="space-y-1 text-gray-300 text-sm ml-6">
+                                <li>• <strong>TODOアプリ構築</strong> - 認証・CRUD・画像アップロード・権限管理を統合</li>
+                                <li>• <strong>データベース設計</strong> - テーブル設計、リレーション設計</li>
+                                <li>• <strong>実務的なコード</strong> - リファクタリング、保守性、可読性</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 対象者 -->
                 <div class="content-section">
                     <h3 class="flex items-center">
@@ -319,80 +426,6 @@
                                 <li>• <strong>Claude Code</strong> または <strong>Codex</strong> のアカウント</li>
                                 <li class="ml-6 text-xs text-gray-400">CLIでのAI支援コーディングが非常に便利で一般的になっています。<br>講座の中でもClaude Codeの使い方を解説します。</li>
                             </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- このコースの特徴 -->
-                <div class="content-section">
-                    <h3 class="flex items-center">
-                        <span class="text-3xl mr-3">⭐</span>
-                        このコースの特徴
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="feature-card">
-                            <div class="flex items-start">
-                                <span class="text-4xl mr-4">🧠</span>
-                                <div>
-                                    <h4 class="text-xl font-bold text-primary-300 mb-2">メカニズムから理解できる</h4>
-                                    <p class="text-gray-300">
-                                        「なぜそう書くのか」「どう動くのか」を丁寧に解説。<br>
-                                        単なる手順の羅列ではなく、原理から理解することで応用力が身につきます。
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="flex items-start">
-                                <span class="text-4xl mr-4">📖</span>
-                                <div>
-                                    <h4 class="text-xl font-bold text-primary-300 mb-2">公式ドキュメントベース</h4>
-                                    <p class="text-gray-300">
-                                        Laravel公式ドキュメントに基づいた正確な知識を提供。<br>
-                                        実務で困らない、信頼できる情報源として使えます。
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="flex items-start">
-                                <span class="text-4xl mr-4">🔍</span>
-                                <div>
-                                    <h4 class="text-xl font-bold text-primary-300 mb-2">復習しやすい</h4>
-                                    <p class="text-gray-300">
-                                        HTML形式なので、ブラウザで検索・コピペが簡単。<br>
-                                        動画と違い、必要な部分だけサッと見返せます。
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="flex items-start">
-                                <span class="text-4xl mr-4">💼</span>
-                                <div>
-                                    <h4 class="text-xl font-bold text-primary-300 mb-2">実務レベルの機能</h4>
-                                    <p class="text-gray-300">
-                                        認証、CRUD、画像アップロード、ミドルウェアなど、<br>
-                                        実務で頻繁に使う機能を厳選して解説。
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="feature-card">
-                            <div class="flex items-start">
-                                <span class="text-4xl mr-4">🆕</span>
-                                <div>
-                                    <h4 class="text-xl font-bold text-primary-300 mb-2">最新バージョン対応</h4>
-                                    <p class="text-gray-300">
-                                        Laravel 12に対応。<br>
-                                        古い情報に悩まされることなく、最新の書き方を学べます。
-                                    </p>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
