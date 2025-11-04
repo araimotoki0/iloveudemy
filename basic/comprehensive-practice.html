@@ -422,6 +422,7 @@ tasks テーブル
 ├─ status (default: 'pending')  ← 'pending', 'in_progress', 'completed'
 ├─ priority (default: 'medium')  ← 'low', 'medium', 'high'
 ├─ due_date (nullable)
+├─ image (nullable)  ← 画像ファイルパス
 ├─ completed_at (nullable)
 ├─ created_at
 └─ updated_at</code></pre>
@@ -479,6 +480,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'in_progress', 'completed'])->default('pending');
             $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
             $table->date('due_date')->nullable();
+            $table->string('image')->nullable(); // 画像パス
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
         });
@@ -561,6 +563,7 @@ php artisan make:model Task</code></pre>
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Task extends Model
 {
@@ -571,6 +574,7 @@ class Task extends Model
         'status',
         'priority',
         'due_date',
+        'image',
         'completed_at',
     ];
 
@@ -619,6 +623,18 @@ class Task extends Model
     }
 
     /**
+     * 画像のURLを取得
+     */
+    public function getImageUrl(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+
+        return Storage::url($this->image);
+    }
+
+    /**
      * 優先度の色を取得（Tailwind CSS用）
      */
     public function getPriorityColor(): string
@@ -641,6 +657,32 @@ class Task extends Model
             'in_progress' => 'blue',
             'completed' => 'green',
             default => 'gray',
+        };
+    }
+
+    /**
+     * 優先度の日本語名を取得
+     */
+    public function getPriorityLabel(): string
+    {
+        return match($this->priority) {
+            'low' => '低',
+            'medium' => '中',
+            'high' => '高',
+            default => '不明',
+        };
+    }
+
+    /**
+     * ステータスの日本語名を取得
+     */
+    public function getStatusLabel(): string
+    {
+        return match($this->status) {
+            'pending' => '未着手',
+            'in_progress' => '進行中',
+            'completed' => '完了',
+            default => '不明',
         };
     }
 }</code></pre>
@@ -790,6 +832,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TaskController extends Controller
 {
@@ -854,7 +897,13 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'priority' => 'required|in:low,medium,high',
             'due_date' => 'nullable|date|after_or_equal:today',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        // 画像アップロード処理
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('tasks', 'public');
+        }
 
         auth()->user()->tasks()->create($validated);
 
@@ -867,8 +916,10 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        // 権限チェック
-        $this->authorize('view', $task);
+        // 自分のタスクまたは管理者のみ閲覧可能
+        if ($task->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+            abort(403, 'このタスクを閲覧する権限がありません。');
+        }
 
         return view('tasks.show', compact('task'));
     }
@@ -878,8 +929,10 @@ class TaskController extends Controller
      */
     public function edit(Task $task)
     {
-        // 権限チェック
-        $this->authorize('update', $task);
+        // 自分のタスクのみ編集可能
+        if ($task->user_id !== auth()->id()) {
+            abort(403, 'このタスクを編集する権限がありません。');
+        }
 
         return view('tasks.edit', compact('task'));
     }
@@ -889,8 +942,10 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
-        // 権限チェック
-        $this->authorize('update', $task);
+        // 自分のタスクのみ更新可能
+        if ($task->user_id !== auth()->id()) {
+            abort(403, 'このタスクを更新する権限がありません。');
+        }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -898,7 +953,17 @@ class TaskController extends Controller
             'status' => 'required|in:pending,in_progress,completed',
             'priority' => 'required|in:low,medium,high',
             'due_date' => 'nullable|date',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        // 画像アップロード処理
+        if ($request->hasFile('image')) {
+            // 古い画像を削除
+            if ($task->image) {
+                Storage::disk('public')->delete($task->image);
+            }
+            $validated['image'] = $request->file('image')->store('tasks', 'public');
+        }
 
         // ステータスが完了に変わった場合、completed_atを設定
         if ($validated['status'] === 'completed' && $task->status !== 'completed') {
@@ -918,8 +983,15 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        // 権限チェック
-        $this->authorize('delete', $task);
+        // 自分のタスクまたは管理者のみ削除可能
+        if ($task->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+            abort(403, 'このタスクを削除する権限がありません。');
+        }
+
+        // 画像も削除
+        if ($task->image) {
+            Storage::disk('public')->delete($task->image);
+        }
 
         $task->delete();
 
@@ -932,12 +1004,32 @@ class TaskController extends Controller
      */
     public function complete(Task $task)
     {
-        // 権限チェック
-        $this->authorize('update', $task);
+        // 自分のタスクのみ完了可能
+        if ($task->user_id !== auth()->id()) {
+            abort(403, 'このタスクを完了する権限がありません。');
+        }
 
         $task->markAsCompleted();
 
         return back()->with('success', 'タスクを完了しました！');
+    }
+
+    /**
+     * 画像を削除
+     */
+    public function deleteImage(Task $task)
+    {
+        // 自分のタスクのみ画像削除可能
+        if ($task->user_id !== auth()->id()) {
+            abort(403, 'このタスクの画像を削除する権限がありません。');
+        }
+
+        if ($task->image) {
+            Storage::disk('public')->delete($task->image);
+            $task->update(['image' => null]);
+        }
+
+        return back()->with('success', '画像を削除しました。');
     }
 }</code></pre>
 
@@ -964,100 +1056,390 @@ Route::middleware('auth')->group(function () {
                     </div>
 
                     <div class="content-section">
-                        <h3>ステップ5: ポリシーで権限管理</h3>
+                        <h3>ステップ5: ストレージ設定</h3>
 
-                        <h4 class="text-xl font-bold text-green-400 mb-3">TaskPolicyの作成</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># ポリシー作成
-php artisan make:policy TaskPolicy --model=Task</code></pre>
+                        <h4 class="text-xl font-bold text-green-400 mb-3">シンボリックリンクの作成</h4>
+                        <p class="text-gray-300 mb-3">
+                            アップロードした画像をブラウザからアクセスできるようにします：
+                        </p>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># シンボリックリンク作成
+php artisan storage:link</code></pre>
 
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Policies/TaskPolicy.php
+                        <p class="text-gray-400 text-sm mb-4">
+                            これにより <code>storage/app/public</code> が <code>public/storage</code> にリンクされ、<br>
+                            アップロードした画像が <code>/storage/tasks/xxx.jpg</code> のURLでアクセス可能になります。
+                        </p>
 
-namespace App\Policies;
+                        <h4 class="text-xl font-bold text-green-400 mb-3">config/filesystems.phpの確認</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// config/filesystems.php
 
-use App\Models\Task;
-use App\Models\User;
-
-class TaskPolicy
-{
-    /**
-     * タスクを表示できるか
-     */
-    public function view(User $user, Task $task): bool
-    {
-        // 管理者または自分のタスク
-        return $user->isAdmin() || $task->user_id === $user->id;
-    }
-
-    /**
-     * タスクを作成できるか
-     */
-    public function create(User $user): bool
-    {
-        // 認証済みユーザーなら誰でも作成可能
-        return true;
-    }
-
-    /**
-     * タスクを更新できるか
-     */
-    public function update(User $user, Task $task): bool
-    {
-        // 自分のタスクのみ更新可能（管理者は更新不可）
-        return $task->user_id === $user->id;
-    }
-
-    /**
-     * タスクを削除できるか
-     */
-    public function delete(User $user, Task $task): bool
-    {
-        // 管理者または自分のタスク
-        return $user->isAdmin() || $task->user_id === $user->id;
-    }
-}</code></pre>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">ポリシーの登録</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Providers/AppServiceProvider.php
-
-namespace App\Providers;
-
-use App\Models\Task;
-use App\Policies\TaskPolicy;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\ServiceProvider;
-
-class AppServiceProvider extends ServiceProvider
-{
-    public function boot(): void
-    {
-        // ポリシーの登録（Laravel 11では自動検出されるが明示的に登録も可能）
-        Gate::policy(Task::class, TaskPolicy::class);
-    }
-}</code></pre>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">Policyの使い方:</strong></p>
-                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-php">// コントローラーで
-$this->authorize('update', $task);
-
-// Bladeで
-@can('update', $task)
-    &lt;a href="{{ route('tasks.edit', $task) }}"&gt;編集&lt;/a&gt;
-@endcan
-
-// コードで
-if (auth()->user()->can('delete', $task)) {
-    // 削除処理
-}</code></pre>
-                        </div>
+'disks' => [
+    'public' => [
+        'driver' => 'local',
+        'root' => storage_path('app/public'),
+        'url' => env('APP_URL').'/storage',
+        'visibility' => 'public',
+        'throw' => false,
+    ],
+    // ...
+],</code></pre>
 
                         <p class="text-green-300 mt-4">
-                            ✅ ポリシーでの権限管理が完了しました！
+                            ✅ ストレージ設定が完了しました！
                         </p>
                     </div>
 
                     <div class="content-section">
-                        <h3>ステップ6: 管理者用ミドルウェア</h3>
+                        <h3>ステップ6: ビューファイルの作成</h3>
+
+                        <p class="text-gray-300 mb-4">
+                            実際に使えるTODOアプリにするため、全てのビューファイルを作成します。
+                        </p>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">レイアウトファイル（共通部分）</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// resources/views/layouts/app.blade.php
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;@yield('title', 'TODOアプリ')&lt;/title&gt;
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+&lt;/head&gt;
+&lt;body class="bg-gray-100"&gt;
+    {{-- ナビゲーション --}}
+    &lt;nav class="bg-white shadow-sm"&gt;
+        &lt;div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"&gt;
+            &lt;div class="flex justify-between h-16"&gt;
+                &lt;div class="flex items-center"&gt;
+                    &lt;a href="{{ route('tasks.index') }}" class="text-xl font-bold text-blue-600"&gt;
+                        📝 TODOアプリ
+                    &lt;/a&gt;
+                &lt;/div&gt;
+                &lt;div class="flex items-center gap-4"&gt;
+                    @auth
+                        &lt;span class="text-gray-700"&gt;{{ auth()-&gt;user()-&gt;name }}&lt;/span&gt;
+                        @if(auth()-&gt;user()-&gt;isAdmin())
+                            &lt;span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded"&gt;管理者&lt;/span&gt;
+                        @endif
+                        &lt;form method="POST" action="{{ route('logout') }}"&gt;
+                            @csrf
+                            &lt;button type="submit" class="text-gray-600 hover:text-gray-900"&gt;
+                                ログアウト
+                            &lt;/button&gt;
+                        &lt;/form&gt;
+                    @endauth
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/nav&gt;
+
+    {{-- フラッシュメッセージ --}}
+    @if(session('success'))
+        &lt;div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4"&gt;
+            &lt;div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded"&gt;
+                {{ session('success') }}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    @endif
+
+    {{-- メインコンテンツ --}}
+    &lt;main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"&gt;
+        @yield('content')
+    &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3 mt-6">ログインページ</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// resources/views/auth/login.blade.php
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;ログイン - TODOアプリ&lt;/title&gt;
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+&lt;/head&gt;
+&lt;body class="bg-gray-100"&gt;
+    &lt;div class="min-h-screen flex items-center justify-center"&gt;
+        &lt;div class="max-w-md w-full bg-white rounded-lg shadow-md p-8"&gt;
+            &lt;h2 class="text-2xl font-bold text-center mb-6"&gt;📝 TODOアプリ ログイン&lt;/h2&gt;
+
+            @if($errors-&gt;any())
+                &lt;div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"&gt;
+                    @foreach($errors-&gt;all() as $error)
+                        &lt;p&gt;{{ $error }}&lt;/p&gt;
+                    @endforeach
+                &lt;/div&gt;
+            @endif
+
+            &lt;form method="POST" action="{{ route('login') }}"&gt;
+                @csrf
+
+                &lt;div class="mb-4"&gt;
+                    &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                        メールアドレス
+                    &lt;/label&gt;
+                    &lt;input type="email" name="email" value="{{ old('email') }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           required autofocus&gt;
+                &lt;/div&gt;
+
+                &lt;div class="mb-6"&gt;
+                    &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                        パスワード
+                    &lt;/label&gt;
+                    &lt;input type="password" name="password"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           required&gt;
+                &lt;/div&gt;
+
+                &lt;button type="submit"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"&gt;
+                    ログイン
+                &lt;/button&gt;
+
+                &lt;p class="text-center mt-4 text-sm text-gray-600"&gt;
+                    アカウントをお持ちでない方は
+                    &lt;a href="{{ route('register') }}" class="text-blue-600 hover:underline"&gt;新規登録&lt;/a&gt;
+                &lt;/p&gt;
+            &lt;/form&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3 mt-6">ユーザー登録ページ</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// resources/views/auth/register.blade.php
+
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;新規登録 - TODOアプリ&lt;/title&gt;
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+&lt;/head&gt;
+&lt;body class="bg-gray-100"&gt;
+    &lt;div class="min-h-screen flex items-center justify-center"&gt;
+        &lt;div class="max-w-md w-full bg-white rounded-lg shadow-md p-8"&gt;
+            &lt;h2 class="text-2xl font-bold text-center mb-6"&gt;📝 TODOアプリ 新規登録&lt;/h2&gt;
+
+            @if($errors-&gt;any())
+                &lt;div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"&gt;
+                    @foreach($errors-&gt;all() as $error)
+                        &lt;p&gt;{{ $error }}&lt;/p&gt;
+                    @endforeach
+                &lt;/div&gt;
+            @endif
+
+            &lt;form method="POST" action="{{ route('register') }}"&gt;
+                @csrf
+
+                &lt;div class="mb-4"&gt;
+                    &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;名前&lt;/label&gt;
+                    &lt;input type="text" name="name" value="{{ old('name') }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           required autofocus&gt;
+                &lt;/div&gt;
+
+                &lt;div class="mb-4"&gt;
+                    &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;メールアドレス&lt;/label&gt;
+                    &lt;input type="email" name="email" value="{{ old('email') }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           required&gt;
+                &lt;/div&gt;
+
+                &lt;div class="mb-4"&gt;
+                    &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;パスワード&lt;/label&gt;
+                    &lt;input type="password" name="password"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           required&gt;
+                &lt;/div&gt;
+
+                &lt;div class="mb-6"&gt;
+                    &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;パスワード（確認）&lt;/label&gt;
+                    &lt;input type="password" name="password_confirmation"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           required&gt;
+                &lt;/div&gt;
+
+                &lt;button type="submit"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"&gt;
+                    登録
+                &lt;/button&gt;
+
+                &lt;p class="text-center mt-4 text-sm text-gray-600"&gt;
+                    既にアカウントをお持ちの方は
+                    &lt;a href="{{ route('login') }}" class="text-blue-600 hover:underline"&gt;ログイン&lt;/a&gt;
+                &lt;/p&gt;
+            &lt;/form&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 認証ビューの作成が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ7: タスク関連のビュー</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">タスク一覧ページ</h4>
+                        <p class="text-gray-400 text-sm mb-3">
+                            検索・フィルタリング・ページネーション機能付きの一覧ページです。
+                        </p>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">{{-- resources/views/tasks/index.blade.php --}}
+
+@extends('layouts.app')
+
+@section('title', 'タスク一覧')
+
+@section('content')
+    &lt;div class="flex justify-between items-center mb-6"&gt;
+        &lt;h1 class="text-2xl font-bold text-gray-800"&gt;タスク一覧&lt;/h1&gt;
+        &lt;a href="{{ route('tasks.create') }}"
+           class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"&gt;
+            ＋ 新規タスク作成
+        &lt;/a&gt;
+    &lt;/div&gt;
+
+    {{-- 検索・フィルタ --}}
+    &lt;div class="bg-white rounded-lg shadow p-4 mb-6"&gt;
+        &lt;form method="GET" action="{{ route('tasks.index') }}" class="flex flex-wrap gap-4"&gt;
+            &lt;input type="text" name="search" value="{{ request('search') }}"
+                   placeholder="キーワード検索"
+                   class="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded"&gt;
+
+            &lt;select name="status" class="px-3 py-2 border border-gray-300 rounded"&gt;
+                &lt;option value=""&gt;ステータス: すべて&lt;/option&gt;
+                &lt;option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}&gt;未着手&lt;/option&gt;
+                &lt;option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}&gt;進行中&lt;/option&gt;
+                &lt;option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}&gt;完了&lt;/option&gt;
+            &lt;/select&gt;
+
+            &lt;select name="priority" class="px-3 py-2 border border-gray-300 rounded"&gt;
+                &lt;option value=""&gt;優先度: すべて&lt;/option&gt;
+                &lt;option value="low" {{ request('priority') == 'low' ? 'selected' : '' }}&gt;低&lt;/option&gt;
+                &lt;option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}&gt;中&lt;/option&gt;
+                &lt;option value="high" {{ request('priority') == 'high' ? 'selected' : '' }}&gt;高&lt;/option&gt;
+            &lt;/select&gt;
+
+            &lt;button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"&gt;
+                検索
+            &lt;/button&gt;
+            &lt;a href="{{ route('tasks.index') }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"&gt;
+                クリア
+            &lt;/a&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+
+    {{-- タスク一覧 --}}
+    @if($tasks-&gt;count() &gt; 0)
+        &lt;div class="space-y-4"&gt;
+            @foreach($tasks as $task)
+                &lt;div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition"&gt;
+                    &lt;div class="flex items-start justify-between"&gt;
+                        &lt;div class="flex-1"&gt;
+                            &lt;div class="flex items-center gap-2 mb-2"&gt;
+                                &lt;span class="px-2 py-1 text-xs rounded
+                                    {{ $task-&gt;getPriorityColor() == 'high' ? 'bg-red-100 text-red-800' : '' }}
+                                    {{ $task-&gt;getPriorityColor() == 'medium' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                                    {{ $task-&gt;getPriorityColor() == 'low' ? 'bg-green-100 text-green-800' : '' }}"&gt;
+                                    優先度: {{ $task-&gt;getPriorityLabel() }}
+                                &lt;/span&gt;
+                                &lt;span class="px-2 py-1 text-xs rounded
+                                    {{ $task-&gt;getStatusColor() == 'completed' ? 'bg-green-100 text-green-800' : '' }}
+                                    {{ $task-&gt;getStatusColor() == 'in_progress' ? 'bg-blue-100 text-blue-800' : '' }}
+                                    {{ $task-&gt;getStatusColor() == 'pending' ? 'bg-gray-100 text-gray-800' : '' }}"&gt;
+                                    {{ $task-&gt;getStatusLabel() }}
+                                &lt;/span&gt;
+                                @if($task-&gt;isOverdue())
+                                    &lt;span class="px-2 py-1 text-xs rounded bg-red-600 text-white"&gt;期限切れ&lt;/span&gt;
+                                @endif
+                            &lt;/div&gt;
+
+                            &lt;h3 class="text-lg font-bold text-gray-800 mb-2"&gt;
+                                &lt;a href="{{ route('tasks.show', $task) }}" class="hover:text-blue-600"&gt;
+                                    {{ $task-&gt;title }}
+                                &lt;/a&gt;
+                            &lt;/h3&gt;
+
+                            @if($task-&gt;description)
+                                &lt;p class="text-gray-600 mb-2"&gt;{{ Str::limit($task-&gt;description, 100) }}&lt;/p&gt;
+                            @endif
+
+                            &lt;div class="text-sm text-gray-500"&gt;
+                                @if($task-&gt;due_date)
+                                    &lt;span&gt;期限: {{ $task-&gt;due_date-&gt;format('Y年m月d日') }}&lt;/span&gt;
+                                @endif
+                                @if(auth()-&gt;user()-&gt;isAdmin())
+                                    &lt;span class="ml-4"&gt;作成者: {{ $task-&gt;user-&gt;name }}&lt;/span&gt;
+                                @endif
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+
+                        {{-- 画像サムネイル --}}
+                        @if($task-&gt;image)
+                            &lt;img src="{{ $task-&gt;getImageUrl() }}" alt="タスク画像"
+                                 class="w-24 h-24 object-cover rounded ml-4"&gt;
+                        @endif
+                    &lt;/div&gt;
+
+                    {{-- アクション --}}
+                    &lt;div class="flex gap-2 mt-4"&gt;
+                        @if($task-&gt;user_id == auth()-&gt;id() &amp;&amp; !$task-&gt;isCompleted())
+                            &lt;form method="POST" action="{{ route('tasks.complete', $task) }}"&gt;
+                                @csrf
+                                &lt;button type="submit" class="text-green-600 hover:text-green-800 text-sm"&gt;
+                                    ✓ 完了にする
+                                &lt;/button&gt;
+                            &lt;/form&gt;
+                        @endif
+
+                        @if($task-&gt;user_id == auth()-&gt;id())
+                            &lt;a href="{{ route('tasks.edit', $task) }}" class="text-blue-600 hover:text-blue-800 text-sm"&gt;
+                                編集
+                            &lt;/a&gt;
+                        @endif
+
+                        @if($task-&gt;user_id == auth()-&gt;id() || auth()-&gt;user()-&gt;isAdmin())
+                            &lt;form method="POST" action="{{ route('tasks.destroy', $task) }}" class="inline"
+                                  onsubmit="return confirm('本当に削除しますか？')"&gt;
+                                @csrf
+                                @method('DELETE')
+                                &lt;button type="submit" class="text-red-600 hover:text-red-800 text-sm"&gt;
+                                    削除
+                                &lt;/button&gt;
+                            &lt;/form&gt;
+                        @endif
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            @endforeach
+        &lt;/div&gt;
+
+        {{-- ページネーション --}}
+        &lt;div class="mt-6"&gt;
+            {{ $tasks-&gt;links() }}
+        &lt;/div&gt;
+    @else
+        &lt;div class="bg-white rounded-lg shadow p-8 text-center"&gt;
+            &lt;p class="text-gray-600"&gt;タスクがありません。新しいタスクを作成しましょう！&lt;/p&gt;
+        &lt;/div&gt;
+    @endif
+@endsection</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ タスク一覧ビューの作成が完了しました！次のページに続きます...
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ8: 管理者用ミドルウェア</h3>
 
                         <h4 class="text-xl font-bold text-green-400 mb-3">IsAdminミドルウェアの作成</h4>
                         <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash">php artisan make:middleware IsAdmin</code></pre>
@@ -1098,7 +1480,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->create();</code></pre>
 
-                        <h4 class="text-xl font-bold text-green-400 mb-3">管理者専用ルート（オプション）</h4>
+                        <h4 class="text-xl font-bold text-green-400 mb-3">管理者専用ルート</h4>
                         <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
 
 use App\Http\Controllers\Admin\DashboardController;
@@ -1109,13 +1491,478 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/users', [DashboardController::class, 'users'])->name('users');
 });</code></pre>
 
+                        <h4 class="text-xl font-bold text-green-400 mb-3 mt-6">管理者用コントローラーの作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash">mkdir -p app/Http/Controllers/Admin
+touch app/Http/Controllers/Admin/DashboardController.php</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Http/Controllers/Admin/DashboardController.php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Task;
+
+class DashboardController extends Controller
+{
+    public function index()
+    {
+        $totalUsers = User::count();
+        $totalTasks = Task::count();
+        $completedTasks = Task::where('status', 'completed')->count();
+        $pendingTasks = Task::where('status', 'pending')->count();
+
+        return view('admin.dashboard', compact('totalUsers', 'totalTasks', 'completedTasks', 'pendingTasks'));
+    }
+
+    public function users()
+    {
+        $users = User::withCount('tasks')->latest()->get();
+        return view('admin.users', compact('users'));
+    }
+}</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3 mt-6">管理者用ビューの作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash">mkdir -p resources/views/admin
+touch resources/views/admin/dashboard.blade.php
+touch resources/views/admin/users.blade.php</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">管理者ダッシュボード</h5>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">{{-- resources/views/admin/dashboard.blade.php --}}
+
+@extends('layouts.app')
+
+@section('title', '管理者ダッシュボード')
+
+@section('content')
+&lt;div class="container mx-auto px-4 py-8"&gt;
+    &lt;h1 class="text-3xl font-bold mb-8"&gt;管理者ダッシュボード&lt;/h1&gt;
+
+    &lt;div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"&gt;
+        &lt;div class="bg-white p-6 rounded-lg shadow"&gt;
+            &lt;h3 class="text-gray-600 text-sm"&gt;総ユーザー数&lt;/h3&gt;
+            &lt;p class="text-3xl font-bold text-blue-600"&gt;{{ $totalUsers }}&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class="bg-white p-6 rounded-lg shadow"&gt;
+            &lt;h3 class="text-gray-600 text-sm"&gt;総タスク数&lt;/h3&gt;
+            &lt;p class="text-3xl font-bold text-green-600"&gt;{{ $totalTasks }}&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class="bg-white p-6 rounded-lg shadow"&gt;
+            &lt;h3 class="text-gray-600 text-sm"&gt;完了タスク&lt;/h3&gt;
+            &lt;p class="text-3xl font-bold text-purple-600"&gt;{{ $completedTasks }}&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class="bg-white p-6 rounded-lg shadow"&gt;
+            &lt;h3 class="text-gray-600 text-sm"&gt;未着手タスク&lt;/h3&gt;
+            &lt;p class="text-3xl font-bold text-orange-600"&gt;{{ $pendingTasks }}&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class="bg-white p-6 rounded-lg shadow"&gt;
+        &lt;h2 class="text-xl font-bold mb-4"&gt;管理メニュー&lt;/h2&gt;
+        &lt;a href="{{ route('admin.users') }}" class="text-blue-600 hover:underline"&gt;
+            ユーザー一覧を見る →
+        &lt;/a&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+@endsection</code></pre>
+
+                        <h5 class="text-md font-bold text-green-400 mt-4">ユーザー一覧ビュー</h5>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">{{-- resources/views/admin/users.blade.php --}}
+
+@extends('layouts.app')
+
+@section('title', 'ユーザー一覧')
+
+@section('content')
+&lt;div class="container mx-auto px-4 py-8"&gt;
+    &lt;div class="flex justify-between items-center mb-8"&gt;
+        &lt;h1 class="text-3xl font-bold"&gt;ユーザー一覧&lt;/h1&gt;
+        &lt;a href="{{ route('admin.dashboard') }}" class="text-blue-600 hover:underline"&gt;
+            ← ダッシュボードへ戻る
+        &lt;/a&gt;
+    &lt;/div&gt;
+
+    &lt;div class="bg-white rounded-lg shadow overflow-hidden"&gt;
+        &lt;table class="min-w-full"&gt;
+            &lt;thead class="bg-gray-50"&gt;
+                &lt;tr&gt;
+                    &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"&gt;ID&lt;/th&gt;
+                    &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"&gt;名前&lt;/th&gt;
+                    &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"&gt;メールアドレス&lt;/th&gt;
+                    &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"&gt;権限&lt;/th&gt;
+                    &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"&gt;タスク数&lt;/th&gt;
+                    &lt;th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"&gt;登録日&lt;/th&gt;
+                &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody class="bg-white divide-y divide-gray-200"&gt;
+                @foreach ($users as $user)
+                &lt;tr&gt;
+                    &lt;td class="px-6 py-4 whitespace-nowrap"&gt;{{ $user->id }}&lt;/td&gt;
+                    &lt;td class="px-6 py-4 whitespace-nowrap"&gt;{{ $user->name }}&lt;/td&gt;
+                    &lt;td class="px-6 py-4 whitespace-nowrap"&gt;{{ $user->email }}&lt;/td&gt;
+                    &lt;td class="px-6 py-4 whitespace-nowrap"&gt;
+                        &lt;span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {{ $user->role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}"&gt;
+                            {{ $user->role === 'admin' ? '管理者' : '一般' }}
+                        &lt;/span&gt;
+                    &lt;/td&gt;
+                    &lt;td class="px-6 py-4 whitespace-nowrap"&gt;{{ $user->tasks_count }}&lt;/td&gt;
+                    &lt;td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"&gt;
+                        {{ $user->created_at->format('Y/m/d') }}
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+                @endforeach
+            &lt;/tbody&gt;
+        &lt;/table&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+@endsection</code></pre>
+
                         <p class="text-green-300 mt-4">
-                            ✅ 管理者用ミドルウェアが完成しました！
+                            ✅ 管理者用ダッシュボードとユーザー一覧機能が完成しました！
                         </p>
                     </div>
 
                     <div class="content-section">
-                        <h3>ステップ7: シーダーで初期データ作成</h3>
+                        <h3>ステップ9: タスク作成・編集ビュー</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">タスク作成フォーム（画像アップロード付き）</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">{{-- resources/views/tasks/create.blade.php --}}
+
+@extends('layouts.app')
+
+@section('title', 'タスク作成')
+
+@section('content')
+    &lt;div class="max-w-2xl mx-auto"&gt;
+        &lt;h1 class="text-2xl font-bold text-gray-800 mb-6"&gt;新規タスク作成&lt;/h1&gt;
+
+        @if($errors-&gt;any())
+            &lt;div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"&gt;
+                &lt;ul&gt;
+                    @foreach($errors-&gt;all() as $error)
+                        &lt;li&gt;{{ $error }}&lt;/li&gt;
+                    @endforeach
+                &lt;/ul&gt;
+            &lt;/div&gt;
+        @endif
+
+        &lt;form method="POST" action="{{ route('tasks.store') }}" enctype="multipart/form-data"
+              class="bg-white rounded-lg shadow p-6"&gt;
+            @csrf
+
+            &lt;div class="mb-4"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    タイトル &lt;span class="text-red-500"&gt;*&lt;/span&gt;
+                &lt;/label&gt;
+                &lt;input type="text" name="title" value="{{ old('title') }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       required&gt;
+            &lt;/div&gt;
+
+            &lt;div class="mb-4"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    説明
+                &lt;/label&gt;
+                &lt;textarea name="description" rows="4"
+                          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"&gt;{{ old('description') }}&lt;/textarea&gt;
+            &lt;/div&gt;
+
+            &lt;div class="mb-4"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    優先度 &lt;span class="text-red-500"&gt;*&lt;/span&gt;
+                &lt;/label&gt;
+                &lt;select name="priority"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required&gt;
+                    &lt;option value="low" {{ old('priority') == 'low' ? 'selected' : '' }}&gt;低&lt;/option&gt;
+                    &lt;option value="medium" {{ old('priority', 'medium') == 'medium' ? 'selected' : '' }}&gt;中&lt;/option&gt;
+                    &lt;option value="high" {{ old('priority') == 'high' ? 'selected' : '' }}&gt;高&lt;/option&gt;
+                &lt;/select&gt;
+            &lt;/div&gt;
+
+            &lt;div class="mb-4"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    期限
+                &lt;/label&gt;
+                &lt;input type="date" name="due_date" value="{{ old('due_date') }}"
+                       min="{{ date('Y-m-d') }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"&gt;
+            &lt;/div&gt;
+
+            &lt;div class="mb-6"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    画像（任意）
+                &lt;/label&gt;
+                &lt;input type="file" name="image" accept="image/*"
+                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"&gt;
+                &lt;p class="text-gray-500 text-xs mt-1"&gt;
+                    JPEG, PNG, GIF形式（最大2MB）
+                &lt;/p&gt;
+            &lt;/div&gt;
+
+            &lt;div class="flex gap-4"&gt;
+                &lt;button type="submit"
+                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"&gt;
+                    作成
+                &lt;/button&gt;
+                &lt;a href="{{ route('tasks.index') }}"
+                   class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400 transition"&gt;
+                    キャンセル
+                &lt;/a&gt;
+            &lt;/div&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+@endsection</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3 mt-6">タスク編集フォーム</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">{{-- resources/views/tasks/edit.blade.php --}}
+
+@extends('layouts.app')
+
+@section('title', 'タスク編集')
+
+@section('content')
+    &lt;div class="max-w-2xl mx-auto"&gt;
+        &lt;h1 class="text-2xl font-bold text-gray-800 mb-6"&gt;タスク編集&lt;/h1&gt;
+
+        @if($errors-&gt;any())
+            &lt;div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"&gt;
+                &lt;ul&gt;
+                    @foreach($errors-&gt;all() as $error)
+                        &lt;li&gt;{{ $error }}&lt;/li&gt;
+                    @endforeach
+                &lt;/ul&gt;
+            &lt;/div&gt;
+        @endif
+
+        &lt;form method="POST" action="{{ route('tasks.update', $task) }}" enctype="multipart/form-data"
+              class="bg-white rounded-lg shadow p-6"&gt;
+            @csrf
+            @method('PUT')
+
+            &lt;div class="mb-4"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    タイトル &lt;span class="text-red-500"&gt;*&lt;/span&gt;
+                &lt;/label&gt;
+                &lt;input type="text" name="title" value="{{ old('title', $task-&gt;title) }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       required&gt;
+            &lt;/div&gt;
+
+            &lt;div class="mb-4"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    説明
+                &lt;/label&gt;
+                &lt;textarea name="description" rows="4"
+                          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"&gt;{{ old('description', $task-&gt;description) }}&lt;/textarea&gt;
+            &lt;/div&gt;
+
+            &lt;div class="mb-4"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    ステータス &lt;span class="text-red-500"&gt;*&lt;/span&gt;
+                &lt;/label&gt;
+                &lt;select name="status"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required&gt;
+                    &lt;option value="pending" {{ old('status', $task-&gt;status) == 'pending' ? 'selected' : '' }}&gt;未着手&lt;/option&gt;
+                    &lt;option value="in_progress" {{ old('status', $task-&gt;status) == 'in_progress' ? 'selected' : '' }}&gt;進行中&lt;/option&gt;
+                    &lt;option value="completed" {{ old('status', $task-&gt;status) == 'completed' ? 'selected' : '' }}&gt;完了&lt;/option&gt;
+                &lt;/select&gt;
+            &lt;/div&gt;
+
+            &lt;div class="mb-4"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    優先度 &lt;span class="text-red-500"&gt;*&lt;/span&gt;
+                &lt;/label&gt;
+                &lt;select name="priority"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required&gt;
+                    &lt;option value="low" {{ old('priority', $task-&gt;priority) == 'low' ? 'selected' : '' }}&gt;低&lt;/option&gt;
+                    &lt;option value="medium" {{ old('priority', $task-&gt;priority) == 'medium' ? 'selected' : '' }}&gt;中&lt;/option&gt;
+                    &lt;option value="high" {{ old('priority', $task-&gt;priority) == 'high' ? 'selected' : '' }}&gt;高&lt;/option&gt;
+                &lt;/select&gt;
+            &lt;/div&gt;
+
+            &lt;div class="mb-4"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    期限
+                &lt;/label&gt;
+                &lt;input type="date" name="due_date"
+                       value="{{ old('due_date', $task-&gt;due_date ? $task-&gt;due_date-&gt;format('Y-m-d') : '') }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"&gt;
+            &lt;/div&gt;
+
+            &lt;div class="mb-6"&gt;
+                &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
+                    画像
+                &lt;/label&gt;
+
+                @if($task-&gt;image)
+                    &lt;div class="mb-3"&gt;
+                        &lt;img src="{{ $task-&gt;getImageUrl() }}" alt="現在の画像" class="w-48 h-48 object-cover rounded"&gt;
+                        &lt;div class="mt-2"&gt;
+                            &lt;form method="POST" action="{{ route('tasks.delete-image', $task) }}" class="inline"
+                                  onsubmit="return confirm('画像を削除しますか？')"&gt;
+                                @csrf
+                                @method('DELETE')
+                                &lt;button type="submit" class="text-red-600 hover:text-red-800 text-sm"&gt;
+                                    画像を削除
+                                &lt;/button&gt;
+                            &lt;/form&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                @endif
+
+                &lt;input type="file" name="image" accept="image/*"
+                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"&gt;
+                &lt;p class="text-gray-500 text-xs mt-1"&gt;
+                    {{ $task-&gt;image ? '新しい画像をアップロードすると、現在の画像が置き換わります。' : 'JPEG, PNG, GIF形式（最大2MB）' }}
+                &lt;/p&gt;
+            &lt;/div&gt;
+
+            &lt;div class="flex gap-4"&gt;
+                &lt;button type="submit"
+                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"&gt;
+                    更新
+                &lt;/button&gt;
+                &lt;a href="{{ route('tasks.index') }}"
+                   class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400 transition"&gt;
+                    キャンセル
+                &lt;/a&gt;
+            &lt;/div&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+@endsection</code></pre>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3 mt-6">タスク詳細ページ</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">{{-- resources/views/tasks/show.blade.php --}}
+
+@extends('layouts.app')
+
+@section('title', $task-&gt;title)
+
+@section('content')
+    &lt;div class="max-w-3xl mx-auto"&gt;
+        &lt;div class="bg-white rounded-lg shadow p-8"&gt;
+            {{-- ステータスバッジ --}}
+            &lt;div class="flex items-center gap-2 mb-4"&gt;
+                &lt;span class="px-3 py-1 text-sm rounded
+                    {{ $task-&gt;getPriorityColor() == 'high' ? 'bg-red-100 text-red-800' : '' }}
+                    {{ $task-&gt;getPriorityColor() == 'medium' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                    {{ $task-&gt;getPriorityColor() == 'low' ? 'bg-green-100 text-green-800' : '' }}"&gt;
+                    優先度: {{ $task-&gt;getPriorityLabel() }}
+                &lt;/span&gt;
+                &lt;span class="px-3 py-1 text-sm rounded
+                    {{ $task-&gt;getStatusColor() == 'completed' ? 'bg-green-100 text-green-800' : '' }}
+                    {{ $task-&gt;getStatusColor() == 'in_progress' ? 'bg-blue-100 text-blue-800' : '' }}
+                    {{ $task-&gt;getStatusColor() == 'pending' ? 'bg-gray-100 text-gray-800' : '' }}"&gt;
+                    {{ $task-&gt;getStatusLabel() }}
+                &lt;/span&gt;
+                @if($task-&gt;isOverdue())
+                    &lt;span class="px-3 py-1 text-sm rounded bg-red-600 text-white"&gt;期限切れ&lt;/span&gt;
+                @endif
+            &lt;/div&gt;
+
+            {{-- タイトル --}}
+            &lt;h1 class="text-3xl font-bold text-gray-800 mb-4"&gt;{{ $task-&gt;title }}&lt;/h1&gt;
+
+            {{-- メタ情報 --}}
+            &lt;div class="text-sm text-gray-600 mb-6 space-y-1"&gt;
+                &lt;p&gt;作成者: {{ $task-&gt;user-&gt;name }}&lt;/p&gt;
+                &lt;p&gt;作成日: {{ $task-&gt;created_at-&gt;format('Y年m月d日 H:i') }}&lt;/p&gt;
+                @if($task-&gt;due_date)
+                    &lt;p&gt;期限: {{ $task-&gt;due_date-&gt;format('Y年m月d日') }}&lt;/p&gt;
+                @endif
+                @if($task-&gt;completed_at)
+                    &lt;p&gt;完了日時: {{ $task-&gt;completed_at-&gt;format('Y年m月d日 H:i') }}&lt;/p&gt;
+                @endif
+            &lt;/div&gt;
+
+            {{-- 画像 --}}
+            @if($task-&gt;image)
+                &lt;div class="mb-6"&gt;
+                    &lt;img src="{{ $task-&gt;getImageUrl() }}" alt="{{ $task-&gt;title }}"
+                         class="w-full max-w-lg rounded-lg shadow"&gt;
+                &lt;/div&gt;
+            @endif
+
+            {{-- 説明 --}}
+            @if($task-&gt;description)
+                &lt;div class="mb-6"&gt;
+                    &lt;h2 class="text-xl font-bold text-gray-800 mb-2"&gt;説明&lt;/h2&gt;
+                    &lt;p class="text-gray-700 whitespace-pre-wrap"&gt;{{ $task-&gt;description }}&lt;/p&gt;
+                &lt;/div&gt;
+            @endif
+
+            {{-- アクションボタン --}}
+            &lt;div class="flex gap-4 mt-8"&gt;
+                @if($task-&gt;user_id == auth()-&gt;id() &amp;&amp; !$task-&gt;isCompleted())
+                    &lt;form method="POST" action="{{ route('tasks.complete', $task) }}"&gt;
+                        @csrf
+                        &lt;button type="submit"
+                                class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"&gt;
+                            ✓ 完了にする
+                        &lt;/button&gt;
+                    &lt;/form&gt;
+                @endif
+
+                @if($task-&gt;user_id == auth()-&gt;id())
+                    &lt;a href="{{ route('tasks.edit', $task) }}"
+                       class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"&gt;
+                        編集
+                    &lt;/a&gt;
+                @endif
+
+                @if($task-&gt;user_id == auth()-&gt;id() || auth()-&gt;user()-&gt;isAdmin())
+                    &lt;form method="POST" action="{{ route('tasks.destroy', $task) }}" class="inline"
+                          onsubmit="return confirm('本当に削除しますか？')"&gt;
+                        @csrf
+                        @method('DELETE')
+                        &lt;button type="submit"
+                                class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition"&gt;
+                            削除
+                        &lt;/button&gt;
+                    &lt;/form&gt;
+                @endif
+
+                &lt;a href="{{ route('tasks.index') }}"
+                   class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400 transition"&gt;
+                    一覧に戻る
+                &lt;/a&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+@endsection</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ 全てのビューファイルの作成が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ10: ルート設定の追加</h3>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">routes/web.phpに画像削除ルートを追加</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
+
+Route::middleware('auth')-&gt;group(function () {
+    // タスク完了
+    Route::post('/tasks/{task}/complete', [TaskController::class, 'complete'])
+        -&gt;name('tasks.complete');
+
+    // 画像削除
+    Route::delete('/tasks/{task}/delete-image', [TaskController::class, 'deleteImage'])
+        -&gt;name('tasks.delete-image');
+});</code></pre>
+
+                        <p class="text-green-300 mt-4">
+                            ✅ ルート設定が完了しました！
+                        </p>
+                    </div>
+
+                    <div class="content-section">
+                        <h3>ステップ11: シーダーで初期データ作成</h3>
 
                         <h4 class="text-xl font-bold text-green-400 mb-3">シーダーの作成</h4>
                         <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># シーダー作成
@@ -1251,153 +2098,6 @@ php artisan migrate:fresh --seed</code></pre>
                     </div>
 
                     <div class="content-section">
-                        <h3>ステップ8: Tinkerで動作確認</h3>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">Tinkerで実践してみよう</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Tinker起動
-php artisan tinker</code></pre>
-
-                        <h5 class="text-md font-bold text-green-400 mt-4">1. ユーザーとタスクの確認</h5>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// 全ユーザーを取得
-User::all();
-
-// 田中太郎のタスクを取得
-$tanaka = User::where('email', 'tanaka@example.com')->first();
-$tanaka->tasks;
-
-// タスク数をカウント
-$tanaka->tasks()->count();
-// => 3
-
-// 未完了のタスクのみ
-$tanaka->tasks()->where('status', '!=', 'completed')->get();</code></pre>
-
-                        <h5 class="text-md font-bold text-green-400 mt-4">2. タスクの作成</h5>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// 新しいタスクを作成
-$tanaka->tasks()->create([
-    'title' => 'Tinkerから作成したタスク',
-    'description' => 'Tinkerでタスク作成をテスト',
-    'priority' => 'high',
-    'due_date' => now()->addDays(7),
-]);
-
-// 確認
-$tanaka->tasks()->latest()->first();</code></pre>
-
-                        <h5 class="text-md font-bold text-green-400 mt-4">3. タスクの更新</h5>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// タスクを取得
-$task = Task::find(1);
-
-// ステータスを更新
-$task->update(['status' => 'in_progress']);
-
-// タスクを完了にする
-$task->markAsCompleted();
-
-// 確認
-$task->fresh();
-$task->status;
-// => "completed"
-$task->completed_at;
-// => Carbon\Carbon instance</code></pre>
-
-                        <h5 class="text-md font-bold text-green-400 mt-4">4. リレーションの確認</h5>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// タスクから所有者を取得
-$task = Task::find(1);
-$task->user;
-// => User {name: "田中太郎", ...}
-
-$task->user->name;
-// => "田中太郎"
-
-// Eager Loading（N+1問題を回避）
-$tasks = Task::with('user')->get();
-
-foreach ($tasks as $task) {
-    echo $task->title . ' - ' . $task->user->name . "\n";
-}</code></pre>
-
-                        <h5 class="text-md font-bold text-green-400 mt-4">5. 権限チェックのテスト</h5>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// 管理者ユーザー
-$admin = User::where('email', 'admin@example.com')->first();
-$admin->isAdmin();
-// => true
-
-// 一般ユーザー
-$tanaka = User::where('email', 'tanaka@example.com')->first();
-$tanaka->isAdmin();
-// => false
-
-// ログインシミュレーション
-Auth::login($tanaka);
-
-auth()->user()->name;
-// => "田中太郎"
-
-auth()->user()->isAdmin();
-// => false</code></pre>
-
-                        <h5 class="text-md font-bold text-green-400 mt-4">6. 検索・フィルタリング</h5>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// ステータスでフィルタ
-Task::where('status', 'completed')->get();
-
-// 優先度が高いタスク
-Task::where('priority', 'high')->get();
-
-// 期限が近いタスク（7日以内）
-Task::where('due_date', '<=', now()->addDays(7))
-    ->where('status', '!=', 'completed')
-    ->orderBy('due_date', 'asc')
-    ->get();
-
-// キーワード検索
-Task::where('title', 'like', '%Laravel%')->get();
-
-// 複合検索
-Task::where('user_id', $tanaka->id)
-    ->where('status', 'pending')
-    ->where('priority', 'high')
-    ->get();</code></pre>
-
-                        <h5 class="text-md font-bold text-green-400 mt-4">7. ページネーション</h5>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// ページネーション（1ページ10件）
-$tasks = Task::paginate(10);
-
-$tasks->total();      // 総件数
-$tasks->perPage();    // 1ページあたりの件数
-$tasks->currentPage(); // 現在のページ番号
-$tasks->lastPage();   // 最終ページ番号
-
-// 2ページ目を取得
-$tasks = Task::paginate(10, ['*'], 'page', 2);</code></pre>
-
-                        <h5 class="text-md font-bold text-green-400 mt-4">8. 統計情報の取得</h5>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// 田中太郎のタスク統計
-$tanaka = User::where('email', 'tanaka@example.com')->first();
-
-// ステータス別カウント
-$pendingCount = $tanaka->tasks()->where('status', 'pending')->count();
-$inProgressCount = $tanaka->tasks()->where('status', 'in_progress')->count();
-$completedCount = $tanaka->tasks()->where('status', 'completed')->count();
-
-echo "未着手: {$pendingCount}\n";
-echo "進行中: {$inProgressCount}\n";
-echo "完了: {$completedCount}\n";
-
-// 期限切れタスク数
-$overdueCount = $tanaka->tasks()
-    ->where('due_date', '<', now())
-    ->where('status', '!=', 'completed')
-    ->count();
-
-echo "期限切れ: {$overdueCount}\n";</code></pre>
-
-                        <p class="text-green-300 mt-4">
-                            ✅ Tinkerでの動作確認が完了しました！
-                        </p>
-                    </div>
-
-                    <div class="content-section">
                         <h3>まとめ</h3>
 
                         <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-green-500">
@@ -1446,14 +2146,25 @@ echo "期限切れ: {$overdueCount}\n";</code></pre>
                                 <p class="text-gray-300 mb-2"><strong class="text-yellow-300">5. 権限管理</strong></p>
                                 <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
                                     <li>ロール（admin、user）でアクセス制御</li>
-                                    <li>Policyで細かい権限チェック</li>
+                                    <li>ミドルウェアでルート単位の権限チェック</li>
+                                    <li>コントローラーで個別リソースの権限チェック</li>
                                     <li>自分のタスクのみ編集可能</li>
                                     <li>管理者は全タスク閲覧・削除可能</li>
                                 </ul>
                             </div>
 
                             <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">6. 検索・フィルタリング</strong></p>
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">6. 画像アップロード</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>タスクに画像を添付可能</li>
+                                    <li>Storage::disk('public')で画像保存</li>
+                                    <li>画像の削除・差し替え機能</li>
+                                    <li>バリデーションでファイル形式・サイズチェック</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">7. 検索・フィルタリング</strong></p>
                                 <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
                                     <li>ステータス・優先度でフィルタ</li>
                                     <li>キーワード検索（タイトル・説明文）</li>
@@ -1463,7 +2174,7 @@ echo "期限切れ: {$overdueCount}\n";</code></pre>
                             </div>
 
                             <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">7. ページネーション</strong></p>
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">8. ページネーション</strong></p>
                                 <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
                                     <li>paginate(10)で1ページ10件</li>
                                     <li>withQueryString()で検索条件を保持</li>
@@ -1472,11 +2183,21 @@ echo "期限切れ: {$overdueCount}\n";</code></pre>
                             </div>
 
                             <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">8. シーダーとTinker</strong></p>
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">9. ビューファイル</strong></p>
+                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                    <li>Bladeテンプレートで全画面実装</li>
+                                    <li>レイアウトファイルで共通部分を再利用</li>
+                                    <li>認証ページ（ログイン・登録）</li>
+                                    <li>タスクCRUD画面（一覧・作成・編集・詳細）</li>
+                                    <li>画像アップロードフォーム実装</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-6">
+                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">10. シーダー</strong></p>
                                 <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
                                     <li>シーダーで初期データ作成</li>
-                                    <li>Tinkerでデータ操作・確認</li>
-                                    <li>リレーション・権限チェックのテスト</li>
+                                    <li>データベースへのテストデータ投入</li>
                                 </ul>
                             </div>
                         </div>
@@ -1501,7 +2222,6 @@ echo "期限切れ: {$overdueCount}\n";</code></pre>
                                         <li>リレーション</li>
                                         <li>クエリビルダー</li>
                                         <li>シーダー</li>
-                                        <li>Tinker</li>
                                     </ul>
                                 </div>
                                 <div>
@@ -1510,8 +2230,7 @@ echo "期限切れ: {$overdueCount}\n";</code></pre>
                                         <li>ユーザー認証</li>
                                         <li>ミドルウェア</li>
                                         <li>ロール管理</li>
-                                        <li>Policy</li>
-                                        <li>Gate</li>
+                                        <li>コントローラーでの権限チェック</li>
                                     </ul>
                                 </div>
                                 <div>
@@ -1520,6 +2239,8 @@ echo "期限切れ: {$overdueCount}\n";</code></pre>
                                         <li>ページネーション</li>
                                         <li>検索・フィルタリング</li>
                                         <li>バリデーション</li>
+                                        <li>画像アップロード</li>
+                                        <li>ファイルストレージ</li>
                                         <li>フラッシュメッセージ</li>
                                         <li>リダイレクト</li>
                                     </ul>
@@ -1527,30 +2248,14 @@ echo "期限切れ: {$overdueCount}\n";</code></pre>
                             </div>
                         </div>
 
-                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-purple-500">
-                            <h4 class="text-xl font-bold text-purple-400 mb-4">次のステップ</h4>
-                            <p class="text-gray-300 mb-4">
-                                TODOアプリの基本が完成しました！さらに機能を追加してみましょう:
-                            </p>
-                            <ul class="list-disc ml-6 text-gray-300 space-y-2 text-sm">
-                                <li><strong class="text-blue-300">カテゴリ機能</strong>: タスクをカテゴリ分け（仕事・プライベートなど）</li>
-                                <li><strong class="text-blue-300">タグ機能</strong>: 多対多リレーションでタグ管理</li>
-                                <li><strong class="text-blue-300">コメント機能</strong>: タスクにコメントを追加</li>
-                                <li><strong class="text-blue-300">ファイル添付</strong>: 画像アップロード機能の応用</li>
-                                <li><strong class="text-blue-300">通知機能</strong>: 期限が近いタスクをメール通知</li>
-                                <li><strong class="text-blue-300">API化</strong>: RESTful APIでSPA対応</li>
-                                <li><strong class="text-blue-300">テスト</strong>: PHPUnitでテストコード作成</li>
-                            </ul>
-                        </div>
-
                         <div class="bg-gradient-to-r from-green-900/50 to-blue-900/50 p-6 rounded-lg border border-green-500/30">
                             <p class="text-green-300 text-lg font-bold mb-2">
                                 🎉 総合実践TODOアプリが完成しました！
                             </p>
                             <p class="text-gray-300 text-sm">
-                                これまで学んだ全ての知識を使って、実践的なアプリケーションを作成できました。<br>
-                                認証、CRUD、権限管理、リレーション、ページネーション、検索など、実務で必要な機能を全て実装しました。<br>
-                                この知識を活かして、さらに複雑なアプリケーションにチャレンジしてみましょう！
+                                これまで学んだ全ての知識を使って、<strong>実際に動作する実践的なTODOアプリケーション</strong>を作成できました。<br>
+                                認証、CRUD、ロール管理、リレーション、ページネーション、検索、画像アップロードなど、実務で必要な機能を全て実装しました。<br>
+                                全てのビューファイル（Blade）も用意されているので、すぐに動かして試すことができます！
                             </p>
                         </div>
                     </div>

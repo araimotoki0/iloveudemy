@@ -361,17 +361,6 @@
                             認証機能だけでは不十分です。<strong class="text-yellow-300">誰が何をできるか</strong>を管理する<strong class="text-yellow-300">権限管理（認可）</strong>が必要です。<br>
                             この章では、ミドルウェアとロールを使った権限管理を学びます。
                         </p>
-
-                        <div class="glass-dark p-5 rounded-xl mt-4 mb-4 border-l-4 border-green-500">
-                            <p class="text-sm mb-3"><strong>🎯 この章で学ぶこと</strong></p>
-                            <ul class="text-sm space-y-2">
-                                <li>✅ 認証と認可の違い</li>
-                                <li>✅ ミドルウェアの仕組みと使い方</li>
-                                <li>✅ ロールテーブルの設計（シンプル版と多対多版）</li>
-                                <li>✅ カスタムミドルウェアの作成</li>
-                                <li>✅ Tinkerでのロール割り当てと権限チェック</li>
-                            </ul>
-                        </div>
                     </div>
 
                     <div class="content-section">
@@ -408,9 +397,9 @@ if (auth()->user()->isAdmin()) {
     echo '管理者です';
 }
 
-// 編集者権限を持っているか
-if (auth()->user()->hasRole('editor')) {
-    echo '記事を編集できます';
+// 特定のロールを持っているか
+if (auth()->user()->hasRole('admin')) {
+    echo '管理者権限があります';
 }</code></pre>
                         </div>
 
@@ -473,23 +462,115 @@ if (auth()->user()->hasRole('editor')) {
                         <h3>ミドルウェアの仕組み</h3>
 
                         <p class="text-gray-300 mb-4">
-                            ミドルウェアは、<strong class="text-yellow-300">リクエストが処理される前</strong>や<strong class="text-yellow-300">レスポンスが返される後</strong>に、<br>
-                            特定の処理を挟み込む仕組みです。
+                            ミドルウェアは、<strong class="text-yellow-300">コントローラーが実行される前</strong>にチェックを行う「番人」のような仕組みです。
                         </p>
 
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-yellow-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-yellow-300">ミドルウェアの流れ:</strong></p>
-                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>1. ユーザーがリクエスト送信
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ミドルウェアファイルの構造</h4>
+                        <p class="text-gray-300 mb-3 text-sm">
+                            まず、ミドルウェアファイルがどう書かれているか見てみましょう。
+                        </p>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4"><code class="language-php">// app/Http/Middleware/Authenticate.php (Laravel標準のミドルウェア)
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class Authenticate
+{
+    public function handle(Request $request, Closure $next)
+    {
+        // ログインしているかチェック
+        if (!auth()->check()) {
+            // ログインしていない → ログインページへリダイレクト
+            return redirect('/login');
+        }
+
+        // ログインしている → 次の処理(コントローラー)へ進む
+        return $next($request);
+    }
+}</code></pre>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <p class="text-sm font-bold text-blue-300 mb-2">📝 コードの構造</p>
+                            <ul class="text-xs text-gray-300 space-y-2 ml-3">
+                                <li>• <strong>ミドルウェアは必ず <code>handle()</code> メソッドを持つ</strong></li>
+                                <li>• 第1引数 <code>$request</code>: ユーザーからのリクエスト情報</li>
+                                <li>• 第2引数 <code>$next</code>: 次の処理(コントローラー)を実行する関数</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">$next($request) の意味</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
+                            <p class="text-gray-300 mb-2"><strong class="text-yellow-300">ミドルウェアの2つの選択肢:</strong></p>
+                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>ユーザーがアクセス
    ↓
-2. ミドルウェア1（例: CSRF保護）
+[ミドルウェアの handle() メソッドが実行される]
    ↓
-3. ミドルウェア2（例: 認証チェック）
+条件チェック
    ↓
-4. ミドルウェア3（例: 権限チェック）
-   ↓
-5. コントローラー処理
-   ↓
-6. レスポンス返却</code></pre>
+✅ OK → return $next($request);     ← コントローラーへ進む
+❌ NG → return redirect('/login');  ← ここで処理を止める</code></pre>
+                        </div>
+
+                        <div class="bg-blue-900/30 p-4 rounded-lg mb-6 border-l-4 border-blue-400">
+                            <p class="text-sm font-bold text-blue-300 mb-2">💡 重要ポイント</p>
+                            <ul class="text-xs text-gray-300 space-y-2 ml-3">
+                                <li>• <code>return $next($request);</code> → <strong>次の処理(コントローラー)へ進む</strong></li>
+                                <li>• <code>return redirect();</code> → <strong>処理を止めてリダイレクト</strong></li>
+                                <li>• <code>return abort(403);</code> → <strong>処理を止めてエラー表示</strong></li>
+                            </ul>
+
+                            <div class="bg-gray-900/50 p-3 rounded mt-3">
+                                <p class="text-xs text-gray-400 mb-1"><strong>なぜ $next を使うの？</strong></p>
+                                <p class="text-xs text-gray-300">
+                                    Laravelのミドルウェアは必ず <code>$next($request)</code> を使う設計です。<br>
+                                    これは「次に何が実行されるか(別のミドルウェアかコントローラーか)をミドルウェア自身は知らない」ためです。<br>
+                                    <code>$next($request)</code> で次に渡すのが標準的な書き方です。
+                                </p>
+                            </div>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">具体例: 管理者チェックのミドルウェア</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4"><code class="language-php">// app/Http/Middleware/IsAdmin.php
+
+class IsAdmin
+{
+    public function handle(Request $request, Closure $next)
+    {
+        // 1. ログインしているかチェック
+        if (!auth()->check()) {
+            return redirect('/login');  // ← ここで止まる
+        }
+
+        // 2. 管理者かチェック
+        if (!auth()->user()->isAdmin()) {
+            return abort(403);  // ← ここで止まる
+        }
+
+        // 3. 両方OKならコントローラーへ
+        return $next($request);  // ← コントローラー実行
+    }
+}</code></pre>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-green-500">
+                            <p class="text-xs text-gray-300 mb-2"><strong class="text-green-300">📝 補足: レスポンス後の処理も可能</strong></p>
+                            <p class="text-xs text-gray-300 mb-2">
+                                ミドルウェアはレスポンスを返した後の処理も書けます（例: アクセスログの記録）。<br>
+                                ただし今回は使わないので、「リクエスト前のチェック」だけ覚えておけばOKです。
+                            </p>
+                            <pre class="bg-gray-900 p-3 rounded text-xs mt-2"><code class="language-php">public function handle(Request $request, Closure $next)
+{
+    // リクエスト前の処理（今回使う）
+
+    $response = $next($request);  // コントローラー実行
+
+    // レスポンス後の処理（今回は使わない）
+    // 例: Log::info('アクセスログ');
+
+    return $response;
+}</code></pre>
                         </div>
 
                         <h4 class="text-xl font-bold text-green-400 mb-3">Laravelの標準ミドルウェア</h4>
@@ -564,7 +645,7 @@ class DashboardController extends Controller
                     </div>
 
                     <div class="content-section">
-                        <h3>ロールテーブルの設計（シンプル版）</h3>
+                        <h3>ロールテーブルの設計</h3>
 
                         <p class="text-gray-300 mb-4">
                             まずは、<strong class="text-yellow-300">usersテーブルにroleカラムを追加</strong>するシンプルな方法を学びます。
@@ -585,7 +666,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('role')->default('user');
+            $table->enum('role', ['admin', 'user'])->default('user')->after('name');
         });
     }
 
@@ -604,7 +685,6 @@ php artisan migrate</code></pre>
                             <p class="text-gray-300 mb-2"><strong class="text-blue-300">想定するロール:</strong></p>
                             <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
                                 <li><code class="text-blue-300">'user'</code> - 一般ユーザー（デフォルト）</li>
-                                <li><code class="text-blue-300">'editor'</code> - 編集者（記事の作成・編集が可能）</li>
                                 <li><code class="text-blue-300">'admin'</code> - 管理者（全ての操作が可能）</li>
                             </ul>
                         </div>
@@ -627,14 +707,6 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
-    }
-
-    /**
-     * 編集者かどうか
-     */
-    public function isEditor(): bool
-    {
-        return $this->role === 'editor';
     }
 
     /**
@@ -676,18 +748,6 @@ $user->isAdmin();
 $user->hasRole('admin');
 // => true
 
-// 編集者ではない
-$user->isEditor();
-// => false
-
-// 別のユーザーを編集者にする
-$editor = User::find(2);
-$editor->update(['role' => 'editor']);
-
-// 編集者または管理者かチェック
-$editor->hasAnyRole(['editor', 'admin']);
-// => true（編集者なので）
-
 // 一般ユーザーを作成
 $normalUser = User::create([
     'name' => '一般ユーザー',
@@ -706,7 +766,7 @@ $normalUser->hasRole('user');
                             <p class="text-gray-300 mb-2"><strong class="text-green-300">✅ Tinkerで確認したこと:</strong></p>
                             <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
                                 <li>ロールの変更と保存</li>
-                                <li>isAdmin()、isEditor()での判定</li>
+                                <li>isAdmin()での判定</li>
                                 <li>hasRole()での特定ロールチェック</li>
                                 <li>hasAnyRole()での複数ロールチェック</li>
                             </ul>
@@ -768,9 +828,12 @@ class IsAdmin
                         </div>
 
                         <h4 class="text-xl font-bold text-green-400 mb-3">ステップ2: ミドルウェアを登録</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// bootstrap/app.php
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// bootstrap/app.php (Laravel 12)
 
 use App\Http\Middleware\IsAdmin;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -778,906 +841,286 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware) {
+    ->withMiddleware(function (Middleware $middleware): void {
         // ミドルウェアのエイリアスを登録
         $middleware->alias([
             'admin' => IsAdmin::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions) {
+    ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();</code></pre>
 
-                        <h4 class="text-xl font-bold text-green-400 mb-3">ステップ3: ルートに適用</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
-
-// 管理者専用ページ
-Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
-    Route::get('/admin/users', [AdminController::class, 'users']);
-    Route::post('/admin/users/{id}/role', [AdminController::class, 'updateRole']);
-});
-
-// または個別に適用
-Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
-    ->middleware(['auth', 'admin']);</code></pre>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">ミドルウェアの順序:</strong></p>
-                            <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                <li><code class="text-blue-300">['auth', 'admin']</code> - まず認証チェック、次に管理者チェック</li>
-                                <li>順序が重要：認証されていないのに管理者チェックするとエラー</li>
+                        <div class="glass-dark p-4 rounded-xl mt-3 border-l-4 border-purple-500">
+                            <p class="text-xs"><strong>💡 ポイント</strong></p>
+                            <ul class="text-xs text-gray-300 ml-3 mt-2 space-y-1">
+                                <li>• Laravel 11以降は <code>bootstrap/app.php</code> の <code>withMiddleware()</code> でミドルウェアを登録します</li>
+                                <li>• <code>$middleware->alias()</code> で短い名前(例: 'admin')とクラスを紐づけます</li>
+                                <li>• ルートで <code>->middleware('admin')</code> と書くことで適用できます</li>
                             </ul>
                         </div>
 
-                        <h4 class="text-xl font-bold text-green-400 mb-3">実践: Tinkerでテストしてみよう</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Tinkerを起動
-php artisan tinker</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// 管理者ユーザーを作成
-$admin = User::create([
-    'name' => '管理者',
-    'email' => 'admin@example.com',
-    'password' => 'password',
-    'role' => 'admin',
-]);
-
-// ログインシミュレーション
-Auth::login($admin);
-
-// 現在のユーザーが管理者か確認
-auth()->user()->isAdmin();
-// => true
-
-// 一般ユーザーを作成
-$user = User::create([
-    'name' => '一般ユーザー',
-    'email' => 'user@example.com',
-    'password' => 'password',
-    'role' => 'user',
-]);
-
-// 一般ユーザーでログイン
-Auth::login($user);
-
-auth()->user()->isAdmin();
-// => false
-
-// この状態で /admin/dashboard にアクセスすると403エラー</code></pre>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">編集者用ミドルウェアも作ってみよう</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash">php artisan make:middleware IsEditorOrAdmin</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Http/Middleware/IsEditorOrAdmin.php
-
-namespace App\Http\Middleware;
-
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-
-class IsEditorOrAdmin
-{
-    public function handle(Request $request, Closure $next): Response
-    {
-        if (!auth()->check()) {
-            return redirect('/login');
-        }
-
-        // 編集者または管理者かチェック
-        if (!auth()->user()->hasAnyRole(['editor', 'admin'])) {
-            abort(403, 'このページにアクセスする権限がありません。');
-        }
-
-        return $next($request);
-    }
-}</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// bootstrap/app.php
-
-$middleware->alias([
-    'admin' => IsAdmin::class,
-    'editor' => IsEditorOrAdmin::class,  // ← 追加
-]);</code></pre>
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ステップ3: ルートに適用</h4>
+                        <p class="text-gray-300 mb-3 text-sm">
+                            認証セクションで作成した <code>dashboard</code> ルートを管理者専用に改修します。
+                        </p>
 
                         <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
 
-// 編集者または管理者のみアクセス可能
-Route::middleware(['auth', 'editor'])->group(function () {
-    Route::get('/posts/create', [PostController::class, 'create']);
-    Route::post('/posts', [PostController::class, 'store']);
-    Route::get('/posts/{id}/edit', [PostController::class, 'edit']);
-    Route::put('/posts/{id}', [PostController::class, 'update']);
+// 管理者専用ページ (adminミドルウェアでグループ化)
+Route::middleware(['admin'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 });</code></pre>
+
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">ポイント:</strong></p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                <li><code>middleware(['admin'])->group()</code> でグループ化すると、複数のルートにまとめて適用できる</li>
+                                <li>認証セクションで作成したdashboardルートを管理者専用に変更</li>
+                                <li>adminミドルウェア内でログインチェックもしているので、<code>'auth'</code> は不要</li>
+                            </ul>
+
+                            <div class="bg-gray-900/50 p-3 rounded mt-3">
+                                <p class="text-xs text-gray-400 mb-1"><strong>💡 複数のミドルウェアも設定可能</strong></p>
+                                <p class="text-xs text-gray-300 mb-2">
+                                    今回は<code>['admin']</code>だけですが、複数のミドルウェアも指定できます:
+                                </p>
+                                <pre class="text-xs bg-gray-800 p-2 rounded"><code class="language-php">// 複数のミドルウェアを適用する例
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+    // このグループ内のルートは3つのミドルウェアを通過する
+});</code></pre>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    配列の順番通りに実行されます。今回は必要ないので覚えておくだけでOKです。
+                                </p>
+                            </div>
+                        </div>
+
+                        <h4 class="text-xl font-bold text-green-400 mb-3">実践: 実際にアクセスしてテストしてみよう</h4>
+
+                        <p class="text-sm font-bold text-purple-300 mb-3">ステップ1: Tinkerでユーザーを作成</p>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4"><code class="language-bash">php artisan tinker</code></pre>
+
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4"><code class="language-php">// 管理者を作成
+User::create([
+    'name' => '管理者',
+    'email' => 'admin@example.com',
+    'password' => bcrypt('password'),
+    'role' => 'admin',
+]);
+
+// 一般ユーザーを作成
+User::create([
+    'name' => '一般ユーザー',
+    'email' => 'user@example.com',
+    'password' => bcrypt('password'),
+    'role' => 'user',
+]);</code></pre>
+
+                        <p class="text-sm font-bold text-purple-300 mb-3">ステップ2: ブラウザでアクセスして確認</p>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-4 border-l-4 border-green-500">
+                            <p class="text-xs text-gray-300 mb-2">1️⃣ 管理者でログイン</p>
+                            <ul class="text-xs text-gray-300 ml-4 space-y-1 mb-3">
+                                <li>• <code>http://localhost/login</code> にアクセス</li>
+                                <li>• Email: <code>admin@example.com</code></li>
+                                <li>• Password: <code>password</code></li>
+                            </ul>
+
+                            <p class="text-xs text-gray-300 mb-2">2️⃣ ダッシュボードにアクセス</p>
+                            <ul class="text-xs text-gray-300 ml-4 space-y-1 mb-3">
+                                <li>• ログイン後、自動的に <code>http://localhost/dashboard</code> へリダイレクト</li>
+                                <li>• <strong class="text-green-300">✅ 管理者なのでアクセスできる!</strong></li>
+                            </ul>
+
+                            <p class="text-xs text-gray-300 mb-2">3️⃣ ログアウトして一般ユーザーでログイン</p>
+                            <ul class="text-xs text-gray-300 ml-4 space-y-1">
+                                <li>• Email: <code>user@example.com</code></li>
+                                <li>• ログイン後、<code>http://localhost/dashboard</code> へ自動リダイレクト</li>
+                                <li>• <strong class="text-red-300">❌ 403エラー表示!</strong> (一般ユーザーはアクセスできない)</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-blue-900/30 p-4 rounded-lg mb-6 border-l-4 border-blue-400">
+                            <p class="text-sm font-bold text-blue-300 mb-2">🎓 何が起きたか？</p>
+                            <ul class="text-xs text-gray-300 space-y-2 ml-3">
+                                <li>✅ 管理者: <code>isAdmin()</code> が <code>true</code> → ミドルウェア通過 → ページ表示</li>
+                                <li>❌ 一般ユーザー: <code>isAdmin()</code> が <code>false</code> → ミドルウェアで <code>abort(403)</code> → エラー画面</li>
+                            </ul>
+                        </div>
 
                         <p class="text-green-300 mt-4">
                             ✅ カスタムミドルウェアで権限管理ができました！
                         </p>
                     </div>
 
-                    <div class="content-section">
-                        <h3>ロールテーブルの設計（多対多版）</h3>
-
-                        <p class="text-gray-300 mb-4">
-                            シンプル版では1ユーザー1ロールでしたが、<strong class="text-yellow-300">1ユーザーが複数ロールを持てる</strong>多対多の設計を学びます。
-                        </p>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-yellow-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-yellow-300">多対多が必要なケース:</strong></p>
-                            <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                <li>「編集者」かつ「モデレーター」のような複数の役割</li>
-                                <li>プロジェクトごとに異なる権限を持つ</li>
-                                <li>より柔軟な権限管理が必要</li>
-                            </ul>
-                        </div>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">テーブル設計</h4>
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
-                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>users テーブル
-├─ id
-├─ name
-├─ email
-└─ password
-
-roles テーブル（ロール定義）
-├─ id
-├─ name (admin, editor, moderator など)
-└─ description
-
-role_user テーブル（中間テーブル）
-├─ id
-├─ user_id  （外部キー → users.id）
-└─ role_id  （外部キー → roles.id）</code></pre>
-                        </div>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">マイグレーション作成</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># rolesテーブル作成
-php artisan make:migration create_roles_table
-
-# 中間テーブル作成
-php artisan make:migration create_role_user_table</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// database/migrations/xxxx_create_roles_table.php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->string('description')->nullable();
-            $table->timestamps();
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('roles');
-    }
-};</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// database/migrations/xxxx_create_role_user_table.php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('role_user', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('role_id')->constrained()->onDelete('cascade');
-            $table->timestamps();
-
-            // 同じユーザーに同じロールを重複して割り当てないようにする
-            $table->unique(['user_id', 'role_id']);
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('role_user');
-    }
-};</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># マイグレーション実行
-php artisan migrate</code></pre>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">Roleモデル作成</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash">php artisan make:model Role</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Models/Role.php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
-class Role extends Model
-{
-    protected $fillable = ['name', 'description'];
-
-    /**
-     * このロールを持つユーザー
-     */
-    public function users()
-    {
-        return $this->belongsToMany(User::class);
-    }
-}</code></pre>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">Userモデルにリレーション追加</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Models/User.php
-
-class User extends Authenticatable
-{
-    // ... 既存のコード ...
-
-    /**
-     * ユーザーが持つロール
-     */
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class);
-    }
-
-    /**
-     * 特定のロールを持っているかチェック
-     */
-    public function hasRole(string $roleName): bool
-    {
-        return $this->roles()->where('name', $roleName)->exists();
-    }
-
-    /**
-     * いずれかのロールを持っているかチェック
-     */
-    public function hasAnyRole(array $roleNames): bool
-    {
-        return $this->roles()->whereIn('name', $roleNames)->exists();
-    }
-
-    /**
-     * すべてのロールを持っているかチェック
-     */
-    public function hasAllRoles(array $roleNames): bool
-    {
-        return $this->roles()->whereIn('name', $roleNames)->count() === count($roleNames);
-    }
-
-    /**
-     * ロールを割り当て
-     */
-    public function assignRole(string $roleName): void
-    {
-        $role = Role::where('name', $roleName)->firstOrFail();
-        $this->roles()->syncWithoutDetaching($role);
-    }
-
-    /**
-     * ロールを削除
-     */
-    public function removeRole(string $roleName): void
-    {
-        $role = Role::where('name', $roleName)->first();
-        if ($role) {
-            $this->roles()->detach($role);
-        }
-    }
-}</code></pre>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">Tinkerで多対多ロールを試そう</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Tinkerを起動
-php artisan tinker</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// ロールを作成
-$adminRole = Role::create([
-    'name' => 'admin',
-    'description' => '管理者',
-]);
-
-$editorRole = Role::create([
-    'name' => 'editor',
-    'description' => '編集者',
-]);
-
-$moderatorRole = Role::create([
-    'name' => 'moderator',
-    'description' => 'モデレーター',
-]);
-
-// 作成されたロールを確認
-Role::all();
-
-// ユーザーを取得
-$user = User::find(1);
-
-// ロールを割り当て
-$user->roles()->attach($adminRole);
-$user->roles()->attach($editorRole);
-
-// または
-$user->assignRole('admin');
-$user->assignRole('editor');
-
-// ユーザーが持つロールを確認
-$user->roles;
-// => Collection {
-//      Role {id: 1, name: "admin", ...},
-//      Role {id: 2, name: "editor", ...}
-//    }
-
-// ロール名だけ取得
-$user->roles->pluck('name');
-// => ["admin", "editor"]
-
-// 特定のロールを持っているか確認
-$user->hasRole('admin');
-// => true
-
-$user->hasRole('moderator');
-// => false
-
-// いずれかのロールを持っているか
-$user->hasAnyRole(['editor', 'moderator']);
-// => true（editorを持っている）
-
-// すべてのロールを持っているか
-$user->hasAllRoles(['admin', 'editor']);
-// => true
-
-$user->hasAllRoles(['admin', 'editor', 'moderator']);
-// => false（moderatorを持っていない）
-
-// ロールを削除
-$user->removeRole('editor');
-
-$user->roles->pluck('name');
-// => ["admin"]
-
-// 別のユーザーに複数ロールを一度に割り当て
-$user2 = User::find(2);
-$user2->roles()->attach([$editorRole->id, $moderatorRole->id]);
-
-$user2->roles->pluck('name');
-// => ["editor", "moderator"]
-
-// 特定のロールを持つユーザーを検索
-$editors = User::whereHas('roles', function ($query) {
-    $query->where('name', 'editor');
-})->get();
-
-// 管理者ロールを持つユーザー数をカウント
-User::whereHas('roles', function ($query) {
-    $query->where('name', 'admin');
-})->count();
-// => 1</code></pre>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-green-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-green-300">✅ Tinkerで確認したこと:</strong></p>
-                            <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                <li>Roleモデルでロール作成</li>
-                                <li>attach()でロール割り当て</li>
-                                <li>assignRole()とremoveRole()の使い方</li>
-                                <li>hasRole()、hasAnyRole()、hasAllRoles()での判定</li>
-                                <li>whereHas()で特定ロールを持つユーザー検索</li>
-                            </ul>
-                        </div>
-
-                        <p class="text-green-300 mt-4">
-                            ✅ 多対多のロール管理が実装できました！
-                        </p>
-                    </div>
 
                     <div class="content-section">
-                        <h3>ミドルウェアの深いメカニズム（オニオンアーキテクチャ）</h3>
+                        <h3>一般ユーザー用の画面を作成</h3>
 
                         <p class="text-gray-300 mb-4">
-                            ミドルウェアがどのように動作するのか、<strong class="text-yellow-300">オニオンアーキテクチャ（玉ねぎ構造）</strong>を理解しましょう。
+                            管理者以外の一般ユーザーもログイン後にアクセスできる画面を作成しましょう。
                         </p>
 
-                        <h4 class="text-xl font-bold text-green-400 mb-3">オニオンアーキテクチャとは</h4>
-                        <p class="text-gray-300 mb-4">
-                            Laravelのミドルウェアは、<strong class="text-yellow-300">玉ねぎの層のように</strong>リクエストを包んで処理します。<br>
-                            リクエストは外側の層から内側へ、レスポンスは内側から外側へと通過します。
-                        </p>
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ステップ1: 一般ユーザー用ビューの作成</h4>
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4"><code class="language-html">&lt;!-- resources/views/home.blade.php --&gt;
+&lt;h1&gt;ホーム画面&lt;/h1&gt;
+&lt;p&gt;ようこそ、{{ auth()->user()->name }}さん&lt;/p&gt;
+&lt;p&gt;あなたは一般ユーザーです。&lt;/p&gt;</code></pre>
 
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-purple-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-purple-300">公式ドキュメントの図:</strong></p>
-                            <p class="text-gray-300 text-sm mb-3">
-                                Laravelの公式ドキュメントには、ミドルウェアのオニオン構造を示す図があります:<br>
-                                <a href="https://laravel.com/docs/11.x/middleware#middleware-and-responses" target="_blank" class="text-blue-400 underline hover:text-blue-300">
-                                    Laravel Middleware Documentation - Middleware and Responses
-                                </a>
-                            </p>
-                        </div>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
-                            <p class="text-gray-300 mb-2"><strong class="text-yellow-300">オニオンモデルのイメージ:</strong></p>
-                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>         リクエスト →
-              ↓
-    ┌─────────────────────────┐
-    │  Middleware 1 (外側)    │ ← CSRF保護
-    │  ┌───────────────────┐  │
-    │  │ Middleware 2      │  │ ← セッション管理
-    │  │  ┌─────────────┐  │  │
-    │  │  │ Middleware 3│  │  │ ← 認証チェック
-    │  │  │  ┌───────┐  │  │  │
-    │  │  │  │ Core  │  │  │  │ ← コントローラー
-    │  │  │  │(中心)│  │  │  │
-    │  │  │  └───────┘  │  │  │
-    │  │  └─────────────┘  │  │
-    │  └───────────────────┘  │
-    └─────────────────────────┘
-              ↓
-         レスポンス ←</code></pre>
-                        </div>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">リクエストとレスポンスの流れ</h4>
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
-                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">リクエストの流れ（外→内）:</strong></p>
-                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>1. ユーザーがリクエスト送信
-   ↓
-2. Middleware 1 (CSRF保護)
-   - トークンをチェック
-   - OK → 次へ、NG → 403エラー
-   ↓
-3. Middleware 2 (セッション管理)
-   - セッションを開始
-   - セッションデータを読み込む
-   ↓
-4. Middleware 3 (認証チェック)
-   - ログインしているかチェック
-   - OK → 次へ、NG → /login にリダイレクト
-   ↓
-5. コントローラー実行
-   - ビジネスロジック処理
-   - レスポンスを生成</code></pre>
-                        </div>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
-                            <p class="text-gray-300 mb-2"><strong class="text-green-300">レスポンスの流れ（内→外）:</strong></p>
-                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>5. コントローラーがレスポンスを返す
-   ↓
-4. Middleware 3 (認証チェック)
-   - レスポンスに何か追加できる（通常はそのまま通す）
-   ↓
-3. Middleware 2 (セッション管理)
-   - セッションを保存
-   - Set-Cookie ヘッダーを追加
-   ↓
-2. Middleware 1 (CSRF保護)
-   - レスポンスに何か追加できる（通常はそのまま通す）
-   ↓
-1. ユーザーにレスポンス返却</code></pre>
-                        </div>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">ミドルウェアの2つのタイプ</h4>
-
-                        <h5 class="text-md font-bold text-green-400 mt-4">1. Before Middleware（リクエストの前処理）</h5>
-                        <p class="text-gray-300 text-sm mb-3">
-                            リクエストが<strong class="text-yellow-300">コントローラーに到達する前</strong>に処理を行います。
-                        </p>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">namespace App\Http\Middleware;
-
-use Closure;
-use Illuminate\Http\Request;
-
-class BeforeMiddleware
-{
-    public function handle(Request $request, Closure $next)
-    {
-        // ここで前処理を実行
-        // 例: ログイン状態をチェック
-        if (!auth()->check()) {
-            return redirect('/login');
-        }
-
-        // 次のミドルウェア or コントローラーへ
-        return $next($request);
-    }
-}</code></pre>
-
-                        <h5 class="text-md font-bold text-green-400 mt-4">2. After Middleware（レスポンスの後処理）</h5>
-                        <p class="text-gray-300 text-sm mb-3">
-                            コントローラーが<strong class="text-yellow-300">レスポンスを生成した後</strong>に処理を行います。
-                        </p>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">namespace App\Http\Middleware;
-
-use Closure;
-use Illuminate\Http\Request;
-
-class AfterMiddleware
-{
-    public function handle(Request $request, Closure $next)
-    {
-        // まず次のミドルウェア or コントローラーを実行
-        $response = $next($request);
-
-        // レスポンスが生成された後の処理
-        // 例: ヘッダーを追加
-        $response->header('X-Custom-Header', 'MyValue');
-
-        // ログを記録
-        \Log::info('Response generated', [
-            'url' => $request->url(),
-            'status' => $response->status(),
-        ]);
-
-        return $response;
-    }
-}</code></pre>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">実例: ミドルウェアの適用順序を確認</h4>
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ステップ2: ルートの追加</h4>
                         <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
 
-Route::get('/test', function () {
-    \Log::info('コントローラー実行');
-    return 'Hello World';
-})->middleware(['first', 'second', 'third']);</code></pre>
+// 管理者専用ページ
+Route::middleware(['admin'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+});
 
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Http/Middleware/FirstMiddleware.php
-class FirstMiddleware
-{
-    public function handle(Request $request, Closure $next)
-    {
-        \Log::info('FirstMiddleware: リクエスト前処理');
-
-        $response = $next($request);
-
-        \Log::info('FirstMiddleware: レスポンス後処理');
-        return $response;
-    }
-}
-
-// app/Http/Middleware/SecondMiddleware.php
-class SecondMiddleware
-{
-    public function handle(Request $request, Closure $next)
-    {
-        \Log::info('SecondMiddleware: リクエスト前処理');
-
-        $response = $next($request);
-
-        \Log::info('SecondMiddleware: レスポンス後処理');
-        return $response;
-    }
-}
-
-// app/Http/Middleware/ThirdMiddleware.php
-class ThirdMiddleware
-{
-    public function handle(Request $request, Closure $next)
-    {
-        \Log::info('ThirdMiddleware: リクエスト前処理');
-
-        $response = $next($request);
-
-        \Log::info('ThirdMiddleware: レスポンス後処理');
-        return $response;
-    }
-}</code></pre>
-
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-yellow-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-yellow-300">ログ出力結果:</strong></p>
-                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>FirstMiddleware: リクエスト前処理   ← 外側から
-SecondMiddleware: リクエスト前処理  ←
-ThirdMiddleware: リクエスト前処理   ←
-コントローラー実行                   ← 中心
-ThirdMiddleware: レスポンス後処理   ← 内側から
-SecondMiddleware: レスポンス後処理  ←
-FirstMiddleware: レスポンス後処理   ← 外側へ</code></pre>
-                        </div>
+// 一般ユーザー用ページ (認証のみ必要)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/home', function () {
+        return view('home');
+    })->name('home');
+});</code></pre>
 
                         <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
-                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">重要なポイント:</strong></p>
-                            <ul class="list-disc ml-6 text-gray-300 space-y-2 text-sm">
-                                <li>
-                                    <strong>リクエストの流れ</strong>: 外側から内側へ（First → Second → Third → Controller）
-                                </li>
-                                <li>
-                                    <strong>レスポンスの流れ</strong>: 内側から外側へ（Controller → Third → Second → First）
-                                </li>
-                                <li>
-                                    <strong>$next($request)</strong> を呼ぶことで次の層へ渡す
-                                </li>
-                                <li>
-                                    <strong>return $next($request)</strong> の前がBefore処理、後がAfter処理
-                                </li>
+                            <p class="text-gray-300 mb-2"><strong class="text-blue-300">ポイント:</strong></p>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
+                                <li><code>/dashboard</code> - 管理者専用 (<code>admin</code>ミドルウェア)</li>
+                                <li><code>/home</code> - 一般ユーザー用 (<code>auth</code>ミドルウェアのみ)</li>
+                                <li>役割によって画面を分けることで、権限管理が明確になる</li>
                             </ul>
                         </div>
 
-                        <h4 class="text-xl font-bold text-green-400 mb-3">ミドルウェアで処理を中断する</h4>
-                        <p class="text-gray-300 mb-4">
-                            <code class="text-blue-300">$next($request)</code> を呼ばずに<strong class="text-yellow-300">直接レスポンスを返す</strong>と、<br>
-                            それ以降のミドルウェアやコントローラーは実行されません。
+                        <h4 class="text-xl font-bold text-green-400 mb-3">ステップ3: ログイン後の振り分け</h4>
+                        <p class="text-gray-300 mb-3 text-sm">
+                            ログイン後に役割に応じて適切な画面へリダイレクトするように、<code>LoginController</code>を修正します。
                         </p>
 
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">class CheckAge
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Http/Controllers/Auth/LoginController.php
+
+public function login(Request $request)
 {
-    public function handle(Request $request, Closure $next)
-    {
-        if ($request->age < 18) {
-            // ここで処理を中断！
-            // コントローラーは実行されない
-            return redirect('/underage');
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+
+        // 管理者なら /dashboard へ、一般ユーザーなら /home へ
+        if (auth()->user()->isAdmin()) {
+            return redirect()->route('dashboard');
         }
 
-        // 18歳以上なら次へ進む
-        return $next($request);
+        return redirect()->route('home');
     }
+
+    return back()->withErrors([
+        'email' => 'メールアドレスまたはパスワードが正しくありません。',
+    ])->onlyInput('email');
 }</code></pre>
 
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
-                            <p class="text-gray-300 mb-2"><strong class="text-yellow-300">処理が中断された場合のフロー:</strong></p>
-                            <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>1. ユーザーがリクエスト送信（age=15）
-   ↓
-2. Middleware 1
-   ↓
-3. Middleware 2
-   ↓
-4. CheckAge ミドルウェア
-   - age < 18 を検出
-   - return redirect('/underage');  ← ここで中断！
-   ↓
-（Middleware 3 や コントローラーは実行されない）
-   ↓
-4. CheckAge ミドルウェア（レスポンス返却）
-   ↓
-3. Middleware 2（レスポンス返却）
-   ↓
-2. Middleware 1（レスポンス返却）
-   ↓
-1. ユーザーに /underage へのリダイレクトレスポンスが返る</code></pre>
+                        <div class="bg-blue-900/30 p-4 rounded-lg mb-6 border-l-4 border-blue-400">
+                            <p class="text-sm font-bold text-blue-300 mb-2">💡 何が起きるか？</p>
+                            <ul class="text-xs text-gray-300 space-y-2 ml-3">
+                                <li>✅ 管理者: ログイン後 → <code>/dashboard</code> へ自動リダイレクト</li>
+                                <li>✅ 一般ユーザー: ログイン後 → <code>/home</code> へ自動リダイレクト</li>
+                                <li>✅ 一般ユーザーが <code>/dashboard</code> に直接アクセス → 403エラー</li>
+                            </ul>
                         </div>
 
-                        <h4 class="text-xl font-bold text-green-400 mb-3">グローバルミドルウェア vs ルートミドルウェア</h4>
-                        <div class="bg-gray-800 p-4 rounded-lg mb-6">
-                            <table class="text-xs mt-3 w-full">
-                                <thead>
-                                    <tr class="border-b border-gray-600">
-                                        <th class="text-left pb-2 text-blue-300 px-2">種類</th>
-                                        <th class="text-left pb-2 text-blue-300 px-2">適用範囲</th>
-                                        <th class="text-left pb-2 text-blue-300 px-2">設定場所</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-gray-300">
-                                    <tr class="border-b border-gray-700">
-                                        <td class="py-2 px-2"><strong>グローバル</strong></td>
-                                        <td class="py-2 px-2">全てのリクエスト</td>
-                                        <td class="py-2 px-2">bootstrap/app.php の withMiddleware()</td>
-                                    </tr>
-                                    <tr class="border-b border-gray-700">
-                                        <td class="py-2 px-2"><strong>ミドルウェアグループ</strong></td>
-                                        <td class="py-2 px-2">web or api グループ</td>
-                                        <td class="py-2 px-2">bootstrap/app.php</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-2 px-2"><strong>ルートミドルウェア</strong></td>
-                                        <td class="py-2 px-2">特定のルートのみ</td>
-                                        <td class="py-2 px-2">routes/web.php で ->middleware()</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <h4 class="text-xl font-bold text-green-400 mb-3">実践: 動作確認</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg mb-6 border-l-4 border-green-500">
+                            <p class="text-xs font-bold text-green-300 mb-2">1️⃣ 管理者でログイン</p>
+                            <ul class="text-xs text-gray-300 ml-4 space-y-1 mb-3">
+                                <li>• Email: <code>admin@example.com</code></li>
+                                <li>• ログイン後 → <strong class="text-green-300">/dashboard へ自動リダイレクト</strong></li>
+                            </ul>
+
+                            <p class="text-xs font-bold text-yellow-300 mb-2 mt-4">2️⃣ 一般ユーザーでログイン</p>
+                            <ul class="text-xs text-gray-300 ml-4 space-y-1 mb-3">
+                                <li>• Email: <code>user@example.com</code></li>
+                                <li>• ログイン後 → <strong class="text-green-300">/home へ自動リダイレクト</strong></li>
+                            </ul>
+
+                            <p class="text-xs font-bold text-red-300 mb-2 mt-4">3️⃣ 一般ユーザーが /dashboard にアクセスしようとすると</p>
+                            <ul class="text-xs text-gray-300 ml-4 space-y-1">
+                                <li>• URLに直接 <code>http://localhost/dashboard</code> を入力</li>
+                                <li>• <strong class="text-red-300">403エラー!</strong> 管理者専用のため</li>
+                            </ul>
                         </div>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// bootstrap/app.php
-
-return Application::configure(basePath: dirname(__DIR__))
-    ->withMiddleware(function (Middleware $middleware) {
-        // グローバルミドルウェア（全てのリクエストに適用）
-        $middleware->append(MyGlobalMiddleware::class);
-
-        // webグループにミドルウェア追加
-        $middleware->web(append: [
-            MyWebMiddleware::class,
-        ]);
-
-        // ミドルウェアエイリアス登録
-        $middleware->alias([
-            'admin' => IsAdmin::class,
-            'verified' => EnsureEmailIsVerified::class,
-        ]);
-    })
-    ->create();</code></pre>
-
-                        <h4 class="text-xl font-bold text-green-400 mb-3">Tinkerでミドルウェアの挙動を理解する</h4>
-                        <p class="text-gray-300 mb-4">
-                            実際にミドルウェアを作って、動作を確認してみましょう。
-                        </p>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># ミドルウェア作成
-php artisan make:middleware LogMiddleware</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// app/Http/Middleware/LogMiddleware.php
-
-namespace App\Http\Middleware;
-
-use Closure;
-use Illuminate\Http\Request;
-
-class LogMiddleware
-{
-    public function handle(Request $request, Closure $next)
-    {
-        // リクエスト前処理
-        \Log::info('リクエスト受信', [
-            'url' => $request->url(),
-            'method' => $request->method(),
-            'ip' => $request->ip(),
-        ]);
-
-        // 次の処理へ
-        $response = $next($request);
-
-        // レスポンス後処理
-        \Log::info('レスポンス送信', [
-            'status' => $response->status(),
-        ]);
-
-        return $response;
-    }
-}</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// bootstrap/app.php
-
-$middleware->alias([
-    'log' => \App\Http\Middleware\LogMiddleware::class,
-]);</code></pre>
-
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-php">// routes/web.php
-
-Route::get('/test', function () {
-    return 'Hello World';
-})->middleware('log');</code></pre>
-
-                        <p class="text-gray-300 text-sm mb-3">
-                            ブラウザで <code class="text-blue-300">/test</code> にアクセスすると、<code>storage/logs/laravel.log</code> にログが記録されます。
-                        </p>
 
                         <p class="text-green-300 mt-4">
-                            ✅ ミドルウェアのオニオンアーキテクチャが理解できました！
+                            ✅ 役割に応じた画面の振り分けが実装できました！
                         </p>
                     </div>
 
                     <div class="content-section">
-                        <h3>まとめ</h3>
+                        <h3 class="text-2xl font-bold text-blue-300 mb-6 border-b border-gray-700 pb-2">まとめ</h3>
 
                         <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-green-500">
                             <h4 class="text-xl font-bold text-green-400 mb-4">この章で学んだこと</h4>
 
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">1. 認証と認可の違い</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li><strong>認証</strong>: 「あなたは誰？」を確認（ログイン機能）</li>
-                                    <li><strong>認可</strong>: 「あなたには権限がある？」を確認（ロール・権限管理）</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">2. ミドルウェアの仕組み</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>リクエストとレスポンスの間に処理を挟み込む</li>
-                                    <li>オニオンアーキテクチャ（玉ねぎ構造）で多層処理</li>
-                                    <li>Before Middleware（前処理）とAfter Middleware（後処理）</li>
-                                    <li>$next($request)を呼ぶことで次の層へ</li>
-                                    <li>処理を中断してリダイレクトやエラーを返せる</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">3. ロール管理（シンプル版）</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>usersテーブルにroleカラムを追加</li>
-                                    <li>isAdmin()、hasRole()などのメソッド実装</li>
-                                    <li>Tinkerでロール割り当てと確認</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">4. カスタムミドルウェア</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>php artisan make:middleware で作成</li>
-                                    <li>bootstrap/app.phpでエイリアス登録</li>
-                                    <li>ルートに->middleware()で適用</li>
-                                    <li>IsAdmin、IsEditorOrAdminなど用途別に作成</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">5. ロール管理（多対多版）</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>roles、role_userテーブルで柔軟な権限管理</li>
-                                    <li>1ユーザーが複数ロールを持てる</li>
-                                    <li>belongsToManyでリレーション定義</li>
-                                    <li>attach()、detach()でロール割り当て・削除</li>
-                                    <li>hasRole()、hasAnyRole()、hasAllRoles()で判定</li>
-                                    <li>whereHas()で特定ロールを持つユーザー検索</li>
-                                </ul>
-                            </div>
-
-                            <div class="mb-6">
-                                <p class="text-gray-300 mb-2"><strong class="text-yellow-300">6. オニオンアーキテクチャ</strong></p>
-                                <ul class="list-disc ml-6 text-gray-300 space-y-1 text-sm">
-                                    <li>ミドルウェアは玉ねぎの層構造</li>
-                                    <li>リクエストは外→内、レスポンスは内→外</li>
-                                    <li>middleware(['first', 'second'])の順序で適用</li>
-                                    <li>グローバル、ミドルウェアグループ、ルートミドルウェア</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-blue-500">
-                            <h4 class="text-xl font-bold text-blue-400 mb-4">シンプル版 vs 多対多版の使い分け</h4>
-                            <table class="text-xs mt-3 w-full">
-                                <thead>
-                                    <tr class="border-b border-gray-600">
-                                        <th class="text-left pb-2 text-blue-300 px-2"></th>
-                                        <th class="text-left pb-2 text-blue-300 px-2">シンプル版</th>
-                                        <th class="text-left pb-2 text-blue-300 px-2">多対多版</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-gray-300">
-                                    <tr class="border-b border-gray-700">
-                                        <td class="py-2 px-2 font-bold">構造</td>
-                                        <td class="py-2 px-2">usersテーブルにroleカラム</td>
-                                        <td class="py-2 px-2">roles + role_user テーブル</td>
-                                    </tr>
-                                    <tr class="border-b border-gray-700">
-                                        <td class="py-2 px-2 font-bold">ロール数</td>
-                                        <td class="py-2 px-2">1ユーザー1ロール</td>
-                                        <td class="py-2 px-2">1ユーザー複数ロール</td>
-                                    </tr>
-                                    <tr class="border-b border-gray-700">
-                                        <td class="py-2 px-2 font-bold">実装難易度</td>
-                                        <td class="py-2 px-2">簡単</td>
-                                        <td class="py-2 px-2">やや複雑</td>
-                                    </tr>
-                                    <tr class="border-b border-gray-700">
-                                        <td class="py-2 px-2 font-bold">柔軟性</td>
-                                        <td class="py-2 px-2">低い</td>
-                                        <td class="py-2 px-2">高い</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-2 px-2 font-bold">適している場合</td>
-                                        <td class="py-2 px-2">小規模アプリ、シンプルな権限</td>
-                                        <td class="py-2 px-2">大規模アプリ、複雑な権限管理</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-purple-500">
-                            <h4 class="text-xl font-bold text-purple-400 mb-4">次のステップ</h4>
-                            <p class="text-gray-300 mb-4">
-                                この章では、<strong class="text-yellow-300">ミドルウェアとロールによる権限管理</strong>を学びました。<br>
-                                さらに学びたい方は以下のトピックに進んでください:
-                            </p>
-                            <ul class="list-disc ml-6 text-gray-300 space-y-2 text-sm">
-                                <li><strong class="text-blue-300">Gate</strong> - クロージャベースの認可ロジック</li>
-                                <li><strong class="text-blue-300">Policy</strong> - モデル単位の認可ロジック（誰がどの記事を編集できるか等）</li>
-                                <li><strong class="text-blue-300">Permission（パーミッション）</strong> - より細かい権限管理（create, read, update, delete）</li>
-                                <li><strong class="text-blue-300">Laravel Permission パッケージ</strong> - Spatie社の人気パッケージ</li>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-2">
+                                <li><strong>認証と認可の違い</strong> - 「あなたは誰？」と「あなたには権限がある？」</li>
+                                <li><strong>ミドルウェアの仕組み</strong> - コントローラー実行前のチェック、<code>$next($request)</code>で進む</li>
+                                <li><strong>ミドルウェアファイルの構造</strong> - <code>handle()</code>メソッド、<code>$request</code>と<code>$next</code></li>
+                                <li><strong>enum型でロール管理</strong> - <code>enum('role', ['admin', 'user'])</code>で型安全に</li>
+                                <li><strong>カスタムミドルウェア作成</strong> - <code>php artisan make:middleware IsAdmin</code></li>
+                                <li><strong>ミドルウェア登録</strong> - <code>bootstrap/app.php</code>の<code>withMiddleware()</code>で<code>alias()</code>登録</li>
+                                <li><strong>ルートへの適用</strong> - <code>Route::middleware(['admin'])->group()</code>でグループ化</li>
+                                <li><strong>役割別画面の振り分け</strong> - 管理者は<code>/dashboard</code>、一般ユーザーは<code>/home</code></li>
+                                <li><strong>ログイン後のリダイレクト</strong> - <code>LoginController</code>で<code>isAdmin()</code>判定して振り分け</li>
                             </ul>
                         </div>
 
-                        <div class="bg-gradient-to-r from-green-900/50 to-blue-900/50 p-6 rounded-lg border border-green-500/30">
-                            <p class="text-green-300 text-lg font-bold mb-2">
-                                🎉 ミドルウェアとロール管理の章が完了しました！
-                            </p>
-                            <p class="text-gray-300 text-sm">
-                                認証と認可の違い、オニオンアーキテクチャ、ロールテーブルの設計、カスタムミドルウェアの作成、<br>
-                                そしてTinkerでの実践的な使い方を学びました。<br>
-                                これで実務で使える権限管理の基礎が身につきました！
-                            </p>
+                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-blue-500">
+                            <h4 class="text-xl font-bold text-blue-400 mb-4">重要なポイント</h4>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-sm font-bold text-yellow-300 mb-2">1. ミドルウェアは「番人」</p>
+                                    <p class="text-xs text-gray-300">
+                                        条件を満たせば<code>return $next($request)</code>で次へ、満たさなければ<code>return redirect()</code>や<code>abort()</code>で止める
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="text-sm font-bold text-yellow-300 mb-2">2. adminミドルウェアでログインチェックも行う</p>
+                                    <p class="text-xs text-gray-300">
+                                        <code>middleware(['admin'])</code>だけで、ログインチェック+管理者チェックの両方を実行
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="text-sm font-bold text-yellow-300 mb-2">3. group()でまとめて適用</p>
+                                    <p class="text-xs text-gray-300">
+                                        複数のルートに同じミドルウェアを適用する場合は<code>Route::middleware()->group()</code>を使う
+                                    </p>
+                                </div>
+                            </div>
                         </div>
+
+                        <div class="bg-gray-800 p-6 rounded-lg mb-6 border-l-4 border-purple-500">
+                            <h4 class="text-xl font-bold text-purple-400 mb-4">実践で身につけたスキル</h4>
+                            <ul class="list-disc ml-6 text-gray-300 space-y-2 text-sm">
+                                <li><code>usersテーブル</code>に<code>enum</code>型の<code>role</code>カラムを追加</li>
+                                <li><code>User</code>モデルに<code>isAdmin()</code>メソッドを追加</li>
+                                <li><code>IsAdmin</code>ミドルウェアでログイン・管理者チェックを実装</li>
+                                <li><code>bootstrap/app.php</code>で<code>'admin' => IsAdmin::class</code>と登録</li>
+                                <li><code>routes/web.php</code>で管理者用・一般ユーザー用ルートを分離</li>
+                                <li><code>LoginController</code>で役割に応じたリダイレクト先を振り分け</li>
+                                <li>ブラウザで403エラーを確認して権限管理の動作を体験</li>
+                            </ul>
+                        </div>
+
+                        <p class="text-green-300 mt-6 text-center text-lg">
+                            🎉 ミドルウェアによる権限管理が完璧に理解できました！
+                        </p>
                     </div>
 
                 </div>
