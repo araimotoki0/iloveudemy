@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel入門：メカニズムを理解して応用が効く知識を身につける</title>
+    <meta name="description" content="Laravel入門コースの紹介 - メカニズムから理解し、応用が効く知識を身につける">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'Montserrat', 'sans-serif'],
+                        mont: ['Montserrat', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(49, 131, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .badge-primary {
+            background: rgba(49, 131, 255, 0.2);
+            color: #8cc3ff;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+        }
+    </style>
+</head>
+
+<body class="text-white font-inter">
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html"
+                    class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="index.html" class="flex items-center px-4 py-3 rounded-lg bg-white/20 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="../miraichi/index.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-white/10 transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar" class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top" class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1 class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    【第四弾】Laravel入門資料
+                </h1>
+
+                <!-- タブリスト -->
+                <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="course-introduction.html" class="block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg text-sm">コース紹介</a></li>
+                    <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
+                    <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
+                    <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
+                    <li><a href="routing.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ルーティング</a></li>
+                    <li><a href="view.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ビュー</a></li>
+                    <li><a href="controller.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コントローラ</a></li>
+                    <li><a href="migration.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">マイグレーション</a></li>
+                    <li><a href="model.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">モデル</a></li>
+                    <li><a href="database-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ここまでの知識の実践</a></li>
+                    <li><a href="search-filter.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">検索・フィルタ</a></li>
+                    <li><a href="soft-delete.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ソフトデリート</a></li>
+                    <li><a href="pagination.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ページネーション</a></li>
+                    <li><a href="image-upload.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">画像アップロード</a></li>
+                    <li><a href="authentication.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証ライブラリ</a></li>
+                    <li><a href="authentication-implementation.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">認証実装</a></li>
+                    <li><a href="authentication-middleware.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">ミドルウェア・ロール</a></li>
+                    <li><a href="comprehensive-practice.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">総合実践</a></li>
+                </ul>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <h1 class="text-3xl md:text-5xl font-black mb-4 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                        Laravel入門
+                    </h1>
+                    <p class="text-center text-xl text-gray-300 mb-12">
+                        メカニズムを理解して応用が効く知識を身につける
+                    </p>
+
+                <!-- Hero Section -->
+                <div class="glass p-8 rounded-2xl mb-12 text-center">
+                    <p class="text-lg text-gray-200 leading-relaxed">
+                        このコースでは、Laravelの<strong class="text-primary-300">「なぜそう書くのか」</strong>から学び、<br>
+                        公式ドキュメントを読み解く力と、実務で応用できる知識を身につけます。
+                    </p>
+                </div>
+
+                <!-- このコースについて -->
+                <div class="content-section">
+                    <h3 class="flex items-center">
+                        <span class="text-3xl mr-3">📖</span>
+                        このコースについて
+                    </h3>
+                    <div class="glass p-6 rounded-xl">
+                        <p class="mb-4">
+                            <strong>Laravel 12</strong>に対応した、メカニズムから理解するLaravel入門コースです。
+                        </p>
+                        <ul class="space-y-2">
+                            <li>✅ 全てWeb上で完結（HTML資料形式）</li>
+                            <li>✅ 復習しやすい構成（検索・コピペが簡単）</li>
+                            <li>✅ 公式ドキュメントベースで正確な知識</li>
+                            <li>✅ 実務で必要な機能を厳選</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 対象者 -->
+                <div class="content-section">
+                    <h3 class="flex items-center">
+                        <span class="text-3xl mr-3">👥</span>
+                        こんな方におすすめ
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="feature-card">
+                            <h4 class="text-lg font-bold text-primary-300 mb-2">✅ PHPは触ったことあるけど、フレームワークは初めて</h4>
+                            <p class="text-gray-300 text-sm">
+                                PHPの基礎を学んだ後、次のステップとしてLaravelを学びたい方に最適です。
+                            </p>
+                        </div>
+                        <div class="feature-card">
+                            <h4 class="text-lg font-bold text-primary-300 mb-2">✅ 学習したことはあるけど、実務レベルのコードが書けない</h4>
+                            <p class="text-gray-300 text-sm">
+                                「なぜそう書くのか」を理解することで、応用力が身につきます。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 前提知識 -->
+                <div class="content-section">
+                    <h3 class="flex items-center">
+                        <span class="text-3xl mr-3">📋</span>
+                        前提知識
+                    </h3>
+                    <div class="glass p-6 rounded-xl">
+                        <p class="mb-4">このコースを受講するには、以下の知識が必要です：</p>
+                        <ul class="space-y-3">
+                            <li>
+                                <strong class="text-primary-300">PHP基礎</strong>
+                                <ul class="ml-6 mt-2 space-y-1 text-sm text-gray-300">
+                                    <li>• 変数、関数、配列、クラスなどの基本構文</li>
+                                    <li>• SQLを操作したことがある</li>
+                                    <li>• 他の言語の学習をした経験があればご受講いただけます</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong class="text-primary-300">Linuxコマンド基礎</strong>
+                                <ul class="ml-6 mt-2 space-y-1 text-sm text-gray-300">
+                                    <li>• cd, ls, mkdir などの基本コマンド</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <div class="mt-6 p-4 bg-blue-900/30 rounded-lg border border-blue-500/30">
+                            <p class="text-sm text-blue-200 mb-2"><strong>📚 推奨学習リソース</strong></p>
+                            <ul class="text-sm text-gray-300 space-y-1">
+                                <li>• Udemy PHP講座</li>
+                                <li>• ProgateのPHP講座,SQL講座</li>
+                            </ul>
+                        </div>
+                        <div class="mt-6 p-4 bg-purple-900/30 rounded-lg border border-purple-500/30">
+                            <p class="text-sm text-purple-200 mb-2"><strong>🤖 あれば望ましいもの</strong></p>
+                            <ul class="text-sm text-gray-300 space-y-2">
+                                <li>• <strong>Claude Code</strong> または <strong>Codex</strong> のアカウント</li>
+                                <li class="ml-6 text-xs text-gray-400">CLIでのAI支援コーディングが非常に便利で一般的になっています。<br>講座の中でもClaude Codeの使い方を解説します。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- このコースの特徴 -->
+                <div class="content-section">
+                    <h3 class="flex items-center">
+                        <span class="text-3xl mr-3">⭐</span>
+                        このコースの特徴
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="feature-card">
+                            <div class="flex items-start">
+                                <span class="text-4xl mr-4">🧠</span>
+                                <div>
+                                    <h4 class="text-xl font-bold text-primary-300 mb-2">メカニズムから理解できる</h4>
+                                    <p class="text-gray-300">
+                                        「なぜそう書くのか」「どう動くのか」を丁寧に解説。<br>
+                                        単なる手順の羅列ではなく、原理から理解することで応用力が身につきます。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="flex items-start">
+                                <span class="text-4xl mr-4">📖</span>
+                                <div>
+                                    <h4 class="text-xl font-bold text-primary-300 mb-2">公式ドキュメントベース</h4>
+                                    <p class="text-gray-300">
+                                        Laravel公式ドキュメントに基づいた正確な知識を提供。<br>
+                                        実務で困らない、信頼できる情報源として使えます。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="flex items-start">
+                                <span class="text-4xl mr-4">🔍</span>
+                                <div>
+                                    <h4 class="text-xl font-bold text-primary-300 mb-2">復習しやすい</h4>
+                                    <p class="text-gray-300">
+                                        HTML形式なので、ブラウザで検索・コピペが簡単。<br>
+                                        動画と違い、必要な部分だけサッと見返せます。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="flex items-start">
+                                <span class="text-4xl mr-4">💼</span>
+                                <div>
+                                    <h4 class="text-xl font-bold text-primary-300 mb-2">実務レベルの機能</h4>
+                                    <p class="text-gray-300">
+                                        認証、CRUD、画像アップロード、ミドルウェアなど、<br>
+                                        実務で頻繁に使う機能を厳選して解説。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="flex items-start">
+                                <span class="text-4xl mr-4">🆕</span>
+                                <div>
+                                    <h4 class="text-xl font-bold text-primary-300 mb-2">最新バージョン対応</h4>
+                                    <p class="text-gray-300">
+                                        Laravel 12に対応。<br>
+                                        古い情報に悩まされることなく、最新の書き方を学べます。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 学習後にできるようになること -->
+                <div class="content-section">
+                    <h3 class="flex items-center">
+                        <span class="text-3xl mr-3">🎯</span>
+                        学習後にできるようになること
+                    </h3>
+                    <div class="glass p-6 rounded-xl mb-6">
+                        <h4 class="text-2xl font-bold text-green-400 mb-4">🧠 メカニズムを理解した実装ができる</h4>
+                        <ul class="space-y-2 text-gray-300">
+                            <li>✅ 「なぜこう書くのか」を説明できるようになる</li>
+                            <li>✅ Laravel公式ドキュメントを読んで理解できる</li>
+                            <li>✅ エラーが出ても、原因を自分で調べて解決できる</li>
+                            <li>✅ フレームワークの設計思想を理解し、他の機能も自力で実装できる</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass p-6 rounded-xl mb-6">
+                        <h4 class="text-2xl font-bold text-blue-400 mb-4">💼 実務頻出機能を実装できる</h4>
+                        <ul class="space-y-2 text-gray-300">
+                            <li>✅ <strong>認証システム</strong> - ログイン・ログアウト・セッション管理・Cookie・セッションID</li>
+                            <li>✅ <strong>CRUD操作</strong> - 作成・読取・更新・削除の一連の流れ</li>
+                            <li>✅ <strong>ファイルアップロード</strong> - 画像のアップロード・削除・表示・MIMEタイプ検証</li>
+                            <li>✅ <strong>権限管理</strong> - ミドルウェア・カスタムミドルウェア・ロール管理・認可制御</li>
+                            <li>✅ <strong>データベース設計</strong> - マイグレーション・外部キー・1対多・1対1・多対多リレーション</li>
+                            <li>✅ <strong>ページネーション・検索</strong> - LIKE検索・複数条件フィルタ・動的クエリビルダー</li>
+                            <li>✅ <strong>ソフトデリート</strong> - 論理削除・復元・完全削除</li>
+                            <li>✅ <strong>バリデーション</strong> - フォーム検証・ファイルサイズ制限・エラー表示</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass p-6 rounded-xl">
+                        <h4 class="text-2xl font-bold text-purple-400 mb-4">📚 応用が効く知識が身につく</h4>
+                        <ul class="space-y-2 text-gray-300">
+                            <li>✅ <strong>MVCアーキテクチャ</strong> - モデル・ビュー・コントローラの役割分離</li>
+                            <li>✅ <strong>セキュリティ対策</strong> - CSRF保護・バリデーション・パスワードハッシング・一括代入攻撃対策</li>
+                            <li>✅ <strong>HTTPの理解</strong> - メソッド（GET/POST/PUT/DELETE）・ステータスコード・リダイレクト</li>
+                            <li>✅ <strong>データベース設計</strong> - 正規化・リレーション・外部キー制約・中間テーブル</li>
+                            <li>✅ <strong>クエリ最適化</strong> - 動的クエリビルダー・条件分岐・効率的な検索実装</li>
+                            <li>✅ <strong>ストレージ管理</strong> - シンボリックリンク・ファイル保存・削除処理</li>
+                            <li>✅ 公式ドキュメントの読み方がわかる</li>
+                            <li>✅ 別のフレームワーク（Rails、Django等）も構成が似ているので対応できる</li>
+                        </ul>
+                    </div>
+                </div>
+
+
+                <!-- 学習の進め方 -->
+                <div class="content-section">
+                    <h3 class="flex items-center">
+                        <span class="text-3xl mr-3">🚀</span>
+                        学習の進め方
+                    </h3>
+                    <div class="glass p-6 rounded-xl">
+                        <ul class="space-y-4">
+                            <li>
+                                <strong class="text-primary-300">✅ 各章が独立している</strong>
+                                <p class="text-sm text-gray-300 mt-1">
+                                    必要な部分だけピックアップして学習可能。わからない部分に戻って復習しやすい構成です。
+                                </p>
+                            </li>
+                            <li>
+                                <strong class="text-primary-300">✅ コードはコピペOK</strong>
+                                <p class="text-sm text-gray-300 mt-1">
+                                    ただし、理解しながら進めることを強く推奨します。「なぜそう書くのか」を意識しましょう。
+                                </p>
+                            </li>
+                            <li>
+                                <strong class="text-primary-300">✅ 実際に手を動かす</strong>
+                                <p class="text-sm text-gray-300 mt-1">
+                                    読むだけでなく、必ず自分でコードを書いて動かしてください。エラーと向き合うことも重要な学習です。
+                                </p>
+                            </li>
+                            <li>
+                                <strong class="text-primary-300">✅ つまずいたらいつでも見返せる</strong>
+                                <p class="text-sm text-gray-300 mt-1">
+                                    HTML形式なので、ブラウザの検索機能（Ctrl+F / Cmd+F）で素早く情報を見つけられます。
+                                </p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="glass mt-20 py-8">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <p class="text-gray-400 text-sm">&copy; 2025 新井元気のプログラミング講座. All rights reserved.</p>
+                <p class="text-gray-500 text-xs mt-1">Designed with ❤️ for developers</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // サイドバーの制御
+        const sidebar = document.getElementById('sidebar');
+        const openBtn = document.getElementById('open-sidebar');
+        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        // サイドバーを開く
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        // サイドバーを閉じる
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        };
+
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        // スクロールアニメーション
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+
+            // 上に戻るボタンの表示/非表示
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        // 上に戻るボタンのクリックイベント
+        document.getElementById('scroll-to-top').addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -315,6 +315,7 @@
 
                 <!-- タブリスト -->
                 <ul class="flex flex-wrap gap-2 mb-6">
+                    <li><a href="course-introduction.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">コース紹介</a></li>
                     <li><a href="setup-windows.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Windows環境構築</a></li>
                     <li><a href="setup.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Mac環境構築</a></li>
                     <li><a href="index.html" class="block px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">Laravelとは</a></li>
@@ -403,6 +404,13 @@
                     <div class="content-section">
                         <h3>ステップ1: データベース設計</h3>
 
+                        <div class="bg-yellow-900/30 p-4 rounded-lg border border-yellow-500/30 mb-6">
+                            <p class="text-yellow-300 text-sm">
+                                ⚠️ <strong>Laravelプロジェクトがまだの場合</strong><br>
+                                Windows環境構築セクションまたはMac環境構築セクションを参照して、プロジェクトを作成してください。
+                            </p>
+                        </div>
+
                         <h4 class="text-xl font-bold text-green-400 mb-3">必要なテーブル</h4>
                         <div class="bg-gray-800 p-4 rounded-lg mb-6">
                             <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>users テーブル
@@ -429,11 +437,7 @@ tasks テーブル
                         </div>
 
                         <h4 class="text-xl font-bold text-green-400 mb-3">マイグレーション作成</h4>
-                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># Laravelプロジェクト作成（まだの場合）
-composer create-project laravel/laravel todo-app
-cd todo-app
-
-# usersテーブルにroleカラム追加
+                        <pre class="bg-gray-900 p-4 rounded-lg overflow-x-auto mb-6"><code class="language-bash"># usersテーブルにroleカラム追加
 php artisan make:migration add_role_to_users_table
 
 # tasksテーブル作成
@@ -450,7 +454,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('role')->default('user')->after('password');
+            $table->enum('role', ['admin', 'user'])->default('user')->after('password');
         });
     }
 
@@ -880,6 +884,80 @@ class TaskController extends Controller
     }
 
     /**
+     * 📝 補足説明
+     *
+     * Task::query()とは？
+     * - クエリビルダーのインスタンスを取得するメソッド
+     * - 条件分岐で動的にクエリを組み立てる時に使う
+     *
+     * 例：
+     * $query = Task::query();  // クエリビルダー取得
+     * if ($status) {
+     *     $query->where('status', $status);  // 条件があれば追加
+     * }
+     * $tasks = $query->get();
+     *
+     * ----------------------------------------
+     *
+     * サブクエリ（where内の無名関数）とは？
+     * - OR条件をグループ化して、他の検索条件と組み合わせるために使う
+     *
+     * 例：
+     * $query->where(function($q) use ($request) {
+     *     $q->where('title', 'like', '%' . $request->search . '%')
+     *       ->orWhere('description', 'like', '%' . $request->search . '%');
+     * });
+     *
+     * これにより生成されるSQL:
+     * WHERE (title LIKE '%keyword%' OR description LIKE '%keyword%') AND 他の条件
+     *
+     * もしwhere()を使わずにorWhere()だけ書くと：
+     * WHERE title LIKE '%keyword%' OR description LIKE '%keyword%' OR 他の条件
+     * → 意図しない結果になる！
+     *
+     * ----------------------------------------
+     *
+     * orderByRaw()とCASE文
+     * - orderByRaw(): 生のSQL文で並び替え
+     * - CASE文: SQLの条件分岐（if文のようなもの）
+     *
+     * 例：
+     * $query->orderByRaw("CASE WHEN status = 'completed' THEN 1 ELSE 0 END")
+     *
+     * 意味：
+     * - status = 'completed'（完了）なら「1」を返す
+     * - それ以外（未完了）なら「0」を返す
+     * - 0 < 1 なので、未完了が先、完了が後に並ぶ
+     *
+     * 複数のorderBy()の優先順位：
+     * ->orderByRaw("CASE WHEN status = 'completed' THEN 1 ELSE 0 END")  // ①完了を後ろに
+     * ->orderBy('due_date', 'asc')      // ②期限が近い順
+     * ->orderBy('created_at', 'desc');  // ③期限が同じ場合は新しい順
+     *
+     * 結果：
+     * 未完了タスク（期限が近い順）
+     *   ├ 2025-01-05 締切
+     *   └ 2025-01-10 締切
+     * 完了済みタスク（期限が近い順）
+     *   └ 2025-01-01 締切
+     *
+     * ----------------------------------------
+     *
+     * withQueryString()とは？
+     * - ページネーションリンクに現在のクエリパラメータを保持するメソッド
+     * - 検索条件やフィルタがある場合、ページ移動しても条件が消えない
+     *
+     * 例：
+     * URL: /tasks?status=completed&search=Laravel&page=2
+     *
+     * withQueryString()なし：
+     * → 次ページのリンク: /tasks?page=3（検索条件が消える！）
+     *
+     * withQueryString()あり：
+     * → 次ページのリンク: /tasks?status=completed&search=Laravel&page=3（条件保持！）
+     */
+
+    /**
      * タスク作成フォーム表示
      */
     public function create()
@@ -1105,7 +1183,7 @@ php artisan storage:link</code></pre>
     &lt;meta charset="UTF-8"&gt;
     &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
     &lt;title&gt;@yield('title', 'TODOアプリ')&lt;/title&gt;
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
 &lt;/head&gt;
 &lt;body class="bg-gray-100"&gt;
     {{-- ナビゲーション --}}
@@ -1160,7 +1238,7 @@ php artisan storage:link</code></pre>
     &lt;meta charset="UTF-8"&gt;
     &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
     &lt;title&gt;ログイン - TODOアプリ&lt;/title&gt;
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
 &lt;/head&gt;
 &lt;body class="bg-gray-100"&gt;
     &lt;div class="min-h-screen flex items-center justify-center"&gt;
@@ -1220,7 +1298,7 @@ php artisan storage:link</code></pre>
     &lt;meta charset="UTF-8"&gt;
     &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
     &lt;title&gt;新規登録 - TODOアプリ&lt;/title&gt;
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
 &lt;/head&gt;
 &lt;body class="bg-gray-100"&gt;
     &lt;div class="min-h-screen flex items-center justify-center"&gt;
@@ -1736,6 +1814,23 @@ touch resources/views/admin/users.blade.php</code></pre>
             &lt;/div&gt;
         @endif
 
+        {{-- 現在の画像表示と削除ボタン --}}
+        @if($task-&gt;image)
+            &lt;div class="bg-white rounded-lg shadow p-6 mb-6"&gt;
+                &lt;h2 class="text-lg font-bold text-gray-800 mb-4"&gt;現在の画像&lt;/h2&gt;
+                &lt;img src="{{ $task-&gt;getImageUrl() }}" alt="現在の画像" class="w-48 h-48 object-cover rounded mb-4"&gt;
+                &lt;form method="POST" action="{{ route('tasks.delete-image', $task) }}"
+                      onsubmit="return confirm('画像を削除しますか？')"&gt;
+                    @csrf
+                    @method('DELETE')
+                    &lt;button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"&gt;
+                        画像を削除
+                    &lt;/button&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+        @endif
+
+        {{-- タスク編集フォーム --}}
         &lt;form method="POST" action="{{ route('tasks.update', $task) }}" enctype="multipart/form-data"
               class="bg-white rounded-lg shadow p-6"&gt;
             @csrf
@@ -1795,25 +1890,8 @@ touch resources/views/admin/users.blade.php</code></pre>
 
             &lt;div class="mb-6"&gt;
                 &lt;label class="block text-gray-700 text-sm font-bold mb-2"&gt;
-                    画像
+                    画像 {{ $task-&gt;image ? '（新しい画像に変更）' : '' }}
                 &lt;/label&gt;
-
-                @if($task-&gt;image)
-                    &lt;div class="mb-3"&gt;
-                        &lt;img src="{{ $task-&gt;getImageUrl() }}" alt="現在の画像" class="w-48 h-48 object-cover rounded"&gt;
-                        &lt;div class="mt-2"&gt;
-                            &lt;form method="POST" action="{{ route('tasks.delete-image', $task) }}" class="inline"
-                                  onsubmit="return confirm('画像を削除しますか？')"&gt;
-                                @csrf
-                                @method('DELETE')
-                                &lt;button type="submit" class="text-red-600 hover:text-red-800 text-sm"&gt;
-                                    画像を削除
-                                &lt;/button&gt;
-                            &lt;/form&gt;
-                        &lt;/div&gt;
-                    &lt;/div&gt;
-                @endif
-
                 &lt;input type="file" name="image" accept="image/*"
                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"&gt;
                 &lt;p class="text-gray-500 text-xs mt-1"&gt;
