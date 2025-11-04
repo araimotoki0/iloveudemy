@@ -1438,6 +1438,98 @@ php artisan migrate</code></pre>
                     </div>
 
                     <div class="content-section">
+                        <h3>Claude Codeの使い方</h3>
+                        <p>
+                            Claude Codeは、CLIで動作するAI開発アシスタントです。<br>
+                            コーディング、デバッグ、リファクタリングなどを支援してくれます。
+                        </p>
+
+                        <h4>必須コマンド</h4>
+                        <div class="glass-dark p-4 rounded-xl mb-4">
+                            <pre><code class="language-bash"># Claude Code を起動
+claude
+
+# 前の会話を再開 選択可能
+claude -r
+
+# 最新の会話を続ける
+claude -c</code></pre>
+                        </div>
+
+                        <h4>初回起動時の設定</h4>
+                        <div class="glass-dark p-4 rounded-xl mb-4">
+                            <pre><code class="language-bash"># Claude Code を起動
+claude
+
+# プロジェクト用のCLAUDE.mdファイルを生成（コードベースを読み取る）
+/init
+
+# ヘルプを表示
+/help
+
+# モデルを確認・変更
+/model
+
+# ログイン
+/login
+
+# ログアウト
+/logout</code></pre>
+                        </div>
+
+                        <div class="glass-dark p-5 rounded-xl mb-4 border-l-4 border-yellow-500">
+                            <p class="text-lg mb-3"><strong>⚠️ パーミッションエラーが出る場合</strong></p>
+                            <p class="mb-3">もし「no such file」エラーが出続ける場合は、以下のコマンドで権限を付与してください：</p>
+                            <pre><code class="language-bash">chmod -R 755 .</code></pre>
+                        </div>
+
+                        <h4>日本語で返答させる設定（重要）</h4>
+                        <p class="mb-3">Claude Codeはデフォルトで英語で返答します。日本語で返答させるには、メモリー管理機能を使います。</p>
+                        <div class="glass-dark p-4 rounded-xl mb-4">
+                            <pre><code class="language-bash"># メモリーファイルを編集
+vi ~/.claude/CLAUDE.md
+
+# または
+code ~/.claude/CLAUDE.md</code></pre>
+                            <p class="text-sm text-gray-400 mt-2">ファイルに以下を記載：</p>
+                            <pre><code class="language-markdown">Always respond in Japanese</code></pre>
+                        </div>
+
+                        <h4>ファイルの指定方法</h4>
+                        <p class="mb-3">@記号を使ってファイルを指定できます。</p>
+                        <div class="glass-dark p-4 rounded-xl mb-4">
+                            <pre><code class="language-bash"># 特定のファイルについて質問
+@routes/web.php このファイルを解説して
+
+# 複数ファイルを指定
+@app/Models/User.php @app/Http/Controllers/UserController.php リレーションを確認して</code></pre>
+                        </div>
+
+                        <h4>画像の扱い方</h4>
+                        <p class="mb-3">Claude Codeは画像を読み込むことができます。</p>
+                        <ul class="space-y-2 mb-4">
+                            <li>✅ ドラッグ&amp;ドロップ - 画像をターミナルにドラッグ</li>
+                            <li>✅ Ctrl+V（Mac: Cmd+V） - クリップボードから貼り付け</li>
+                            <li>✅ パスを指定 - ファイルパスを直接入力</li>
+                        </ul>
+
+                        <h4>Claude Code自体について質問する</h4>
+                        <div class="glass-dark p-5 rounded-xl mb-4 border-l-4 border-blue-500">
+                            <p class="text-sm">
+                                Claude Codeは、使用しているバージョンに関係なく、常に<strong>最新のClaude Codeドキュメント</strong>にアクセスできます。<br>
+                                「Claude Codeの○○機能について教えて」と聞けば、最新情報を教えてくれます。
+                            </p>
+                        </div>
+
+                        <h4>その他の便利機能</h4>
+                        <ul class="space-y-2 mb-4">
+                            <li><strong>Shift + Tab</strong> - モード変更（コーディングモード、チャットモードなど）</li>
+                            <li><strong>! コマンド</strong> - シェルコマンドを直接実行できる（例：<code>!ls -la</code>）</li>
+                            <li><strong>settings.local.json</strong> - 「don't ask again」を選択すると自動生成される設定ファイル</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-section">
                         <h3>次のステップ</h3>
                         <p>
                             環境構築とプロジェクトの立ち上げが完了しました！<br>
