@@ -13,10 +13,17 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://iloveuedmy.banana-quantum.com/">
     <meta property="og:site_name" content="🐳 新井元気のUdemy講座">
+    <meta property="og:image" content="https://iloveuedmy.banana-quantum.com/img/6.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@_moto___">
+    <meta name="twitter:title" content="🐳 新井元気のUdemy講座 | AWS・React・Laravel実践講座">
+    <meta name="twitter:description" content="GPTsハッカソン3連覇エンジニアが教える実践的Web開発講座。クーポン価格1500円から受講可能。">
+    <meta name="twitter:image" content="https://iloveuedmy.banana-quantum.com/img/6.png">
+
     <link rel="canonical" href="https://iloveuedmy.banana-quantum.com/" />
     <!-- Favicon -->
     <link rel="icon"
@@ -425,20 +432,269 @@
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
     </style>
+    <!-- 構造化データ: 講師情報 -->
     <script type="application/ld+json">
-        {
+    {
         "@context": "https://schema.org",
         "@type": "Person",
         "name": "新井元気",
+        "alternateName": "Motoki Arai",
         "jobTitle": "Webエンジニア・Udemy講師",
-        "description": "GPTsハッカソン3連覇。AWS、React、Laravelの実践講座を提供",
+        "description": "GPTsハッカソン3連覇。AWS、React、Laravelの実践講座を提供するWebエンジニア",
         "url": "https://iloveuedmy.banana-quantum.com/",
+        "image": "https://iloveuedmy.banana-quantum.com/img/6.png",
         "sameAs": [
             "https://x.com/_moto___",
             "https://github.com/moto-1985",
+            "https://github.com/sbtest1218-oss",
             "https://www.udemy.com/user/xin-jing-yuan-qi-3/"
-        ]
+        ],
+        "knowsAbout": [
+            "AWS",
+            "React",
+            "Laravel",
+            "Dify",
+            "GPTs",
+            "フルスタック開発",
+            "AI開発",
+            "SPA構築"
+        ],
+        "hasCredential": {
+            "@type": "EducationalOccupationalCredential",
+            "credentialCategory": "実績",
+            "name": "GPTsハッカソン3連覇"
         }
+    }
+    </script>
+
+    <!-- 構造化データ: 講座一覧 (ItemList) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "新井元気のUdemy講座一覧",
+        "description": "AWS、React、Laravel、AI開発の実践講座",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "item": {
+                    "@type": "Course",
+                    "@id": "https://www.udemy.com/course/laravel-basic/",
+                    "name": "【第四弾】Laravel入門：メカニズムを深く理解して応用が効く知識を身につける",
+                    "description": "バックエンド学習に最適！認証・CRUD・ファイルアップロード・権限管理などの実装を通じてLaravelの本質を理解。MVCアーキテクチャ・セキュリティ対策・HTTPの理解など、フレームワークを問わない応用が効く知識を習得。",
+                    "provider": {
+                        "@type": "Person",
+                        "name": "新井元気"
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "1500",
+                        "priceCurrency": "JPY",
+                        "url": "https://www.udemy.com/course/laravel-basic/?couponCode=2F4CE59CF30A45751D82",
+                        "availability": "https://schema.org/InStock"
+                    },
+                    "educationalLevel": "初級〜中級",
+                    "about": [
+                        "Laravel",
+                        "PHP",
+                        "バックエンド開発",
+                        "MVCアーキテクチャ",
+                        "データベース設計",
+                        "セキュリティ"
+                    ],
+                    "inLanguage": "ja",
+                    "datePublished": "2025-11"
+                }
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "item": {
+                    "@type": "Course",
+                    "@id": "https://www.udemy.com/course/fulllstackengineer/",
+                    "name": "【第三弾】フルスタックエンジニアへの道 - 現場で必要なスキル全体像を公開",
+                    "description": "React × Laravel でモダンなSPAを構築し、AWS上にデプロイする実践講座。全セクションでCloud Codeを使用した実際の開発手法を完全公開。",
+                    "provider": {
+                        "@type": "Person",
+                        "name": "新井元気"
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "1500",
+                        "priceCurrency": "JPY",
+                        "url": "https://www.udemy.com/course/fulllstackengineer/?couponCode=C65AB97FB903AA76AB38",
+                        "availability": "https://schema.org/InStock"
+                    },
+                    "educationalLevel": "中級",
+                    "about": [
+                        "React",
+                        "Laravel",
+                        "SPA",
+                        "AWS",
+                        "フルスタック開発",
+                        "Cloud Code"
+                    ],
+                    "inLanguage": "ja",
+                    "datePublished": "2025-10"
+                }
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "item": {
+                    "@type": "Course",
+                    "@id": "https://www.udemy.com/course/aws-ec2linux/",
+                    "name": "【第二弾】ゼロからはじめるAWSウェブ開発 - EC2上でLinuxを学習しウェブアプリを作るための知識を習得",
+                    "description": "EC2上でLinux学習。VM、セキュリティグループ、ポート番号などネットワークの基礎を習得。全講義EC2上を使ってLinuxを操作するので実践的に学べる。",
+                    "provider": {
+                        "@type": "Person",
+                        "name": "新井元気"
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "1500",
+                        "priceCurrency": "JPY",
+                        "url": "https://www.udemy.com/course/aws-ec2linux/?couponCode=532252413F4ADD8FCB11",
+                        "availability": "https://schema.org/InStock"
+                    },
+                    "educationalLevel": "初級〜中級",
+                    "about": [
+                        "AWS",
+                        "EC2",
+                        "Linux",
+                        "ネットワーク",
+                        "サーバー管理"
+                    ],
+                    "inLanguage": "ja",
+                    "datePublished": "2025-08"
+                }
+            },
+            {
+                "@type": "ListItem",
+                "position": 4,
+                "item": {
+                    "@type": "Course",
+                    "@id": "https://www.udemy.com/course/aws-s3route53cloudfrontweb/",
+                    "name": "【第一弾】ゼロからはじめるAWSウェブ開発 - S3、Route53、CloudFrontでWebサイトを公開",
+                    "description": "AWSの知識がゼロの状態から静的webアプリをデプロイ。S3、Route53、CloudFrontの実践。実践的なクラウド開発スキルを身につける。",
+                    "provider": {
+                        "@type": "Person",
+                        "name": "新井元気"
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "1500",
+                        "priceCurrency": "JPY",
+                        "url": "https://www.udemy.com/course/aws-s3route53cloudfrontweb/?couponCode=651F005C20BCBA55C673",
+                        "availability": "https://schema.org/InStock"
+                    },
+                    "educationalLevel": "初級",
+                    "about": [
+                        "AWS",
+                        "S3",
+                        "Route53",
+                        "CloudFront",
+                        "静的Webサイト"
+                    ],
+                    "inLanguage": "ja",
+                    "datePublished": "2025-05"
+                }
+            },
+            {
+                "@type": "ListItem",
+                "position": 5,
+                "item": {
+                    "@type": "Course",
+                    "@id": "https://www.udemy.com/course/difybegin/",
+                    "name": "【初めてのDify】Difyをさくっと理解してAIを好きになる講座",
+                    "description": "つまずきゼロでDifyの本質を理解できる講座。Dify初心者に最適な教材。DifyとClaudeなどAIツールの使い方を解説。",
+                    "provider": {
+                        "@type": "Person",
+                        "name": "新井元気"
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "1500",
+                        "priceCurrency": "JPY",
+                        "url": "https://www.udemy.com/course/difybegin/?couponCode=B34E0BA4BB7A240BFA9B",
+                        "availability": "https://schema.org/InStock"
+                    },
+                    "educationalLevel": "入門",
+                    "about": [
+                        "Dify",
+                        "AI開発",
+                        "ノーコード",
+                        "Claude"
+                    ],
+                    "inLanguage": "ja"
+                }
+            },
+            {
+                "@type": "ListItem",
+                "position": 6,
+                "item": {
+                    "@type": "Course",
+                    "@id": "https://www.udemy.com/course/gptsstudy/",
+                    "name": "【GPTsハッカソン3連覇のwebエンジニアが教える】Dify・GPTsで役立つアプリを開発する方法を徹底解説",
+                    "description": "GPTsやDifyを網羅的に学べる。AWS、Azureを使ってDifyをデプロイする方法、GASの使い方、実際のハッカソン優勝テクニックを伝授。",
+                    "provider": {
+                        "@type": "Person",
+                        "name": "新井元気"
+                    },
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "1500",
+                        "priceCurrency": "JPY",
+                        "url": "https://www.udemy.com/course/gptsstudy/?couponCode=8D5E552029506E878B77",
+                        "availability": "https://schema.org/InStock"
+                    },
+                    "educationalLevel": "中級",
+                    "about": [
+                        "GPTs",
+                        "Dify",
+                        "AI開発",
+                        "AWS",
+                        "Azure",
+                        "GAS"
+                    ],
+                    "inLanguage": "ja"
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- 構造化データ: Webサイト情報 -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "新井元気のUdemy講座",
+        "url": "https://iloveuedmy.banana-quantum.com/",
+        "description": "AWS、React、Laravel、Difyを使った実践的なWeb開発講座。クーポン価格1500円から受講可能。",
+        "author": {
+            "@type": "Person",
+            "name": "新井元気"
+        },
+        "inLanguage": "ja"
+    }
+    </script>
+
+    <!-- 構造化データ: パンくずリスト -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "ホーム",
+                "item": "https://iloveuedmy.banana-quantum.com/"
+            }
+        ]
+    }
     </script>
 </head>
 
