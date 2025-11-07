@@ -1,0 +1,109 @@
+// サイドバーコンポーネントを生成・挿入する関数
+function initSidebar() {
+    // 現在のパスから相対パスを計算
+    const currentPath = window.location.pathname;
+    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/');
+    const rootPath = isInSubfolder ? '../' : './';
+
+    // サイドバーHTML
+    const sidebarHTML = `
+    <!-- サイドバー -->
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2
+                    class="text-xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    メニュー</h2>
+                <button id="close-sidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="${rootPath}index.html" class="flex items-center px-4 py-3 rounded-lg ${currentPath.endsWith('index.html') && !isInSubfolder ? 'bg-white/20' : 'hover:bg-white/10'} sidebar-link transition-colors duration-200">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="${rootPath}basic/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/basic/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="${rootPath}miraichi/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/miraichi/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>独学でエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年10月20日</span>
+                    </div>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
+        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- オーバーレイ -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+    `;
+
+    // bodyの最初に挿入
+    document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
+
+    // イベントリスナーを設定
+    setupSidebarEvents();
+}
+
+// サイドバーのイベントリスナーを設定
+function setupSidebarEvents() {
+    const sidebar = document.getElementById('sidebar');
+    const openBtn = document.getElementById('open-sidebar');
+    const closeBtn = document.getElementById('close-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    // サイドバーを開く
+    openBtn.addEventListener('click', () => {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+    });
+
+    // サイドバーを閉じる
+    const closeSidebar = () => {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+    };
+
+    closeBtn.addEventListener('click', closeSidebar);
+    overlay.addEventListener('click', closeSidebar);
+}
+
+// DOMContentLoaded時にサイドバーを初期化
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebar);
+} else {
+    initSidebar();
+}
