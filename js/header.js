@@ -117,6 +117,11 @@ function initHeader(courseConfig) {
 
     // イベントリスナーを設定
     setupHeaderEvents();
+
+    // DOM生成完了後にbodyを表示（ちらつき防止）
+    requestAnimationFrame(() => {
+        document.body.classList.add('loaded');
+    });
 }
 
 // ヘッダーのイベントリスナーを設定

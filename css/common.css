@@ -1,5 +1,16 @@
 /* 共通スタイル */
 
+/* ページ読み込み時のフェードイン（ちらつき防止） */
+/* JS動的生成を使うページのみ .js-loadingクラスを付与 */
+body.js-loading {
+    opacity: 0;
+    transition: opacity 50ms;
+}
+
+body.js-loading.loaded {
+    opacity: 1;
+}
+
 /* ガラスモーフィズム */
 .glass {
     background: rgba(255, 255, 255, 0.1);
