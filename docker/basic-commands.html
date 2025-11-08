@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker基本コマンド - Docker入門講座</title>
+    <meta name="description" content="Docker入門講座 - よく使う基本コマンドを学ぶ">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        /* コードブロックスタイル */
+        pre {
+            position: relative;
+            margin: 16px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        pre code {
+            font-size: 14px;
+            line-height: 1.6;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* セクションスタイル */
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #22d3ee;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            background: rgba(34, 211, 238, 0.05);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .content-section h3:hover {
+            background: rgba(34, 211, 238, 0.1);
+            border-color: rgba(34, 211, 238, 0.4);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .content-section h4 {
+            color: #67e8f9;
+            margin: 24px 0 12px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .content-section p {
+            margin: 16px 0;
+            line-height: 1.9;
+            color: #e2e8f0;
+            font-size: 16px;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 16px 0;
+            padding-left: 28px;
+            color: #e2e8f0;
+        }
+
+        .content-section li {
+            margin: 10px 0;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .content-section a {
+            color: #22d3ee;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+
+        .content-section a:hover {
+            color: #67e8f9;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .content-section code:not(pre code) {
+            background: rgba(34, 211, 238, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: #22d3ee;
+        }
+
+        /* カード風のボックス */
+        .info-box {
+            background: rgba(34, 211, 238, 0.05);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-left: 4px solid #22d3ee;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .warning-box {
+            background: rgba(251, 191, 36, 0.05);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-left: 4px solid #fbbf24;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .success-box {
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-left: 4px solid #22c55e;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        /* コマンドテーブル */
+        .command-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .command-table th {
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .command-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .command-table tr:hover {
+            background: rgba(34, 211, 238, 0.05);
+        }
+
+        .command-table code {
+            background: rgba(34, 211, 238, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #22d3ee;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- イメージ関連コマンド -->
+                    <div class="content-section">
+                        <h3>イメージ関連コマンド</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                Dockerイメージは、コンテナを作るための<strong>設計図・テンプレート</strong>です。
+                                まずはイメージを取得・管理するコマンドを学びましょう。
+                            </p>
+
+                            <h4>イメージを取得する</h4>
+                            <pre><code class="language-bash"># Docker Hubから公式イメージを取得
+docker pull nginx
+
+# 特定のバージョンを指定して取得
+docker pull nginx:1.25
+
+# 複数のイメージを取得
+docker pull node:18
+docker pull mysql:8.0</code></pre>
+
+                            <h4>イメージ一覧を表示</h4>
+                            <pre><code class="language-bash"># ローカルにあるすべてのイメージを表示
+docker images
+
+# または
+docker image ls</code></pre>
+
+                            <div class="success-box">
+                                <p class="font-semibold mb-2">📋 出力例</p>
+                                <pre class="bg-slate-900/50 p-3 rounded text-sm overflow-x-auto"><code>REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+nginx        latest    605c77e624dd   2 weeks ago    141MB
+node         18        b2aa5b8d3c9e   3 weeks ago    993MB
+mysql        8.0       3218b38490ce   4 weeks ago    516MB</code></pre>
+                            </div>
+
+                            <h4>イメージを削除</h4>
+                            <pre><code class="language-bash"># イメージ名で削除
+docker rmi nginx
+
+# イメージIDで削除
+docker rmi 605c77e624dd
+
+# 強制削除（コンテナが実行中でも削除）
+docker rmi -f nginx
+
+# 未使用のイメージをすべて削除
+docker image prune</code></pre>
+
+                            <h4>イメージをビルド</h4>
+                            <pre><code class="language-bash"># Dockerfileからイメージをビルド
+docker build -t myapp:1.0 .
+
+# キャッシュを使わずにビルド
+docker build --no-cache -t myapp:1.0 .</code></pre>
+
+                            <table class="command-table">
+                                <thead>
+                                    <tr>
+                                        <th>コマンド</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>docker pull [イメージ名]</code></td>
+                                        <td>イメージをダウンロード</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker images</code></td>
+                                        <td>イメージ一覧を表示</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker rmi [イメージ名]</code></td>
+                                        <td>イメージを削除</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker build -t [名前] .</code></td>
+                                        <td>Dockerfileからビルド</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- コンテナ関連コマンド -->
+                    <div class="content-section">
+                        <h3>コンテナ関連コマンド</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                コンテナは、イメージから作られる<strong>実行中のインスタンス</strong>です。
+                                コンテナの起動・停止・削除などの操作を学びましょう。
+                            </p>
+
+                            <h4>コンテナを起動</h4>
+                            <pre><code class="language-bash"># シンプルな起動
+docker run nginx
+
+# バックグラウンドで起動（-d: detach）
+docker run -d nginx
+
+# 名前をつけて起動（--name）
+docker run -d --name my-nginx nginx
+
+# ポートをマッピングして起動（-p ホストポート:コンテナポート）
+docker run -d -p 8080:80 nginx
+
+# 環境変数を設定して起動（-e）
+docker run -d -e MYSQL_ROOT_PASSWORD=secret mysql:8.0
+
+# ボリュームをマウントして起動（-v）
+docker run -d -v /my/data:/var/lib/mysql mysql:8.0
+
+# すべてを組み合わせた例
+docker run -d \
+  --name my-app \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  -v $(pwd):/app \
+  node:18</code></pre>
+
+                            <div class="info-box">
+                                <p class="font-semibold mb-2">💡 よく使うオプション</p>
+                                <ul>
+                                    <li><code>-d</code>: バックグラウンド実行（detach mode）</li>
+                                    <li><code>--name</code>: コンテナに名前をつける</li>
+                                    <li><code>-p</code>: ポートマッピング（ホスト:コンテナ）</li>
+                                    <li><code>-e</code>: 環境変数を設定</li>
+                                    <li><code>-v</code>: ボリュームをマウント</li>
+                                    <li><code>--rm</code>: 停止時に自動削除</li>
+                                    <li><code>-it</code>: インタラクティブモード（シェル操作）</li>
+                                </ul>
+                            </div>
+
+                            <h4>実行中のコンテナを確認</h4>
+                            <pre><code class="language-bash"># 実行中のコンテナのみ表示
+docker ps
+
+# すべてのコンテナを表示（停止中も含む）
+docker ps -a
+
+# 最新のコンテナのみ表示
+docker ps -l</code></pre>
+
+                            <h4>コンテナを停止・再起動</h4>
+                            <pre><code class="language-bash"># コンテナを停止
+docker stop my-nginx
+
+# コンテナを強制停止
+docker kill my-nginx
+
+# コンテナを再起動
+docker restart my-nginx
+
+# 停止中のコンテナを起動
+docker start my-nginx</code></pre>
+
+                            <h4>コンテナを削除</h4>
+                            <pre><code class="language-bash"># 停止中のコンテナを削除
+docker rm my-nginx
+
+# 実行中のコンテナを強制削除
+docker rm -f my-nginx
+
+# 停止中のコンテナをすべて削除
+docker container prune</code></pre>
+
+                            <h4>コンテナ内でコマンド実行</h4>
+                            <pre><code class="language-bash"># コンテナ内でコマンドを実行
+docker exec my-nginx ls /etc
+
+# コンテナ内でbashを起動（インタラクティブモード）
+docker exec -it my-nginx bash
+
+# コンテナ内でshを起動（Alpine Linuxの場合）
+docker exec -it my-nginx sh</code></pre>
+
+                            <h4>コンテナのログを確認</h4>
+                            <pre><code class="language-bash"># ログを表示
+docker logs my-nginx
+
+# リアルタイムでログを追跡
+docker logs -f my-nginx
+
+# 最新100行だけ表示
+docker logs --tail 100 my-nginx</code></pre>
+
+                            <table class="command-table">
+                                <thead>
+                                    <tr>
+                                        <th>コマンド</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>docker run [オプション] [イメージ]</code></td>
+                                        <td>コンテナを作成して起動</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker ps</code></td>
+                                        <td>実行中のコンテナ一覧</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker stop [コンテナ名]</code></td>
+                                        <td>コンテナを停止</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker start [コンテナ名]</code></td>
+                                        <td>停止中のコンテナを起動</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker rm [コンテナ名]</code></td>
+                                        <td>コンテナを削除</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker exec -it [コンテナ名] bash</code></td>
+                                        <td>コンテナ内でシェル起動</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker logs [コンテナ名]</code></td>
+                                        <td>コンテナのログを表示</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- システム管理コマンド -->
+                    <div class="content-section">
+                        <h3>システム管理コマンド</h3>
+                        <div class="collapsible-content">
+                            <h4>Dockerのバージョン確認</h4>
+                            <pre><code class="language-bash"># Dockerのバージョンを表示
+docker version
+
+# Dockerの詳細情報を表示
+docker info</code></pre>
+
+                            <h4>ディスク使用量の確認</h4>
+                            <pre><code class="language-bash"># Dockerが使用しているディスク容量を確認
+docker system df</code></pre>
+
+                            <h4>不要なリソースの削除</h4>
+                            <pre><code class="language-bash"># 停止中のコンテナを削除
+docker container prune
+
+# 未使用のイメージを削除
+docker image prune
+
+# 未使用のボリュームを削除
+docker volume prune
+
+# 未使用のネットワークを削除
+docker network prune
+
+# すべての不要なリソースを一括削除
+docker system prune
+
+# イメージも含めて完全クリーンアップ
+docker system prune -a</code></pre>
+
+                            <div class="warning-box">
+                                <p class="font-semibold mb-2">⚠️ 注意</p>
+                                <p>
+                                    <code>docker system prune -a</code>は、すべての未使用イメージを削除します。
+                                    再度<code>docker pull</code>が必要になるため、実行前に確認しましょう。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Docker Composeコマンド -->
+                    <div class="content-section">
+                        <h3>Docker Composeコマンド</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                Docker Composeは、<strong>複数のコンテナを定義・管理</strong>するツールです。
+                                <code>docker-compose.yml</code>ファイルに設定を記述して、一括操作できます。
+                            </p>
+
+                            <h4>基本コマンド</h4>
+                            <pre><code class="language-bash"># すべてのサービスを起動
+docker-compose up
+
+# バックグラウンドで起動
+docker-compose up -d
+
+# ビルドしてから起動
+docker-compose up --build
+
+# すべてのサービスを停止
+docker-compose down
+
+# ボリュームも含めて削除
+docker-compose down -v
+
+# サービスを再起動
+docker-compose restart
+
+# ログを表示
+docker-compose logs
+
+# リアルタイムでログを追跡
+docker-compose logs -f</code></pre>
+
+                            <h4>docker-compose.ymlの例</h4>
+                            <pre><code class="language-yaml">version: '3.8'
+
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/usr/share/nginx/html
+
+  app:
+    build: ./app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=myapp
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:</code></pre>
+
+                            <div class="success-box">
+                                <p class="font-semibold mb-2">🚀 Docker Composeの利点</p>
+                                <ul>
+                                    <li>• 複数コンテナを<code>docker-compose up</code>一発で起動</li>
+                                    <li>• 設定をYAMLファイルで管理（バージョン管理可能）</li>
+                                    <li>• 複雑な<code>docker run</code>コマンドを書く必要がない</li>
+                                    <li>• チーム全員が同じ環境を簡単に再現できる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 実践的なワークフロー -->
+                    <div class="content-section">
+                        <h3>実践的なワークフロー</h3>
+                        <div class="collapsible-content">
+                            <h4>シナリオ1: Nginxで静的サイトを公開</h4>
+                            <pre><code class="language-bash"># 1. HTMLファイルを用意
+mkdir my-website
+echo "&lt;h1&gt;Hello Docker!&lt;/h1&gt;" &gt; my-website/index.html
+
+# 2. Nginxコンテナを起動してHTMLをマウント
+docker run -d \
+  --name my-nginx \
+  -p 8080:80 \
+  -v $(pwd)/my-website:/usr/share/nginx/html \
+  nginx
+
+# 3. ブラウザでhttp://localhost:8080にアクセス
+
+# 4. ログを確認
+docker logs my-nginx
+
+# 5. 停止・削除
+docker stop my-nginx
+docker rm my-nginx</code></pre>
+
+                            <h4>シナリオ2: MySQLデータベースを起動</h4>
+                            <pre><code class="language-bash"># 1. MySQLコンテナを起動
+docker run -d \
+  --name my-mysql \
+  -e MYSQL_ROOT_PASSWORD=mypassword \
+  -e MYSQL_DATABASE=testdb \
+  -p 3306:3306 \
+  mysql:8.0
+
+# 2. コンテナ内でMySQLに接続
+docker exec -it my-mysql mysql -uroot -pmypassword
+
+# 3. データベース操作
+# > SHOW DATABASES;
+# > USE testdb;
+# > CREATE TABLE users (id INT, name VARCHAR(50));
+# > exit
+
+# 4. 停止・削除
+docker stop my-mysql
+docker rm my-mysql</code></pre>
+
+                            <h4>シナリオ3: Node.jsアプリの開発環境</h4>
+                            <pre><code class="language-bash"># 1. プロジェクトディレクトリを作成
+mkdir my-node-app && cd my-node-app
+npm init -y
+
+# 2. Dockerfileを作成
+cat &lt;&lt;EOF &gt; Dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"]
+EOF
+
+# 3. イメージをビルド
+docker build -t my-node-app .
+
+# 4. コンテナを起動
+docker run -d -p 3000:3000 --name my-app my-node-app
+
+# 5. ログを確認
+docker logs -f my-app</code></pre>
+
+                            <div class="info-box">
+                                <p class="font-semibold mb-2">📝 よくある操作パターン</p>
+                                <pre class="bg-slate-900/50 p-3 rounded text-sm mt-2"><code># 1. イメージを取得
+docker pull [イメージ名]
+
+# 2. コンテナを起動
+docker run -d --name [名前] -p [ポート] [イメージ]
+
+# 3. 動作確認
+docker ps
+docker logs [コンテナ名]
+
+# 4. コンテナ内で操作
+docker exec -it [コンテナ名] bash
+
+# 5. 停止・削除
+docker stop [コンテナ名]
+docker rm [コンテナ名]</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- Highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dockerfile.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+
+    <script>
+        // シンタックスハイライト
+        document.addEventListener('DOMContentLoaded', function () {
+            hljs.highlightAll();
+
+            // コピーボタンの追加
+            document.querySelectorAll('pre').forEach(pre => {
+                const btn = document.createElement('button');
+                btn.classList.add('copy-button');
+                btn.textContent = 'コピー';
+                btn.addEventListener('click', () => {
+                    const code = pre.querySelector('code');
+                    navigator.clipboard.writeText(code.textContent).then(() => {
+                        btn.textContent = 'コピーしました！';
+                        setTimeout(() => {
+                            btn.textContent = 'コピー';
+                        }, 2000);
+                    });
+                });
+                pre.appendChild(btn);
+            });
+
+            // セクション折りたたみ機能
+            initCollapsibleSections();
+        });
+    </script>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => initHeader(dockerCourseConfig));
+        } else {
+            initHeader(dockerCourseConfig);
+        }
+    </script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>
