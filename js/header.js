@@ -211,22 +211,38 @@ function setupHeaderEvents() {
 // セクションの折りたたみ機能を初期化
 function initCollapsibleSections() {
     document.querySelectorAll('.content-section h3').forEach((h3, index) => {
-        const wrapper = document.createElement('div');
-        wrapper.classList.add('collapsible-content');
-
-        let nextElement = h3.nextElementSibling;
-        while (nextElement && nextElement.tagName !== 'H2' && nextElement.tagName !== 'H3') {
-            const elementToMove = nextElement;
-            nextElement = nextElement.nextElementSibling;
-            wrapper.appendChild(elementToMove);
+        // 既にイベントリスナーが登録されている場合はスキップ
+        if (h3.dataset.collapsibleInitialized) {
+            return;
         }
 
-        h3.insertAdjacentElement('afterend', wrapper);
+        let wrapper;
+
+        // 既にcollapsible-contentが存在する場合はそれを使用
+        if (h3.nextElementSibling && h3.nextElementSibling.classList.contains('collapsible-content')) {
+            wrapper = h3.nextElementSibling;
+        } else {
+            // 新規作成
+            wrapper = document.createElement('div');
+            wrapper.classList.add('collapsible-content');
+
+            let nextElement = h3.nextElementSibling;
+            while (nextElement && nextElement.tagName !== 'H2' && nextElement.tagName !== 'H3') {
+                const elementToMove = nextElement;
+                nextElement = nextElement.nextElementSibling;
+                wrapper.appendChild(elementToMove);
+            }
+
+            h3.insertAdjacentElement('afterend', wrapper);
+        }
 
         h3.addEventListener('click', () => {
             wrapper.classList.toggle('collapsed');
             h3.classList.toggle('collapsed');
         });
+
+        // イベントリスナー登録済みマーク
+        h3.dataset.collapsibleInitialized = 'true';
 
         // 目次用のIDを生成
         if (!h3.id) {

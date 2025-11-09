@@ -1175,7 +1175,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             const cursor = document.querySelector('.custom-cursor');
 
-            if (window.innerWidth > 768) {
+            if (cursor && window.innerWidth > 480) {
                 document.addEventListener('mousemove', (e) => {
                     cursor.style.left = e.clientX + 'px';
                     cursor.style.top = e.clientY + 'px';
@@ -1193,12 +1193,16 @@
                     });
                 });
             }
-                btn.addEventListener('mouseleave', () => {
-                    btn.style.transform = 'translate(0, 0)';
-                });
-            });
-            document.getElementById('retry-fortune').addEventListener('click', showRandomFortune);
-            document.getElementById('modal-backdrop').addEventListener('click', closeFortuneModal);
+
+            const retryBtn = document.getElementById('retry-fortune');
+            const modalBackdrop = document.getElementById('modal-backdrop');
+
+            if (retryBtn) {
+                retryBtn.addEventListener('click', showRandomFortune);
+            }
+            if (modalBackdrop) {
+                modalBackdrop.addEventListener('click', closeFortuneModal);
+            }
 
             // ページロード時のアニメーション
             animateOnLoad();
@@ -1219,20 +1223,11 @@
                 }, index * 300 + 500);
             });
         }
-            // アニメーション効果
-            fortuneResult.style.opacity = '0';
-            fortuneResult.style.transform = 'scale(0.8)';
 
-            setTimeout(() => {
-                fortuneResult.style.transition = 'all 0.6s cubic-bezier(0.23, 1, 0.320, 1)';
-                fortuneResult.style.opacity = '1';
-                fortuneResult.style.transform = 'scale(1)';
-            }, 100);
-        }
         // レスポンシブ対応
         window.addEventListener('resize', function () {
             const cursor = document.querySelector('.custom-cursor');
-            if (window.innerWidth <= 768) {
+            if (window.innerWidth <= 480) {
                 cursor.classList.add('hidden');
             } else {
                 cursor.classList.remove('hidden');

@@ -126,16 +126,12 @@
             transform: rotate(-90deg);
         }
 
-        .collapsible-content {
-            max-height: 10000px;
-            overflow: hidden;
-            transition: max-height 0.5s ease, opacity 0.3s ease;
-            opacity: 1;
+        .content-section .collapsible-content {
+            display: block !important;
         }
 
-        .collapsible-content.collapsed {
-            max-height: 0;
-            opacity: 0;
+        .content-section .collapsible-content.collapsed {
+            display: none !important;
         }
 
         .content-section h4 {
@@ -260,7 +256,7 @@
     <div class="min-h-screen flex flex-col">
         <!-- メインコンテンツ -->
         <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
-            <div class="max-w-4xl mx-auto">
+            <div class="max-w-5xl mx-auto">
                 <!-- コンテンツ -->
                 <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
 
@@ -718,12 +714,19 @@ docker rm [コンテナ名]</code></pre>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dockerfile.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
 
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
     <script>
-        // シンタックスハイライト
+        // シンタックスハイライトとヘッダー初期化
         document.addEventListener('DOMContentLoaded', function () {
+            // 1. ヘッダーを先に初期化（目次DOMを生成）
+            initHeader(dockerCourseConfig);
+
+            // 2. シンタックスハイライト
             hljs.highlightAll();
 
-            // コピーボタンの追加
+            // 3. コピーボタンの追加
             document.querySelectorAll('pre').forEach(pre => {
                 const btn = document.createElement('button');
                 btn.classList.add('copy-button');
@@ -740,20 +743,9 @@ docker rm [コンテナ名]</code></pre>
                 pre.appendChild(btn);
             });
 
-            // セクション折りたたみ機能
+            // 4. セクション折りたたみ機能と目次生成
             initCollapsibleSections();
         });
-    </script>
-
-    <!-- コース設定を読み込んでからヘッダーを初期化 -->
-    <script src="course-config.js"></script>
-    <script src="../js/header.js"></script>
-    <script>
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => initHeader(dockerCourseConfig));
-        } else {
-            initHeader(dockerCourseConfig);
-        }
     </script>
 
     <!-- サイドバー・フッター -->
