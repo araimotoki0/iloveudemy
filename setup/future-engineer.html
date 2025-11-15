@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>これからのエンジニアとビジネスの融合 - Forward Deployed Engineer</title>
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-gray-50">
+    <!-- ナビゲーションバー -->
+    <nav class="bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-lg fixed w-full top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <button id="menuBtn" class="p-2 hover:bg-purple-700 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <h1 class="text-2xl font-bold">これからのエンジニア</h1>
+                <div class="flex space-x-2 items-center">
+                    <a href="setup-windows.html" class="px-4 py-2 rounded-lg transition hover:bg-purple-700">環境構築</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- サイドバー -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-80 bg-gray-900 text-white transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold">メニュー</h2>
+                <button id="closeSidebar" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-2">
+                <a href="../index.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors duration-200">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>クーポンリンク</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">講座資料</p>
+                </div>
+                <a href="../basic/index.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors duration-200">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>【第四弾】Laravel入門</span>
+                </a>
+                <a href="../docker/introduction.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors duration-200">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <span>【第五弾】Docker入門</span>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>
+                </div>
+                <a href="../miraichi/index.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors duration-200">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span>独学でエンジニア</span>
+                </a>
+                <a href="setup-mac.html" class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors duration-200">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>特別講座環境構築</span>
+                </a>
+                <a href="future-engineer.html" class="flex items-center px-4 py-3 rounded-lg bg-gray-800 transition-colors duration-200">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>これからのエンジニア</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- オーバーレイ -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <div class="pt-20">
+        <!-- ヒーローセクション -->
+        <section class="bg-gradient-to-r from-purple-600 to-indigo-700 text-white py-20">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-5xl font-bold mb-4">これからのエンジニアとビジネスの融合</h2>
+                <p class="text-xl mb-4">エンジニアはビジネス寄りに、ビジネスパーソンはエンジニアリングを習得する時代へ</p>
+                <p class="text-sm mb-8 opacity-90">Forward Deployed Engineer (FDE) が示す新しい働き方</p>
+
+                <div class="mt-8 bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-3xl mx-auto">
+                    <p class="text-2xl font-bold">土曜の朝から勉強とは、お前らすごいぜ</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 結論セクション -->
+        <section id="conclusion" class="py-16 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">結論: 二つの道が一つに</h2>
+
+                    <div class="bg-gradient-to-br from-purple-50 to-indigo-50 p-8 rounded-lg shadow-lg mb-8">
+                        <div class="text-center mb-8">
+                            <p class="text-2xl font-bold text-purple-800 mb-4">
+                                エンジニアがビジネスを学び、ビジネスパーソンがエンジニアリングを学ぶ
+                            </p>
+                            <p class="text-lg text-gray-700">
+                                この双方向の流れが、これからの時代における最強のスキルセットを生み出します
+                            </p>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <div class="flex items-center mb-4">
+                                    <span class="text-4xl mr-3">👨‍💻</span>
+                                    <h3 class="text-xl font-bold text-purple-700">エンジニア → ビジネス</h3>
+                                </div>
+                                <p class="text-gray-700 mb-3">技術力を持ちながら、顧客の課題を理解し、ビジネス価値を創出できるエンジニアへ</p>
+                                <ul class="space-y-2 text-sm text-gray-600">
+                                    <li>✓ 現場に入り込んで課題を発見</li>
+                                    <li>✓ 顧客と直接対話して要件を理解</li>
+                                    <li>✓ ビジネス視点で技術選定</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <div class="flex items-center mb-4">
+                                    <span class="text-4xl mr-3">👔</span>
+                                    <h3 class="text-xl font-bold text-indigo-700">ビジネス → エンジニアリング</h3>
+                                </div>
+                                <p class="text-gray-700 mb-3">ビジネス知識を持ちながら、自分の最も使うツールを自分で作れる人材へ</p>
+                                <ul class="space-y-2 text-sm text-gray-600">
+                                    <li>✓ 業務効率化ツールを自作</li>
+                                    <li>✓ データ分析を自分で実装</li>
+                                    <li>✓ エンジニアと対等に議論</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-lg mt-6 text-center">
+                            <p class="text-xl font-bold mb-3">将来</p>
+                            <p class="text-lg">AIの台頭でエンジニアとビジネスパーソンの垣根が少しずつ消えていく</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Forward Deployed Engineerとは -->
+        <section id="what-is-fde" class="py-16 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">Forward Deployed Engineer (FDE) とは</h2>
+
+                    <div class="bg-white p-8 rounded-lg shadow-lg mb-8">
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-bold text-purple-600 mb-4">コンサルタント × エンジニア のハイブリッド</h3>
+                            <p class="text-gray-700 leading-relaxed mb-4">
+                                Forward Deployed Engineer (FDE) は、従来のエンジニアとは異なり、顧客の現場に直接赴き、
+                                実際の業務を観察しながら課題を発見し、その場で解決策を実装していくエンジニアです。
+                            </p>
+                            <p class="text-gray-700 leading-relaxed">
+                                オフィスで仕様書を受け取って開発するのではなく、「現場最前線で戦うエンジニア」として、
+                                顧客と共に働きながら、リアルタイムで価値を創出します。
+                            </p>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-red-50 p-6 rounded-lg border-l-4 border-red-500">
+                                <h4 class="font-bold text-red-800 mb-3">従来のエンジニア</h4>
+                                <ul class="space-y-2 text-sm text-gray-700">
+                                    <li>• 仕様書から要件を理解</li>
+                                    <li>• オフィスで開発作業</li>
+                                    <li>• 顧客との距離が遠い</li>
+                                    <li>• 開発サイクル: 11ヶ月</li>
+                                    <li>• ウォーターフォール型</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-green-50 p-6 rounded-lg border-l-4 border-green-500">
+                                <h4 class="font-bold text-green-800 mb-3">Forward Deployed Engineer</h4>
+                                <ul class="space-y-2 text-sm text-gray-700">
+                                    <li>• 現場で課題を直接観察</li>
+                                    <li>• 顧客の環境で開発</li>
+                                    <li>• 顧客と常に対話</li>
+                                    <li>• 開発サイクル: 1ヶ月</li>
+                                    <li>• アジャイル型</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- なぜFDEが求められるのか -->
+        <section id="why-fde" class="py-16 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">なぜ FDE が求められるのか</h2>
+
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-8 rounded-lg shadow-lg">
+                            <h3 class="text-2xl font-bold text-blue-700 mb-4">1. AI時代の開発には現場理解が不可欠</h3>
+                            <p class="text-gray-700 leading-relaxed mb-4">
+                                AIツールが普及した今、単純なコーディングスキルだけでは差別化できません。
+                                重要なのは、<strong>実際の業務フローを理解し、適切な文脈でAIを活用できる能力</strong>です。
+                            </p>
+                            <div class="bg-white p-4 rounded-lg">
+                                <p class="text-sm text-gray-600">
+                                    例: 製造業の現場で「生産効率化」と言われても、実際の作業を見ないと、
+                                    どこにボトルネックがあるのか、どんなツールが必要なのか分かりません。
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-8 rounded-lg shadow-lg">
+                            <h3 class="text-2xl font-bold text-purple-700 mb-4">2. 技術的正しさ ≠ ビジネス価値</h3>
+                            <p class="text-gray-700 leading-relaxed mb-4">
+                                完璧なコードを書いても、それが顧客の本当の課題を解決していなければ意味がありません。
+                                FDEは現場に入ることで、<strong>「何が本当に必要か」を見極める力</strong>を養います。
+                            </p>
+                            <div class="bg-white p-4 rounded-lg">
+                                <p class="text-sm text-gray-600">
+                                    技術的に優れたソリューション < 顧客の課題を本当に解決するシンプルなソリューション
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-lg shadow-lg">
+                            <h3 class="text-2xl font-bold text-green-700 mb-4">3. 日本企業の強み「現場力」を活かす</h3>
+                            <p class="text-gray-700 leading-relaxed mb-4">
+                                日本の製造業が持つ「現場力」や暗黙知は、競争優位性の源泉です。
+                                FDEは現場に入り込むことで、この暗黙知をデジタル化し、<strong>新たな価値を生み出します</strong>。
+                            </p>
+                            <div class="bg-white p-4 rounded-lg">
+                                <p class="text-sm text-gray-600">
+                                    熟練工の勘や経験をAIでデジタル化 → 全体の品質向上・技術継承
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- エンジニアがビジネスを学ぶべき理由 -->
+        <section id="engineer-to-business" class="py-16 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">エンジニアがビジネスを学ぶべき理由</h2>
+
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-purple-500 pl-6">
+                                <h3 class="text-xl font-bold text-purple-700 mb-3">1. より高い価値を提供できる</h3>
+                                <p class="text-gray-700 leading-relaxed">
+                                    技術力だけでなく、ビジネス視点を持つことで、単なる実装者から
+                                    <strong>「課題解決のパートナー」</strong>へと昇格します。
+                                    顧客の本質的な課題を理解し、最適なソリューションを提案できるようになります。
+                                </p>
+                            </div>
+
+                            <div class="border-l-4 border-indigo-500 pl-6">
+                                <h3 class="text-xl font-bold text-indigo-700 mb-3">2. キャリアの選択肢が広がる</h3>
+                                <p class="text-gray-700 leading-relaxed">
+                                    ビジネス知識を持つエンジニアは、CTO、プロダクトマネージャー、起業家など、
+                                    多様なキャリアパスを選択できます。技術とビジネスの架け橋となる存在は、
+                                    <strong>市場価値が非常に高い</strong>です。
+                                </p>
+                            </div>
+
+                            <div class="border-l-4 border-blue-500 pl-6">
+                                <h3 class="text-xl font-bold text-blue-700 mb-3">3. 意思決定の質が向上する</h3>
+                                <p class="text-gray-700 leading-relaxed">
+                                    ビジネス視点を持つことで、技術選定や設計判断において、
+                                    <strong>ROI（投資対効果）やビジネスインパクト</strong>を考慮した意思決定ができるようになります。
+                                </p>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-lg mt-6">
+                                <h4 class="font-bold text-purple-800 mb-3">学ぶべきビジネススキル</h4>
+                                <div class="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
+                                    <div>
+                                        <p class="font-semibold mb-2">基礎知識</p>
+                                        <ul class="space-y-1">
+                                            <li>• 財務・会計の基本</li>
+                                            <li>• マーケティング理論</li>
+                                            <li>• 事業戦略の立て方</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold mb-2">実践スキル</p>
+                                        <ul class="space-y-1">
+                                            <li>• 顧客インタビュー</li>
+                                            <li>• データ分析・KPI設計</li>
+                                            <li>• プレゼンテーション</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ビジネスパーソンがエンジニアリングを学ぶべき理由 -->
+        <section id="business-to-engineer" class="py-16 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">ビジネスパーソンがエンジニアリングを学ぶべき理由</h2>
+
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-green-500 pl-6">
+                                <h3 class="text-xl font-bold text-green-700 mb-3">1. 自分の最も使うツールを自分で作れる</h3>
+                                <p class="text-gray-700 leading-relaxed mb-3">
+                                    営業、マーケティング、財務など、どの職種でも日々使うツールやプロセスがあります。
+                                    エンジニアリングスキルがあれば、<strong>自分専用の効率化ツール</strong>を作成できます。
+                                </p>
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">
+                                        例: 営業データの自動集計ツール、顧客分析ダッシュボード、
+                                        レポート自動生成スクリプトなど
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="border-l-4 border-teal-500 pl-6">
+                                <h3 class="text-xl font-bold text-teal-700 mb-3">2. エンジニアと対等に議論できる</h3>
+                                <p class="text-gray-700 leading-relaxed">
+                                    基本的なプログラミング知識があれば、エンジニアとのコミュニケーションが劇的に改善します。
+                                    <strong>「それって技術的に可能？」「どれくらいの工数？」</strong>
+                                    といった質問に対して、より深い理解ができるようになります。
+                                </p>
+                            </div>
+
+                            <div class="border-l-4 border-cyan-500 pl-6">
+                                <h3 class="text-xl font-bold text-cyan-700 mb-3">3. データドリブンな意思決定ができる</h3>
+                                <p class="text-gray-700 leading-relaxed mb-3">
+                                    プログラミングスキル（特にPythonやSQL）があれば、
+                                    <strong>自分でデータを分析し、インサイトを得る</strong>ことができます。
+                                    エンジニアに依頼して待つ必要がありません。
+                                </p>
+                                <div class="bg-cyan-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">
+                                        データ分析 → 仮説検証 → 意思決定のサイクルを高速化
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="border-l-4 border-blue-500 pl-6">
+                                <h3 class="text-xl font-bold text-blue-700 mb-3">4. DX・業務改善を自ら推進できる</h3>
+                                <p class="text-gray-700 leading-relaxed">
+                                    ノーコード/ローコードツール、RPA、AI活用など、
+                                    現代のビジネスではテクノロジーの活用が不可欠です。
+                                    基礎的なエンジニアリング知識があれば、<strong>自分でDXを推進</strong>できます。
+                                </p>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-green-100 to-teal-100 p-6 rounded-lg mt-6">
+                                <h4 class="font-bold text-green-800 mb-3">ビジネスパーソンが学ぶべき技術</h4>
+                                <div class="grid md:grid-cols-3 gap-4 text-sm text-gray-700">
+                                    <div>
+                                        <p class="font-semibold mb-2">初級</p>
+                                        <ul class="space-y-1">
+                                            <li>• Excel VBA</li>
+                                            <li>• SQL基礎</li>
+                                            <li>• ノーコードツール</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold mb-2">中級</p>
+                                        <ul class="space-y-1">
+                                            <li>• Python基礎</li>
+                                            <li>• データ分析</li>
+                                            <li>• API連携</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold mb-2">上級</p>
+                                        <ul class="space-y-1">
+                                            <li>• Webアプリ開発</li>
+                                            <li>• 機械学習</li>
+                                            <li>• クラウド活用</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 双方向の価値創造 -->
+        <section id="bidirectional" class="py-16 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">双方向の価値創造</h2>
+
+                    <div class="bg-gradient-to-br from-purple-50 to-blue-50 p-8 rounded-lg shadow-lg">
+                        <p class="text-gray-700 leading-relaxed mb-6 text-center text-lg">
+                            FDEモデルが示すのは、<strong>企業から顧客への一方通行ではなく、相互学習のサイクル</strong>です。
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-xl font-bold text-purple-700 mb-4">顧客 → エンジニア</h3>
+                                <p class="text-gray-700 text-sm leading-relaxed mb-3">
+                                    顧客の現場から学んだドメイン知識や業務フローの理解は、
+                                    エンジニアの成長とプロダクト改善に直結します。
+                                </p>
+                                <div class="bg-purple-50 p-3 rounded">
+                                    <p class="text-xs text-gray-600">
+                                        「こんな使い方があるのか」という発見が、
+                                        次のバージョンの機能につながる
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-xl font-bold text-blue-700 mb-4">エンジニア → 顧客</h3>
+                                <p class="text-gray-700 text-sm leading-relaxed mb-3">
+                                    エンジニアが持つ最新技術やベストプラクティスの知識が、
+                                    顧客のビジネス改善や競争力向上に貢献します。
+                                </p>
+                                <div class="bg-blue-50 p-3 rounded">
+                                    <p class="text-xs text-gray-600">
+                                        「こんな技術があるのか」という気づきが、
+                                        新しいビジネスチャンスを生む
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-lg text-center">
+                            <p class="text-lg font-bold mb-2">この相互学習が</p>
+                            <p class="text-2xl font-bold">技術的正しさとビジネス価値の両立を実現する</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 実践への第一歩 -->
+        <section id="first-step" class="py-16 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">実践への第一歩</h2>
+
+                    <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-lg shadow-lg">
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-xl font-bold text-purple-700 mb-4">エンジニアの方へ</h3>
+                                <ul class="space-y-3 text-gray-700">
+                                    <li class="flex items-start">
+                                        <span class="text-purple-600 mr-2">1.</span>
+                                        <span>ユーザーインタビューに積極的に参加する</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-purple-600 mr-2">2.</span>
+                                        <span>ビジネス書を1ヶ月に1冊読む</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-purple-600 mr-2">3.</span>
+                                        <span>顧客の業界や市場について調べる</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-purple-600 mr-2">4.</span>
+                                        <span>機能追加の際に「なぜ必要か」を深掘りする</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="text-xl font-bold text-green-700 mb-4">ビジネスパーソンの方へ</h3>
+                                <ul class="space-y-3 text-gray-700">
+                                    <li class="flex items-start">
+                                        <span class="text-green-600 mr-2">1.</span>
+                                        <span>Excel VBAやPythonで小さな自動化から始める</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-green-600 mr-2">2.</span>
+                                        <span>SQLを学んでデータベースから直接データを取得</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-green-600 mr-2">3.</span>
+                                        <span>ノーコードツールで簡単なアプリを作成</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-green-600 mr-2">4.</span>
+                                        <span>エンジニアと月1回ランチして技術トレンドを聞く</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-purple-600 to-green-600 text-white p-6 rounded-lg text-center">
+                            <p class="text-xl font-bold mb-2">重要なのは、完璧を目指すことではありません</p>
+                            <p class="text-lg">小さく始めて、継続的に学び続けることです</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 参考リンク -->
+        <section id="references" class="py-16 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">参考リンク</h2>
+
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-blue-500 pl-4">
+                                <h4 class="font-bold text-gray-800 mb-2">Forward Deployed Engineer について詳しく</h4>
+                                <a href="https://enhanced.co.jp/hack/forward-deployed-engineer-silicon-valley-trend/"
+                                   target="_blank"
+                                   class="text-blue-600 hover:underline">
+                                    シリコンバレーの最新トレンド「Forward Deployed Engineer」とは？
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- フッター -->
+        <footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-12 mt-16">
+            <div class="container mx-auto px-4">
+                <div class="text-center">
+                    <p class="text-gray-300 text-sm">
+                        &copy; <span id="currentYear"></span> アジャイル ビジネス インスティテュート株式会社
+                    </p>
+                </div>
+            </div>
+        </footer>
+
+        <script>
+            // 現在の年を自動挿入
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        </script>
+    </div>
+
+    <script>
+        // サイドバーの開閉
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const menuBtn = document.getElementById('menuBtn');
+        const closeSidebar = document.getElementById('closeSidebar');
+
+        // サイドバーを開く
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('hidden');
+        });
+
+        // サイドバーを閉じる
+        const closeSidebarFunc = () => {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+        };
+
+        closeSidebar.addEventListener('click', closeSidebarFunc);
+        sidebarOverlay.addEventListener('click', closeSidebarFunc);
+    </script>
+    <script src="code-copy.js"></script>
+    <script src="nav-highlight.js"></script>
+    <script src="scroll-to-top.js"></script>
+</body>
+
+</html>

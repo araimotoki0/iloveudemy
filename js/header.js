@@ -50,12 +50,12 @@ function initHeader(courseConfig) {
     <!-- ナビゲーションタブ -->
     <nav class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-700/50 shadow-lg">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex gap-2 py-3 overflow-x-auto scrollbar-hide">
+            <div class="flex flex-wrap gap-2 py-3">
                 ${courseConfig.pages.map(page => {
                     const isActive = currentFile === page.file;
                     return `
                     <a href="${page.file}"
-                       class="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                       class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                            isActive
                            ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50'
                            : 'bg-slate-800/50 text-gray-300 hover:bg-slate-700 hover:text-white'
