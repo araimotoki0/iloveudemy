@@ -3,7 +3,7 @@ function initFooter() {
     // 現在のパスを取得してindex.htmlかどうかを判定
     const currentPath = window.location.pathname;
     const isIndexPage = currentPath.endsWith('index.html') || currentPath.endsWith('/');
-    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/');
+    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/');
     const isRootIndex = isIndexPage && !isInSubfolder;
 
     let footerHTML = '';

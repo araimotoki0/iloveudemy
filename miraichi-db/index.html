@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データベース＆バックエンド超入門 - MIRAICHI特別講座</title>
+    <meta name="description" content="HTML/JSだけでは限界がある理由、データベースの必要性、フレームワークとORMの重要性を学ぶ">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗄️</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f7ff',
+                            100: '#e0eeff',
+                            200: '#c0ddff',
+                            300: '#8cc3ff',
+                            400: '#5aa3ff',
+                            500: '#3183ff',
+                            600: '#1a6cf5',
+                            700: '#1455e0',
+                            800: '#1747b5',
+                            900: '#193d8f',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+        }
+
+        /* セクションスタイル */
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #3183ff;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content-section h4 {
+            color: #8b5cf6;
+            margin: 20px 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .content-section p {
+            margin: 12px 0;
+            line-height: 1.8;
+            color: #d1d5db;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 12px 0;
+            padding-left: 24px;
+            color: #d1d5db;
+        }
+
+        .content-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .content-section strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+
+        .code-block code {
+            color: #d4d4d4;
+        }
+
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+
+        .success-box {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 4px solid #22c55e;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans">
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <h1
+                    class="text-3xl md:text-4xl font-black mb-8 text-center bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
+                    データベース＆バックエンド超入門
+                </h1>
+
+                <!-- コンテンツ -->
+                <div class="glass rounded-3xl p-8">
+                    <!-- セミナー情報 -->
+                    <div class="glass-dark p-6 rounded-xl mb-8 border-l-4 border-primary-500">
+                        <p class="text-lg mb-3">
+                            📅 <strong>開催日時：2025年11月24日</strong>
+                        </p>
+                        <p class="text-gray-400 text-sm leading-relaxed">
+                            💡 HTML/JSだけでは保存できない！データベースの必要性とフレームワークの重要性を理解する
+                        </p>
+                    </div>
+
+                    <!-- HTML/JSの限界 -->
+                    <div class="content-section">
+                        <h3>HTML/JavaScriptだけでは限界がある</h3>
+
+                        <p>
+                            まずは実際に動くタスク管理アプリを触ってみてください。
+                        </p>
+
+                        <div class="info-box">
+                            <p class="text-primary-300 font-bold mb-2">デモアプリを試してみよう</p>
+                            <p class="text-sm">
+                                <a href="task-app.html" target="_blank" class="text-primary-400 hover:text-primary-300 underline">
+                                    タスク管理アプリ（HTML/JS版）を開く
+                                </a>
+                            </p>
+                            <p class="text-xs text-gray-400 mt-2">
+                                ※ タスクを追加した後、ページをリロードしてみてください
+                            </p>
+                        </div>
+
+                        <h4>何が起きましたか？</h4>
+                        <p>
+                            タスクを追加しても、<strong>ページをリロードすると全て消えてしまいます</strong>。
+                            これがHTML/JavaScriptだけで作ったアプリの限界です。
+                        </p>
+
+                        <div class="warning-box">
+                            <p class="text-red-300 font-bold mb-2">HTML/JSだけの問題点</p>
+                            <ul class="text-sm space-y-1">
+                                <li>・リロードすると全データが消える</li>
+                                <li>・他のデバイスやブラウザでデータを共有できない</li>
+                                <li>・画像をサーバーに保存できない</li>
+                                <li>・ユーザー認証ができない（誰でもアクセスできてしまう）</li>
+                                <li>・複数ユーザーで同時に使えない</li>
+                            </ul>
+                        </div>
+
+                        <h4>なぜデータが消えるのか？</h4>
+                        <p>
+                            JavaScriptの変数はブラウザの<strong>メモリ上</strong>にしか存在しません。
+                            ページをリロードするとメモリはクリアされ、変数も全て消えます。
+                        </p>
+
+                        <div class="code-block">
+                            <code>
+// これはメモリ上にしか存在しない<br>
+let tasks = [];<br>
+<br>
+// タスクを追加してもメモリ上だけ<br>
+tasks.push({ title: "買い物" });<br>
+<br>
+// リロード → tasks = [] に戻る！
+                            </code>
+                        </div>
+                    </div>
+
+                    <!-- データベースの必要性 -->
+                    <div class="content-section">
+                        <h3>データベースがなぜ必要か</h3>
+
+                        <p>
+                            データを<strong>永続的に保存</strong>するには、サーバー側にデータベースが必要です。
+                        </p>
+
+                        <div class="success-box">
+                            <p class="text-green-300 font-bold mb-2">データベースがあると</p>
+                            <ul class="text-sm space-y-1">
+                                <li>・リロードしてもデータが消えない</li>
+                                <li>・別のデバイスからも同じデータにアクセスできる</li>
+                                <li>・画像などのファイルをサーバーに保存できる</li>
+                                <li>・ユーザーごとにデータを管理できる</li>
+                                <li>・複数ユーザーが同時に使える</li>
+                            </ul>
+                        </div>
+
+                        <h4>Webアプリの基本構造</h4>
+                        <div class="code-block">
+                            <code>
+[ブラウザ] ←→ [サーバー（バックエンド）] ←→ [データベース]<br>
+<br>
+HTML/JS        PHP, Ruby, Python等        MySQL, PostgreSQL等
+                            </code>
+                        </div>
+
+                        <p>
+                            ブラウザ（フロントエンド）だけでは完結できません。
+                            <strong>サーバー（バックエンド）とデータベース</strong>が必要です。
+                        </p>
+                    </div>
+
+                    <!-- フレームワークとORM -->
+                    <div class="content-section">
+                        <h3>フレームワークとORMの重要性</h3>
+
+                        <p>
+                            バックエンド開発では、プログラミング言語だけでなく<strong>フレームワーク</strong>を使うのが当たり前です。
+                        </p>
+
+                        <h4>主要なフレームワーク</h4>
+                        <div class="glass-dark p-5 rounded-xl mb-4">
+                            <ul class="space-y-3 text-sm">
+                                <li>
+                                    <strong class="text-red-400">Ruby on Rails</strong>（Ruby）
+                                    <span class="text-gray-400">- GitHubやShopifyで使用</span>
+                                </li>
+                                <li>
+                                    <strong class="text-green-400">Django</strong>（Python）
+                                    <span class="text-gray-400">- InstagramやSpotifyで使用</span>
+                                </li>
+                                <li>
+                                    <strong class="text-red-500">Laravel</strong>（PHP）
+                                    <span class="text-gray-400">- 日本で人気、9to5Macで使用</span>
+                                </li>
+                                <li>
+                                    <strong class="text-orange-400">Spring Boot</strong>（Java）
+                                    <span class="text-gray-400">- 大企業の基幹システムで使用</span>
+                                </li>
+                                <li>
+                                    <strong class="text-green-500">Express / NestJS</strong>（Node.js）
+                                    <span class="text-gray-400">- Netflix、LinkedInで使用</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h4>ORM（Object-Relational Mapping）とは</h4>
+                        <p>
+                            ORMは、データベースをオブジェクトとして扱えるようにする仕組みです。
+                            SQLを直接書かなくても、プログラミング言語の記法でデータベース操作ができます。
+                        </p>
+
+                        <div class="code-block">
+                            <code>
+// ORMを使わない場合（生SQL）<br>
+$sql = "SELECT * FROM tasks WHERE user_id = " . $userId;<br>
+// ↑ SQLインジェクションの危険！<br>
+<br>
+// ORMを使う場合（Laravel/Eloquent）<br>
+$tasks = Task::where('user_id', $userId)->get();<br>
+// ↑ 安全で読みやすい
+                            </code>
+                        </div>
+
+                        <h4>各フレームワークのORM</h4>
+                        <div class="glass-dark p-5 rounded-xl mb-4">
+                            <ul class="space-y-2 text-sm">
+                                <li><strong class="text-red-400">Rails</strong> → ActiveRecord</li>
+                                <li><strong class="text-green-400">Django</strong> → Django ORM</li>
+                                <li><strong class="text-red-500">Laravel</strong> → Eloquent</li>
+                                <li><strong class="text-orange-400">Spring</strong> → JPA / Hibernate</li>
+                                <li><strong class="text-green-500">Node.js</strong> → Prisma / TypeORM / Sequelize</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- SQLとは -->
+                    <div class="content-section">
+                        <h3>SQLとは何か</h3>
+
+                        <p>
+                            <strong>SQL（Structured Query Language）</strong>は、データベースを操作するための言語です。
+                            データの取得、追加、更新、削除などを行うことができます。
+                        </p>
+
+                        <p>
+                            ORMを使えばSQLを直接書かなくても良いですが、
+                            <strong>SQLの基本を理解しておくことは非常に重要</strong>です。
+                            デバッグやパフォーマンス改善の際に必ず役立ちます。
+                        </p>
+
+                        <h4>SQLの基本例（tasksテーブル）</h4>
+                        <p>
+                            以下は、タスク管理アプリのtasksテーブルに対するSQL文の例です。
+                        </p>
+
+                        <div class="code-block">
+                            <code>
+-- 全てのタスクを取得<br>
+SELECT * FROM tasks;<br>
+<br>
+-- 特定のユーザーのタスクを取得<br>
+SELECT * FROM tasks WHERE user_id = 1;<br>
+<br>
+-- 未完了のタスクのみ取得<br>
+SELECT * FROM tasks WHERE status = 'pending';<br>
+<br>
+-- タイトルと期限だけを取得<br>
+SELECT title, due_date FROM tasks;<br>
+<br>
+-- 優先度が高いタスクを期限順に取得<br>
+SELECT * FROM tasks WHERE priority = 'high' ORDER BY due_date ASC;<br>
+<br>
+-- タスクの件数をカウント<br>
+SELECT COUNT(*) FROM tasks;<br>
+<br>
+-- 新しいタスクを追加<br>
+INSERT INTO tasks (user_id, title, status, priority) VALUES (1, '買い物', 'pending', 'medium');<br>
+<br>
+-- タスクのステータスを更新<br>
+UPDATE tasks SET status = 'completed' WHERE id = 1;<br>
+<br>
+-- タスクを削除<br>
+DELETE FROM tasks WHERE id = 1;<br>
+<br>
+-- タイトルに「会議」を含むタスクを検索<br>
+SELECT * FROM tasks WHERE title LIKE '%会議%';
+                            </code>
+                        </div>
+
+                        <div class="info-box">
+                            <p class="text-primary-300 font-bold mb-2">SQLの4つの基本操作（CRUD）</p>
+                            <ul class="text-sm space-y-1">
+                                <li>・<strong>C</strong>reate（作成）: INSERT文</li>
+                                <li>・<strong>R</strong>ead（読取）: SELECT文</li>
+                                <li>・<strong>U</strong>pdate（更新）: UPDATE文</li>
+                                <li>・<strong>D</strong>elete（削除）: DELETE文</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- SQLインジェクションデモ -->
+                    <div class="content-section">
+                        <h3>実際にSQLインジェクションを体験してみよう</h3>
+
+                        <p>
+                            「SQLインジェクション」と聞いてもピンとこないかもしれません。
+                            実際に脆弱なコードがどれだけ危険か、デモで体験してみましょう。
+                        </p>
+
+                        <div class="warning-box">
+                            <p class="text-red-300 font-bold mb-2">SQLインジェクション攻撃デモ</p>
+                            <p class="text-sm text-gray-300 mb-3">
+                                Laravelのタスク管理アプリに、わざと脆弱なページを用意しました。
+                                検索ボックスに攻撃コードを入力すると、<strong>他のユーザーのタスクが全て見えてしまいます</strong>。
+                            </p>
+                            <p class="text-sm mb-3">
+                                <strong class="text-yellow-300">攻撃例:</strong> <code class="bg-red-900 px-2 py-1 rounded">' OR 1=1 #</code>
+                            </p>
+                            <p class="text-xs text-gray-400">
+                                ※ ログインが必要です。デモ環境でお試しください。
+                            </p>
+                        </div>
+
+                        <p>
+                            このように、ユーザーの入力をそのままSQLに埋め込むと、
+                            <strong>攻撃者がSQLの構造を書き換えてしまう</strong>ことができます。
+                        </p>
+                    </div>
+
+                    <!-- フレームワークを使わないリスク -->
+                    <div class="content-section">
+                        <h3>フレームワーク・ORMを使わないとどうなるか</h3>
+
+                        <div class="warning-box">
+                            <p class="text-red-300 font-bold mb-3">自分で全部書くリスク</p>
+
+                            <h5 class="text-white font-bold mb-2">1. SQLインジェクション</h5>
+                            <div class="code-block mb-3">
+                                <code>
+// 危険なコード<br>
+$name = $_POST['name'];<br>
+$sql = "SELECT * FROM users WHERE name = '$name'";<br>
+<br>
+// 攻撃者が入力: ' OR '1'='1<br>
+// 結果: 全ユーザーのデータが漏洩！
+                                </code>
+                            </div>
+
+                            <h5 class="text-white font-bold mb-2">2. XSS（クロスサイトスクリプティング）</h5>
+                            <p class="text-sm text-gray-300 mb-3">
+                                ユーザー入力をそのまま表示すると、悪意あるスクリプトが実行される
+                            </p>
+
+                            <h5 class="text-white font-bold mb-2">3. CSRF（クロスサイトリクエストフォージェリ）</h5>
+                            <p class="text-sm text-gray-300 mb-3">
+                                ユーザーになりすまして不正なリクエストを送信される
+                            </p>
+
+                            <h5 class="text-white font-bold mb-2">4. 認証・認可の実装ミス</h5>
+                            <p class="text-sm text-gray-300">
+                                パスワードの平文保存、セッション管理の不備など
+                            </p>
+                        </div>
+
+                        <div class="success-box">
+                            <p class="text-green-300 font-bold mb-2">フレームワークが守ってくれること</p>
+                            <ul class="text-sm space-y-1">
+                                <li>・SQLインジェクション対策（プリペアドステートメント）</li>
+                                <li>・XSS対策（自動エスケープ）</li>
+                                <li>・CSRF対策（トークン検証）</li>
+                                <li>・パスワードのハッシュ化</li>
+                                <li>・セッション管理</li>
+                                <li>・入力バリデーション</li>
+                            </ul>
+                        </div>
+
+                        <p>
+                            これらを<strong>全部自分で正しく実装するのは非常に困難</strong>です。
+                            セキュリティの専門家でも見落としがあるレベルの複雑さです。
+                        </p>
+                    </div>
+
+                    <!-- なぜフレームワークを使うのか -->
+                    <div class="content-section">
+                        <h3>だからフレームワークを使う</h3>
+
+                        <p>
+                            フレームワークは、<strong>先人たちが何十年もかけて改良してきた</strong>ベストプラクティスの集大成です。
+                        </p>
+
+                        <div class="info-box">
+                            <p class="text-primary-300 font-bold mb-2">フレームワークを使うメリット</p>
+                            <ul class="text-sm space-y-1">
+                                <li>・<strong>セキュリティ</strong>: 主要な攻撃手法への対策が組み込まれている</li>
+                                <li>・<strong>生産性</strong>: 車輪の再発明をしなくて済む</li>
+                                <li>・<strong>保守性</strong>: 構造が決まっていて、他の人も理解しやすい</li>
+                                <li>・<strong>エコシステム</strong>: ライブラリやプラグインが豊富</li>
+                                <li>・<strong>コミュニティ</strong>: 問題があっても情報が見つかりやすい</li>
+                            </ul>
+                        </div>
+
+                        <h4>プログラミング言語だけでは不十分</h4>
+                        <p>
+                            「PHPが書ける」「Pythonが書ける」だけでは実務では足りません。
+                            <strong>フレームワークを使いこなせること</strong>が求められます。
+                        </p>
+
+                        <div class="glass-dark p-5 rounded-xl">
+                            <p class="text-sm text-gray-300">
+                                例えば求人で「PHP経験者募集」と書いてあっても、
+                                実際には「Laravel経験者募集」という意味であることがほとんどです。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+
+                        <div class="glass-dark p-6 rounded-xl border-l-4 border-yellow-500">
+                            <ol class="space-y-3">
+                                <li>
+                                    <strong class="text-yellow-300">1. HTML/JSだけでは保存できない</strong>
+                                    <p class="text-sm text-gray-300 mt-1">
+                                        データを永続化するにはサーバーとデータベースが必要
+                                    </p>
+                                </li>
+                                <li>
+                                    <strong class="text-yellow-300">2. バックエンド開発にはフレームワークが必須</strong>
+                                    <p class="text-sm text-gray-300 mt-1">
+                                        Laravel, Rails, Django, Spring など言語ごとにデファクトスタンダードがある
+                                    </p>
+                                </li>
+                                <li>
+                                    <strong class="text-yellow-300">3. ORMでデータベース操作を安全に</strong>
+                                    <p class="text-sm text-gray-300 mt-1">
+                                        SQLインジェクションなどのセキュリティリスクを防ぐ
+                                    </p>
+                                </li>
+                                <li>
+                                    <strong class="text-yellow-300">4. 自分で全部書くのは危険</strong>
+                                    <p class="text-sm text-gray-300 mt-1">
+                                        セキュリティ対策を全て自分で実装するのは困難、先人の知恵を借りる
+                                    </p>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // スクロールアニメーション
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+
+            // 上に戻るボタンの表示/非表示
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        // 上に戻るボタンのクリックイベント
+        document.getElementById('scroll-to-top').addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+
+    <!-- サイドバーコンポーネント -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>

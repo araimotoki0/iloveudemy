@@ -2,7 +2,7 @@
 function initSidebar() {
     // 現在のパスから相対パスを計算
     const currentPath = window.location.pathname;
-    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/backend/');
+    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/');
     const rootPath = isInSubfolder ? '../' : './';
 
     // サイドバーHTML
@@ -77,8 +77,8 @@ function initSidebar() {
                         <span class="text-xs text-gray-400 mt-0.5">2025年11月15日</span>
                     </div>
                 </a>
-                <a href="${rootPath}backend/index.html"
-                    class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/backend/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
+                <a href="${rootPath}miraichi-db/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/miraichi-db/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
                     <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
