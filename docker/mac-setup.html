@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mac環境構築 - Docker入門講座</title>
+    <meta name="description" content="MacでDockerを使うための環境構築 - Docker Desktopのインストール方法">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        .step-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: #22d3ee;
+            color: #0f172a;
+            border-radius: 50%;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- イントロダクション -->
+                    <div class="content-section">
+                        <h3>🍎 Mac環境でDockerを使う</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                MacでDockerを使うには、<strong>Docker Desktop for Mac</strong>のインストールが必要です。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>📋 インストールするもの</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>Docker Desktop</strong> - Dockerをグラフィカルに管理できるツール</li>
+                                </ul>
+                                <p style="margin-top: 12px; font-size: 14px;">
+                                    MacではWindowsのようにWSL2は不要で、Docker Desktopだけでシンプルに使えます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Docker Desktopのインストール -->
+                    <div class="content-section">
+                        <h3>🐳 Docker Desktop for Mac のインストール</h3>
+                        <div class="collapsible-content">
+                            <h4>📥 ダウンロード</h4>
+                            <div class="info-box">
+                                <p class="mb-2"><strong>公式サイト</strong></p>
+                                <a href="https://www.docker.com/products/docker-desktop/" target="_blank"
+                                   style="color: #22d3ee; text-decoration: underline;">
+                                    https://www.docker.com/products/docker-desktop/
+                                </a>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ Mac チップ別選択</h4>
+                                <p class="mb-3">ダウンロードする前に、お使いのMacのチップを確認してください：</p>
+                                <ul class="space-y-2">
+                                    <li><strong>Apple Silicon（M1/M2/M3/M4/M5など）:</strong> 「Apple Chip」版を選択</li>
+                                    <li><strong>Intel Mac:</strong> 「Intel Chip」版を選択</li>
+                                </ul>
+                                <p style="margin-top: 12px; font-size: 14px; color: #94a3b8;">
+                                    💡 確認方法：画面左上のAppleメニュー → 「このMacについて」→ プロセッサの項目を確認
+                                </p>
+                            </div>
+
+                            <h4>📝 インストール手順</h4>
+
+                            <div class="step-box">
+                                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                    <span class="step-number">1</span>
+                                    <strong style="font-size: 18px;">お使いのMacに合ったバージョンをダウンロード</strong>
+                                </div>
+                                <p style="margin-left: 44px; color: #94a3b8;">
+                                    .dmgファイルがダウンロードされます
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                    <span class="step-number">2</span>
+                                    <strong style="font-size: 18px;">.dmgファイルを開く</strong>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                    <span class="step-number">3</span>
+                                    <strong style="font-size: 18px;">Docker.appをアプリケーションフォルダにドラッグ</strong>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                    <span class="step-number">4</span>
+                                    <strong style="font-size: 18px;">アプリケーションフォルダからDocker Desktopを起動</strong>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                    <span class="step-number">5</span>
+                                    <strong style="font-size: 18px;">利用規約に同意</strong>
+                                </div>
+                                <p style="margin-left: 44px; color: #94a3b8;">
+                                    初回起動時に表示されます
+                                </p>
+                            </div>
+
+                            <h4>✅ 確認方法</h4>
+                            <p class="mb-3">ターミナル（Terminal.app）で以下のコマンドを実行:</p>
+                            <div class="command-box">
+                                <div class="command">docker --version</div>
+                                <div class="command" style="margin-top: 8px;">docker compose version</div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎉 インストール成功</h4>
+                                <p>
+                                    バージョン情報が表示されれば、Docker Desktopのインストール成功です！
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 補足</h4>
+                                <p>
+                                    Docker Desktopが起動していないとコマンドが使えません。メニューバーにDockerアイコンが表示されていることを確認してください。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- よくあるトラブル -->
+                    <div class="content-section">
+                        <h3>🔧 よくあるトラブルと対処法</h3>
+                        <div class="collapsible-content">
+                            <div class="warning-box">
+                                <h4>❌ トラブル1: Docker未起動</h4>
+                                <p class="mb-2"><strong>エラー:</strong> "Cannot connect to the Docker daemon"</p>
+                                <p><strong>解決策:</strong> アプリケーションフォルダからDocker Desktopを起動します。メニューバーにDockerアイコンが表示されていることを確認してください。</p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>❌ トラブル2: 間違ったチップ版をダウンロード</h4>
+                                <p class="mb-2"><strong>症状:</strong> インストールできない、または動作が遅い</p>
+                                <p><strong>解決策:</strong> お使いのMacのチップに合ったバージョンを再ダウンロードしてください。Apple SiliconとIntel版は互換性がありません。</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📝 まとめと次のステップ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>🎉 このセクションで学んだこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>Docker Desktop for Macをインストールする</li>
+                                    <li>Macのチップタイプによってダウンロードするバージョンが異なる</li>
+                                    <li>インストールの確認方法とよくあるトラブルの対処法</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のセクションへ</h4>
+                                <p>
+                                    環境構築が完了したら、実際にDockerを使ってコンテナを起動してみましょう！
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>💪 確認チェック</h4>
+                                <p class="mb-2">次に進む前に、以下ができるか確認してみましょう：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1">
+                                    <li><code>docker --version</code>でDockerのバージョンが表示される</li>
+                                    <li><code>docker compose version</code>でDocker Composeのバージョンが表示される</li>
+                                    <li>Docker Desktopがメニューバーで起動している</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+
+</body>
+
+</html>

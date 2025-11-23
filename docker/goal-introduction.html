@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゴールを紹介 - Docker入門講座</title>
+    <meta name="description" content="Docker講座の最終ゴールと学習ロードマップ - docker compose up -dで完全なWebアプリケーション環境を構築">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        .step-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .step {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(6, 182, 212, 0.05));
+            border: 1px solid #22d3ee;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .step h4 {
+            color: #22d3ee;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .step ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .step ul li {
+            padding-left: 20px;
+            position: relative;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .step ul li:before {
+            content: "•";
+            color: #22d3ee;
+            position: absolute;
+            left: 0;
+        }
+
+        .code-example {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 8px;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .code-example h4 {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .step-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- 前回の振り返り -->
+                    <div class="content-section">
+                        <h3>📌 前回の振り返り</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                前回のセクションで、Dockerの真の価値は「<strong>環境をコードで管理できる</strong>」ことだと学びました。
+                            </p>
+                            <p>
+                                その通りです！今回は、この講座の最終的なゴールと、そこに至るまでの道のりを明確にしていきましょう。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- この講座のゴール -->
+                    <div class="content-section">
+                        <h3>🚀 この講座のゴール</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>🎯 最終的に達成すること</h4>
+                                <p style="font-size: 18px; margin-bottom: 16px;">
+                                    たった1つのコマンドで完全な環境を構築：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker compose up -d</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 docker composeの何が便利なのか？</h4>
+                                <p><code>docker run</code>で必要だった複雑なオプションを、すべてファイルに記述できます：</p>
+
+                                <div class="code-example">
+                                    <h4>従来の方法（docker run）</h4>
+                                    <div class="command-box">
+                                        <div class="command"># ネットワークを作成</div>
+                                        <div class="command">docker network create myapp-network</div>
+                                        <div class="command" style="margin-top: 8px;"># 各コンテナを起動</div>
+                                        <div class="command">docker run -d -p 80:80 -v $(pwd):/app --name web --network myapp-network nginx</div>
+                                        <div class="command">docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=secret --name db --network myapp-network postgres</div>
+                                        <div class="command">docker run -d -p 3000:3000 --name app --network myapp-network myapp</div>
+                                    </div>
+                                    <p style="margin-top: 8px; font-size: 14px; color: #94a3b8;">
+                                        😓 4つもコマンドが必要、オプションが長い、覚えられない、ファイルに残らない...
+                                    </p>
+                                </div>
+
+                                <div class="code-example">
+                                    <h4>docker composeを使った方法</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker compose up -d</div>
+                                    </div>
+                                    <p style="margin-top: 8px; font-size: 14px; color: #22d3ee;">
+                                        ✨ シンプルなコマンド、設定はdocker-compose.ymlに記述、すべてファイルで管理！
+                                    </p>
+                                </div>
+
+                                <p style="margin-top: 16px;">
+                                    <code>-p</code>（ポート）、<code>-v</code>（ボリューム）、<code>-e</code>（環境変数）などのオプションは、
+                                    すべて<strong>docker-compose.yml</strong>に書けるので、コマンドがシンプルになり、設定がファイルとして残ります。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- docker composeとは -->
+                    <div class="content-section">
+                        <h3>🤔 docker composeとは？</h3>
+                        <div class="collapsible-content">
+                            <div class="info-box">
+                                <h4>📦 Dockerに含まれる機能の1つ</h4>
+                                <p>
+                                    <code>docker compose</code>は別のソフトではなく、<strong>Dockerに最初から入っている機能</strong>です。
+                                </p>
+                                <div style="margin-top: 16px; padding: 16px; background: rgba(15, 23, 42, 0.8); border-radius: 8px; border: 1px solid rgba(100, 116, 139, 0.3);">
+                                    <p style="margin-bottom: 12px; font-weight: 600;">違いは「何個のコンテナを扱うか」だけ：</p>
+                                    <ul style="list-style: none; padding-left: 0;">
+                                        <li style="padding: 8px 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
+                                            <code style="color: #22d3ee;">docker run</code> → <strong>1個のコンテナ</strong>を起動
+                                        </li>
+                                        <li style="padding: 8px 0;">
+                                            <code style="color: #22d3ee;">docker compose</code> → <strong>複数のコンテナ</strong>をまとめて起動
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- なぜ基礎を学ぶのか -->
+                    <div class="content-section">
+                        <h3>📚 なぜイメージやコンテナを学ぶのか</h3>
+                        <div class="collapsible-content">
+                            <div class="info-box">
+                                <h4>💡 docker composeは複数のコンテナをまとめて起動するだけ</h4>
+                                <p>
+                                    結局、<strong>1個1個のコンテナがどう動くか（docker runの仕組み）を理解していないと使いこなせません</strong>。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    だから、イメージやコンテナの基礎を学ぶ必要があるのです。
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 基礎を理解していないと...</h4>
+                                <ul style="margin-top: 8px;">
+                                    <li>エラーが出たときに対処できない</li>
+                                    <li>カスタマイズができない</li>
+                                    <li>仕組みがわからないまま使うことになる</li>
+                                </ul>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>✅ 学習の心構え</h4>
+                                <p style="font-size: 16px; font-weight: 600; color: #22d3ee; margin-bottom: 12px;">
+                                    「理解第一、暗記は不要」
+                                </p>
+                                <ul>
+                                    <li><strong>コマンドは覚えなくていい</strong> - 忘れたら調べればOK</li>
+                                    <li><strong>イメージ・コンテナの概念を理解する</strong> - docker composeの仕組みが見える</li>
+                                    <li><strong>最終的にdocker composeを使いこなす</strong> - 基礎があるから応用が利く</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+
+</body>
+
+</html>

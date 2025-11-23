@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows環境構築 - Docker入門講座</title>
+    <meta name="description" content="WindowsでDockerを使うための環境構築 - WSL2とDocker Desktopのインストール方法">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        .step-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: #22d3ee;
+            color: #0f172a;
+            border-radius: 50%;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- イントロダクション -->
+                    <div class="content-section">
+                        <h3>💻 Windows環境でDockerを使う</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                WindowsでDockerを使うには、<strong>WSL2（Windows Subsystem for Linux 2）</strong>と<strong>Docker
+                                    Desktop</strong>のインストールが必要です。
+                            </p>
+
+                            <div class="success-box">
+                                <h4>📚 Windows環境構築について</h4>
+                                <p class="mb-4">
+                                    こちらは <strong>【第四弾】Laravel入門：メカニズムを深く理解して応用が効く知識を身につける</strong>のWindows環境構築の内容と同様なものになります。WSLの仕組みを詳細に説明していて、全部の作業を画面共有でハンズオンしているので、好評なためこちらを掲載させていただきます。
+                                </p>
+
+                                <div
+                                    style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 8px; margin-bottom: 16px;">
+                                    <p style="font-weight: 600; margin-bottom: 12px;">📹 動画で学ぶ環境構築</p>
+                                    <ul style="list-style: none; padding-left: 0; space-y: 12px;">
+                                        <li style="margin-bottom: 12px;">
+                                            <strong style="color: #22d3ee;">1. WSL2のインストール</strong><br>
+                                            <span style="font-size: 14px; color: #94a3b8;">6:13 ~ 17:35
+                                                をご覧いただきハンズオンをしていただきインストールお願いします</span>
+                                        </li>
+                                        <li>
+                                            <strong style="color: #22d3ee;">2. Docker Desktop for Windows
+                                                のインストール</strong><br>
+                                            <span style="font-size: 14px; color: #94a3b8;">24:00 ~ 28:16
+                                                をご覧いただきハンズオンをしていただきインストールお願いします</span>
+                                        </li>
+                                    </ul>
+                                    <p style="margin-top: 16px; font-weight: 600; color: #86efac;">
+                                        ✅ この２つをインストールいただければ準備完了です
+                                    </p>
+                                </div>
+
+                                <a href="../basic/setup-windows.html" target="_blank"
+                                    style="display: inline-block; padding: 12px 24px; background: #22d3ee; color: #0f172a; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.2s;">
+                                    📖 Windows環境構築ガイド（動画で公開している画面のリンク先）
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📝 環境構築完了後</h3>
+                        <div class="collapsible-content">
+
+                            <div class="info-box">
+                                <h4>🎯 次のステップ</h4>
+                                <p>
+                                    環境構築が完了したら、次のセクションに進んで実際にDockerを使ってみましょう！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+
+</body>
+
+</html>

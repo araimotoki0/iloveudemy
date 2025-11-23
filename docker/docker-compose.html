@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Compose - Docker入門講座</title>
+    <meta name="description" content="複数コンテナの管理とDocker Composeの使い方を学ぶ">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: { 400: '#22d3ee', 500: '#06b6d4' } },
+                    fontFamily: { sans: ['Noto Sans JP', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); background-attachment: fixed; }
+        .yaml-code .key { color: #22d3ee; font-weight: 600; }
+        .yaml-code .value { color: #86efac; }
+        .yaml-code .comment { color: #94a3b8; font-style: italic; }
+        .yaml-code .string { color: #fbbf24; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+<div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- Docker Composeとは -->
+                    <div class="content-section">
+                        <h3>🎼 Docker Composeとは</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-4">Docker Composeは、複数のコンテナを定義・管理するためのツールです。</p>
+
+                            <h4>なぜDocker Composeが必要か</h4>
+                            <p class="mb-4">これまで学んだ<code>docker run</code>コマンドでも複数コンテナを起動できますが、実際のアプリケーションでは多くの問題があります：</p>
+
+                            <div class="info-box">
+                                <h5 class="font-bold mb-2">❌ docker runの課題</h5>
+                                <ul class="list-disc list-inside space-y-2">
+                                    <li>コマンドが長く複雑になる（ポート、ボリューム、環境変数など）</li>
+                                    <li>複数コンテナの起動順序を手動で管理</li>
+                                    <li>チームメンバーに環境を共有しづらい</li>
+                                    <li>コンテナ間のネットワーク設定が煩雑</li>
+                                    <li>毎回同じ長いコマンドを打つ必要がある</li>
+                                </ul>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <h5 class="font-bold mb-2">✅ Docker Composeで解決</h5>
+                                <ul class="list-disc list-inside space-y-2">
+                                    <li><code>docker-compose.yml</code> に設定を記述</li>
+                                    <li><code>docker compose up</code> 一つで全コンテナ起動</li>
+                                    <li>YAMLファイルをGitで共有すれば、誰でも同じ環境を再現</li>
+                                    <li>サービス間の依存関係を自動管理</li>
+                                    <li>ネットワークとボリュームも自動作成</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="mt-6">Docker Composeの仕組み</h4>
+                            <p class="mb-4">Docker Composeは、YAMLファイルに記述された設定をもとに、複数のDockerコンテナを一括管理します。</p>
+
+                            <div class="command-box">
+<span class="text-gray-400"># 従来の方法（docker run）</span>
+docker network create myapp-network
+docker run -d --name db --network myapp-network -e MYSQL_ROOT_PASSWORD=secret mysql:8.0
+docker run -d --name web --network myapp-network -p 80:80 nginx
+
+<span class="text-gray-400"># Docker Composeの方法</span>
+docker compose up -d
+<span class="text-gray-400"># ↑ たったこれだけ！</span></div>
+                        </div>
+                    </div>
+
+                    <!-- YAMLの基礎 -->
+                    <div class="content-section">
+                        <h3>📄 YAMLの基礎</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">Docker Composeの設定ファイルは<strong>YAML</strong>（ヤムル）形式で記述します。YAMLは人間が読み書きしやすい設定ファイル形式です。</p>
+
+                            <h4>YAMLの基本ルール</h4>
+
+                            <div class="yaml-code">
+<span class="comment"># コメントは # で始まる</span>
+
+<span class="comment"># キーと値はコロン(:)で区切る</span>
+<span class="key">name:</span> <span class="value">myapp</span>
+
+<span class="comment"># リストはハイフン(-)で表現</span>
+<span class="key">fruits:</span>
+  - <span class="value">apple</span>
+  - <span class="value">banana</span>
+  - <span class="value">orange</span>
+
+<span class="comment"># 階層構造はインデント（スペース2つ）で表現</span>
+<span class="key">database:</span>
+  <span class="key">host:</span> <span class="value">localhost</span>
+  <span class="key">port:</span> <span class="value">3306</span>
+  <span class="key">name:</span> <span class="value">mydb</span>
+
+<span class="comment"># 文字列は引用符なしでもOK（特殊文字がある場合は必要）</span>
+<span class="key">message:</span> <span class="value">Hello World</span>
+<span class="key">path:</span> <span class="string">"/usr/local/bin"</span></div>
+
+                            <div class="warning-box mt-4">
+                                <p><strong>⚠️ YAML の注意点</strong></p>
+                                <ul class="list-disc list-inside space-y-1 mt-2">
+                                    <li><strong>タブ文字は使えません</strong> - 必ずスペースでインデント</li>
+                                    <li><strong>インデントは統一</strong> - 通常はスペース2個</li>
+                                    <li><strong>コロンの後にスペース</strong> - <code>key: value</code> が正しい</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 最もシンプルな例 -->
+                    <div class="content-section">
+                        <h3>🚀 最もシンプルな例：Nginxでwebページ表示</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">まずは、1つのコンテナだけを使った超シンプルな例から始めましょう。</p>
+
+                            <h4>Step 1: プロジェクトディレクトリを作成</h4>
+                            <div class="command-box">
+mkdir ~/docker-compose-demo
+cd ~/docker-compose-demo</div>
+
+                            <h4>Step 2: HTMLファイルを作成</h4>
+                            <p class="mb-2"><code>index.html</code>を作成します：</p>
+                            <div class="command-box">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Docker Compose Demo&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;🎉 Docker Composeで起動しました！&lt;/h1&gt;
+    &lt;p&gt;このページはDocker Composeで起動したNginxで表示されています。&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+
+                            <h4>Step 3: docker-compose.ymlを作成</h4>
+                            <p class="mb-2"><code>docker-compose.yml</code>を作成します：</p>
+                            <div class="yaml-code">
+<span class="key">version:</span> <span class="string">'3.8'</span>
+
+<span class="key">services:</span>
+  <span class="key">web:</span>
+    <span class="key">image:</span> <span class="value">nginx:alpine</span>
+    <span class="key">ports:</span>
+      - <span class="string">"8080:80"</span>
+    <span class="key">volumes:</span>
+      - <span class="value">./index.html:/usr/share/nginx/html/index.html</span></div>
+
+                            <h4>各項目の説明</h4>
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>項目</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>version</code></td>
+                                        <td>Docker Compose ファイルのバージョン（通常は '3.8'）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>services</code></td>
+                                        <td>起動するコンテナの定義</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>web</code></td>
+                                        <td>サービス名（任意の名前をつけられる）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>image</code></td>
+                                        <td>使用するDockerイメージ</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>ports</code></td>
+                                        <td>ポートマッピング（ホスト:コンテナ）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>volumes</code></td>
+                                        <td>ボリュームマウント（ホストのファイル:コンテナ内のパス）</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>Step 4: コンテナを起動</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># バックグラウンドで起動</span>
+docker compose up -d
+
+<span class="text-gray-400"># 起動確認</span>
+docker compose ps</div>
+
+                            <p class="mt-4">ブラウザで <code>http://localhost:8080</code> にアクセスして、HTMLが表示されることを確認しましょう！</p>
+
+                            <h4>Step 5: コンテナを停止</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># コンテナを停止して削除</span>
+docker compose down</div>
+
+                            <div class="success-box mt-4">
+                                <p><strong>✅ ポイント</strong></p>
+                                <p class="mt-2"><code>docker compose up</code> 一つで、イメージのダウンロード、コンテナの作成、起動がすべて完了します！</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 基本コマンド -->
+                    <div class="content-section">
+                        <h3>💻 Docker Compose の基本コマンド</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">Docker Composeでよく使うコマンドをマスターしましょう。</p>
+
+                            <h4>起動・停止系コマンド</h4>
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40%;">コマンド</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>docker compose up</code></td>
+                                        <td>コンテナを起動（フォアグラウンド）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose up -d</code></td>
+                                        <td>コンテナをバックグラウンドで起動</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose up --build</code></td>
+                                        <td>イメージを再ビルドしてから起動</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose down</code></td>
+                                        <td>コンテナを停止して削除</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose down -v</code></td>
+                                        <td>コンテナとボリュームも削除</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose stop</code></td>
+                                        <td>コンテナを停止（削除しない）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose start</code></td>
+                                        <td>停止中のコンテナを再開</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose restart</code></td>
+                                        <td>コンテナを再起動</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4 class="mt-6">確認系コマンド</h4>
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40%;">コマンド</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>docker compose ps</code></td>
+                                        <td>起動中のコンテナ一覧</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose logs</code></td>
+                                        <td>全サービスのログを表示</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose logs -f</code></td>
+                                        <td>ログをリアルタイム表示</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose logs web</code></td>
+                                        <td>特定サービスのログを表示</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose top</code></td>
+                                        <td>コンテナ内のプロセス一覧</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4 class="mt-6">操作系コマンド</h4>
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40%;">コマンド</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>docker compose exec web bash</code></td>
+                                        <td>コンテナ内でコマンド実行</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose run web ls</code></td>
+                                        <td>新しいコンテナで一度だけコマンド実行</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose build</code></td>
+                                        <td>イメージをビルド（起動しない）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>docker compose pull</code></td>
+                                        <td>イメージを最新に更新</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="info-box mt-6">
+                                <p><strong>💡 docker compose vs docker-compose</strong></p>
+                                <p class="mt-2">古いバージョンでは<code>docker-compose</code>（ハイフンあり）でしたが、現在は<code>docker compose</code>（スペース）が推奨されています。どちらも動作しますが、新しい方を使いましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- サービス、ボリューム、ネットワーク -->
+                    <div class="content-section">
+                        <h3>🔧 サービス・ボリューム・ネットワークの概念</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">Docker Composeには3つの重要な概念があります。</p>
+
+                            <h4>1. サービス（Services）</h4>
+                            <p class="mb-2">サービスは、起動するコンテナの定義です。1つのサービスは通常1つのコンテナに対応します。</p>
+
+                            <div class="yaml-code">
+<span class="key">services:</span>
+  <span class="key">web:</span>      <span class="comment"># サービス名1</span>
+    <span class="key">image:</span> <span class="value">nginx:alpine</span>
+    <span class="key">ports:</span>
+      - <span class="string">"80:80"</span>
+
+  <span class="key">db:</span>       <span class="comment"># サービス名2</span>
+    <span class="key">image:</span> <span class="value">mysql:8.0</span>
+    <span class="key">environment:</span>
+      <span class="key">MYSQL_ROOT_PASSWORD:</span> <span class="value">secret</span></div>
+
+                            <p class="mt-4"><strong>サービスの特徴：</strong></p>
+                            <ul class="list-disc list-inside space-y-2 ml-4">
+                                <li>サービス名でコンテナ間通信ができる</li>
+                                <li>サービスごとに設定を分離できる</li>
+                                <li>スケーリングも可能（同じサービスを複数起動）</li>
+                            </ul>
+
+                            <h4 class="mt-6">2. ボリューム（Volumes）</h4>
+                            <p class="mb-2">ボリュームは、データを永続化するための仕組みです。</p>
+
+                            <div class="yaml-code">
+<span class="key">services:</span>
+  <span class="key">db:</span>
+    <span class="key">image:</span> <span class="value">mysql:8.0</span>
+    <span class="key">volumes:</span>
+      - <span class="value">db_data:/var/lib/mysql</span>  <span class="comment"># 名前付きボリューム</span>
+      - <span class="value">./my.cnf:/etc/mysql/my.cnf</span>  <span class="comment"># バインドマウント</span>
+
+<span class="key">volumes:</span>
+  <span class="key">db_data:</span>  <span class="comment"># ボリュームの定義</span></div>
+
+                            <p class="mt-4"><strong>ボリュームの種類：</strong></p>
+                            <ul class="list-disc list-inside space-y-2 ml-4">
+                                <li><strong>名前付きボリューム</strong>: Dockerが管理する永続領域</li>
+                                <li><strong>バインドマウント</strong>: ホストのファイル/ディレクトリを直接マウント</li>
+                            </ul>
+
+                            <h4 class="mt-6">3. ネットワーク（Networks）</h4>
+                            <p class="mb-2">ネットワークは、コンテナ間の通信を制御します。</p>
+
+                            <div class="yaml-code">
+<span class="key">services:</span>
+  <span class="key">web:</span>
+    <span class="key">image:</span> <span class="value">nginx:alpine</span>
+    <span class="key">networks:</span>
+      - <span class="value">frontend</span>
+
+  <span class="key">app:</span>
+    <span class="key">image:</span> <span class="value">php:fpm</span>
+    <span class="key">networks:</span>
+      - <span class="value">frontend</span>
+      - <span class="value">backend</span>
+
+  <span class="key">db:</span>
+    <span class="key">image:</span> <span class="value">mysql:8.0</span>
+    <span class="key">networks:</span>
+      - <span class="value">backend</span>
+
+<span class="key">networks:</span>
+  <span class="key">frontend:</span>
+  <span class="key">backend:</span></div>
+
+                            <p class="mt-4"><strong>ネットワークの利点：</strong></p>
+                            <ul class="list-disc list-inside space-y-2 ml-4">
+                                <li>サービス間を論理的に分離</li>
+                                <li>セキュリティ向上（必要な通信のみ許可）</li>
+                                <li>サービス名でDNS解決（IPアドレス不要）</li>
+                            </ul>
+
+                            <div class="info-box mt-6">
+                                <p><strong>💡 デフォルトの動作</strong></p>
+                                <p class="mt-2">ネットワークを明示的に定義しなくても、Docker Composeは自動的にデフォルトネットワークを作成し、すべてのサービスを接続します。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 演習 -->
+                    <div class="content-section">
+                        <h3>📝 演習：2つのNginxコンテナを起動</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">複数のサービスを定義して、Docker Composeの便利さを体感しましょう。</p>
+
+                            <h4>課題</h4>
+                            <p class="mb-2">以下の要件を満たす<code>docker-compose.yml</code>を作成してください：</p>
+                            <ul class="list-disc list-inside space-y-2 ml-4 mb-4">
+                                <li>サービス名 <code>web1</code>: Nginx、ポート8081</li>
+                                <li>サービス名 <code>web2</code>: Nginx、ポート8082</li>
+                                <li>それぞれ異なるHTMLファイルを表示</li>
+                            </ul>
+
+                            <h4>解答例</h4>
+                            <details class="mt-4">
+                                <summary class="cursor-pointer text-cyan-400 hover:text-cyan-300">▶ クリックして解答を表示</summary>
+
+                                <p class="mt-4 mb-2"><code>docker-compose.yml</code>:</p>
+                                <div class="yaml-code">
+<span class="key">version:</span> <span class="string">'3.8'</span>
+
+<span class="key">services:</span>
+  <span class="key">web1:</span>
+    <span class="key">image:</span> <span class="value">nginx:alpine</span>
+    <span class="key">ports:</span>
+      - <span class="string">"8081:80"</span>
+    <span class="key">volumes:</span>
+      - <span class="value">./web1.html:/usr/share/nginx/html/index.html</span>
+
+  <span class="key">web2:</span>
+    <span class="key">image:</span> <span class="value">nginx:alpine</span>
+    <span class="key">ports:</span>
+      - <span class="string">"8082:80"</span>
+    <span class="key">volumes:</span>
+      - <span class="value">./web2.html:/usr/share/nginx/html/index.html</span></div>
+
+                                <p class="mt-4 mb-2"><code>web1.html</code>:</p>
+                                <div class="command-box">&lt;h1&gt;Web Server 1&lt;/h1&gt;</div>
+
+                                <p class="mt-4 mb-2"><code>web2.html</code>:</p>
+                                <div class="command-box">&lt;h1&gt;Web Server 2&lt;/h1&gt;</div>
+
+                                <p class="mt-4">起動：</p>
+                                <div class="command-box">docker compose up -d</div>
+
+                                <p class="mt-4">確認：</p>
+                                <ul class="list-disc list-inside ml-4 mt-2">
+                                    <li><code>http://localhost:8081</code> → "Web Server 1"</li>
+                                    <li><code>http://localhost:8082</code> → "Web Server 2"</li>
+                                </ul>
+                            </details>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📚 まとめ</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">このセクションで学んだことを振り返りましょう。</p>
+
+                            <div class="success-box">
+                                <h4 class="text-lg font-bold mb-3">✅ 習得したスキル</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>Docker Composeの目的と利点を理解した</li>
+                                    <li>YAMLの基本構文を学んだ</li>
+                                    <li><code>docker-compose.yml</code>の基本構造を理解した</li>
+                                    <li>基本コマンド（up, down, ps, logs）を使えるようになった</li>
+                                    <li>サービス、ボリューム、ネットワークの概念を理解した</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box mt-6">
+                                <h4 class="text-lg font-bold mb-3">🚀 次のステップ</h4>
+                                <p>次のセクションでは、WordPress環境を構築して、複数のコンテナを連携させる実践的な例を学びます。</p>
+                                <p class="mt-2">データベースとWebサーバーの接続、データの永続化など、実際のアプリケーションで必要な技術を習得します。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+</body>
+</html>

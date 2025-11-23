@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dockerとは - Docker入門講座</title>
+    <meta name="description" content="Dockerの基本概念とメカニズムを理解する - コンテナ技術、仮想マシンとの違い、イメージとコンテナ">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+
+        .container-box {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(6, 182, 212, 0.1));
+            border: 2px solid #22d3ee;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 8px;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .host-box {
+            background: rgba(51, 65, 85, 0.5);
+            border: 2px solid #64748b;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .layer-box {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(6, 182, 212, 0.05));
+            border: 1px solid #22d3ee;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 6px 0;
+            text-align: center;
+        }
+
+        .arrow-down {
+            text-align: center;
+            color: #22d3ee;
+            font-size: 24px;
+            margin: 8px 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .comparison-side {
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stack-item {
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid #22d3ee;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- Dockerとは -->
+                    <div class="content-section">
+                        <h3>🐳 Dockerとは何か</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <strong>Docker（ドッカー）</strong>は、アプリケーションとその実行環境を<strong>「コンテナ」</strong>という単位でパッケージ化し、
+                                どこでも同じように動かせるようにするツールです。
+                            </p>
+
+                            <div class="success-box">
+                                <h4>💡 一言で言うと</h4>
+                                <p style="font-size: 18px; font-weight: 600; color: #22d3ee;">
+                                    「アプリと環境をセットにして、どこでも同じように動かせる箱」
+                                </p>
+                            </div>
+
+                            <h4>🎯 Dockerが解決する問題</h4>
+                            <p>プログラミングをしていると、こんな経験ありませんか？</p>
+
+                            <div class="warning-box">
+                                <h4>😫 よくある悩み</h4>
+                                <ul>
+                                    <li><strong>「自分のPCでは動くのに、本番サーバーで動かない...」</strong></li>
+                                    <li><strong>「新しいメンバーの環境構築に丸1日かかった...」</strong></li>
+                                    <li><strong>「Pythonのバージョンがプロジェクトごとにバラバラ...」</strong></li>
+                                    <li><strong>「開発環境が壊れて、再構築に数時間...」</strong></li>
+                                </ul>
+                            </div>
+
+                            <p>
+                                Dockerを使うと、これらの問題が<strong>すべて解決</strong>します。
+                                アプリケーションと、それを動かすために必要なすべて（OS、ライブラリ、設定ファイルなど）を
+                                <strong>1つのパッケージ</strong>にまとめられるからです。
+                            </p>
+
+                            <div class="success-box">
+                                <h4>✨ Dockerを使うと</h4>
+                                <ul>
+                                    <li><strong>どこでも同じ環境</strong> - 開発・テスト・本番で完全に同じ環境</li>
+                                    <li><strong>環境構築が秒で完了</strong> - コマンド1つで環境が立ち上がる</li>
+                                    <li><strong>汚れない</strong> - ホストPCに影響を与えない</li>
+                                    <li><strong>簡単に破棄・再作成</strong> - やり直しが簡単</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 実際の環境構築で比較 -->
+                    <div class="content-section">
+                        <h3>🔍 実際の環境構築で比較してみよう</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                「Dockerが便利」と言われても、ピンとこないかもしれません。<br>
+                                実際に<strong>AWS EC2でUbuntuサーバーを立てて、Node.js + MongoDBの環境を構築する場合</strong>を比較してみましょう。
+                            </p>
+
+                            <h4>😓 従来の方法（Ubuntuサーバーに直接構築）</h4>
+                            <p>
+                                EC2インスタンスを作成し、AWSマネジメントコンソールからUbuntuに接続したとします。<br>
+                                ここから環境構築を始めると...
+                            </p>
+
+                            <div class="warning-box">
+                                <h4>手順1: システムの更新とNode.jsのインストール</h4>
+                                <div class="command-box">
+                                    <div class="command">sudo apt update && sudo apt upgrade -y</div>
+                                    <div class="command">curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -</div>
+                                    <div class="command">sudo apt install -y nodejs</div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>手順2: MongoDBのインストール</h4>
+                                <div class="command-box">
+                                    <div class="command">curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg</div>
+                                    <div class="command">echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list</div>
+                                    <div class="command">sudo apt update</div>
+                                    <div class="command">sudo apt install -y mongodb-org</div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>手順3: MongoDBの起動</h4>
+                                <div class="command-box">
+                                    <div class="command">sudo systemctl start mongod</div>
+                                    <div class="command">sudo systemctl enable mongod</div>
+                                    <div class="command">sudo systemctl status mongod</div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>手順4: アプリケーションコードの作成</h4>
+                                <div class="command-box">
+                                    <div class="output">cat > package.json << 'EOF'
+{
+  "name": "myapp",
+  "version": "1.0.0",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongodb": "^6.3.0"
+  }
+}
+EOF</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="output">cat > app.js << 'EOF'
+const express = require('express');
+const { MongoClient } = require('mongodb');
+
+const app = express();
+const mongoHost = process.env.MONGO_HOST || 'localhost';
+const url = 'mongodb://' + mongoHost + ':27017';
+const client = new MongoClient(url);
+
+app.get('/', async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db('myapp');
+    const collection = db.collection('visits');
+    await collection.insertOne({ timestamp: new Date() });
+    const count = await collection.countDocuments();
+
+    res.send('Express + MongoDB アプリケーションが正常に動作しています！訪問回数: ' + count + '回');
+  } catch (err) {
+    res.send('エラー: ' + err.message);
+  }
+});
+
+app.listen(3000, '0.0.0.0', () => {
+  console.log('Server running on port 3000');
+});
+EOF</div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>手順5: パッケージのインストールと起動</h4>
+                                <div class="command-box">
+                                    <div class="command">npm install</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">node app.js</div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>手順6: セキュリティグループの設定</h4>
+                                <p>
+                                    AWSマネジメントコンソールでEC2のセキュリティグループを編集し、<br>
+                                    <strong>ポート3000を開放</strong>する必要があります：
+                                </p>
+                                <ul style="margin-top: 8px;">
+                                    <li>1. EC2ダッシュボードでインスタンスを選択</li>
+                                    <li>2. セキュリティグループタブをクリック</li>
+                                    <li>3. インバウンドルールを編集</li>
+                                    <li>4. カスタムTCP、ポート3000、ソース0.0.0.0/0を追加</li>
+                                    <li>5. 保存</li>
+                                </ul>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>手順7: IPアドレスでアクセス確認</h4>
+                                <p>
+                                    ブラウザで<code>http://&lt;EC2のパブリックIP&gt;:3000</code>にアクセスして動作確認<br>
+                                    （例：<code>http://54.123.45.67:3000</code>）
+                                </p>
+                            </div>
+
+                            <div class="error-box">
+                                <h4>😫 従来の方法の本当の問題</h4>
+                                <p style="margin-bottom: 16px;">
+                                    問題は時間ではありません。<strong>本当の地獄はここから始まります。</strong>
+                                </p>
+                                <ul>
+                                    <li><strong>🔥 依存関係の地獄</strong>: パッケージのバージョンが合わない、ライブラリが競合する...解決に<strong>数時間〜数日</strong>かかることも</li>
+                                    <li><strong>😱 「僕の環境では動くのに...」</strong>: チームメンバーの環境で動かない。原因究明に<strong>半日〜1日</strong>消える</li>
+                                    <li><strong>💀 本番環境で突然のエラー</strong>: 開発では問題なかったのに本番で動かない。デプロイ失敗で<strong>リリースが遅延</strong></li>
+                                    <li><strong>🐛 環境の微妙な違い</strong>: Node.jsのバージョン、OSの違い...デバッグに<strong>何日も費やす</strong></li>
+                                    <li><strong>🔧 トラブルシューティング地獄</strong>: エラーメッセージをググり、Stack Overflowを漁り、試行錯誤を繰り返す<strong>無限ループ</strong></li>
+                                    <li><strong>🗑️ 環境の汚染</strong>: 古いプロジェクトのパッケージが残り、新しいプロジェクトに影響。クリーンアップしても完全には消えない</li>
+                                </ul>
+                                <p style="margin-top: 16px; color: #fbbf24; font-weight: 600;">
+                                    → 環境構築だけで<strong>数日〜1週間</strong>かかることも珍しくありません。これが現実です。
+                                </p>
+                            </div>
+
+                            <h4>✨ Dockerを使った方法</h4>
+                            <p>
+                                同じ環境を、Dockerで構築してみましょう。<br>
+                                まず、EC2のUbuntuに<strong>Dockerをインストール</strong>します。
+                            </p>
+
+                            <div class="success-box">
+                                <h4>手順1: DockerとDocker Composeのインストール</h4>
+                                <div class="command-box">
+                                    <div class="command">curl -fsSL https://get.docker.com -o get-docker.sh</div>
+                                    <div class="command">sudo sh get-docker.sh</div>
+                                    <div class="command">sudo usermod -aG docker $USER</div>
+                                </div>
+                                <p style="margin-top: 8px; font-size: 14px; color: #94a3b8;">
+                                    ※ 再ログインしてグループ変更を反映させます
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>手順2: プロジェクトファイルを作成</h4>
+                                <p>必要なのは<strong>2つのファイルだけ</strong>です。</p>
+
+                                <h4 style="margin-top: 16px;">📄 Dockerfile</h4>
+                                <div class="dockerfile-code">FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["node", "app.js"]</div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>📄 docker-compose.yml</h4>
+                                <div class="yaml-code">services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
+  db:
+    image: mongo:7.0
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:</div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>手順3: 起動はたったの1コマンド</h4>
+                                <p style="margin-top: 12px; margin-bottom: 8px;">起動：</p>
+                                <div class="command-box">
+                                    <div class="command">docker compose up -d</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ブラウザで<code>http://&lt;EC2のパブリックIP&gt;:3000</code>にアクセスして動作確認（例：<code>http://54.123.45.67:3000</code>）。<strong>完了！</strong>
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>✅ Dockerのメリット</h4>
+                                <ul>
+                                    <li><strong>Dockerのインストールは一度だけ</strong>: 最初の1回だけで、その後は不要</li>
+                                    <li><strong>アプリごとの環境構築が超簡単</strong>: ファイルを作ってコマンド1つで完了</li>
+                                    <li><strong>ミスがない</strong>: ファイルに全て書いてあるので、タイプミスなし</li>
+                                    <li><strong>100%再現可能</strong>: 誰がやっても、どこでやっても同じ環境</li>
+                                    <li><strong>チーム共有が簡単</strong>: ファイルをGitで共有するだけ</li>
+                                    <li><strong>クリーンアップが簡単</strong>: <code>docker compose down -v</code>で完全削除</li>
+                                    <li><strong>複数環境を同時に</strong>: プロジェクトごとに独立した環境を持てる</li>
+                                </ul>
+                            </div>
+
+                            <div class="visual-diagram" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                                <div class="comparison-side">
+                                    <div style="text-align: center; font-weight: 600; color: #fbbf24; margin-bottom: 16px;">従来の方法</div>
+                                    <div style="text-align: center; font-size: 48px; margin: 20px 0;">😓</div>
+                                    <div style="text-align: center; color: #fbbf24;">
+                                        <div style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">依存関係地獄</div>
+                                        <div style="font-size: 14px; color: #94a3b8;">何度もコマンド実行</div>
+                                        <div style="font-size: 14px; color: #94a3b8;">設定ミスのリスク</div>
+                                        <div style="font-size: 14px; color: #94a3b8;">環境の違いが発生</div>
+                                        <div style="font-size: 14px; color: #94a3b8;">トラブルに数日かかる</div>
+                                    </div>
+                                </div>
+                                <div class="comparison-side">
+                                    <div style="text-align: center; font-weight: 600; color: #22d3ee; margin-bottom: 16px;">Dockerを使った方法</div>
+                                    <div style="text-align: center; font-size: 48px; margin: 20px 0;">✨</div>
+                                    <div style="text-align: center; color: #22c55e;">
+                                        <div style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">完璧に動く</div>
+                                        <div style="font-size: 14px; color: #94a3b8;">コマンド1つだけ</div>
+                                        <div style="font-size: 14px; color: #94a3b8;">ミスゼロ</div>
+                                        <div style="font-size: 14px; color: #94a3b8;">完全に同じ環境</div>
+                                        <div style="font-size: 14px; color: #94a3b8;">トラブルなし</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 Dockerの本質：環境をコードで管理する</h4>
+                                <p style="margin-bottom: 16px;">
+                                    Dockerの真の価値は、<strong>「環境をコードで管理できる」</strong>ことです。<br>
+                                    これは現代のソフトウェア開発における重要なトレンド「X as Code」の一つです。
+                                </p>
+
+                                <h4 style="color: #67e8f9; margin: 16px 0 8px; font-size: 18px;">🏗️ Infrastructure as Code (IaC)</h4>
+                                <p>
+                                    Terraformでインフラをコード化するように、<strong>Dockerで開発環境をコード化</strong>します。<br>
+                                    Dockerfileは最も一般的なIaCの形式の一つで、チームが「バージョン管理可能、テスト可能、自動化可能なコード」を通じてインフラを管理できるようにします。
+                                </p>
+                                <ul style="margin-top: 8px;">
+                                    <li><strong>Terraform</strong>: AWSやGCPのインフラをコードで定義</li>
+                                    <li><strong>Docker</strong>: 開発環境やアプリケーション実行環境をコードで定義</li>
+                                </ul>
+
+                                <h4 style="color: #67e8f9; margin: 16px 0 8px; font-size: 18px;">📚 コードがドキュメント</h4>
+                                <p>
+                                    従来は「環境構築手順書」というドキュメントを作成していました。<br>
+                                    しかし、ドキュメントには大きな問題があります：
+                                </p>
+                                <ul style="margin-top: 8px;">
+                                    <li>❌ <strong>すぐに古くなる</strong>: 環境が変わってもドキュメントは更新されない</li>
+                                    <li>❌ <strong>曖昧</strong>: 「適切に設定してください」など、解釈が分かれる</li>
+                                    <li>❌ <strong>間違いに気づけない</strong>: 手順書が間違っていても実行するまでわからない</li>
+                                </ul>
+                                <p style="margin-top: 12px;">
+                                    一方、Dockerの設定ファイル（<code>Dockerfile</code>、<code>docker-compose.yml</code>）は：
+                                </p>
+                                <ul style="margin-top: 8px;">
+                                    <li>✅ <strong>常に最新</strong>: 動いているコードが最新のドキュメント</li>
+                                    <li>✅ <strong>明確</strong>: 曖昧さゼロ。書いてある通りに実行される</li>
+                                    <li>✅ <strong>すぐに検証できる</strong>: 実行すれば動くかどうかすぐわかる</li>
+                                </ul>
+
+                                <h4 style="color: #67e8f9; margin: 16px 0 8px; font-size: 18px;">🔄 他の「X as Code」の例</h4>
+                                <p>
+                                    現代の開発では、あらゆるものを「コード化」して管理します：
+                                </p>
+                                <ul style="margin-top: 8px;">
+                                    <li><strong>CI/CD as Code</strong>: GitHub Actions、GitLab CIの<code>.yml</code>ファイル</li>
+                                    <li><strong>Configuration as Code</strong>: Ansible、Chef、Puppetでサーバー設定を管理</li>
+                                    <li><strong>Database as Code</strong>: マイグレーションファイルでDB構造を管理（Rails、Laravel、Prismaなど）</li>
+                                    <li><strong>Policy as Code</strong>: Open Policy Agent (OPA)でセキュリティポリシーを定義</li>
+                                </ul>
+
+                                <h4 style="color: #67e8f9; margin: 16px 0 8px; font-size: 18px;">🎯 なぜ「コード化」が重要なのか</h4>
+                                <ul style="margin-top: 8px;">
+                                    <li><strong>📊 バージョン管理できる</strong>: Gitで変更履歴を追跡、いつでも過去に戻せる</li>
+                                    <li><strong>👥 レビューできる</strong>: Pull Requestで環境の変更をレビュー可能</li>
+                                    <li><strong>🤖 自動化できる</strong>: CI/CDで自動テスト・デプロイ</li>
+                                    <li><strong>🔁 再現可能</strong>: 誰が実行しても、いつ実行しても同じ結果</li>
+                                    <li><strong>🧪 テストできる</strong>: コードだから自動テストが書ける</li>
+                                    <li><strong>🌍 共有できる</strong>: チーム全員が同じ環境で開発できる</li>
+                                </ul>
+
+                                <h4 style="color: #67e8f9; margin: 16px 0 8px; font-size: 18px;">🔒 Immutable Infrastructure（不変なインフラ）</h4>
+                                <p>
+                                    Dockerのもう1つの重要な概念が<strong>「イミュータブル（不変）」</strong>です。
+                                </p>
+                                <p style="font-size: 13px; color: #94a3b8; margin-top: 8px;">
+                                    ※ 以下の「ペット vs 家畜」の比喩は、Randy Bias が2012年頃に提唱したクラウドインフラ（サーバー）の設計思想です。<br>
+                                    Dockerのコンテナ管理も、この同じ思想を採用しています。<br>
+                                    参考: <a href="http://cloudscaling.com/blog/cloud-computing/the-history-of-pets-vs-cattle/" target="_blank" style="color: #22d3ee;">The History of Pets vs Cattle</a>
+                                </p>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
+                                    <div style="background: rgba(251, 191, 36, 0.1); padding: 12px; border-radius: 8px; border-left: 3px solid #fbbf24;">
+                                        <div style="font-weight: 600; color: #fbbf24; margin-bottom: 8px;">❌ 従来の方法（ペット型）</div>
+                                        <div style="font-size: 14px; color: #d1d5db;">
+                                            サーバーを大切に育てる：<br>
+                                            「このサーバーのNode.jsを<br>v16からv18にアップデート」<br>
+                                            → 徐々に環境が変化<br>
+                                            → 誰かが勝手に設定変更<br>
+                                            → 環境が汚れていく
+                                        </div>
+                                    </div>
+                                    <div style="background: rgba(34, 211, 238, 0.1); padding: 12px; border-radius: 8px; border-left: 3px solid #22d3ee;">
+                                        <div style="font-weight: 600; color: #22d3ee; margin-bottom: 8px;">✅ Docker（家畜型）</div>
+                                        <div style="font-size: 14px; color: #d1d5db;">
+                                            毎回ゼロから作り直す：<br>
+                                            「Node.js v18のコンテナを新規作成、<br>古いコンテナは削除」<br>
+                                            → 常にクリーンな環境<br>
+                                            → 予期しない変更ゼロ<br>
+                                            → ロールバックも簡単
+                                        </div>
+                                    </div>
+                                </div>
+                                <p style="margin-top: 12px;">
+                                    <strong>メリット：</strong>
+                                </p>
+                                <ul style="margin-top: 8px;">
+                                    <li>環境が絶対に汚れない</li>
+                                    <li>「誰かが勝手に設定を変えた問題」が発生しない</li>
+                                    <li>問題が起きたら古いバージョンに一瞬で戻せる</li>
+                                    <li>全く同じ環境を何度でも再現できる</li>
+                                </ul>
+
+                                <h4 style="color: #67e8f9; margin: 16px 0 8px; font-size: 18px;">🌐 ポータビリティ（どこでも動く）</h4>
+                                <p>
+                                    Dockerで作った環境は、<strong>どこでも全く同じように動きます</strong>。<br>
+                                    これが「Write once, run anywhere（一度書けば、どこでも動く）」の思想です。
+                                </p>
+                                <div style="margin-top: 12px; padding: 16px; background: rgba(34, 211, 238, 0.05); border-radius: 8px;">
+                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
+                                        <div>
+                                            <div style="font-size: 32px; margin-bottom: 8px;">💻</div>
+                                            <div style="font-weight: 600; color: #22d3ee;">開発環境</div>
+                                            <div style="font-size: 13px; color: #94a3b8;">Mac / Windows / Linux</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 32px; margin-bottom: 8px;">🧪</div>
+                                            <div style="font-weight: 600; color: #22d3ee;">ステージング</div>
+                                            <div style="font-size: 13px; color: #94a3b8;">AWS / GCP / Azure</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 32px; margin-bottom: 8px;">🚀</div>
+                                            <div style="font-weight: 600; color: #22d3ee;">本番環境</div>
+                                            <div style="font-size: 13px; color: #94a3b8;">どのクラウドでもOK</div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; margin-top: 16px; font-size: 24px; color: #22d3ee;">
+                                        ↓ 全て同じDockerファイルで動く ↓
+                                    </div>
+                                </div>
+                                <p style="margin-top: 12px;">
+                                    <strong>これで解決する問題：</strong>
+                                </p>
+                                <ul style="margin-top: 8px;">
+                                    <li><strong>「僕の環境では動くのに...」問題</strong>: 全員が同じDocker環境を使うので発生しない</li>
+                                    <li><strong>クラウドのロックイン回避</strong>: AWS固有の機能に依存せず、いつでも移行可能</li>
+                                    <li><strong>ローカルと本番の差異</strong>: 開発環境も本番環境も完全に同じ</li>
+                                    <li><strong>新メンバーの環境構築</strong>: 5分で全員が同じ環境で開発開始</li>
+                                </ul>
+
+                                <p style="margin-top: 16px; padding: 12px; background: rgba(34, 211, 238, 0.1); border-left: 4px solid #22d3ee; border-radius: 4px;">
+                                    <strong>💡 まとめ：Dockerの3つの本質</strong><br>
+                                    1️⃣ <strong>環境をコードで管理</strong>: ドキュメント不要、常に最新<br>
+                                    2️⃣ <strong>イミュータブル</strong>: 環境が汚れない、予期しない変更ゼロ<br>
+                                    3️⃣ <strong>ポータビリティ</strong>: どこでも同じように動く<br><br>
+                                    Dockerは単なるツールではなく、<strong>現代的な開発思想の体現</strong>です。<br>
+                                    これから学習を進めていくと、この便利さを実際に体験できます。
+                                </p>
+                                <p style="margin-top: 12px; font-size: 13px; color: #94a3b8;">
+                                    <strong>📚 参考資料：</strong><br>
+                                    • <a href="https://docs.docker.com/get-started/docker-overview/" target="_blank" style="color: #22d3ee;">Docker公式: What is Docker?</a> - Dockerの概要とメリット<br>
+                                    • <a href="https://docs.docker.jp/" target="_blank" style="color: #22d3ee;">Docker日本語ドキュメント</a> - Docker公式ドキュメントの日本語翻訳プロジェクト
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 仮想マシンとの違い -->
+                    <div class="content-section">
+                        <h3>🆚 仮想マシン(VM)との違い</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                「コンテナ」と聞いて、「仮想マシン（VirtualBoxとか）と何が違うの？」と思った方もいるでしょう。
+                                <strong>似ているようで、仕組みが全く違います</strong>。
+                            </p>
+
+                            <h4>📊 アーキテクチャの違い</h4>
+
+                            <div class="visual-diagram" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                                <div class="comparison-side">
+                                    <div style="text-align: center; font-weight: 600; color: #fbbf24; margin-bottom: 16px;">仮想マシン</div>
+                                    <div class="stack-item" style="background: rgba(251, 191, 36, 0.1); border-color: #fbbf24;">アプリ1</div>
+                                    <div class="stack-item" style="background: rgba(251, 191, 36, 0.1); border-color: #fbbf24;">ライブラリ</div>
+                                    <div class="stack-item" style="background: rgba(239, 68, 68, 0.1); border-color: #ef4444; font-weight: 600;">ゲストOS (完全)</div>
+                                    <div class="stack-item" style="background: rgba(251, 191, 36, 0.1); border-color: #fbbf24;">ハイパーバイザー</div>
+                                    <div class="stack-item" style="background: rgba(100, 116, 139, 0.2); border-color: #64748b;">ホストOS</div>
+                                    <div style="text-align: center; margin-top: 16px; font-size: 14px; color: #fbbf24;">
+                                        <div>⚠️ 重い・起動遅い</div>
+                                        <div>💾 数GB必要</div>
+                                    </div>
+                                </div>
+                                <div class="comparison-side">
+                                    <div style="text-align: center; font-weight: 600; color: #22d3ee; margin-bottom: 16px;">Docker コンテナ</div>
+                                    <div class="stack-item">アプリ1</div>
+                                    <div class="stack-item">ライブラリ</div>
+                                    <div class="stack-item" style="background: rgba(34, 197, 94, 0.1); border-color: #22c55e; font-weight: 600;">（ゲストOSなし）</div>
+                                    <div class="stack-item">Docker Engine</div>
+                                    <div class="stack-item" style="background: rgba(100, 116, 139, 0.2); border-color: #64748b;">ホストOS</div>
+                                    <div style="text-align: center; margin-top: 16px; font-size: 14px; color: #22c55e;">
+                                        <div>✨ 軽い・起動速い</div>
+                                        <div>💾 数MB〜数百MB</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>🔍 詳しく比較</h4>
+
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>項目</th>
+                                        <th>仮想マシン (VM)</th>
+                                        <th>Docker コンテナ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>起動時間</strong></td>
+                                        <td>数分</td>
+                                        <td>数秒</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>サイズ</strong></td>
+                                        <td>数GB〜数十GB</td>
+                                        <td>数MB〜数百MB</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>リソース使用量</strong></td>
+                                        <td>多い（OSまるごと）</td>
+                                        <td>少ない（カーネル共有）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>隔離レベル</strong></td>
+                                        <td>完全に隔離</td>
+                                        <td>プロセスレベルで隔離</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>ポータビリティ</strong></td>
+                                        <td>低い</td>
+                                        <td>非常に高い</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>用途</strong></td>
+                                        <td>異なるOSの実行</td>
+                                        <td>アプリケーションの実行</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="success-box">
+                                <h4>💡 使い分けのポイント</h4>
+                                <ul>
+                                    <li><strong>VM</strong>: Windows上でLinuxを動かすなど、完全に異なるOSが必要なとき</li>
+                                    <li><strong>Docker</strong>: 同じOS上で、異なる環境のアプリを動かすとき</li>
+                                </ul>
+                                <p style="margin-top: 12px;">
+                                    <strong>ほとんどの開発シーンではDockerで十分</strong>です。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💼 VMで開発したことがある方へ</h4>
+                                <p>VirtualBoxなどで開発環境を構築した経験があるなら、Dockerのメリットがより実感できるはずです：</p>
+                                <ul style="margin-top: 8px;">
+                                    <li><strong>起動の速さ</strong>: VMの数分待ちから解放。コーヒーを淹れる必要なし</li>
+                                    <li><strong>複数環境の同時実行</strong>: VMは2〜3個が限界だったが、Dockerなら10個以上同時に動かせる</li>
+                                    <li><strong>メモリ消費</strong>: VMは1つで数GB消費するが、Dockerは数十MB〜数百MB</li>
+                                    <li><strong>スナップショットの軽さ</strong>: VMのスナップショットは数GBだが、Dockerイメージは差分管理で軽量</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📝 このセクションのまとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>✅ 学んだこと</h4>
+                                <ul>
+                                    <li><strong>Docker</strong>は、アプリと環境をパッケージ化するツール</li>
+                                    <li>従来の環境構築は<strong>依存関係の地獄</strong>で数日かかることも</li>
+                                    <li>Dockerなら<strong>コマンド1つ</strong>で完璧な環境が完成</li>
+                                    <li>Dockerの本質は<strong>環境をコードで管理</strong>すること（IaC）</li>
+                                    <li><strong>Immutable Infrastructure</strong>: 毎回ゼロから作り直す思想</li>
+                                    <li><strong>ポータビリティ</strong>: どこでも同じように動く</li>
+                                    <li><strong>VM</strong>とコンテナは似ているが、仕組みが全く違う</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のステップ</h4>
+                                <p>
+                                    Dockerの価値が理解できたら、次は<strong>実際に環境を構築</strong>しましょう！
+                                    次のセクションでは、Docker Desktopのインストール方法を詳しく説明します。
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+
+</body>
+
+</html>

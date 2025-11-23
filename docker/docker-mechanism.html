@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dockerのメカニズム - Docker入門講座</title>
+    <meta name="description" content="Dockerの仕組みをハンズオン形式で学習します">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- Dockerのメカニズム概要 -->
+                    <div class="content-section">
+                        <h3>⚙️ Dockerのメカニズム</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                Dockerは、Linuxカーネルの機能を活用して、軽量で高速なコンテナ技術を実現しています。
+                                ここでは、Dockerを支える主要な技術を実践的に学びます。
+                            </p>
+
+                            <div class="success-box">
+                                <h4>✅ このセクションで学ぶこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>名前空間（Namespace）による隔離の仕組み</li>
+                                    <li>コントロールグループ（cgroups）によるリソース制限</li>
+                                    <li>Union File System（OverlayFS）の仕組み</li>
+                                    <li>実際にコンテナの隔離を確認するハンズオン</li>
+                                </ul>
+                            </div>
+
+                            <h4>Dockerを支える3つの技術</h4>
+                            <div class="visual-diagram">
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                                    <div style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; border-radius: 8px; padding: 20px; text-align: center;">
+                                        <div style="font-size: 48px; margin-bottom: 12px;">🔒</div>
+                                        <strong style="color: #22d3ee; font-size: 18px;">Namespace</strong>
+                                        <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">プロセスの隔離</div>
+                                    </div>
+                                    <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid #22c55e; border-radius: 8px; padding: 20px; text-align: center;">
+                                        <div style="font-size: 48px; margin-bottom: 12px;">📊</div>
+                                        <strong style="color: #86efac; font-size: 18px;">cgroups</strong>
+                                        <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">リソース制限</div>
+                                    </div>
+                                    <div style="background: rgba(251, 191, 36, 0.1); border: 2px solid #fbbf24; border-radius: 8px; padding: 20px; text-align: center;">
+                                        <div style="font-size: 48px; margin-bottom: 12px;">📁</div>
+                                        <strong style="color: #fbbf24; font-size: 18px;">Union FS</strong>
+                                        <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">レイヤー型ファイルシステム</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 名前空間（Namespace） -->
+                    <div class="content-section">
+                        <h3>🔒 名前空間（Namespace）による隔離</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                <strong>Namespace</strong>は、プロセスが見ることのできるリソースを制限する仕組みです。
+                                これにより、コンテナ内のプロセスは、ホストや他のコンテナから隔離されます。
+                            </p>
+
+                            <h4>主要なNamespaceの種類</h4>
+                            <div class="command-box">
+                                <div style="color: #d1d5db; margin-bottom: 8px;">
+                                    <span style="color: #22d3ee;">PID Namespace</span>
+                                    <span style="color: #94a3b8; margin-left: 16px;">→ プロセスIDの隔離</span>
+                                </div>
+                                <div style="color: #d1d5db; margin-bottom: 8px;">
+                                    <span style="color: #22d3ee;">Network Namespace</span>
+                                    <span style="color: #94a3b8; margin-left: 16px;">→ ネットワークの隔離</span>
+                                </div>
+                                <div style="color: #d1d5db; margin-bottom: 8px;">
+                                    <span style="color: #22d3ee;">Mount Namespace</span>
+                                    <span style="color: #94a3b8; margin-left: 16px;">→ ファイルシステムの隔離</span>
+                                </div>
+                                <div style="color: #d1d5db; margin-bottom: 8px;">
+                                    <span style="color: #22d3ee;">UTS Namespace</span>
+                                    <span style="color: #94a3b8; margin-left: 16px;">→ ホスト名の隔離</span>
+                                </div>
+                                <div style="color: #d1d5db; margin-bottom: 8px;">
+                                    <span style="color: #22d3ee;">IPC Namespace</span>
+                                    <span style="color: #94a3b8; margin-left: 16px;">→ プロセス間通信の隔離</span>
+                                </div>
+                                <div style="color: #d1d5db;">
+                                    <span style="color: #22d3ee;">User Namespace</span>
+                                    <span style="color: #94a3b8; margin-left: 16px;">→ ユーザーIDの隔離</span>
+                                </div>
+                            </div>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #22d3ee; margin-bottom: 24px;">
+                                    PID Namespaceのイメージ
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                                    <div>
+                                        <div style="text-align: center; font-weight: 600; color: #67e8f9; margin-bottom: 12px;">
+                                            ホストから見たプロセス
+                                        </div>
+                                        <div style="background: rgba(15, 23, 42, 0.6); border: 2px solid #22d3ee; border-radius: 8px; padding: 16px;">
+                                            <div style="color: #d1d5db; margin-bottom: 8px;">PID 1: systemd</div>
+                                            <div style="color: #d1d5db; margin-bottom: 8px;">PID 100: sshd</div>
+                                            <div style="color: #d1d5db; margin-bottom: 8px;">PID 200: docker</div>
+                                            <div style="color: #22d3ee; margin-bottom: 8px;"><strong>PID 1234: nginx (コンテナ)</strong></div>
+                                            <div style="color: #d1d5db;">PID 5678: chrome</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="text-align: center; font-weight: 600; color: #67e8f9; margin-bottom: 12px;">
+                                            コンテナから見たプロセス
+                                        </div>
+                                        <div style="background: rgba(15, 23, 42, 0.6); border: 2px solid #22d3ee; border-radius: 8px; padding: 16px;">
+                                            <div style="color: #22d3ee; margin-bottom: 8px;"><strong>PID 1: nginx</strong></div>
+                                            <div style="color: #94a3b8; margin-top: 16px; font-size: 14px;">（他のプロセスは見えない）</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 ポイント</h4>
+                                <p>
+                                    コンテナ内のプロセスは、ホスト上では通常のプロセスとして動作していますが、
+                                    コンテナ内からは自分のプロセスしか見えません。これがNamespaceによる隔離です。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ハンズオン: PID Namespaceの確認 -->
+                    <div class="content-section">
+                        <h3>🎯 ハンズオン: PID Namespaceを確認</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                実際にコンテナ内外でプロセスIDがどう見えるか確認してみましょう。
+                            </p>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">1</span>Nginxコンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -d --name test-nginx nginx:alpine</div>
+                                    <div class="output">f3a9b7c2d1e4...</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">2</span>ホストからコンテナのプロセスを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker top test-nginx</div>
+                                    <div class="output">UID      PID       PPID      C    STIME   TTY    TIME       CMD
+root     12345     12320     0    10:30   ?      00:00:00   nginx: master process nginx -g daemon off;
+101      12389     12345     0    10:30   ?      00:00:00   nginx: worker process</div>
+                                </div>
+                                <p class="mb-4">
+                                    ホストから見ると、NginxのプロセスはPID 12345で動いています。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">3</span>コンテナ内からプロセスを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker exec test-nginx ps aux</div>
+                                    <div class="output">PID   USER     TIME  COMMAND
+    1 root      0:00 nginx: master process nginx -g daemon off;
+   29 nginx     0:00 nginx: worker process
+   30 root      0:00 ps aux</div>
+                                </div>
+                                <p class="mb-4">
+                                    コンテナ内から見ると、NginxはPID 1として動いています！
+                                    これがPID Namespaceによる隔離です。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">4</span>ホスト名の隔離を確認</h4>
+                                <p class="mb-4">
+                                    UTS Namespaceにより、コンテナは独自のホスト名を持ちます。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">hostname</div>
+                                    <div class="output">my-laptop</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">docker exec test-nginx hostname</div>
+                                    <div class="output">f3a9b7c2d1e4</div>
+                                </div>
+                                <p class="mb-4">
+                                    コンテナIDがホスト名になっています（カスタマイズも可能）。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">5</span>ネットワークの隔離を確認</h4>
+                                <div class="command-box">
+                                    <div class="command">ip addr show | grep inet</div>
+                                    <div class="output">    inet 127.0.0.1/8 scope host lo
+    inet 192.168.1.100/24 brd 192.168.1.255 scope global eth0
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">docker exec test-nginx ip addr show | grep inet</div>
+                                    <div class="output">    inet 127.0.0.1/8 scope host lo
+    inet 172.17.0.2/16 brd 172.17.255.255 scope global eth0</div>
+                                </div>
+                                <p class="mb-4">
+                                    コンテナは独自のネットワークインターフェースとIPアドレスを持っています。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">6</span>クリーンアップ</h4>
+                                <div class="command-box">
+                                    <div class="command">docker rm -f test-nginx</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- コントロールグループ（cgroups） -->
+                    <div class="content-section">
+                        <h3>📊 コントロールグループ（cgroups）</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                <strong>cgroups</strong>は、プロセスが使用できるリソースを制限・監視する仕組みです。
+                                これにより、特定のコンテナがシステムリソースを独占することを防ぎます。
+                            </p>
+
+                            <h4>制限できるリソース</h4>
+                            <ul class="list-disc list-inside space-y-2 ml-4 mb-4">
+                                <li><strong>CPU</strong>: CPU使用率、CPUコア数の制限</li>
+                                <li><strong>メモリ</strong>: 最大メモリ使用量の制限</li>
+                                <li><strong>ディスクI/O</strong>: 読み書き速度の制限</li>
+                                <li><strong>ネットワーク</strong>: 帯域幅の制限</li>
+                            </ul>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #22d3ee; margin-bottom: 24px;">
+                                    cgroupsによるリソース制限
+                                </div>
+                                <div style="background: rgba(15, 23, 42, 0.6); border: 2px solid #22d3ee; border-radius: 12px; padding: 24px;">
+                                    <div style="text-align: center; color: #67e8f9; margin-bottom: 16px; font-weight: 600;">
+                                        ホストのリソース（例: CPU 4コア、メモリ 8GB）
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                                        <div style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; border-radius: 8px; padding: 12px; text-align: center;">
+                                            <strong style="color: #22d3ee;">Container 1</strong>
+                                            <div style="font-size: 14px; color: #94a3b8; margin-top: 4px;">CPU: 1コア</div>
+                                            <div style="font-size: 14px; color: #94a3b8;">メモリ: 512MB</div>
+                                        </div>
+                                        <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid #22c55e; border-radius: 8px; padding: 12px; text-align: center;">
+                                            <strong style="color: #86efac;">Container 2</strong>
+                                            <div style="font-size: 14px; color: #94a3b8; margin-top: 4px;">CPU: 2コア</div>
+                                            <div style="font-size: 14px; color: #94a3b8;">メモリ: 2GB</div>
+                                        </div>
+                                        <div style="background: rgba(251, 191, 36, 0.1); border: 2px solid #fbbf24; border-radius: 8px; padding: 12px; text-align: center;">
+                                            <strong style="color: #fbbf24;">Container 3</strong>
+                                            <div style="font-size: 14px; color: #94a3b8; margin-top: 4px;">CPU: 1コア</div>
+                                            <div style="font-size: 14px; color: #94a3b8;">メモリ: 1GB</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 仮想マシンとの違い</h4>
+                                <p class="mb-2">
+                                    仮想マシンは、事前にリソースを割り当てますが、cgroupsは動的に制限します：
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4">
+                                    <li><strong>仮想マシン</strong>: メモリ2GB割り当て → 常に2GB確保</li>
+                                    <li><strong>コンテナ</strong>: メモリ2GB制限 → 必要な分だけ使用、最大2GBまで</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ハンズオン: リソース制限 -->
+                    <div class="content-section">
+                        <h3>🎯 ハンズオン: リソース制限を体験</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                実際にコンテナにリソース制限をかけて、動作を確認してみましょう。
+                            </p>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">1</span>メモリ制限なしでコンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -d --name unlimited nginx:alpine</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">docker stats unlimited --no-stream</div>
+                                    <div class="output">CONTAINER ID   NAME        CPU %     MEM USAGE / LIMIT     MEM %     NET I/O     BLOCK I/O
+f3a9b7c2d1e4   unlimited   0.00%     3.5MiB / 7.77GiB      0.04%     656B / 0B   0B / 0B</div>
+                                </div>
+                                <p class="mb-4">
+                                    <code class="code-inline">LIMIT</code> がホストの全メモリになっています。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">2</span>メモリ制限ありでコンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -d --name limited --memory="128m" nginx:alpine</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">docker stats limited --no-stream</div>
+                                    <div class="output">CONTAINER ID   NAME      CPU %     MEM USAGE / LIMIT   MEM %     NET I/O     BLOCK I/O
+a1b2c3d4e5f6   limited   0.00%     3.5MiB / 128MiB     2.73%     656B / 0B   0B / 0B</div>
+                                </div>
+                                <p class="mb-4">
+                                    <code class="code-inline">LIMIT</code> が128MiBに制限されています。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">3</span>CPU制限を追加</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -d --name cpu-limited --cpus="0.5" nginx:alpine</div>
+                                </div>
+                                <p class="mb-4">
+                                    <code class="code-inline">--cpus="0.5"</code> で、CPUの50%まで使用を制限します。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">4</span>コンテナの詳細情報を確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker inspect limited | grep -A 5 "Memory"</div>
+                                    <div class="output">"Memory": 134217728,
+"MemoryReservation": 0,
+"MemorySwap": 268435456,
+"MemorySwappiness": null,</div>
+                                </div>
+                                <p class="mb-4">
+                                    134217728バイト = 128MiBが設定されています。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">5</span>複数コンテナのリソース使用状況を監視</h4>
+                                <div class="command-box">
+                                    <div class="command">docker stats --no-stream</div>
+                                    <div class="output">CONTAINER ID   NAME          CPU %     MEM USAGE / LIMIT   MEM %     NET I/O
+f3a9b7c2d1e4   unlimited     0.00%     3.5MiB / 7.77GiB    0.04%     656B / 0B
+a1b2c3d4e5f6   limited       0.00%     3.5MiB / 128MiB     2.73%     656B / 0B
+b5c6d7e8f9a0   cpu-limited   0.00%     3.5MiB / 7.77GiB    0.04%     656B / 0B</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">6</span>クリーンアップ</h4>
+                                <div class="command-box">
+                                    <div class="command">docker rm -f unlimited limited cpu-limited</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 主なリソース制限オプション</h4>
+                                <ul class="list-disc list-inside space-y-1 ml-4">
+                                    <li><code class="code-inline">--memory="128m"</code>: メモリ上限を128MBに制限</li>
+                                    <li><code class="code-inline">--cpus="1.5"</code>: CPU使用を1.5コア分に制限</li>
+                                    <li><code class="code-inline">--cpu-shares=512</code>: CPU優先度を設定（相対値）</li>
+                                    <li><code class="code-inline">--pids-limit=100</code>: プロセス数を100に制限</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Union File System -->
+                    <div class="content-section">
+                        <h3>📁 Union File System（OverlayFS）</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                <strong>Union File System</strong>は、複数のディレクトリを重ねて1つのファイルシステムとして見せる技術です。
+                                Dockerでは主に<strong>OverlayFS</strong>が使われています。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #22d3ee; margin-bottom: 24px;">
+                                    OverlayFSの仕組み
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 12px; max-width: 500px; margin: 0 auto;">
+                                    <div style="background: rgba(34, 211, 238, 0.2); border: 2px solid #22d3ee; border-radius: 8px; padding: 16px; text-align: center;">
+                                        <strong style="color: #22d3ee;">Upper Layer（上位レイヤー）</strong>
+                                        <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">書き込み可能 - コンテナの変更</div>
+                                    </div>
+                                    <div style="text-align: center; color: #22d3ee; font-size: 24px;">⬇️ マージ</div>
+                                    <div style="background: rgba(148, 163, 184, 0.1); border: 2px solid #94a3b8; border-radius: 8px; padding: 16px; text-align: center;">
+                                        <strong style="color: #cbd5e1;">Lower Layer 3（下位レイヤー）</strong>
+                                        <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">読み取り専用 - イメージレイヤー</div>
+                                    </div>
+                                    <div style="background: rgba(148, 163, 184, 0.1); border: 2px solid #94a3b8; border-radius: 8px; padding: 16px; text-align: center;">
+                                        <strong style="color: #cbd5e1;">Lower Layer 2</strong>
+                                        <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">読み取り専用 - イメージレイヤー</div>
+                                    </div>
+                                    <div style="background: rgba(148, 163, 184, 0.1); border: 2px solid #94a3b8; border-radius: 8px; padding: 16px; text-align: center;">
+                                        <strong style="color: #cbd5e1;">Lower Layer 1</strong>
+                                        <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">読み取り専用 - ベースイメージ</div>
+                                    </div>
+                                    <div style="text-align: center; color: #22d3ee; font-size: 24px; margin-top: 8px;">⬇️</div>
+                                    <div style="background: rgba(34, 211, 238, 0.15); border: 2px dashed #22d3ee; border-radius: 8px; padding: 16px; text-align: center;">
+                                        <strong style="color: #22d3ee;">Merged View（統合されたビュー）</strong>
+                                        <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">コンテナから見えるファイルシステム</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>OverlayFSの利点</h4>
+                            <ul class="list-disc list-inside space-y-2 ml-4 mb-4">
+                                <li><strong>ストレージ効率</strong>: 同じレイヤーを複数のコンテナで共有</li>
+                                <li><strong>高速起動</strong>: レイヤーをコピーせず、マウントするだけ</li>
+                                <li><strong>イメージの不変性</strong>: 下位レイヤーは変更されない</li>
+                                <li><strong>軽量</strong>: 変更差分のみを保存</li>
+                            </ul>
+
+                            <div class="info-box">
+                                <h4>💡 ファイル操作の流れ</h4>
+                                <p class="mb-2">コンテナ内でファイルを操作すると：</p>
+                                <ol class="list-decimal list-inside space-y-1 ml-4">
+                                    <li><strong>読み取り</strong>: 上位レイヤーから順に探し、最初に見つかったものを返す</li>
+                                    <li><strong>書き込み</strong>: 常に上位レイヤー（書き込み可能）に書き込む</li>
+                                    <li><strong>変更</strong>: 下位レイヤーのファイルを上位レイヤーにコピーしてから変更（CoW）</li>
+                                    <li><strong>削除</strong>: 上位レイヤーに削除マーカーを作成（実際には削除しない）</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ハンズオン: OverlayFSの確認 -->
+                    <div class="content-section">
+                        <h3>🎯 ハンズオン: OverlayFSを確認</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                実際にDockerがどのようにOverlayFSを使っているか確認してみましょう。
+                            </p>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">1</span>Dockerのストレージドライバーを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker info | grep "Storage Driver"</div>
+                                    <div class="output">Storage Driver: overlay2</div>
+                                </div>
+                                <p class="mb-4">
+                                    Dockerは<code class="code-inline">overlay2</code>（OverlayFSの改良版）を使っています。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">2</span>コンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -d --name overlay-test nginx:alpine</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">3</span>コンテナのレイヤー情報を確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker inspect overlay-test | grep -A 20 "GraphDriver"</div>
+                                    <div class="output">"GraphDriver": {
+    "Data": {
+        "LowerDir": "/var/lib/docker/overlay2/abc123.../diff:/var/lib/docker/overlay2/def456.../diff",
+        "MergedDir": "/var/lib/docker/overlay2/ghi789.../merged",
+        "UpperDir": "/var/lib/docker/overlay2/ghi789.../diff",
+        "WorkDir": "/var/lib/docker/overlay2/ghi789.../work"
+    },
+    "Name": "overlay2"
+}</div>
+                                </div>
+                                <p class="mb-4">
+                                    各ディレクトリの役割：
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 mb-4">
+                                    <li><code class="code-inline">LowerDir</code>: 読み取り専用のイメージレイヤー</li>
+                                    <li><code class="code-inline">UpperDir</code>: 書き込み可能なコンテナレイヤー</li>
+                                    <li><code class="code-inline">MergedDir</code>: 統合されたビュー（コンテナから見えるファイルシステム）</li>
+                                    <li><code class="code-inline">WorkDir</code>: OverlayFSの内部作業用</li>
+                                </ul>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">4</span>イメージのレイヤーを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image inspect nginx:alpine | grep -A 10 "Layers"</div>
+                                    <div class="output">"Layers": [
+    "sha256:4abcf20...",
+    "sha256:8e7a9f2...",
+    "sha256:3b8a1c4...",
+    "sha256:9f3e7b2...",
+    "sha256:2c8d4e9..."
+]</div>
+                                </div>
+                                <p class="mb-4">
+                                    イメージは5つのレイヤーで構成されています。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">5</span>コンテナ内でファイルを変更</h4>
+                                <div class="command-box">
+                                    <div class="command">docker exec overlay-test sh -c 'echo "Modified" > /test.txt'</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">docker exec overlay-test cat /test.txt</div>
+                                    <div class="output">Modified</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">6</span>変更がUpperDirに保存されていることを確認</h4>
+                                <p class="mb-4">
+                                    ※ この操作はroot権限が必要です（Mac/Windowsでは直接確認できません）
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">sudo ls /var/lib/docker/overlay2/ghi789.../diff/</div>
+                                    <div class="output">test.txt  var  usr  ...</div>
+                                </div>
+                                <p class="mb-4">
+                                    <code class="code-inline">test.txt</code> が書き込み可能レイヤー（UpperDir）に作成されています。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">7</span>クリーンアップ</h4>
+                                <div class="command-box">
+                                    <div class="command">docker rm -f overlay-test</div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 注意</h4>
+                                <p>
+                                    <code class="code-inline">/var/lib/docker</code> ディレクトリは、Dockerが管理する領域です。
+                                    直接ファイルを変更しないでください。破損の原因になります。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📝 まとめと次のステップ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>🎉 このセクションで学んだこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>Namespace</strong>により、プロセス、ネットワーク、ファイルシステムが隔離される</li>
+                                    <li><strong>cgroups</strong>により、CPU、メモリなどのリソースが制限される</li>
+                                    <li><strong>OverlayFS</strong>により、レイヤー型のファイルシステムが実現される</li>
+                                    <li>これら3つの技術が組み合わさって、軽量で高速なコンテナを実現</li>
+                                    <li>実際のコマンドで、隔離とリソース制限を確認できた</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のステップへ</h4>
+                                <p class="mb-2">
+                                    Dockerの仕組みを理解したら、次は実際の開発環境を構築していきます。
+                                    環境構築から始めて、実践的なDockerの使い方を学びましょう。
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>💪 復習チェック</h4>
+                                <p class="mb-2">次に進む前に、以下を理解できているか確認してみましょう：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1">
+                                    <li>Namespaceによる隔離の仕組みを説明できる</li>
+                                    <li>cgroupsによるリソース制限を設定できる</li>
+                                    <li>OverlayFSのレイヤー構造を理解している</li>
+                                    <li>コンテナが軽量な理由を説明できる</li>
+                                    <li>仮想マシンとコンテナの違いを技術的に説明できる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script src="js/docker-common.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+
+</body>
+
+</html>

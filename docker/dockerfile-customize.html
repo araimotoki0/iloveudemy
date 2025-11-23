@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dockerfileカスタマイズ - Docker入門講座</title>
+    <meta name="description" content="Dockerfileを自分でカスタマイズして最適化する方法を学ぶ">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- 概要 -->
+                    <div class="content-section">
+                        <h3>⚙️ Dockerfileをカスタマイズしよう</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-4">プロジェクトに必要な機能を追加したり、イメージを最適化したりする方法を学びます。</p>
+
+                            <div class="info-box">
+                                <h4 class="text-lg font-bold mb-2">🎯 このセクションで学ぶこと</h4>
+                                <ul class="list-disc list-inside space-y-2">
+                                    <li>Dockerfileの各命令の詳細（FROM、RUN、COPY、ENVなど）</li>
+                                    <li>レイヤーキャッシュの仕組みと最適化</li>
+                                    <li>マルチステージビルドでイメージサイズを削減</li>
+                                    <li>非rootユーザーでのセキュリティ対策</li>
+                                    <li>.dockerignoreの効果的な使い方</li>
+                                    <li>よくあるアンチパターンと対策</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dockerfile命令の詳細 -->
+                    <div class="content-section">
+                        <h3>📝 Dockerfileの主要命令</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">Dockerfileで使用する重要な命令を詳しく見ていきます。</p>
+
+                            <h4>FROM - ベースイメージの指定</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># 公式イメージを使用</span>
+FROM php:8.3-fpm
+
+<span class="text-gray-400"># タグでバージョンを明示（推奨）</span>
+FROM php:8.3-fpm-alpine
+
+<span class="text-gray-400"># 特定のバージョンを固定</span>
+FROM php:8.3.2-fpm-bookworm</div>
+
+                            <div class="warning-box mt-4">
+                                <p><strong>⚠️ latestタグは避ける</strong></p>
+                                <p class="mt-2"><code>FROM php:latest</code>は避けましょう。将来バージョンが上がった時に動かなくなる可能性があります。</p>
+                            </div>
+
+                            <h4 class="mt-6">RUN - コマンド実行</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># 悪い例：複数のRUNで分割（レイヤーが増える）</span>
+RUN apt-get update
+RUN apt-get install -y git
+RUN apt-get install -y curl
+
+<span class="text-gray-400"># 良い例：1つのRUNにまとめる</span>
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*</div>
+
+                            <div class="info-box mt-4">
+                                <p><strong>💡 ベストプラクティス</strong></p>
+                                <ul class="list-disc list-inside space-y-2 ml-4 mt-2">
+                                    <li><code>&&</code>で複数コマンドを連結してレイヤーを減らす</li>
+                                    <li><code>\</code>で改行して読みやすく</li>
+                                    <li><code>rm -rf /var/lib/apt/lists/*</code>でキャッシュを削除（イメージサイズ削減）</li>
+                                    <li>アルファベット順に並べると管理しやすい</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="mt-6">COPY vs ADD</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># COPY：単純なファイルコピー（推奨）</span>
+COPY app.py /app/
+COPY requirements.txt /app/
+
+<span class="text-gray-400"># ADD：自動展開機能付き（特別な理由がない限り使わない）</span>
+ADD archive.tar.gz /app/  <span class="text-gray-400"># 自動的に展開される</span></div>
+
+                            <div class="warning-box mt-4">
+                                <p><strong>⚠️ 基本的にCOPYを使う</strong></p>
+                                <p class="mt-2">ADDは自動展開など予期しない動作をする可能性があるため、明確な理由がない限りCOPYを使いましょう。</p>
+                            </div>
+
+                            <h4 class="mt-6">WORKDIR - 作業ディレクトリの設定</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># 悪い例：cdコマンドを使う</span>
+RUN cd /app && npm install
+
+<span class="text-gray-400"># 良い例：WORKDIRを使う</span>
+WORKDIR /app
+RUN npm install</div>
+
+                            <div class="info-box mt-4">
+                                <p><strong>💡 WORKDIRの利点</strong></p>
+                                <p class="mt-2">ディレクトリが存在しない場合は自動的に作成されます。また、以降のすべての命令の作業ディレクトリになります。</p>
+                            </div>
+
+                            <h4 class="mt-6">ENV - 環境変数の設定</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># 環境変数を設定</span>
+ENV NODE_ENV=production
+ENV APP_HOME=/app
+
+<span class="text-gray-400"># 複数まとめて設定</span>
+ENV NODE_ENV=production \
+    APP_HOME=/app \
+    PORT=3000</div>
+
+                            <div class="info-box mt-4">
+                                <p><strong>💡 ENVとARGの違い</strong></p>
+                                <ul class="list-disc list-inside space-y-2 ml-4 mt-2">
+                                    <li><strong>ENV</strong>: ビルド時と実行時の両方で有効</li>
+                                    <li><strong>ARG</strong>: ビルド時のみ有効。実行時には残らない</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="mt-6">USER - 実行ユーザーの変更</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># 専用ユーザーを作成</span>
+RUN useradd -m -u 1000 -s /bin/bash appuser
+
+<span class="text-gray-400"># 以降の命令をappuserで実行</span>
+USER appuser
+
+<span class="text-gray-400"># コンテナ起動時もappuserで実行される</span>
+CMD ["python", "app.py"]</div>
+
+                            <div class="success-box mt-4">
+                                <p><strong>✅ セキュリティ向上</strong></p>
+                                <p class="mt-2">rootユーザーで実行すると、コンテナから抜け出された場合にホストも危険にさらされます。可能な限り非rootユーザーを使いましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- レイヤーキャッシュ -->
+                    <div class="content-section">
+                        <h3>🚀 レイヤーキャッシュで高速化</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">Dockerは各命令をレイヤーとして保存し、変更がなければキャッシュを再利用します。</p>
+
+                            <h4>❌ 悪い例：毎回全部ビルドされる</h4>
+                            <div class="command-box">FROM node:18-alpine
+WORKDIR /app
+
+<span class="text-gray-400"># アプリコードをコピー</span>
+COPY . .
+
+<span class="text-gray-400"># 依存関係をインストール</span>
+RUN npm install
+
+CMD ["node", "server.js"]</div>
+
+                            <p class="mt-4"><strong>問題点：</strong></p>
+                            <ul class="list-disc list-inside space-y-2 ml-4 mb-4">
+                                <li><code>COPY . .</code>でアプリコードをコピー</li>
+                                <li>アプリコードが少しでも変わると、このレイヤーのキャッシュが無効化</li>
+                                <li>以降の<code>npm install</code>も毎回実行される（時間がかかる）</li>
+                            </ul>
+
+                            <h4>✅ 良い例：キャッシュを活用</h4>
+                            <div class="command-box">FROM node:18-alpine
+WORKDIR /app
+
+<span class="text-gray-400"># 先に依存関係ファイルだけコピー</span>
+COPY package*.json ./
+
+<span class="text-gray-400"># 依存関係をインストール（package.jsonが変わらない限りキャッシュされる）</span>
+RUN npm install
+
+<span class="text-gray-400"># 最後にアプリコードをコピー</span>
+COPY . .
+
+CMD ["node", "server.js"]</div>
+
+                            <div class="success-box mt-4">
+                                <p><strong>✅ 改善効果</strong></p>
+                                <ul class="list-disc list-inside space-y-2 ml-4 mt-2">
+                                    <li>アプリコードを変更しても、<code>npm install</code>はキャッシュから復元</li>
+                                    <li>ビルド時間が数分から数秒に短縮</li>
+                                    <li>開発効率が大幅に向上</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="mt-6">レイヤーキャッシュの原則</h4>
+                            <div class="info-box">
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>変更頻度の低いものを先に</strong>：ベースイメージ、システムパッケージ、依存関係</li>
+                                    <li><strong>変更頻度の高いものを後に</strong>：アプリケーションコード</li>
+                                    <li><strong>ファイルが変わったら以降のキャッシュは無効</strong>：順番が重要</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- マルチステージビルド -->
+                    <div class="content-section">
+                        <h3>📦 マルチステージビルドでサイズ削減</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">ビルドに必要なツールを最終イメージに含めない手法です。</p>
+
+                            <h4>❌ 単一ステージ：イメージが大きい</h4>
+                            <div class="command-box">FROM node:18
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build  <span class="text-gray-400"># TypeScriptをビルド</span>
+
+<span class="text-gray-400"># 問題：開発依存パッケージも全部含まれる（数百MB）</span>
+CMD ["node", "dist/server.js"]</div>
+
+                            <h4 class="mt-6">✅ マルチステージ：イメージが小さい</h4>
+                            <div class="command-box"><span class="text-gray-400"># ===== ビルドステージ =====</span>
+FROM node:18 AS builder
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install  <span class="text-gray-400"># 開発依存も含めてインストール</span>
+
+COPY . .
+RUN npm run build  <span class="text-gray-400"># TypeScriptをビルド</span>
+
+<span class="text-gray-400"># ===== 実行ステージ =====</span>
+FROM node:18-alpine  <span class="text-gray-400"># 軽量版をベースに</span>
+WORKDIR /app
+
+<span class="text-gray-400"># package.jsonをコピー</span>
+COPY package*.json ./
+
+<span class="text-gray-400"># 本番用依存のみインストール</span>
+RUN npm ci --only=production
+
+<span class="text-gray-400"># ビルドステージからビルド済みファイルだけコピー</span>
+COPY --from=builder /app/dist ./dist
+
+CMD ["node", "dist/server.js"]</div>
+
+                            <div class="success-box mt-4">
+                                <p><strong>✅ 効果</strong></p>
+                                <ul class="list-disc list-inside space-y-2 ml-4 mt-2">
+                                    <li>イメージサイズが1GB → 150MBに削減（例）</li>
+                                    <li>開発ツール（TypeScript、Webpackなど）は含まれない</li>
+                                    <li>セキュリティ向上（攻撃面が減る）</li>
+                                    <li>デプロイが高速化</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="mt-6">PHP+Composerの例</h4>
+                            <div class="command-box"><span class="text-gray-400"># ===== Composerステージ =====</span>
+FROM composer:2.7 AS composer
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader
+
+<span class="text-gray-400"># ===== 実行ステージ =====</span>
+FROM php:8.3-fpm-alpine
+WORKDIR /app
+
+<span class="text-gray-400"># Composerステージからvendorディレクトリだけコピー</span>
+COPY --from=composer /app/vendor ./vendor
+
+<span class="text-gray-400"># アプリコードをコピー</span>
+COPY . .
+
+CMD ["php-fpm"]</div>
+
+                            <div class="info-box mt-4">
+                                <p><strong>💡 ポイント</strong></p>
+                                <p class="mt-2">Composerイメージは数百MBありますが、最終イメージには含まれません。vendorディレクトリ（依存パッケージ）だけを取り出せます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- .dockerignore -->
+                    <div class="content-section">
+                        <h3>🚫 .dockerignoreで不要ファイルを除外</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4"><code>.dockerignore</code>ファイルで、イメージに含めないファイルを指定できます。</p>
+
+                            <h4>.dockerignoreの例</h4>
+                            <div class="command-box"><span class="text-gray-400"># Git関連</span>
+.git
+.gitignore
+.gitattributes
+
+<span class="text-gray-400"># 依存関係（Dockerfileで別途インストールする）</span>
+node_modules
+vendor
+
+<span class="text-gray-400"># 環境ファイル</span>
+.env
+.env.local
+
+<span class="text-gray-400"># ログ・キャッシュ</span>
+*.log
+storage/logs/*
+storage/framework/cache/*
+
+<span class="text-gray-400"># IDE設定</span>
+.vscode
+.idea
+*.swp
+
+<span class="text-gray-400"># ドキュメント</span>
+README.md
+docs/
+
+<span class="text-gray-400"># テスト</span>
+tests/
+*.test.js
+
+<span class="text-gray-400"># Docker関連</span>
+docker-compose.yml
+Dockerfile
+.dockerignore</div>
+
+                            <div class="success-box mt-4">
+                                <p><strong>✅ 効果</strong></p>
+                                <ul class="list-disc list-inside space-y-2 ml-4 mt-2">
+                                    <li>イメージサイズが削減される</li>
+                                    <li>ビルド時の転送データが減る（高速化）</li>
+                                    <li>機密情報の混入を防げる（.envなど）</li>
+                                    <li>キャッシュの効率が向上</li>
+                                </ul>
+                            </div>
+
+                            <div class="warning-box mt-4">
+                                <p><strong>⚠️ よくある間違い</strong></p>
+                                <p class="mt-2"><code>COPY . .</code>を使う場合は、必ず.dockerignoreを設定しましょう。設定しないと、node_modulesやvendorディレクトリまでコピーされ、イメージが巨大になります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セキュリティ対策 -->
+                    <div class="content-section">
+                        <h3>🔒 セキュリティベストプラクティス</h3>
+                        <div class="collapsible-content">
+                            <h4>1. 非rootユーザーで実行</h4>
+                            <div class="command-box">FROM python:3.11-slim
+
+<span class="text-gray-400"># 専用ユーザーを作成</span>
+RUN useradd -m -u 1000 appuser
+
+<span class="text-gray-400"># アプリディレクトリの所有者を変更</span>
+WORKDIR /app
+COPY --chown=appuser:appuser . .
+
+<span class="text-gray-400"># ユーザーを切り替え</span>
+USER appuser
+
+CMD ["python", "app.py"]</div>
+
+                            <h4 class="mt-6">2. 最小限のベースイメージを使う</h4>
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>イメージ</th>
+                                        <th>サイズ</th>
+                                        <th>用途</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>python:3.11</code></td>
+                                        <td>~1GB</td>
+                                        <td>開発用（フル機能）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>python:3.11-slim</code></td>
+                                        <td>~150MB</td>
+                                        <td>本番用（推奨）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>python:3.11-alpine</code></td>
+                                        <td>~50MB</td>
+                                        <td>最小限（一部パッケージで問題あり）</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="info-box mt-4">
+                                <p><strong>💡 推奨</strong></p>
+                                <p class="mt-2">開発環境では通常版、本番環境では<code>-slim</code>版がバランスが良いです。<code>-alpine</code>はサイズは小さいですが、一部のPythonパッケージでコンパイルエラーが出ることがあります。</p>
+                            </div>
+
+                            <h4 class="mt-6">3. 機密情報をハードコードしない</h4>
+                            <div class="error-box">
+                                <p><strong>❌ 悪い例</strong></p>
+                                <div class="command-box mt-2">ENV DB_PASSWORD=secretpassword123  <span class="text-gray-400"># NG！</span></div>
+                            </div>
+
+                            <div class="success-box mt-4">
+                                <p><strong>✅ 良い例</strong></p>
+                                <p class="mt-2">環境変数は実行時にdocker-compose.ymlや<code>docker run -e</code>で渡す。</p>
+                            </div>
+
+                            <h4 class="mt-6">4. バージョンを固定する</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># 悪い例</span>
+RUN pip install flask
+
+<span class="text-gray-400"># 良い例：バージョン固定</span>
+RUN pip install flask==3.0.0</div>
+
+                            <h4 class="mt-6">5. 不要なパッケージをインストールしない</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># 推奨パッケージをスキップ</span>
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*</div>
+                        </div>
+                    </div>
+
+                    <!-- アンチパターン -->
+                    <div class="content-section">
+                        <h3>⚠️ よくあるアンチパターンと対策</h3>
+                        <div class="collapsible-content">
+                            <h4>1. レイヤーの無駄な増加</h4>
+                            <div class="error-box">
+                                <p><strong>❌ 悪い例</strong></p>
+                                <div class="command-box mt-2">RUN apt-get update
+RUN apt-get install -y git
+RUN apt-get install -y curl
+RUN apt-get clean</div>
+                            </div>
+
+                            <div class="success-box mt-2">
+                                <p><strong>✅ 良い例</strong></p>
+                                <div class="command-box mt-2">RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*</div>
+                            </div>
+
+                            <h4 class="mt-6">2. aptキャッシュの残留</h4>
+                            <div class="error-box">
+                                <p><strong>❌ 悪い例</strong></p>
+                                <div class="command-box mt-2">RUN apt-get update && apt-get install -y git</div>
+                                <p class="mt-2">問題：/var/lib/apt/lists/ にキャッシュが残り、イメージが肥大化</p>
+                            </div>
+
+                            <div class="success-box mt-2">
+                                <p><strong>✅ 良い例</strong></p>
+                                <div class="command-box mt-2">RUN apt-get update && apt-get install -y git \
+    && rm -rf /var/lib/apt/lists/*</div>
+                            </div>
+
+                            <h4 class="mt-6">3. COPY . . の乱用</h4>
+                            <div class="error-box">
+                                <p><strong>❌ 悪い例</strong></p>
+                                <div class="command-box mt-2">COPY . .  <span class="text-gray-400"># 全ファイルをコピー（不要なものまで）</span></div>
+                            </div>
+
+                            <div class="success-box mt-2">
+                                <p><strong>✅ 良い例</strong></p>
+                                <div class="command-box mt-2"><span class="text-gray-400"># 必要なファイルだけコピー</span>
+COPY app/ ./app/
+COPY requirements.txt .
+
+<span class="text-gray-400"># または.dockerignoreで除外</span></div>
+                            </div>
+
+                            <h4 class="mt-6">4. 依存関係のキャッシュ無視</h4>
+                            <div class="error-box">
+                                <p><strong>❌ 悪い例</strong></p>
+                                <div class="command-box mt-2">COPY . .
+RUN npm install  <span class="text-gray-400"># コード変更の度に実行される</span></div>
+                            </div>
+
+                            <div class="success-box mt-2">
+                                <p><strong>✅ 良い例</strong></p>
+                                <div class="command-box mt-2">COPY package*.json ./
+RUN npm install  <span class="text-gray-400"># package.json変更時のみ実行</span>
+COPY . .</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 実践演習 -->
+                    <div class="content-section">
+                        <h3>🏋️ 実践演習：Dockerfileを最適化しよう</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">以下の「悪い」Dockerfileを、学んだテクニックで最適化してみましょう。</p>
+
+                            <h4>課題</h4>
+                            <div class="command-box">FROM node:18
+WORKDIR /app
+COPY . .
+RUN npm install
+RUN npm run build
+CMD ["node", "dist/server.js"]</div>
+
+                            <h4 class="mt-4">改善すべき点</h4>
+                            <ul class="list-disc list-inside space-y-2 ml-4 mb-4">
+                                <li>レイヤーキャッシュが効いていない</li>
+                                <li>開発依存パッケージも含まれる</li>
+                                <li>イメージサイズが大きい</li>
+                                <li>rootユーザーで実行</li>
+                            </ul>
+
+                            <details class="mt-4">
+                                <summary class="cursor-pointer text-cyan-400 hover:text-cyan-300 font-bold">▶ 解答例を見る</summary>
+
+                                <div class="command-box mt-4"><span class="text-gray-400"># ===== ビルドステージ =====</span>
+FROM node:18 AS builder
+WORKDIR /app
+
+<span class="text-gray-400"># 依存関係ファイルを先にコピー（キャッシュ効率化）</span>
+COPY package*.json ./
+RUN npm install
+
+<span class="text-gray-400"># ソースコードをコピー</span>
+COPY . .
+RUN npm run build
+
+<span class="text-gray-400"># ===== 実行ステージ =====</span>
+FROM node:18-alpine  <span class="text-gray-400"># 軽量版を使用</span>
+WORKDIR /app
+
+<span class="text-gray-400"># 非rootユーザーを作成</span>
+RUN addgroup -g 1000 appgroup && \
+    adduser -D -u 1000 -G appgroup appuser
+
+<span class="text-gray-400"># 本番用依存のみインストール</span>
+COPY package*.json ./
+RUN npm ci --only=production
+
+<span class="text-gray-400"># ビルド成果物をコピー</span>
+COPY --from=builder /app/dist ./dist
+
+<span class="text-gray-400"># 所有者を変更</span>
+RUN chown -R appuser:appgroup /app
+
+<span class="text-gray-400"># 非rootユーザーに切り替え</span>
+USER appuser
+
+CMD ["node", "dist/server.js"]</div>
+
+                                <div class="success-box mt-4">
+                                    <h4 class="text-lg font-bold mb-2">✅ 改善点</h4>
+                                    <ul class="list-disc list-inside space-y-2 ml-4">
+                                        <li>マルチステージビルドでサイズ削減</li>
+                                        <li>package.jsonを先にコピーしてキャッシュ活用</li>
+                                        <li>Alpine版で軽量化</li>
+                                        <li>非rootユーザーでセキュリティ向上</li>
+                                        <li>本番用依存のみ含める</li>
+                                    </ul>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📚 まとめ</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">Dockerfileのカスタマイズと最適化技術を習得しました！</p>
+
+                            <div class="success-box">
+                                <h4 class="text-lg font-bold mb-3">✅ 習得したスキル</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>Dockerfileの各命令（FROM、RUN、COPY、USERなど）</li>
+                                    <li>レイヤーキャッシュの仕組みと最適化</li>
+                                    <li>マルチステージビルドでサイズ削減</li>
+                                    <li>.dockerignoreで不要ファイル除外</li>
+                                    <li>セキュリティベストプラクティス</li>
+                                    <li>よくあるアンチパターンの回避</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box mt-6">
+                                <h4 class="text-lg font-bold mb-3">🚀 次のステップ</h4>
+                                <p>次のセクションでは、開発環境と本番環境の違いを学びます。</p>
+                                <p class="mt-2">環境ごとに最適な設定を使い分ける方法をマスターしましょう。</p>
+                            </div>
+
+                            <div class="warning-box mt-6">
+                                <h4 class="text-lg font-bold mb-2">💪 復習チェック</h4>
+                                <p class="mb-2">次に進む前に、以下を確認してみましょう：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1">
+                                    <li>☐ レイヤーキャッシュの仕組みを説明できる</li>
+                                    <li>☐ マルチステージビルドのメリットを理解した</li>
+                                    <li>☐ .dockerignoreの重要性がわかる</li>
+                                    <li>☐ 非rootユーザーで実行する理由を説明できる</li>
+                                    <li>☐ RUN命令を効率的に書ける</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+</body>
+
+</html>

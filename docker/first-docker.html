@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>はじめてのDocker - Docker入門講座</title>
+    <meta name="description" content="実際にDockerコンテナを動かしながら、基本的な使い方を学ぼう">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- セクション1: Hello Docker! -->
+                    <div class="content-section">
+                        <h3>🎯 Hello Docker!</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                環境構築お疲れさまでした！それでは実際にDockerを動かしてみましょう。
+                                最初は定番の「Hello World」から始めます。
+                            </p>
+
+                            <div class="success-box">
+                                <h4>🎉 このセクションで学ぶこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>Dockerの基本的なワークフロー</li>
+                                    <li>イメージの取得（pull）</li>
+                                    <li>コンテナの実行（run）</li>
+                                    <li>実行中のコンテナの確認</li>
+                                    <li>停止したコンテナの確認と削除</li>
+                                </ul>
+                            </div>
+
+                            <h4>🐳 最初のDockerコマンド</h4>
+                            <p class="mb-4">
+                                ターミナル（Windows: コマンドプロンプトまたはPowerShell、Mac/Linux: ターミナル）を開いて、
+                                以下のコマンドを入力してください：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker run hello-world</div>
+                                <div class="output">
+Unable to find image 'hello-world:latest' locally<br>
+latest: Pulling from library/hello-world<br>
+719385e32844: Pull complete<br>
+Digest: sha256:4f53e2564790c8e7856ec08e384732aa38dc43c52f02952483e3f003afbf23db<br>
+Status: Downloaded newer image for hello-world:latest<br>
+<br>
+<span style="color: #fbbf24; font-weight: 600;">Hello from Docker!</span><br>
+This message shows that your installation appears to be working correctly.
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>✅ 成功！</h4>
+                                <p class="mb-2">
+                                    「Hello from Docker!」というメッセージが表示されましたか？
+                                </p>
+                                <p>
+                                    おめでとうございます！あなたは今、初めてのDockerコンテナを動かしました！
+                                </p>
+                            </div>
+
+                            <h4>🔍 何が起こったの？</h4>
+                            <p class="mb-4">
+                                このシンプルなコマンド1行で、Dockerは裏で複雑な処理を自動的に行ってくれました。
+                                順番に見ていきましょう：
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #22d3ee; margin-bottom: 24px;">
+                                    docker run hello-world の実行フロー
+                                </div>
+                                <div style="display: grid; gap: 16px;">
+                                    <div style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(6, 182, 212, 0.05)); border: 2px solid #22d3ee; border-radius: 8px; padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                            <span class="step-number">1</span>
+                                            <span style="font-weight: 600; color: #22d3ee;">ローカルでイメージを探す</span>
+                                        </div>
+                                        <p style="margin-left: 44px; color: #94a3b8;">
+                                            Docker は最初に、あなたのPC内に「hello-world」イメージがあるか確認します。
+                                            初回なので見つかりません → "Unable to find image 'hello-world:latest' locally"
+                                        </p>
+                                    </div>
+
+                                    <div style="text-align: center; color: #22d3ee; font-size: 24px;">↓</div>
+
+                                    <div style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(6, 182, 212, 0.05)); border: 2px solid #22d3ee; border-radius: 8px; padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                            <span class="step-number">2</span>
+                                            <span style="font-weight: 600; color: #22d3ee;">Docker Hubからダウンロード</span>
+                                        </div>
+                                        <p style="margin-left: 44px; color: #94a3b8;">
+                                            見つからなかったので、自動的にDocker Hub（インターネット上のイメージ倉庫）から
+                                            「hello-world」イメージをダウンロードします → "Pulling from library/hello-world"
+                                        </p>
+                                    </div>
+
+                                    <div style="text-align: center; color: #22d3ee; font-size: 24px;">↓</div>
+
+                                    <div style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(6, 182, 212, 0.05)); border: 2px solid #22d3ee; border-radius: 8px; padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                            <span class="step-number">3</span>
+                                            <span style="font-weight: 600; color: #22d3ee;">コンテナを作成</span>
+                                        </div>
+                                        <p style="margin-left: 44px; color: #94a3b8;">
+                                            ダウンロードしたイメージから、新しいコンテナを作成します。
+                                            イメージ（設計図）→ コンテナ（実体）という流れです。
+                                        </p>
+                                    </div>
+
+                                    <div style="text-align: center; color: #22d3ee; font-size: 24px;">↓</div>
+
+                                    <div style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(6, 182, 212, 0.05)); border: 2px solid #22d3ee; border-radius: 8px; padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                            <span class="step-number">4</span>
+                                            <span style="font-weight: 600; color: #22d3ee;">コンテナを起動・実行</span>
+                                        </div>
+                                        <p style="margin-left: 44px; color: #94a3b8;">
+                                            コンテナの中で指定されたプログラム（この場合はメッセージを表示するだけの小さなプログラム）を実行します。
+                                        </p>
+                                    </div>
+
+                                    <div style="text-align: center; color: #22d3ee; font-size: 24px;">↓</div>
+
+                                    <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.05)); border: 2px solid #22c55e; border-radius: 8px; padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                            <span class="step-number">5</span>
+                                            <span style="font-weight: 600; color: #22c55e;">結果を表示して終了</span>
+                                        </div>
+                                        <p style="margin-left: 44px; color: #94a3b8;">
+                                            "Hello from Docker!" というメッセージが画面に表示されます。
+                                            プログラムが終了すると、コンテナも自動的に停止します。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 重要なポイント</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>イメージ</strong>は設計図・レシピのようなもの（1回ダウンロードすれば再利用可能）</li>
+                                    <li><strong>コンテナ</strong>はイメージから作られた実行環境（何度でも作成できる）</li>
+                                    <li><strong>docker run</strong> は「イメージ取得 → コンテナ作成 → 起動」を一度に行う便利コマンド</li>
+                                    <li>プログラムが終わるとコンテナも自動的に停止する</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2: もっと実用的なコンテナを動かそう -->
+                    <div class="content-section">
+                        <h3>🚀 もっと実用的なコンテナを動かそう</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                Hello Worldは理解できましたね。次はもっと実用的なコンテナを動かしてみましょう。
+                                Webサーバー（nginx）を起動してみます。
+                            </p>
+
+                            <h4>🌐 nginxコンテナを起動</h4>
+                            <p class="mb-4">
+                                nginx（エンジンエックス）は、世界中で使われている高速なWebサーバーソフトウェアです。
+                                通常なら複雑なインストール作業が必要ですが、Dockerなら一瞬です！
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker run -d -p 8080:80 --name my-nginx nginx</div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ オプションの意味</h4>
+                                <p class="mb-2">少し複雑に見えますが、1つずつ理解すれば簡単です：</p>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><code class="text-cyan-400">-d</code> - デタッチモード（バックグラウンドで実行）</li>
+                                    <li><code class="text-cyan-400">-p 8080:80</code> - ポートフォワーディング（あなたのPC:8080 → コンテナ:80）</li>
+                                    <li><code class="text-cyan-400">--name my-nginx</code> - コンテナに名前を付ける</li>
+                                    <li><code class="text-cyan-400">nginx</code> - 使用するイメージ名</li>
+                                </ul>
+                            </div>
+
+                            <h4>🔍 オプションを詳しく解説</h4>
+
+                            <div class="step-box">
+                                <h4 style="color: #22d3ee; margin-bottom: 12px;">📌 -d (detach mode)</h4>
+                                <p class="mb-2">
+                                    <strong>バックグラウンドで実行</strong>する指定です。
+                                </p>
+                                <ul class="list-disc list-inside ml-4 space-y-1 text-sm">
+                                    <li>-d を付けない → ターミナルがコンテナに占有される（終了するまで他のコマンドが打てない）</li>
+                                    <li>-d を付ける → コンテナは裏で動き続け、ターミナルは自由に使える</li>
+                                </ul>
+                            </div>
+
+                            <div class="step-box">
+                                <h4 style="color: #22d3ee; margin-bottom: 12px;">📌 -p 8080:80 (port forwarding)</h4>
+                                <p class="mb-2">
+                                    <strong>ポート番号のマッピング</strong>を設定します。
+                                </p>
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 16px; margin: 12px 0;">
+                                    <div style="text-align: center; font-family: 'JetBrains Mono', monospace; color: #22d3ee; font-size: 16px;">
+                                        あなたのPC:8080 → コンテナ:80
+                                    </div>
+                                </div>
+                                <p class="mb-2">つまり：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1 text-sm">
+                                    <li>ブラウザで <code>localhost:8080</code> にアクセスすると...</li>
+                                    <li>その通信がコンテナの80番ポート（nginxが待ち受けているポート）に転送される</li>
+                                    <li>コンテナは隔離されているので、このマッピングがないと外からアクセスできない</li>
+                                </ul>
+                            </div>
+
+                            <div class="step-box">
+                                <h4 style="color: #22d3ee; margin-bottom: 12px;">📌 --name my-nginx</h4>
+                                <p class="mb-2">
+                                    コンテナに<strong>わかりやすい名前</strong>を付けます。
+                                </p>
+                                <ul class="list-disc list-inside ml-4 space-y-1 text-sm">
+                                    <li>指定しないと、Dockerがランダムな名前を自動生成する（例: "silly_einstein"）</li>
+                                    <li>名前を付けておくと、後で操作するときに便利</li>
+                                </ul>
+                            </div>
+
+                            <h4>✅ 動作確認</h4>
+                            <p class="mb-4">
+                                コンテナが起動したら、ブラウザを開いて以下のURLにアクセスしてみてください：
+                            </p>
+
+                            <div style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+                                <a href="http://localhost:8080" target="_blank" style="font-size: 20px; font-weight: 700; color: #22d3ee; text-decoration: none;">
+                                    http://localhost:8080
+                                </a>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎉 nginxのウェルカムページが表示されましたか？</h4>
+                                <p class="mb-2">
+                                    "Welcome to nginx!" というページが表示されれば成功です！
+                                </p>
+                                <p>
+                                    これで、あなたのPC上でWebサーバーが動いています。
+                                    インストール不要、設定不要、たった1行のコマンドでWebサーバーが起動しました！
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 すごいポイント</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>nginx本体のインストール不要（コンテナの中に全て入っている）</li>
+                                    <li>PCを汚さない（コンテナを削除すれば痕跡ゼロ）</li>
+                                    <li>同じコマンドで誰でも同じ環境が作れる</li>
+                                    <li>バージョンを簡単に切り替えられる（nginx:1.21、nginx:1.22など）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション3: コンテナの状態を確認しよう -->
+                    <div class="content-section">
+                        <h3>📊 コンテナの状態を確認しよう</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                今、あなたのPC上でnginxコンテナが動いています。
+                                Dockerコンテナの状態を確認する方法を学びましょう。
+                            </p>
+
+                            <h4>🔍 実行中のコンテナを確認</h4>
+                            <p class="mb-4">
+                                現在動いているコンテナの一覧を表示します：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker ps</div>
+                                <div class="output">
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS                  NAMES<br>
+abc123def456   nginx     "/docker-entrypoint.…"   2 minutes ago    Up 2 minutes    0.0.0.0:8080->80/tcp   my-nginx
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📋 表示項目の意味</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>CONTAINER ID</strong> - コンテナの一意な識別子（短縮版）</li>
+                                    <li><strong>IMAGE</strong> - 使用しているイメージ名</li>
+                                    <li><strong>COMMAND</strong> - コンテナ内で実行されているコマンド</li>
+                                    <li><strong>CREATED</strong> - コンテナが作成された時刻</li>
+                                    <li><strong>STATUS</strong> - 現在の状態（Up = 実行中）</li>
+                                    <li><strong>PORTS</strong> - ポートのマッピング情報</li>
+                                    <li><strong>NAMES</strong> - コンテナの名前（--nameで指定したもの）</li>
+                                </ul>
+                            </div>
+
+                            <h4>📜 全てのコンテナを確認（停止中も含む）</h4>
+                            <p class="mb-4">
+                                停止しているコンテナも含めて、全てのコンテナを表示します：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker ps -a</div>
+                                <div class="output">
+CONTAINER ID   IMAGE         COMMAND                  CREATED          STATUS                      PORTS                  NAMES<br>
+abc123def456   nginx         "/docker-entrypoint.…"   5 minutes ago    Up 5 minutes                0.0.0.0:8080->80/tcp   my-nginx<br>
+xyz789ghi012   hello-world   "/hello"                 10 minutes ago   Exited (0) 10 minutes ago                          romantic_tesla
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ -a オプション</h4>
+                                <p class="mb-2">
+                                    <code class="text-cyan-400">-a</code> (all) を付けると、停止中のコンテナも表示されます。
+                                </p>
+                                <p>
+                                    hello-worldコンテナは「Exited (0)」つまり正常終了して停止している状態です。
+                                </p>
+                            </div>
+
+                            <h4>🎯 特定のコンテナの詳細情報</h4>
+                            <p class="mb-4">
+                                コンテナの詳細情報をJSON形式で表示します：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker inspect my-nginx</div>
+                            </div>
+
+                            <p class="mt-4 text-sm text-gray-400">
+                                ※ たくさんの情報が表示されますが、今は全部理解する必要はありません。
+                                必要に応じて確認する程度でOKです。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- セクション4: コンテナを操作しよう -->
+                    <div class="content-section">
+                        <h3>🎮 コンテナを操作しよう</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                コンテナの基本的な操作（停止・起動・再起動・削除）を学びます。
+                            </p>
+
+                            <h4>⏸️ コンテナを停止</h4>
+                            <p class="mb-4">
+                                動いているコンテナを停止します：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker stop my-nginx</div>
+                                <div class="output">my-nginx</div>
+                            </div>
+
+                            <p class="mt-4 mb-4">
+                                停止したことを確認してみましょう：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker ps</div>
+                                <div class="output">CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</div>
+                            </div>
+
+                            <p class="mt-4 text-gray-300">
+                                → 何も表示されません（実行中のコンテナがないため）
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker ps -a</div>
+                                <div class="output">
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS                     PORTS     NAMES<br>
+abc123def456   nginx     "/docker-entrypoint.…"   10 minutes ago   Exited (0) 5 seconds ago             my-nginx
+                                </div>
+                            </div>
+
+                            <p class="mt-4 text-gray-300">
+                                → STATUSが「Exited」になっています
+                            </p>
+
+                            <h4>▶️ コンテナを起動</h4>
+                            <p class="mb-4">
+                                停止しているコンテナを再度起動します：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker start my-nginx</div>
+                                <div class="output">my-nginx</div>
+                            </div>
+
+                            <p class="mt-4 mb-4">
+                                もう一度ブラウザで <code>http://localhost:8080</code> にアクセスしてみてください。
+                                またnginxのページが表示されるはずです！
+                            </p>
+
+                            <div class="info-box">
+                                <h4>💡 docker run と docker start の違い</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><code class="text-cyan-400">docker run</code> - 新しいコンテナを<strong>作成して起動</strong>（イメージから）</li>
+                                    <li><code class="text-cyan-400">docker start</code> - 既存のコンテナを<strong>起動</strong>（停止中のものを再開）</li>
+                                </ul>
+                            </div>
+
+                            <h4>🔄 コンテナを再起動</h4>
+                            <p class="mb-4">
+                                停止→起動を一度に行います：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker restart my-nginx</div>
+                                <div class="output">my-nginx</div>
+                            </div>
+
+                            <h4>🗑️ コンテナを削除</h4>
+                            <p class="mb-4">
+                                不要になったコンテナを削除します。<strong>まず停止してから削除</strong>します：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker stop my-nginx</div>
+                                <div class="command">docker rm my-nginx</div>
+                                <div class="output">my-nginx</div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 実行中のコンテナは削除できない</h4>
+                                <p class="mb-2">
+                                    実行中のコンテナを削除しようとするとエラーになります：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker rm my-nginx</div>
+                                    <div style="color: #ef4444; margin-top: 8px;">
+Error response from daemon: You cannot remove a running container...
+                                    </div>
+                                </div>
+                                <p class="mt-3">強制削除する場合は <code class="text-cyan-400">-f</code> オプションを使います：</p>
+                                <div class="command-box">
+                                    <div class="command">docker rm -f my-nginx</div>
+                                </div>
+                            </div>
+
+                            <h4>🧹 停止中のコンテナを一括削除</h4>
+                            <p class="mb-4">
+                                停止しているコンテナが溜まってきたら、一括削除できます：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker container prune</div>
+                                <div class="output">
+WARNING! This will remove all stopped containers.<br>
+Are you sure you want to continue? [y/N] y<br>
+Deleted Containers:<br>
+xyz789ghi012<br>
+Total reclaimed space: 0B
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション5: イメージを管理しよう -->
+                    <div class="content-section">
+                        <h3>🖼️ イメージを管理しよう</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                コンテナの元になる「イメージ」の管理方法を学びます。
+                            </p>
+
+                            <h4>📋 イメージ一覧を確認</h4>
+                            <p class="mb-4">
+                                あなたのPC上にあるDockerイメージを表示します：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker images</div>
+                                <div class="output">
+REPOSITORY    TAG       IMAGE ID       CREATED        SIZE<br>
+nginx         latest    abc123def456   2 weeks ago    142MB<br>
+hello-world   latest    xyz789ghi012   6 months ago   13.3kB
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📋 表示項目の意味</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>REPOSITORY</strong> - イメージ名</li>
+                                    <li><strong>TAG</strong> - バージョンタグ（latest = 最新版）</li>
+                                    <li><strong>IMAGE ID</strong> - イメージの一意な識別子</li>
+                                    <li><strong>CREATED</strong> - イメージが作成された日時</li>
+                                    <li><strong>SIZE</strong> - イメージのサイズ</li>
+                                </ul>
+                            </div>
+
+                            <h4>📥 イメージをダウンロード</h4>
+                            <p class="mb-4">
+                                Docker Hubから明示的にイメージをダウンロードします：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker pull python:3.11</div>
+                                <div class="output">
+3.11: Pulling from library/python<br>
+abc123: Pull complete<br>
+def456: Pull complete<br>
+ghi789: Pull complete<br>
+Digest: sha256:abc123...<br>
+Status: Downloaded newer image for python:3.11
+                                </div>
+                            </div>
+
+                            <p class="mt-4 mb-4">
+                                ダウンロードされたか確認：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker images</div>
+                                <div class="output">
+REPOSITORY    TAG       IMAGE ID       CREATED        SIZE<br>
+python        3.11      jkl012mno345   1 week ago     917MB<br>
+nginx         latest    abc123def456   2 weeks ago    142MB<br>
+hello-world   latest    xyz789ghi012   6 months ago   13.3kB
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 docker pull と docker run の関係</h4>
+                                <p class="mb-2">
+                                    <code class="text-cyan-400">docker run</code> は自動的に <code class="text-cyan-400">docker pull</code> を実行します。
+                                </p>
+                                <ul class="list-disc list-inside ml-4 space-y-1">
+                                    <li>事前にpullしておく必要はない（runが自動でやってくれる）</li>
+                                    <li>ただし、大きいイメージは先にpullしておくと便利</li>
+                                    <li>最新版に更新したい時は明示的にpullする</li>
+                                </ul>
+                            </div>
+
+                            <h4>🗑️ イメージを削除</h4>
+                            <p class="mb-4">
+                                不要なイメージを削除してディスク容量を節約します：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker rmi python:3.11</div>
+                                <div class="output">
+Untagged: python:3.11<br>
+Deleted: sha256:jkl012...<br>
+Deleted: sha256:mno345...
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 使用中のイメージは削除できない</h4>
+                                <p class="mb-2">
+                                    そのイメージから作られたコンテナ（停止中も含む）が存在する場合、イメージは削除できません。
+                                </p>
+                                <p>
+                                    先にコンテナを削除してから、イメージを削除してください。
+                                </p>
+                            </div>
+
+                            <h4>🧹 未使用イメージを一括削除</h4>
+                            <p class="mb-4">
+                                どのコンテナからも使われていないイメージを一括削除：
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">docker image prune</div>
+                            </div>
+
+                            <p class="mt-4">全ての未使用イメージを削除（使用中のもの以外全て）：</p>
+
+                            <div class="command-box">
+                                <div class="command">docker image prune -a</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション6: まとめと次のステップ -->
+                    <div class="content-section">
+                        <h3>📝 まとめと次のステップ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>🎉 このセクションで学んだこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><code class="text-cyan-400">docker run</code> - コンテナを作成・起動</li>
+                                    <li><code class="text-cyan-400">docker ps</code> - 実行中のコンテナ確認</li>
+                                    <li><code class="text-cyan-400">docker ps -a</code> - 全てのコンテナ確認</li>
+                                    <li><code class="text-cyan-400">docker stop/start/restart</code> - コンテナの制御</li>
+                                    <li><code class="text-cyan-400">docker rm</code> - コンテナ削除</li>
+                                    <li><code class="text-cyan-400">docker images</code> - イメージ一覧</li>
+                                    <li><code class="text-cyan-400">docker pull</code> - イメージダウンロード</li>
+                                    <li><code class="text-cyan-400">docker rmi</code> - イメージ削除</li>
+                                    <li>オプション（-d, -p, --name）の使い方</li>
+                                </ul>
+                            </div>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #22d3ee; margin-bottom: 24px;">
+                                    Docker コマンド早見表
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                                    <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 8px; padding: 16px;">
+                                        <div style="font-weight: 600; color: #22d3ee; margin-bottom: 8px;">コンテナ操作</div>
+                                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #94a3b8; line-height: 1.8;">
+                                            docker run [image]<br>
+                                            docker start [name]<br>
+                                            docker stop [name]<br>
+                                            docker restart [name]<br>
+                                            docker rm [name]
+                                        </div>
+                                    </div>
+                                    <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 8px; padding: 16px;">
+                                        <div style="font-weight: 600; color: #22d3ee; margin-bottom: 8px;">確認コマンド</div>
+                                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #94a3b8; line-height: 1.8;">
+                                            docker ps<br>
+                                            docker ps -a<br>
+                                            docker images<br>
+                                            docker inspect [name]
+                                        </div>
+                                    </div>
+                                    <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 8px; padding: 16px;">
+                                        <div style="font-weight: 600; color: #22d3ee; margin-bottom: 8px;">イメージ操作</div>
+                                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #94a3b8; line-height: 1.8;">
+                                            docker pull [image]<br>
+                                            docker rmi [image]<br>
+                                            docker image prune
+                                        </div>
+                                    </div>
+                                    <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 8px; padding: 16px;">
+                                        <div style="font-weight: 600; color: #22d3ee; margin-bottom: 8px;">クリーンアップ</div>
+                                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #94a3b8; line-height: 1.8;">
+                                            docker container prune<br>
+                                            docker image prune<br>
+                                            docker system prune
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のセクションへ</h4>
+                                <p class="mb-2">
+                                    基本的な操作ができるようになりましたね！
+                                </p>
+                                <p>
+                                    次は、もっと詳しいコマンドオプションや、実践的な使い方を学んでいきます。
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>💪 復習チェック</h4>
+                                <p class="mb-2">次に進む前に、以下ができるか確認してみましょう：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1">
+                                    <li>nginxコンテナを起動してブラウザで確認できる</li>
+                                    <li>実行中のコンテナ一覧を表示できる</li>
+                                    <li>コンテナを停止・再起動できる</li>
+                                    <li>不要なコンテナとイメージを削除できる</li>
+                                    <li>docker runのオプション（-d, -p, --name）の意味がわかる</li>
+                                </ul>
+                                <p class="mt-3">
+                                    できなかった部分があれば、もう一度読み返して実際に手を動かしてみましょう！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+
+</body>
+
+</html>

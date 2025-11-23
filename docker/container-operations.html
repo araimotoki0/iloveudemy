@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コンテナの詳細操作 - Docker入門講座</title>
+    <meta name="description" content="コンテナの高度な操作とオプションを学ぶ">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: { 400: '#22d3ee', 500: '#06b6d4' } },
+                    fontFamily: { sans: ['Noto Sans JP', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); background-attachment: fixed; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+                    <!-- docker runの詳細オプション -->
+                    <div class="content-section">
+                        <h3>🚀 docker runの詳細オプション</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-6">docker runコマンドには多数のオプションがあり、コンテナの動作を細かく制御できます。</p>
+
+                            <h4>基本オプション</h4>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div class="bg-slate-700/50 p-5 rounded-xl border border-cyan-500/30">
+                                    <div class="font-mono text-cyan-400 text-lg mb-3">-d, --detach</div>
+                                    <p class="text-sm text-gray-300 mb-3">バックグラウンドで実行</p>
+                                    <div class="command-box text-sm mb-0">
+                                        <div class="command">docker run -d nginx</div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-700/50 p-5 rounded-xl border border-cyan-500/30">
+                                    <div class="font-mono text-cyan-400 text-lg mb-3">--name</div>
+                                    <p class="text-sm text-gray-300 mb-3">コンテナに名前を付ける</p>
+                                    <div class="command-box text-sm mb-0">
+                                        <div class="command">docker run --name web nginx</div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-700/50 p-5 rounded-xl border border-cyan-500/30">
+                                    <div class="font-mono text-cyan-400 text-lg mb-3">--rm</div>
+                                    <p class="text-sm text-gray-300 mb-3">停止時に自動削除</p>
+                                    <div class="command-box text-sm mb-0">
+                                        <div class="command">docker run --rm nginx</div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-700/50 p-5 rounded-xl border border-cyan-500/30">
+                                    <div class="font-mono text-cyan-400 text-lg mb-3">-it</div>
+                                    <p class="text-sm text-gray-300 mb-3">対話モード</p>
+                                    <div class="command-box text-sm mb-0">
+                                        <div class="command">docker run -it ubuntu bash</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>ポート関連オプション</h4>
+                            <p class="mb-4">コンテナのネットワークポートをホストに公開します。</p>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">-p, --publish（ポート公開）</div>
+                                <div class="command-box mb-3">
+                                    <div class="command">docker run -p 8080:80 nginx</div>
+                                    <div class="text-sm text-gray-400 mt-2">ホストの8080番をコンテナの80番にマップ</div>
+                                </div>
+                                <div class="command-box mb-3">
+                                    <div class="command">docker run -p 127.0.0.1:8080:80 nginx</div>
+                                    <div class="text-sm text-gray-400 mt-2">localhostのみでリッスン</div>
+                                </div>
+                                <div class="command-box mb-0">
+                                    <div class="command">docker run -p 3000-3005:3000-3005 myapp</div>
+                                    <div class="text-sm text-gray-400 mt-2">ポート範囲を指定</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
+                                <div class="font-semibold mb-3">-P, --publish-all（全ポート公開）</div>
+                                <div class="command-box mb-0">
+                                    <div class="command">docker run -P nginx</div>
+                                    <div class="text-sm text-gray-400 mt-2">EXPOSEされた全ポートをランダムなホストポートにマップ</div>
+                                </div>
+                            </div>
+
+                            <h4>環境変数</h4>
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">-e, --env（環境変数設定）</div>
+                                <div class="command-box mb-3">
+                                    <div class="command">docker run -e NODE_ENV=production myapp</div>
+                                    <div class="text-sm text-gray-400 mt-2">環境変数を1つ設定</div>
+                                </div>
+                                <div class="command-box mb-3">
+                                    <div class="command">docker run -e DB_HOST=localhost -e DB_PORT=5432 myapp</div>
+                                    <div class="text-sm text-gray-400 mt-2">複数の環境変数を設定</div>
+                                </div>
+                                <div class="command-box mb-0">
+                                    <div class="command">docker run --env-file .env myapp</div>
+                                    <div class="text-sm text-gray-400 mt-2">ファイルから環境変数を読み込み</div>
+                                </div>
+                            </div>
+
+                            <h4>ボリュームマウント</h4>
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
+                                <div class="font-semibold mb-3">-v, --volume（ボリュームマウント）</div>
+                                <div class="command-box mb-3">
+                                    <div class="command">docker run -v /host/path:/container/path nginx</div>
+                                    <div class="text-sm text-gray-400 mt-2">ホストのディレクトリをマウント</div>
+                                </div>
+                                <div class="command-box mb-3">
+                                    <div class="command">docker run -v mydata:/data nginx</div>
+                                    <div class="text-sm text-gray-400 mt-2">名前付きボリュームをマウント</div>
+                                </div>
+                                <div class="command-box mb-0">
+                                    <div class="command">docker run -v /container/path:ro nginx</div>
+                                    <div class="text-sm text-gray-400 mt-2">読み取り専用でマウント</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-blue-300 mb-2">💡 よく使う組み合わせ</div>
+                                <div class="command-box text-sm">
+                                    <div class="command">docker run -d -p 8080:80 --name web -v $(pwd)/html:/usr/share/nginx/html nginx</div>
+                                    <div class="text-sm text-gray-400 mt-2">バックグラウンド実行 + ポート公開 + 名前付け + ボリュームマウント</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- リソース制限 -->
+                    <div class="content-section">
+                        <h3>⚙️ リソース制限</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-6">コンテナが使用できるCPU、メモリ、その他リソースを制限できます。</p>
+
+                            <h4>メモリ制限</h4>
+                            <div class="command-box mb-3">
+                                <div class="command">docker run -m 512m nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">メモリ上限を512MBに制限</div>
+                            </div>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker run -m 1g --memory-reservation 512m nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">上限1GB、ソフトリミット512MB</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker run -m 512m --memory-swap 1g nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">メモリ512MB + スワップ512MB = 合計1GB</div>
+                            </div>
+
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-yellow-300 mb-2">⚠️ メモリ超過時の動作</div>
+                                <p class="text-sm">メモリ制限を超えるとOOM Killerによってコンテナが強制終了されます。本番環境では適切な制限設定が重要です。</p>
+                            </div>
+
+                            <h4>CPU制限</h4>
+                            <div class="command-box mb-3">
+                                <div class="command">docker run --cpus="1.5" nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">CPU使用量を1.5コアに制限</div>
+                            </div>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker run --cpu-shares 512 nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">CPU相対重み（デフォルト1024）</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker run --cpuset-cpus="0,1" nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">特定のCPUコアに割り当て</div>
+                            </div>
+
+                            <h4>ディスクI/O制限</h4>
+                            <div class="command-box mb-3">
+                                <div class="command">docker run --device-read-bps /dev/sda:1mb nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">読み込み速度を1MB/sに制限</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker run --device-write-bps /dev/sda:1mb nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">書き込み速度を1MB/sに制限</div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-blue-300 mb-3">💡 リソース制限の目的</div>
+                                <ul class="text-sm space-y-2">
+                                    <li>• <strong>マルチテナント環境</strong>: 他のコンテナへの影響を防ぐ</li>
+                                    <li>• <strong>安定性向上</strong>: 暴走したコンテナからシステムを守る</li>
+                                    <li>• <strong>コスト管理</strong>: クラウド環境でのリソース使用を最適化</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- コンテナの状態管理 -->
+                    <div class="content-section">
+                        <h3>📊 コンテナの状態管理</h3>
+                        <div class="collapsible-content">
+
+                            <h4>docker ps - コンテナ一覧の詳細</h4>
+                            <p class="mb-4">実行中・停止中のコンテナを確認できます。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker ps</div>
+                                <div class="text-sm text-gray-400 mt-2">実行中のコンテナのみ</div>
+                            </div>
+
+                            <div class="command-box">
+                                <div class="command">docker ps -a</div>
+                                <div class="text-sm text-gray-400 mt-2">すべてのコンテナ（停止中も含む）</div>
+                            </div>
+
+                            <div class="command-box">
+                                <div class="command">docker ps -q</div>
+                                <div class="text-sm text-gray-400 mt-2">コンテナIDのみ表示</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker ps --filter "status=exited"</div>
+                                <div class="text-sm text-gray-400 mt-2">停止したコンテナのみ</div>
+                            </div>
+
+                            <h4>docker stats - リソース使用状況</h4>
+                            <p class="mb-4">コンテナのリアルタイムなリソース使用状況を表示します。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker stats</div>
+                                <div class="output">
+CONTAINER ID   NAME      CPU %     MEM USAGE / LIMIT     MEM %     NET I/O<br>
+a1b2c3d4e5f6   web       0.50%     128MiB / 512MiB       25.00%    1.2kB / 648B<br>
+f6e5d4c3b2a1   db        2.30%     256MiB / 1GiB         25.00%    5.4kB / 2.1kB
+                                </div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker stats --no-stream</div>
+                                <div class="text-sm text-gray-400 mt-2">現在の状態を一度だけ表示</div>
+                            </div>
+
+                            <h4>docker top - プロセス確認</h4>
+                            <p class="mb-4">コンテナ内で実行中のプロセスを確認します。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker top web</div>
+                                <div class="output">
+UID         PID         PPID        CMD<br>
+root        12345       12340       nginx: master process<br>
+nginx       12346       12345       nginx: worker process
+                                </div>
+                            </div>
+
+                            <h4>docker port - ポートマッピング確認</h4>
+                            <div class="command-box mb-6">
+                                <div class="command">docker port web</div>
+                                <div class="output">
+80/tcp -> 0.0.0.0:8080<br>
+443/tcp -> 0.0.0.0:8443
+                                </div>
+                            </div>
+
+                            <h4>docker diff - ファイルシステムの変更確認</h4>
+                            <p class="mb-4">コンテナ起動後に変更されたファイルを確認します。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker diff web</div>
+                                <div class="output">
+C /var<br>
+C /var/log<br>
+A /var/log/nginx/access.log<br>
+A /var/log/nginx/error.log
+                                </div>
+                                <div class="text-sm text-gray-400 mt-2">A=追加, C=変更, D=削除</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- コンテナの操作 -->
+                    <div class="content-section">
+                        <h3>🎮 コンテナの操作</h3>
+                        <div class="collapsible-content">
+
+                            <h4>docker pause / unpause - 一時停止</h4>
+                            <p class="mb-4">コンテナのプロセスを一時停止・再開します。</p>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker pause web</div>
+                                <div class="text-sm text-gray-400 mt-2">コンテナを一時停止（メモリは保持）</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker unpause web</div>
+                                <div class="text-sm text-gray-400 mt-2">コンテナを再開</div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-blue-300 mb-2">💡 pauseとstopの違い</div>
+                                <ul class="text-sm space-y-1">
+                                    <li>• <strong>pause</strong>: プロセスを凍結、メモリ保持、瞬時に再開可能</li>
+                                    <li>• <strong>stop</strong>: プロセスを終了、メモリ解放、再起動に時間がかかる</li>
+                                </ul>
+                            </div>
+
+                            <h4>docker restart - 再起動</h4>
+                            <div class="command-box mb-3">
+                                <div class="command">docker restart web</div>
+                                <div class="text-sm text-gray-400 mt-2">コンテナを再起動</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker restart -t 30 web</div>
+                                <div class="text-sm text-gray-400 mt-2">30秒待ってから強制終了して再起動</div>
+                            </div>
+
+                            <h4>docker rename - 名前変更</h4>
+                            <div class="command-box mb-6">
+                                <div class="command">docker rename old-name new-name</div>
+                                <div class="text-sm text-gray-400 mt-2">コンテナの名前を変更</div>
+                            </div>
+
+                            <h4>docker update - リソース制限の更新</h4>
+                            <p class="mb-4">実行中のコンテナのリソース制限を変更できます。</p>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker update --memory 1g web</div>
+                                <div class="text-sm text-gray-400 mt-2">メモリ制限を1GBに変更</div>
+                            </div>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker update --cpus 2 web</div>
+                                <div class="text-sm text-gray-400 mt-2">CPU制限を2コアに変更</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker update --restart unless-stopped web</div>
+                                <div class="text-sm text-gray-400 mt-2">再起動ポリシーを変更</div>
+                            </div>
+
+                            <h4>docker wait - 終了待機</h4>
+                            <div class="command-box mb-3">
+                                <div class="command">docker wait web</div>
+                                <div class="text-sm text-gray-400 mt-2">コンテナが停止するまで待機し、終了コードを返す</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ログとデバッグ -->
+                    <div class="content-section">
+                        <h3>🔍 ログとデバッグ</h3>
+                        <div class="collapsible-content">
+
+                            <h4>docker logs - ログの高度な使い方</h4>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker logs web</div>
+                                <div class="text-sm text-gray-400 mt-2">すべてのログを表示</div>
+                            </div>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker logs -f web</div>
+                                <div class="text-sm text-gray-400 mt-2">リアルタイムで監視（tail -f相当）</div>
+                            </div>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker logs --tail 100 web</div>
+                                <div class="text-sm text-gray-400 mt-2">最新100行のみ表示</div>
+                            </div>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker logs --since 30m web</div>
+                                <div class="text-sm text-gray-400 mt-2">過去30分のログのみ</div>
+                            </div>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker logs --until 2024-01-01T00:00:00 web</div>
+                                <div class="text-sm text-gray-400 mt-2">特定時刻までのログ</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker logs -t web</div>
+                                <div class="text-sm text-gray-400 mt-2">タイムスタンプ付きで表示</div>
+                            </div>
+
+                            <h4>docker attach - コンテナへのアタッチ</h4>
+                            <p class="mb-4">実行中のコンテナの標準入出力に接続します。</p>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker attach web</div>
+                                <div class="text-sm text-gray-400 mt-2">コンテナの標準入出力に接続（Ctrl+Cで終了するとコンテナも停止）</div>
+                            </div>
+
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-yellow-300 mb-2">⚠️ attachの注意点</div>
+                                <p class="text-sm">attachでコンテナに接続中にCtrl+Cを押すとコンテナが停止します。デタッチするには<code class="font-mono">Ctrl+P, Ctrl+Q</code>を使用します。通常はexecの使用を推奨します。</p>
+                            </div>
+
+                            <h4>docker cp - ファイルのコピー</h4>
+                            <p class="mb-4">ホストとコンテナ間でファイルをコピーします。</p>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker cp web:/var/log/nginx/access.log ./</div>
+                                <div class="text-sm text-gray-400 mt-2">コンテナからホストへコピー</div>
+                            </div>
+
+                            <div class="command-box mb-3">
+                                <div class="command">docker cp ./config.json web:/app/config.json</div>
+                                <div class="text-sm text-gray-400 mt-2">ホストからコンテナへコピー</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker cp web:/app/. ./backup/</div>
+                                <div class="text-sm text-gray-400 mt-2">ディレクトリ全体をコピー</div>
+                            </div>
+
+                            <h4>docker export / import - コンテナのエクスポート</h4>
+                            <div class="command-box mb-3">
+                                <div class="command">docker export web > web-backup.tar</div>
+                                <div class="text-sm text-gray-400 mt-2">コンテナのファイルシステムをtarに出力</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">cat web-backup.tar | docker import - web:backup</div>
+                                <div class="text-sm text-gray-400 mt-2">tarからイメージを作成</div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-blue-300 mb-2">💡 exportとsaveの違い</div>
+                                <ul class="text-sm space-y-1">
+                                    <li>• <strong>docker export</strong>: コンテナのファイルシステムのスナップショット（履歴なし）</li>
+                                    <li>• <strong>docker save</strong>: イメージの完全なバックアップ（レイヤー履歴あり）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 再起動ポリシー -->
+                    <div class="content-section">
+                        <h3>🔄 再起動ポリシー</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-6">コンテナの自動再起動動作を制御できます。</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div class="bg-slate-700/50 p-5 rounded-xl border border-cyan-500/30">
+                                    <div class="font-mono text-cyan-400 text-lg mb-3">no</div>
+                                    <p class="text-sm text-gray-300 mb-3">再起動しない（デフォルト）</p>
+                                    <div class="command-box text-sm mb-0">
+                                        <div class="command">docker run --restart no nginx</div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-700/50 p-5 rounded-xl border border-cyan-500/30">
+                                    <div class="font-mono text-cyan-400 text-lg mb-3">always</div>
+                                    <p class="text-sm text-gray-300 mb-3">常に再起動</p>
+                                    <div class="command-box text-sm mb-0">
+                                        <div class="command">docker run --restart always nginx</div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-700/50 p-5 rounded-xl border border-cyan-500/30">
+                                    <div class="font-mono text-cyan-400 text-lg mb-3">on-failure</div>
+                                    <p class="text-sm text-gray-300 mb-3">異常終了時のみ再起動</p>
+                                    <div class="command-box text-sm mb-0">
+                                        <div class="command">docker run --restart on-failure:3 nginx</div>
+                                        <div class="text-xs text-gray-400 mt-1">最大3回まで再試行</div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-700/50 p-5 rounded-xl border border-cyan-500/30">
+                                    <div class="font-mono text-cyan-400 text-lg mb-3">unless-stopped</div>
+                                    <p class="text-sm text-gray-300 mb-3">手動停止以外は再起動</p>
+                                    <div class="command-box text-sm mb-0">
+                                        <div class="command">docker run --restart unless-stopped nginx</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-blue-300 mb-3">💡 再起動ポリシーの比較</div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="border-b border-slate-600">
+                                                <th class="text-left py-2 px-3">ポリシー</th>
+                                                <th class="text-left py-2 px-3">異常終了</th>
+                                                <th class="text-left py-2 px-3">正常終了</th>
+                                                <th class="text-left py-2 px-3">Docker再起動</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-700">
+                                            <tr>
+                                                <td class="py-2 px-3 font-mono text-cyan-400">no</td>
+                                                <td class="py-2 px-3">×</td>
+                                                <td class="py-2 px-3">×</td>
+                                                <td class="py-2 px-3">×</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2 px-3 font-mono text-cyan-400">always</td>
+                                                <td class="py-2 px-3">○</td>
+                                                <td class="py-2 px-3">○</td>
+                                                <td class="py-2 px-3">○</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2 px-3 font-mono text-cyan-400">on-failure</td>
+                                                <td class="py-2 px-3">○</td>
+                                                <td class="py-2 px-3">×</td>
+                                                <td class="py-2 px-3">×</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2 px-3 font-mono text-cyan-400">unless-stopped</td>
+                                                <td class="py-2 px-3">○</td>
+                                                <td class="py-2 px-3">○</td>
+                                                <td class="py-2 px-3">○*</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-2">* 手動停止されたコンテナは再起動しない</p>
+                            </div>
+
+                            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-green-300 mb-2">✅ 推奨設定</div>
+                                <ul class="text-sm space-y-1">
+                                    <li>• <strong>本番環境</strong>: unless-stopped（意図しない再起動を防ぐ）</li>
+                                    <li>• <strong>開発環境</strong>: no（デバッグしやすい）</li>
+                                    <li>• <strong>バッチ処理</strong>: on-failure（失敗時のみリトライ）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 実践演習 -->
+                    <div class="content-section">
+                        <h3>✍️ 実践演習</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-6">コンテナの詳細操作を実際に試してみましょう。</p>
+
+                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
+                                <h4 class="text-xl mb-4">課題1: リソース制限の確認</h4>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">1.</span>
+                                        <span>メモリ512MB、CPU1コアに制限したnginxコンテナを起動</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">2.</span>
+                                        <span>docker statsでリソース使用状況を確認</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">3.</span>
+                                        <span>docker inspectでメモリ制限設定を確認</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">4.</span>
+                                        <span>docker updateでメモリ制限を1GBに変更</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
+                                <h4 class="text-xl mb-4">課題2: ログの活用</h4>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">1.</span>
+                                        <span>nginxコンテナを起動し、ブラウザで何度かアクセス</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">2.</span>
+                                        <span>docker logsで全ログを確認</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">3.</span>
+                                        <span>docker logs --tail 10でアクセスログを確認</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">4.</span>
+                                        <span>docker logs -f でリアルタイム監視しながらアクセス</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
+                                <h4 class="text-xl mb-4">課題3: 再起動ポリシーの検証</h4>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">1.</span>
+                                        <span>--restart unless-stoppedでコンテナを起動</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">2.</span>
+                                        <span>docker killでコンテナを強制終了</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">3.</span>
+                                        <span>docker psで自動再起動されることを確認</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">4.</span>
+                                        <span>docker stopで停止し、Docker自体を再起動して動作を確認</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-green-300 mb-2">✅ 習得目標</div>
+                                <p class="text-sm">コンテナのリソース管理、ログ確認、状態監視、再起動制御などの運用に必要なスキルを身につけましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>🎯 まとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-6 rounded-xl border border-cyan-500/30">
+                                    <h4 class="text-lg mb-4">重要なオプション</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="font-mono text-cyan-400">-d</span>
+                                            <span class="text-gray-400">バックグラウンド</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-mono text-cyan-400">-p</span>
+                                            <span class="text-gray-400">ポート公開</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-mono text-cyan-400">-e</span>
+                                            <span class="text-gray-400">環境変数</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-mono text-cyan-400">-v</span>
+                                            <span class="text-gray-400">ボリューム</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-mono text-cyan-400">-m</span>
+                                            <span class="text-gray-400">メモリ制限</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-mono text-cyan-400">--cpus</span>
+                                            <span class="text-gray-400">CPU制限</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-mono text-cyan-400">--restart</span>
+                                            <span class="text-gray-400">再起動ポリシー</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-6 rounded-xl border border-cyan-500/30">
+                                    <h4 class="text-lg mb-4">運用のポイント</h4>
+                                    <ul class="space-y-2 text-sm text-gray-300">
+                                        <li>✓ リソース制限で安定性を確保</li>
+                                        <li>✓ 再起動ポリシーで可用性向上</li>
+                                        <li>✓ ログ監視で問題を早期発見</li>
+                                        <li>✓ docker statsでリソース監視</li>
+                                        <li>✓ 環境変数で設定を外部化</li>
+                                        <li>✓ ボリュームでデータ永続化</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                                <h4 class="text-lg mb-3">次のステップ</h4>
+                                <p class="mb-4">コンテナ操作をマスターしたら、次のトピックに進みましょう：</p>
+                                <ul class="space-y-2 text-sm">
+                                    <li>• <strong>ボリューム管理</strong> - データの永続化とバックアップ</li>
+                                    <li>• <strong>ネットワーク</strong> - コンテナ間通信とネットワーク設計</li>
+                                    <li>• <strong>Docker Compose</strong> - 複数コンテナの統合管理</li>
+                                    <li>• <strong>本番運用</strong> - モニタリング、ログ集約、オーケストレーション</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+</body>
+</html>

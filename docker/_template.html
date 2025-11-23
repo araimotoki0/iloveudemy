@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【ページタイトル】 - Docker入門講座</title>
+    <meta name="description" content="【ページの説明】">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        .content-section h3 {
+            color: #22d3ee;
+            margin-bottom: 16px;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            background: rgba(34, 211, 238, 0.05);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+        }
+
+        .content-section h3:hover {
+            background: rgba(34, 211, 238, 0.1);
+            border-color: rgba(34, 211, 238, 0.4);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .content-section .collapsible-content {
+            display: block !important;
+        }
+
+        .content-section .collapsible-content.collapsed {
+            display: none !important;
+        }
+
+        .content-section h4 {
+            color: #67e8f9;
+            margin: 24px 0 12px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .visual-diagram {
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 32px;
+            margin: 24px 0;
+        }
+
+        .command-box {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .command {
+            color: #22d3ee;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .command::before {
+            content: '$';
+            color: #94a3b8;
+        }
+
+        .output {
+            color: #86efac;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .code-inline {
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- ========================================
+                         ここからコンテンツを追加
+                         ======================================== -->
+
+                    <!-- セクション1 のテンプレート -->
+                    <div class="content-section">
+                        <h3>🎯 セクションタイトル</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                セクションの概要説明
+                            </p>
+
+                            <div class="success-box">
+                                <h4>✅ このセクションで学ぶこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>学習項目1</li>
+                                    <li>学習項目2</li>
+                                    <li>学習項目3</li>
+                                </ul>
+                            </div>
+
+                            <h4>サブセクションタイトル</h4>
+                            <p class="mb-4">
+                                説明文
+                            </p>
+
+                            <!-- コマンド例 -->
+                            <div class="command-box">
+                                <div class="command">docker コマンド例</div>
+                                <div class="output">
+出力例
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 ポイント</h4>
+                                <p>
+                                    補足説明
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 注意点</h4>
+                                <p>
+                                    注意事項
+                                </p>
+                            </div>
+
+                            <!-- 図解が必要な場合 -->
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #22d3ee; margin-bottom: 24px;">
+                                    図のタイトル
+                                </div>
+                                <div style="display: grid; gap: 16px;">
+                                    <!-- 図の内容 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2以降も同じ構造で追加 -->
+
+                    <!-- ========================================
+                         最後のまとめセクション
+                         ======================================== -->
+                    <div class="content-section">
+                        <h3>📝 まとめと次のステップ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>🎉 このセクションで学んだこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>学んだこと1</li>
+                                    <li>学んだこと2</li>
+                                    <li>学んだこと3</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のセクションへ</h4>
+                                <p class="mb-2">
+                                    次のステップの説明
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>💪 復習チェック</h4>
+                                <p class="mb-2">次に進む前に、以下ができるか確認してみましょう：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1">
+                                    <li>チェック項目1</li>
+                                    <li>チェック項目2</li>
+                                    <li>チェック項目3</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        // ページ読み込み時にコンポーネントを初期化
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. ヘッダーを先に初期化（目次DOMを生成）
+            initHeader(dockerCourseConfig);
+
+            // 2. セクション折りたたみ機能と目次生成
+            initCollapsibleSections();
+        });
+    </script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+
+</body>
+
+</html>

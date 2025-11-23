@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Hub - Docker入門講座</title>
+    <meta name="description" content="Docker Hubの仕組みを理解 - イメージの検索、タグの意味、レイヤー構造の確認方法">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        .browser-window {
+            background: rgba(30, 41, 59, 0.9);
+            border: 2px solid rgba(100, 116, 139, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .browser-header {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(100, 116, 139, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .browser-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .browser-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+
+        .browser-dot:nth-child(1) { background: #ef4444; }
+        .browser-dot:nth-child(2) { background: #f59e0b; }
+        .browser-dot:nth-child(3) { background: #22c55e; }
+
+        .browser-url {
+            flex: 1;
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 4px;
+            padding: 4px 12px;
+            color: #94a3b8;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            margin-left: 12px;
+        }
+
+        .browser-content {
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .layer-visual {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(6, 182, 212, 0.05));
+            border: 2px solid #22d3ee;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .layer-item {
+            background: rgba(34, 211, 238, 0.15);
+            border: 1px solid #22d3ee;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .layer-hash {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .layer-size {
+            margin-left: auto;
+            color: #22d3ee;
+            font-weight: 600;
+        }
+
+        .tag-badge {
+            display: inline-block;
+            background: rgba(34, 211, 238, 0.2);
+            border: 1px solid #22d3ee;
+            border-radius: 16px;
+            padding: 4px 12px;
+            margin: 4px;
+            font-size: 14px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .explore-section {
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- Docker Hubとは -->
+                    <div class="content-section">
+                        <h3>🌐 Docker Hubとは</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                Docker Hubは、<strong>Dockerイメージの巨大な倉庫（レジストリ）</strong>です。
+                                GitHubがコードを共有する場所なら、Docker Hubはコンテナイメージを共有する場所です。
+                            </p>
+
+                            <div class="success-box">
+                                <h4>💡 Docker Hubの役割</h4>
+                                <ul>
+                                    <li>📦 <strong>イメージの保管庫</strong> - 世界中のイメージが集まる場所</li>
+                                    <li>🔍 <strong>イメージの検索</strong> - 必要なイメージを探せる</li>
+                                    <li>⬇️ <strong>イメージのダウンロード</strong> - docker pullで取得</li>
+                                    <li>⬆️ <strong>イメージのアップロード</strong> - 自作イメージを公開</li>
+                                    <li>🔄 <strong>自動ビルド</strong> - GitHubと連携して自動でイメージ作成</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📊 Docker Hubの規模</h4>
+                                <ul>
+                                    <li>• <strong>1,800万以上</strong>のイメージ</li>
+                                    <li>• <strong>月間1,300億回以上</strong>のイメージpull</li>
+                                    <li>• <strong>公式イメージ</strong>は厳選された高品質なイメージ</li>
+                                    <li>• 無料で利用可能（制限あり）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ブラウザでDocker Hubを探検 -->
+                    <div class="content-section">
+                        <h3>🔍 実際にDocker Hubを見てみよう</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                ブラウザでDocker Hubにアクセスして、実際のイメージを見てみましょう。
+                            </p>
+
+                            <div class="browser-window">
+                                <div class="browser-header">
+                                    <div class="browser-dots">
+                                        <div class="browser-dot"></div>
+                                        <div class="browser-dot"></div>
+                                        <div class="browser-dot"></div>
+                                    </div>
+                                    <div class="browser-url">https://hub.docker.com</div>
+                                </div>
+                                <div class="browser-content">
+                                    <p style="color: #94a3b8; text-align: center; padding: 40px;">
+                                        Docker Hubのトップページ<br>
+                                        ここから世界中のイメージを探せます
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="explore-section">
+                                <h4>👀 Nginxイメージを詳しく見てみる</h4>
+                                <p>
+                                    公式のNginxイメージページを開いてみましょう：<br>
+                                    <a href="https://hub.docker.com/_/nginx" target="_blank" style="color: #22d3ee; text-decoration: underline;">
+                                        https://hub.docker.com/_/nginx
+                                    </a>
+                                </p>
+
+                                <div class="browser-window" style="margin-top: 16px;">
+                                    <div class="browser-header">
+                                        <div class="browser-dots">
+                                            <div class="browser-dot"></div>
+                                            <div class="browser-dot"></div>
+                                            <div class="browser-dot"></div>
+                                        </div>
+                                        <div class="browser-url">https://hub.docker.com/_/nginx</div>
+                                    </div>
+                                    <div class="browser-content">
+                                        <div style="border-bottom: 1px solid rgba(100, 116, 139, 0.3); padding-bottom: 16px; margin-bottom: 16px;">
+                                            <h3 style="color: #22d3ee; font-size: 24px; margin-bottom: 8px;">nginx</h3>
+                                            <p style="color: #94a3b8;">Official build of Nginx.</p>
+                                            <div style="display: flex; gap: 16px; margin-top: 12px;">
+                                                <span style="color: #22c55e;">✓ Docker Official Image</span>
+                                                <span style="color: #94a3b8;">1B+ Downloads</span>
+                                                <span style="color: #94a3b8;">⭐ 17.5K Stars</span>
+                                            </div>
+                                        </div>
+
+                                        <div style="margin-top: 20px;">
+                                            <h4 style="color: #22d3ee; margin-bottom: 12px;">Available Tags</h4>
+                                            <div>
+                                                <span class="tag-badge">latest</span>
+                                                <span class="tag-badge">1.25</span>
+                                                <span class="tag-badge">1.25-alpine</span>
+                                                <span class="tag-badge">stable</span>
+                                                <span class="tag-badge">mainline</span>
+                                                <span class="tag-badge">1.25.3</span>
+                                                <span class="tag-badge">1.24</span>
+                                                <span class="tag-badge">alpine</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>✨ Docker Hubで確認できること</h4>
+                                <ul>
+                                    <li>📋 <strong>イメージの説明</strong> - 何のためのイメージか</li>
+                                    <li>🏷️ <strong>利用可能なタグ</strong> - バージョンや種類</li>
+                                    <li>📊 <strong>ダウンロード数</strong> - 人気度の指標</li>
+                                    <li>⭐ <strong>スター数</strong> - 評価の指標</li>
+                                    <li>📝 <strong>使い方のドキュメント</strong> - 詳細な利用方法</li>
+                                    <li>🔐 <strong>公式イメージマーク</strong> - 信頼性の証</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- イメージの命名規則 -->
+                    <div class="content-section">
+                        <h3>📛 イメージの命名規則を理解する</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                Docker Hubのイメージには明確な命名規則があります。これを理解すると、イメージ選びが楽になります。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>🔤 イメージ名の構成</h4>
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 18px; text-align: center; margin: 20px 0; color: #22d3ee;">
+                                    [レジストリ/][ユーザー名/]イメージ名[:タグ]
+                                </div>
+                            </div>
+
+                            <div class="example-box">
+                                <h4>具体例で理解する</h4>
+                                <table style="width: 100%; margin-top: 16px;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid #22d3ee;">
+                                            <th style="text-align: left; padding: 8px;">完全なイメージ名</th>
+                                            <th style="text-align: left; padding: 8px;">意味</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><code>nginx</code></td>
+                                            <td style="padding: 8px;">公式イメージ、最新版</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><code>nginx:1.24</code></td>
+                                            <td style="padding: 8px;">公式イメージ、バージョン1.24</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><code>nginx:alpine</code></td>
+                                            <td style="padding: 8px;">公式イメージ、Alpine Linux版（軽量）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><code>mysql:8.0</code></td>
+                                            <td style="padding: 8px;">MySQL公式、バージョン8.0</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><code>ubuntu:22.04</code></td>
+                                            <td style="padding: 8px;">Ubuntu公式、22.04 LTS版</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><code>docker.io/myuser/myapp:v1.0</code></td>
+                                            <td style="padding: 8px;">Docker Hub、ユーザー作成</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px;"><code>123456789.dkr.ecr.ap-northeast-1.amazonaws.com/myapp:v1</code></td>
+                                            <td style="padding: 8px;">Amazon ECR（AWS）</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ タグの重要な注意点</h4>
+                                <ul>
+                                    <li>❌ <code>latest</code>は「最新」だが、<strong>いつ変わるか分からない</strong></li>
+                                    <li>❌ タグなしは自動的に<code>latest</code>になる</li>
+                                    <li>✅ 本番環境では<strong>必ず特定のバージョンタグを使用</strong></li>
+                                    <li>✅ 例：<code>nginx:1.24.0</code>のように明確に指定</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- レイヤー構造の確認 -->
+                    <div class="content-section">
+                        <h3>🔬 イメージのレイヤー構造を見る</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                Docker Hubでイメージのレイヤー構造を確認できます。これが<strong>Dockerの効率性の秘密</strong>です！
+                            </p>
+
+                            <div class="explore-section">
+                                <h4>🔍 レイヤー情報の確認方法</h4>
+                                <p>Docker Hub上でイメージの「Tags」タブをクリックし、特定のタグを選択すると詳細が見れます。</p>
+
+                                <div class="layer-visual" style="margin-top: 20px;">
+                                    <h4 style="text-align: center; color: #22d3ee; margin-bottom: 20px;">
+                                        nginx:latest のレイヤー構造（実際の表示例）
+                                    </h4>
+
+                                    <div class="layer-item">
+                                        <span style="color: #22d3ee; min-width: 30px;">0</span>
+                                        <span style="flex: 1;"># debian.sh --arch 'amd64' out/ 'trixie'</span>
+                                        <span class="layer-size">31.29MB</span>
+                                    </div>
+
+                                    <div class="layer-item">
+                                        <span style="color: #22d3ee; min-width: 30px;">1</span>
+                                        <span style="flex: 1;">LABEL maintainer=NGINX Docker Maintainers</span>
+                                        <span class="layer-size">0B</span>
+                                    </div>
+
+                                    <div class="layer-item">
+                                        <span style="color: #22d3ee; min-width: 30px;">2</span>
+                                        <span style="flex: 1;">ENV NGINX_VERSION=1.29.3</span>
+                                        <span class="layer-size">0B</span>
+                                    </div>
+
+                                    <div class="layer-item">
+                                        <span style="color: #22d3ee; min-width: 30px;">7</span>
+                                        <span style="flex: 1;">RUN /bin/sh -c set -x && groupadd --system nginx...</span>
+                                        <span class="layer-size">28.69MB</span>
+                                    </div>
+
+                                    <div class="layer-item">
+                                        <span style="color: #22d3ee; min-width: 30px;">8</span>
+                                        <span style="flex: 1;">COPY docker-entrypoint.sh /</span>
+                                        <span class="layer-size">628B</span>
+                                    </div>
+
+                                    <div class="layer-item">
+                                        <span style="color: #22d3ee; min-width: 30px;">13</span>
+                                        <span style="flex: 1;">ENTRYPOINT ["/docker-entrypoint.sh"]</span>
+                                        <span class="layer-size">0B</span>
+                                    </div>
+
+                                    <div class="layer-item">
+                                        <span style="color: #22d3ee; min-width: 30px;">16</span>
+                                        <span style="flex: 1;">CMD ["nginx" "-g" "daemon off;"]</span>
+                                        <span class="layer-size">0B</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>💡 レイヤーの仕組みの利点</h4>
+                                <ul>
+                                    <li>🔄 <strong>レイヤーの再利用</strong> - 同じベースOSを使うイメージは共有される</li>
+                                    <li>💾 <strong>差分管理</strong> - 変更があった部分だけダウンロード</li>
+                                    <li>⚡ <strong>高速化</strong> - キャッシュによりビルドが速い</li>
+                                    <li>📦 <strong>容量削減</strong> - 重複を避けてディスク使用量を削減</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🛠️ レイヤー情報をコマンドで確認</h4>
+                                <p>ローカルにあるイメージのレイヤーを確認することもできます：</p>
+
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># イメージの履歴（レイヤー）を表示</div>
+                                    <div class="command">docker history nginx:latest</div>
+                                </div>
+
+                                <div class="output">IMAGE          CREATED       CREATED BY                                      SIZE
+605c77e624dd   2 weeks ago   /bin/sh -c #(nop)  CMD ["nginx" "-g" "daem...  0B
+<missing>      2 weeks ago   /bin/sh -c #(nop)  STOPSIGNAL SIGQUIT          0B
+<missing>      2 weeks ago   /bin/sh -c #(nop)  EXPOSE 80                   0B
+<missing>      2 weeks ago   /bin/sh -c ln -sf /dev/stdout /var/log/ngi...  22B
+<missing>      2 weeks ago   /bin/sh -c nginx -v                             0B
+<missing>      2 weeks ago   /bin/sh -c apt-get update && apt-get insta...  61.1MB</div>
+
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    各レイヤーがどのコマンドで作られたか、サイズはどれくらいかが分かります。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 公式イメージと検証済みパブリッシャー -->
+                    <div class="content-section">
+                        <h3>🏅 信頼できるイメージの見分け方</h3>
+                        <div class="collapsible-content">
+                            <div class="info-box">
+                                <h4>🔐 イメージの種類と信頼度</h4>
+
+                                <table style="width: 100%; margin-top: 16px;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid #22d3ee;">
+                                            <th style="text-align: left; padding: 8px;">種類</th>
+                                            <th style="text-align: left; padding: 8px;">マーク</th>
+                                            <th style="text-align: left; padding: 8px;">信頼度</th>
+                                            <th style="text-align: left; padding: 8px;">例</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><strong>Docker Official Image</strong></td>
+                                            <td style="padding: 8px;">✓ Official</td>
+                                            <td style="padding: 8px; color: #22c55e;">⭐⭐⭐⭐⭐</td>
+                                            <td style="padding: 8px;">nginx, mysql, redis</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><strong>Verified Publisher</strong></td>
+                                            <td style="padding: 8px;">✓ Verified</td>
+                                            <td style="padding: 8px; color: #22c55e;">⭐⭐⭐⭐</td>
+                                            <td style="padding: 8px;">microsoft/dotnet, amazon/aws-cli</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><strong>Docker Sponsored OSS</strong></td>
+                                            <td style="padding: 8px;">Sponsored</td>
+                                            <td style="padding: 8px; color: #fbbf24;">⭐⭐⭐</td>
+                                            <td style="padding: 8px;">bitnami/postgresql</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px;"><strong>Community Images</strong></td>
+                                            <td style="padding: 8px;">なし</td>
+                                            <td style="padding: 8px; color: #ef4444;">⭐⭐</td>
+                                            <td style="padding: 8px;">username/imagename</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ イメージ選びの注意点</h4>
+                                <ul>
+                                    <li>✅ <strong>公式イメージを優先</strong> - セキュリティとサポートが保証</li>
+                                    <li>✅ <strong>ダウンロード数を確認</strong> - 多いほど実績がある</li>
+                                    <li>✅ <strong>最終更新日を確認</strong> - 古すぎるものは避ける</li>
+                                    <li>❌ <strong>知らないユーザーのイメージ</strong> - セキュリティリスクあり</li>
+                                    <li>❌ <strong>タグがlatestのみ</strong> - バージョン管理されていない可能性</li>
+                                </ul>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>💡 安全にイメージを使うコツ</h4>
+                                <ol style="padding-left: 20px;">
+                                    <li>1. まず<strong>公式イメージ</strong>を探す</li>
+                                    <li>2. なければ<strong>Verified Publisher</strong>を探す</li>
+                                    <li>3. それでもなければ<strong>スター数とダウンロード数</strong>を確認</li>
+                                    <li>4. <strong>Dockerfile</strong>が公開されているか確認（GitHubリンク）</li>
+                                    <li>5. 定期的に<strong>更新されているか</strong>確認</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Docker Hubでイメージを探す -->
+                    <div class="content-section">
+                        <h3>🔎 実践：必要なイメージを探してみよう</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                実際にDocker Hubで必要なイメージを探す練習をしてみましょう。
+                            </p>
+
+                            <div class="example-box">
+                                <h4>例：Python開発環境を探す場合</h4>
+
+                                <div class="hands-on-section">
+                                    <h4>1. Docker Hubで検索</h4>
+                                    <p>
+                                        <a href="https://hub.docker.com/search?q=python&type=image" target="_blank" style="color: #22d3ee;">
+                                            https://hub.docker.com/search?q=python
+                                        </a>
+                                    </p>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4>2. 公式イメージを確認</h4>
+                                    <p>「python」という公式イメージが見つかります。</p>
+                                    <div style="margin-top: 12px;">
+                                        <span style="color: #22c55e;">✓ Docker Official Image</span>
+                                        <span style="margin-left: 16px;">1B+ Downloads</span>
+                                    </div>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4>3. タグを選択</h4>
+                                    <div style="margin-top: 12px;">
+                                        <span class="tag-badge">3.12</span> ← 最新の安定版<br>
+                                        <span class="tag-badge">3.12-slim</span> ← 軽量版<br>
+                                        <span class="tag-badge">3.12-alpine</span> ← 超軽量版<br>
+                                        <span class="tag-badge">3.11</span> ← 一つ前のバージョン
+                                    </div>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4>4. コマンドで取得</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker pull python:3.12-slim</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 よく使われる公式イメージ</h4>
+                                <table style="width: 100%; margin-top: 16px;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid #22d3ee;">
+                                            <th style="text-align: left; padding: 8px;">用途</th>
+                                            <th style="text-align: left; padding: 8px;">イメージ名</th>
+                                            <th style="text-align: left; padding: 8px;">おすすめタグ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">Webサーバー</td>
+                                            <td style="padding: 8px;"><code>nginx</code></td>
+                                            <td style="padding: 8px;"><code>1.24-alpine</code></td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">データベース</td>
+                                            <td style="padding: 8px;"><code>mysql</code></td>
+                                            <td style="padding: 8px;"><code>8.0</code></td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">データベース</td>
+                                            <td style="padding: 8px;"><code>postgres</code></td>
+                                            <td style="padding: 8px;"><code>15-alpine</code></td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">キャッシュ</td>
+                                            <td style="padding: 8px;"><code>redis</code></td>
+                                            <td style="padding: 8px;"><code>7-alpine</code></td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">Node.js</td>
+                                            <td style="padding: 8px;"><code>node</code></td>
+                                            <td style="padding: 8px;"><code>20-alpine</code></td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">Python</td>
+                                            <td style="padding: 8px;"><code>python</code></td>
+                                            <td style="padding: 8px;"><code>3.12-slim</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px;">ベースOS</td>
+                                            <td style="padding: 8px;"><code>ubuntu</code></td>
+                                            <td style="padding: 8px;"><code>22.04</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📝 このセクションのまとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>✅ 学んだこと</h4>
+                                <ul>
+                                    <li>Docker Hubは<strong>イメージの巨大な倉庫</strong></li>
+                                    <li>イメージには<strong>命名規則</strong>がある（レジストリ/ユーザー/イメージ:タグ）</li>
+                                    <li>イメージは<strong>レイヤー構造</strong>で効率的に管理される</li>
+                                    <li><strong>公式イメージ</strong>を優先的に使うべき</li>
+                                    <li>タグで<strong>バージョンを明確に指定</strong>することが重要</li>
+                                    <li>Docker Hubで<strong>イメージの詳細情報</strong>を確認できる</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のステップ</h4>
+                                <p>
+                                    Docker Hubの仕組みが理解できたので、次は実際に<strong>イメージを取得して使ってみましょう</strong>！<br>
+                                    次のセクションでは、<code>docker pull</code>コマンドを使って、Docker Hubからイメージをダウンロードし、
+                                    実際に動かしてみます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>イメージ - Docker入門講座</title>
+    <meta name="description" content="Dockerイメージをハンズオン形式で学習 - まずは動かして感動、その後にdocker imageコマンドを実践">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        .hands-on-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+        }
+
+        .hands-on-section h4 {
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #0f172a;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+
+        .wow-section {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(6, 182, 212, 0.1));
+            border: 3px solid #22d3ee;
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+            text-align: center;
+        }
+
+        .wow-section h4 {
+            font-size: 24px;
+            color: #22d3ee;
+            margin-bottom: 16px;
+        }
+
+        .question-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .question-box h4 {
+            color: #fbbf24;
+            margin-bottom: 12px;
+        }
+
+        .analogy-card {
+            background: rgba(34, 211, 238, 0.1);
+            border: 2px solid rgba(34, 211, 238, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .analogy-card h5 {
+            color: #22d3ee;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .progress-indicator .step {
+            background: rgba(34, 211, 238, 0.3);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- 最初に体験！ -->
+                    <div class="content-section">
+                        <h3>🎉 まずは動かしてみよう！</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                細かい説明は後回し！<strong>まずはDockerの楽しさを体験</strong>しましょう。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>hello-worldを実行</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    ターミナルで以下のコマンドを実行してください：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker container run hello-world</div>
+                                </div>
+                                <div class="output">Unable to find image 'hello-world:latest' locally
+                                    latest: Pulling from library/hello-world
+                                    c1ec31eb5944: Pull complete
+                                    Digest: sha256:d211f485f2dd1d...
+                                    Status: Downloaded newer image for hello-world:latest
+
+                                    Hello from Docker!
+                                    This message shows that your installation appears to be working correctly.
+
+                                    To generate this message, Docker took the following steps:
+                                    1. The Docker client contacted the Docker daemon.
+                                    2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+                                    3. The Docker daemon created a new container from that image which runs the
+                                    executable that produces the output you are currently reading.
+                                    4. The Docker daemon streamed that output to the Docker client, which sent it
+                                    to your terminal.
+                                    ...</div>
+                            </div>
+
+                            <div class="wow-section">
+                                <h4>🎊 Dockerが動いた！</h4>
+                                <p style="font-size: 18px;">
+                                    たった1行のコマンドで、プログラムが実行されました！
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>✨ 何が起きた？</h4>
+                                <p>Dockerは以下を行いました：</p>
+                                <ol style="padding-left: 20px; margin-top: 12px;">
+                                    <li>1. Docker Hubから「hello-world」イメージをダウンロード</li>
+                                    <li>2. そのイメージからコンテナを作成</li>
+                                    <li>3. コンテナ内のプログラムを実行</li>
+                                    <li>4. 結果を表示</li>
+                                </ol>
+                            </div>
+
+                            <div class="question-box">
+                                <h4>❓ 疑問が湧いてきた？</h4>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li style="margin: 8px 0;">• 「イメージ」って何？</li>
+                                    <li style="margin: 8px 0;">• 「コンテナ」って何？</li>
+                                    <li style="margin: 8px 0;">• Docker Hubって何？</li>
+                                </ul>
+                                <p style="margin-top: 12px;">
+                                    大丈夫！一つずつ理解していきましょう。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- イメージとは -->
+                    <div class="content-section">
+                        <h3>📦 イメージって何？</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                さきほど「hello-world」という<strong>イメージが</strong>ダウンロードされました。
+                            </p>
+
+                            <div class="wow-section" style="padding: 24px;">
+                                <p style="font-size: 20px; font-weight: 600; color: #22d3ee; margin: 0;">
+                                    イメージ = 「アプリを動かすための全部入りパッケージ」
+                                </p>
+                            </div>
+
+                            <div class="analogy-card">
+                                <h5>🍱 お弁当に例えると...</h5>
+                                <p>
+                                    イメージは<strong>「完成したお弁当」</strong>です。
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>• ご飯（OS）</li>
+                                    <li>• おかず（アプリケーション）</li>
+                                    <li>• 調味料（ライブラリ・依存関係）</li>
+                                    <li>• 箸（実行に必要なツール）</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    全部揃っているから、箱を開けたらすぐ食べられる（=実行できる）！
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 イメージに含まれるもの</h4>
+                                <ul>
+                                    <li>• <strong>ベースOS</strong> - Ubuntu、Alpine Linuxなどの最小限のファイル</li>
+                                    <li>• <strong>アプリケーション</strong> - 実行したいプログラム</li>
+                                    <li>• <strong>ライブラリ</strong> - 動作に必要な依存関係</li>
+                                    <li>• <strong>設定</strong> - 環境変数や設定ファイル</li>
+                                </ul>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>💡 イメージの特徴</h4>
+                                <ul>
+                                    <li>✅ <strong>再利用可能</strong> - 何度でも同じイメージから実行できる</li>
+                                    <li>✅ <strong>共有可能</strong> - Docker Hubで世界中の人と共有できる</li>
+                                    <li>✅ <strong>バージョン管理</strong> - タグで異なるバージョンを管理できる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- これから学ぶコマンド -->
+                    <div class="content-section">
+                        <h3>🎓 イメージ操作コマンドを学ぼう</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                イメージの概念が分かったところで、次は<strong>実際にコマンドを打ちながら</strong>イメージを操作していきます。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>❓ なぜコマンドを学ぶのか</h4>
+                                <p>
+                                    最終的には<strong>docker compose</strong>で自動化しますが、その前に基礎コマンドを理解しておくと：
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>• <strong>docker-compose.yml</strong> の設定が何をしているか分かる</li>
+                                    <li>• <strong>トラブル時</strong>に原因を特定できる</li>
+                                    <li>• <strong>細かい操作</strong>が必要な時に対応できる</li>
+                                </ul>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>📋 これから学ぶコマンド</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>コマンド</th>
+                                            <th>できること</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>docker image ls</code></td>
+                                            <td>イメージ一覧を見る</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image pull</code></td>
+                                            <td>イメージをダウンロード</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image rm</code></td>
+                                            <td>イメージを削除</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image history</code></td>
+                                            <td>レイヤー履歴を見る</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image inspect</code></td>
+                                            <td>詳細情報を見る</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image prune</code></td>
+                                            <td>未使用イメージを一括削除</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <p style="margin-top: 16px;">
+                                では、Step 1から順番にやっていきましょう！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Step 1: イメージ一覧を見る -->
+                    <div class="content-section">
+                        <h3>🖥️ Step 1: イメージ一覧を見る</h3>
+                        <div class="collapsible-content">
+                            <div class="progress-indicator">
+                                <span class="step">Step 1/5</span>
+                                <span>docker image ls</span>
+                            </div>
+
+                            <p>
+                                さっき <code>docker container run</code> を実行したとき、hello-worldイメージがダウンロードされました。
+                                確認してみましょう。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4>イメージ一覧を表示</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image ls</div>
+                                </div>
+                                <div class="output">REPOSITORY TAG IMAGE ID CREATED SIZE
+                                    hello-world latest d2c94e258dcb 8 months ago 13.3kB</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ hello-worldイメージがあります！
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📋 表示される項目の意味</h4>
+                                <ul>
+                                    <li><strong>REPOSITORY</strong>: イメージの名前</li>
+                                    <li><strong>TAG</strong>: バージョン（latestは最新版）</li>
+                                    <li><strong>IMAGE ID</strong>: イメージの一意のID</li>
+                                    <li><strong>CREATED</strong>: イメージが作成された日時</li>
+                                    <li><strong>SIZE</strong>: イメージのサイズ</li>
+                                </ul>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだコマンド</h4>
+                                <p><code>docker image ls</code> - ローカルにあるイメージの一覧を表示</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: イメージをダウンロード -->
+                    <div class="content-section">
+                        <h3>🌐 Step 2: イメージをダウンロード</h3>
+                        <div class="collapsible-content">
+                            <div class="progress-indicator">
+                                <span class="step">Step 2/5</span>
+                                <span>docker image pull</span>
+                            </div>
+
+                            <p>
+                                <code>docker container run</code> は自動でイメージをダウンロードしてくれますが、
+                                明示的にダウンロードすることもできます。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>Alpine Linuxをダウンロード</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    Alpine Linuxは超軽量のLinux OSです：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker image pull alpine</div>
+                                </div>
+                                <div class="output">Using default tag: latest
+                                    latest: Pulling from library/alpine
+                                    4abcf2066143: Pull complete
+                                    Digest: sha256:c5b1261d...
+                                    Status: Downloaded newer image for alpine:latest
+                                    docker.io/library/alpine:latest</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>イメージ一覧を再確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image ls</div>
+                                </div>
+                                <div class="output">REPOSITORY TAG IMAGE ID CREATED SIZE
+                                    alpine latest 05455a08881e 3 weeks ago 7.38MB
+                                    hello-world latest d2c94e258dcb 8 months ago 13.3kB</div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🔍 サイズに注目！</h4>
+                                <ul>
+                                    <li>• <strong>alpine</strong>: 7.38MB（超軽量Linux OS）</li>
+                                    <li>• <strong>hello-world</strong>: 13.3KB（テスト用の最小イメージ）</li>
+                                </ul>
+                                <p style="margin-top: 12px;">
+                                    Alpineはわずか7MB！これがDockerで軽量イメージとして人気の理由です。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだコマンド</h4>
+                                <p><code>docker image pull イメージ名</code> - Docker Hubからイメージをダウンロード</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: タグでバージョン指定 -->
+                    <div class="content-section">
+                        <h3>🏷️ Step 3: タグでバージョンを指定</h3>
+                        <div class="collapsible-content">
+                            <div class="progress-indicator">
+                                <span class="step">Step 3/5</span>
+                                <span>タグの理解</span>
+                            </div>
+
+                            <p>
+                                イメージは「タグ」でバージョンを指定できます。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>特定バージョンのAlpineをダウンロード</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image pull alpine:3.18</div>
+                                </div>
+                                <div class="output">3.18: Pulling from library/alpine
+                                    31e352740f53: Pull complete
+                                    Digest: sha256:11e21d7b981a...
+                                    Status: Downloaded newer image for alpine:3.18
+                                    docker.io/library/alpine:3.18</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>Alpineイメージの一覧を確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image ls alpine</div>
+                                </div>
+                                <div class="output">REPOSITORY TAG IMAGE ID CREATED SIZE
+                                    alpine latest 05455a08881e 3 weeks ago 7.38MB
+                                    alpine 3.18 c1aabb73d233 2 months ago 7.33MB</div>
+                                <p style="margin-top: 12px;">
+                                    同じalpineでも、タグが違えば<strong>別のイメージ</strong>として保存されます。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🔐 IMAGE ID とは</h4>
+                                <p>
+                                    IMAGE ID（例：<code>05455a08881e</code>）は、イメージの内容を<strong>SHA256でハッシュ化</strong>した値です。
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>• 同じ内容のイメージなら<strong>必ず同じID</strong>になる</li>
+                                    <li>• 1バイトでも違えば<strong>全く違うID</strong>になる</li>
+                                    <li>• 世界中の誰がpullしても、同じバージョンなら同じID</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🔍 タグの調べ方</h4>
+                                <p>
+                                    Docker Hubで使いたいイメージを検索し、「Tags」タブをクリックすると一覧が見れます。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    例：<a href="https://hub.docker.com/_/alpine/tags" target="_blank"
+                                        style="color: #22d3ee; text-decoration: underline;">https://hub.docker.com/_/alpine/tags</a>
+                                </p>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    サイズやアーキテクチャ（amd64/arm64）も確認できます。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 タグの選び方</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>用途</th>
+                                            <th>選ぶタグ</th>
+                                            <th>例</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>本番環境</td>
+                                            <td>特定バージョン</td>
+                                            <td><code>node:20.10.0</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td>安定重視</td>
+                                            <td>LTS / stable</td>
+                                            <td><code>node:20-lts</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td>軽量化</td>
+                                            <td>alpine / slim</td>
+                                            <td><code>python:3.12-slim</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td>開発・学習</td>
+                                            <td>latestでもOK</td>
+                                            <td><code>nginx:latest</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    <strong>LTS</strong>（Long Term Support）= 長期サポート版。セキュリティパッチが長く提供されます。
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ latestタグの注意点</h4>
+                                <p>
+                                    <code>latest</code>は「最新」という意味ですが、<strong>いつ内容が変わるか分かりません</strong>。
+                                </p>
+                                <p style="margin-top: 8px;">
+                                    本番環境では必ず<strong>バージョンを明示</strong>しましょう：
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># 良い例</div>
+                                    <div class="command">docker image pull alpine:3.18</div>
+                                    <div class="command" style="margin-top: 8px;"># 避けるべき例</div>
+                                    <div class="command">docker image pull alpine:latest</div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <p><code>イメージ名:タグ</code> でバージョンを指定できる</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: イメージの詳細 -->
+                    <div class="content-section">
+                        <h3>🔍 Step 4: イメージの詳細を調べる</h3>
+                        <div class="collapsible-content">
+                            <div class="progress-indicator">
+                                <span class="step">Step 4/5</span>
+                                <span>docker image inspect / history</span>
+                            </div>
+
+                            <p>
+                                イメージの中身を詳しく見てみましょう。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>イメージの履歴（レイヤー）を確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image history alpine:latest</div>
+                                </div>
+                                <div class="output">IMAGE CREATED CREATED BY SIZE
+                                    05455a08881e 3 weeks ago CMD ["/bin/sh"] 0B
+                                    &lt;missing&gt; 3 weeks ago ADD alpine-minirootfs-3.19.1-x86_64.tar.gz... 7.38MB
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    イメージがどのように作られたか、レイヤーごとに確認できます。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>イメージの詳細情報</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image inspect alpine:latest</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    JSON形式で詳細な情報（環境変数、アーキテクチャ、作成日時など）が表示されます。
+                                    情報量が多いので、必要なときだけ使いましょう。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだコマンド</h4>
+                                <ul>
+                                    <li><code>docker image history イメージ名</code> - レイヤー履歴を表示</li>
+                                    <li><code>docker image inspect イメージ名</code> - 詳細情報を表示</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: イメージの削除 -->
+                    <div class="content-section">
+                        <h3>🗑️ Step 5: イメージを削除</h3>
+                        <div class="collapsible-content">
+                            <div class="progress-indicator">
+                                <span class="step">Step 5/5</span>
+                                <span>docker image rm / prune</span>
+                            </div>
+
+                            <p>
+                                不要なイメージはディスク容量を圧迫するので、削除しましょう。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>hello-worldイメージを削除</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image rm hello-world</div>
+                                </div>
+                                <div class="output">Untagged: hello-world:latest
+                                    Untagged: hello-world@sha256:d211f485...
+                                    Deleted: sha256:d2c94e258dcb...</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>削除を確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image ls</div>
+                                </div>
+                                <div class="output">REPOSITORY TAG IMAGE ID CREATED SIZE
+                                    alpine latest 05455a08881e 3 weeks ago 7.38MB
+                                    alpine 3.18 c1aabb73d233 2 months ago 7.33MB</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ hello-worldが削除されました！
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 削除できない場合</h4>
+                                <p>
+                                    「image is being used by stopped container」エラーが出たら、
+                                    そのイメージを使っているコンテナがあります。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># 強制削除する場合</div>
+                                    <div class="command">docker image rm -f イメージ名</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>未使用イメージを一括削除</h4>
+                                <div class="command-box">
+                                    <div class="command"># コンテナに使われていないイメージを全て削除</div>
+                                    <div class="command">docker image prune -a</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #fbbf24;">
+                                    ⚠️ 本当に不要か確認してから実行してください！
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだコマンド</h4>
+                                <ul>
+                                    <li><code>docker image rm イメージ名</code> - イメージを削除</li>
+                                    <li><code>docker image prune -a</code> - コンテナに使われていないイメージを一括削除</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- コマンドまとめ -->
+                    <div class="content-section">
+                        <h3>📝 コマンドまとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>🎯 今回学んだコマンド</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 16px;">
+                                    <thead>
+                                        <tr>
+                                            <th>コマンド</th>
+                                            <th>説明</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>docker image ls</code></td>
+                                            <td>イメージ一覧を表示</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image pull</code></td>
+                                            <td>イメージをダウンロード</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image rm</code></td>
+                                            <td>イメージを削除</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image history</code></td>
+                                            <td>レイヤー履歴を表示</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image inspect</code></td>
+                                            <td>詳細情報を表示</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image prune</code></td>
+                                            <td>未使用イメージを一括削除</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 覚えなくても大丈夫！</h4>
+                                <p>
+                                    これらのコマンドは<strong>理解</strong>できていればOK。
+                                    実務では<code>docker compose</code>がほとんどの作業を自動化してくれます。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    困ったときは<code>docker image --help</code>でヘルプを確認できます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📝 このセクションのまとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>✅ 学んだこと</h4>
+                                <ul>
+                                    <li><code>docker container run</code>でイメージからプログラムを実行できる</li>
+                                    <li>イメージは<strong>「アプリを動かすための全部入りパッケージ」</strong></li>
+                                    <li><code>docker image pull</code>でDocker Hubからイメージを取得</li>
+                                    <li><strong>タグ</strong>でバージョンを指定できる（本番では必須）</li>
+                                    <li><code>docker image rm</code>で不要なイメージを削除</li>
+                                </ul>
+                            </div>
+
+                            <div class="question-box">
+                                <h4>🤔 まだ残っている疑問</h4>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li style="margin: 8px 0;">• イメージと「コンテナ」の違いは？</li>
+                                    <li style="margin: 8px 0;">• 実行したコンテナはどうやって管理する？</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のステップ</h4>
+                                <p>
+                                    次のセクションでは<strong>「コンテナ」</strong>について学びます。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    イメージが「全部入りパッケージ」なら、<strong>コンテナは「それを開いて動かしている状態」</strong>です。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+
+</body>
+
+</html>

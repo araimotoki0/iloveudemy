@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dockerfileの基礎 - Docker入門講座</title>
+    <meta name="description" content="Dockerfileの書き方と基本命令を学ぶ">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: { 400: '#22d3ee', 500: '#06b6d4' } },
+                    fontFamily: { sans: ['Noto Sans JP', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); background-attachment: fixed; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+                    <!-- Dockerfileとは -->
+                    <div class="content-section">
+                        <h3>📄 Dockerfileとは</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-6">Dockerfileは、Dockerイメージを自動で作成するための設計図です。テキストファイルに命令を記述することで、環境構築をコード化できます。</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div class="bg-slate-700/50 p-6 rounded-xl border border-cyan-500/30">
+                                    <div class="text-3xl mb-3">🔧</div>
+                                    <h4 class="text-lg mb-2">Infrastructure as Code</h4>
+                                    <p class="text-sm text-gray-300">環境構築手順をコードで管理できます</p>
+                                </div>
+
+                                <div class="bg-slate-700/50 p-6 rounded-xl border border-cyan-500/30">
+                                    <div class="text-3xl mb-3">🔄</div>
+                                    <h4 class="text-lg mb-2">再現性</h4>
+                                    <p class="text-sm text-gray-300">誰でも同じ環境を構築できます</p>
+                                </div>
+
+                                <div class="bg-slate-700/50 p-6 rounded-xl border border-cyan-500/30">
+                                    <div class="text-3xl mb-3">📚</div>
+                                    <h4 class="text-lg mb-2">バージョン管理</h4>
+                                    <p class="text-sm text-gray-300">Gitで環境の変更履歴を管理できます</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                                <h4 class="text-lg mb-3">Dockerfileの基本構造</h4>
+                                <div class="dockerfile-code">
+<span class="comment"># ベースイメージの指定</span>
+<span class="keyword">FROM</span> <span class="string">ubuntu:22.04</span>
+
+<span class="comment"># メタデータの設定</span>
+<span class="keyword">LABEL</span> maintainer=<span class="string">"your-email@example.com"</span>
+
+<span class="comment"># コマンドの実行</span>
+<span class="keyword">RUN</span> apt-get update && apt-get install -y nginx
+
+<span class="comment"># ファイルのコピー</span>
+<span class="keyword">COPY</span> index.html /var/www/html/
+
+<span class="comment"># ポートの公開</span>
+<span class="keyword">EXPOSE</span> 80
+
+<span class="comment"># 起動コマンド</span>
+<span class="keyword">CMD</span> [<span class="string">"nginx"</span>, <span class="string">"-g"</span>, <span class="string">"daemon off;"</span>]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 基本命令 -->
+                    <div class="content-section">
+                        <h3>📋 基本命令</h3>
+                        <div class="collapsible-content">
+
+                            <h4>FROM - ベースイメージの指定</h4>
+                            <p class="mb-4">すべてのDockerfileは<code class="font-mono text-cyan-400">FROM</code>から始まります。どのイメージをベースにするか指定します。</p>
+
+                            <div class="dockerfile-code mb-4">
+<span class="keyword">FROM</span> <span class="string">ubuntu:22.04</span>
+                            </div>
+
+                            <div class="dockerfile-code mb-4">
+<span class="keyword">FROM</span> <span class="string">node:18-alpine</span>
+                            </div>
+
+                            <div class="dockerfile-code mb-6">
+<span class="keyword">FROM</span> <span class="string">python:3.11-slim</span>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-blue-300 mb-2">💡 ポイント</div>
+                                <ul class="text-sm space-y-1">
+                                    <li>• alpine版: 軽量（5-10MB程度）だが一部のライブラリが動かない場合がある</li>
+                                    <li>• slim版: 中間的なサイズ（50-100MB程度）、バランスが良い</li>
+                                    <li>• 通常版: 最も大きいが、すべてのツールが揃っている</li>
+                                </ul>
+                            </div>
+
+                            <h4>RUN - コマンドの実行</h4>
+                            <p class="mb-4">イメージビルド時にコマンドを実行します。パッケージのインストールなどに使用します。</p>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">基本形</div>
+                                <div class="dockerfile-code mb-0">
+<span class="keyword">RUN</span> apt-get update
+<span class="keyword">RUN</span> apt-get install -y nginx
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
+                                <div class="font-semibold mb-3">推奨: 1つのRUNにまとめる</div>
+                                <div class="dockerfile-code mb-0">
+<span class="keyword">RUN</span> apt-get update && \
+    apt-get install -y nginx && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+                                </div>
+                                <p class="text-sm text-gray-400 mt-3">💡 レイヤー数を減らし、イメージサイズを削減できます</p>
+                            </div>
+
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-yellow-300 mb-2">⚠️ 注意</div>
+                                <p class="text-sm">各RUN命令は新しいレイヤーを作成します。関連するコマンドは1つのRUNにまとめることでイメージサイズを削減できます。</p>
+                            </div>
+
+                            <h4>COPY - ファイルのコピー</h4>
+                            <p class="mb-4">ホストのファイルをイメージ内にコピーします。</p>
+
+                            <div class="dockerfile-code mb-4">
+<span class="keyword">COPY</span> index.html /var/www/html/
+                            </div>
+
+                            <div class="dockerfile-code mb-4">
+<span class="keyword">COPY</span> src/ /app/src/
+                            </div>
+
+                            <div class="dockerfile-code mb-6">
+<span class="keyword">COPY</span> package*.json /app/
+                            </div>
+
+                            <h4>ADD - ファイルの追加（高機能版）</h4>
+                            <p class="mb-4">COPYと似ていますが、URLからのダウンロードやtarファイルの自動展開ができます。</p>
+
+                            <div class="dockerfile-code mb-4">
+<span class="keyword">ADD</span> archive.tar.gz /app/
+<span class="comment"># 自動的に展開される</span>
+                            </div>
+
+                            <div class="dockerfile-code mb-4">
+<span class="keyword">ADD</span> https://example.com/file.zip /tmp/
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-blue-300 mb-2">💡 COPYとADDの使い分け</div>
+                                <p class="text-sm">基本的には<code class="font-mono text-cyan-400">COPY</code>を使用し、tarの自動展開が必要な場合のみ<code class="font-mono text-cyan-400">ADD</code>を使用するのがベストプラクティスです。</p>
+                            </div>
+
+                            <h4>WORKDIR - 作業ディレクトリの設定</h4>
+                            <p class="mb-4">以降の命令（RUN、CMD、ENTRYPOINT、COPY、ADD）の作業ディレクトリを設定します。</p>
+
+                            <div class="dockerfile-code mb-4">
+<span class="keyword">WORKDIR</span> /app
+<span class="keyword">COPY</span> . .
+<span class="keyword">RUN</span> npm install
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-blue-300 mb-2">💡 ポイント</div>
+                                <p class="text-sm">ディレクトリが存在しない場合は自動的に作成されます。<code class="font-mono text-cyan-400">RUN cd /app</code>よりも<code class="font-mono text-cyan-400">WORKDIR /app</code>を使う方が明確で推奨されます。</p>
+                            </div>
+
+                            <h4>ENV - 環境変数の設定</h4>
+                            <p class="mb-4">環境変数を設定します。ビルド時と実行時の両方で使用できます。</p>
+
+                            <div class="dockerfile-code mb-4">
+<span class="keyword">ENV</span> NODE_ENV=production
+<span class="keyword">ENV</span> PORT=3000
+                            </div>
+
+                            <div class="dockerfile-code mb-4">
+<span class="comment"># 複数まとめて設定</span>
+<span class="keyword">ENV</span> NODE_ENV=production \
+    PORT=3000 \
+    LOG_LEVEL=info
+                            </div>
+
+                            <div class="dockerfile-code mb-6">
+<span class="comment"># 環境変数を参照</span>
+<span class="keyword">RUN</span> echo "Node environment: $NODE_ENV"
+                            </div>
+
+                            <h4>EXPOSE - ポートの公開</h4>
+                            <p class="mb-4">コンテナがリッスンするポートを宣言します（ドキュメントの役割）。</p>
+
+                            <div class="dockerfile-code mb-4">
+<span class="keyword">EXPOSE</span> 80
+                            </div>
+
+                            <div class="dockerfile-code mb-6">
+<span class="keyword">EXPOSE</span> 3000 8080
+                            </div>
+
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-yellow-300 mb-2">⚠️ 注意</div>
+                                <p class="text-sm"><code class="font-mono">EXPOSE</code>は実際にポートを公開しません。<code class="font-mono">docker run -p</code>でポートマッピングする必要があります。主にドキュメント目的で使用されます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 起動コマンドの指定 -->
+                    <div class="content-section">
+                        <h3>🚀 起動コマンドの指定</h3>
+                        <div class="collapsible-content">
+
+                            <h4>CMD - デフォルトコマンド</h4>
+                            <p class="mb-4">コンテナ起動時に実行されるデフォルトのコマンドを指定します。</p>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">exec形式（推奨）</div>
+                                <div class="dockerfile-code mb-0">
+<span class="keyword">CMD</span> [<span class="string">"nginx"</span>, <span class="string">"-g"</span>, <span class="string">"daemon off;"</span>]
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">shell形式</div>
+                                <div class="dockerfile-code mb-0">
+<span class="keyword">CMD</span> nginx -g "daemon off;"
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-blue-300 mb-2">💡 exec形式 vs shell形式</div>
+                                <ul class="text-sm space-y-2">
+                                    <li>• <strong>exec形式</strong>: PID 1で実行される。シグナル処理が正しく動作する（推奨）</li>
+                                    <li>• <strong>shell形式</strong>: <code class="font-mono">/bin/sh -c</code>経由で実行される。環境変数展開が可能</li>
+                                </ul>
+                            </div>
+
+                            <h4>ENTRYPOINT - 実行可能ファイルの指定</h4>
+                            <p class="mb-4">コンテナを実行可能ファイルのように扱いたい場合に使用します。</p>
+
+                            <div class="dockerfile-code mb-4">
+<span class="keyword">ENTRYPOINT</span> [<span class="string">"python"</span>, <span class="string">"app.py"</span>]
+                            </div>
+
+                            <div class="dockerfile-code mb-6">
+<span class="keyword">ENTRYPOINT</span> [<span class="string">"docker-entrypoint.sh"</span>]
+<span class="keyword">CMD</span> [<span class="string">"nginx"</span>, <span class="string">"-g"</span>, <span class="string">"daemon off;"</span>]
+                            </div>
+
+                            <h4>CMDとENTRYPOINTの組み合わせ</h4>
+                            <p class="mb-4">ENTRYPOINTとCMDを組み合わせると、柔軟な起動設定が可能です。</p>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">例: curlコマンドのラッパー</div>
+                                <div class="dockerfile-code mb-3">
+<span class="keyword">FROM</span> <span class="string">alpine:latest</span>
+<span class="keyword">RUN</span> apk add --no-cache curl
+<span class="keyword">ENTRYPOINT</span> [<span class="string">"curl"</span>]
+<span class="keyword">CMD</span> [<span class="string">"--help"</span>]
+                                </div>
+                                <div class="text-sm text-gray-300">
+                                    <div class="mb-2">使用例:</div>
+                                    <div class="command-box mb-2">
+                                        <div class="command">docker run myimage</div>
+                                        <div class="text-sm text-gray-400 mt-2">→ curl --help を実行</div>
+                                    </div>
+                                    <div class="command-box mb-0">
+                                        <div class="command">docker run myimage https://example.com</div>
+                                        <div class="text-sm text-gray-400 mt-2">→ curl https://example.com を実行</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-blue-300 mb-3">💡 使い分けガイド</div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <div class="text-cyan-400 font-semibold mb-2">CMD</div>
+                                        <ul class="space-y-1 text-gray-300">
+                                            <li>• デフォルトコマンド</li>
+                                            <li>• 上書き可能</li>
+                                            <li>• 一般的なアプリに使用</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <div class="text-cyan-400 font-semibold mb-2">ENTRYPOINT</div>
+                                        <ul class="space-y-1 text-gray-300">
+                                            <li>• 必ず実行される</li>
+                                            <li>• コンテナをツールとして使う</li>
+                                            <li>• 初期化スクリプトに使用</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- イメージのビルド -->
+                    <div class="content-section">
+                        <h3>🔨 イメージのビルド</h3>
+                        <div class="collapsible-content">
+
+                            <h4>docker build - イメージのビルド</h4>
+                            <p class="mb-4">Dockerfileからイメージを作成します。</p>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">基本形</div>
+                                <div class="command-box mb-0">
+                                    <div class="command">docker build .</div>
+                                    <div class="text-sm text-gray-400 mt-2">💡 カレントディレクトリのDockerfileを使用</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">タグを付けてビルド</div>
+                                <div class="command-box mb-0">
+                                    <div class="command">docker build -t myapp:v1.0 .</div>
+                                    <div class="text-sm text-gray-400 mt-2">💡 イメージに名前とタグを付ける</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">Dockerfileの場所を指定</div>
+                                <div class="command-box mb-0">
+                                    <div class="command">docker build -f Dockerfile.dev -t myapp:dev .</div>
+                                    <div class="text-sm text-gray-400 mt-2">💡 -fオプションでDockerfileを指定</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
+                                <div class="font-semibold mb-3">キャッシュを使わずビルド</div>
+                                <div class="command-box mb-0">
+                                    <div class="command">docker build --no-cache -t myapp .</div>
+                                    <div class="text-sm text-gray-400 mt-2">💡 クリーンビルド（遅いが確実）</div>
+                                </div>
+                            </div>
+
+                            <h4>ビルドコンテキスト</h4>
+                            <p class="mb-4">docker buildコマンドの最後の引数（通常は<code class="font-mono text-cyan-400">.</code>）がビルドコンテキストです。</p>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-blue-300 mb-3">🔍 ビルドコンテキストとは</div>
+                                <p class="text-sm mb-3">Dockerデーモンに送信されるファイルとディレクトリのセットです。COPYやADDで参照できるのはこのコンテキスト内のファイルのみです。</p>
+                                <div class="text-sm text-gray-300">
+                                    <div class="mb-2">例: 以下のようなディレクトリ構造の場合</div>
+                                    <div class="dockerfile-code text-xs">
+myproject/
+├── Dockerfile
+├── src/
+│   └── app.py
+└── data/
+    └── config.json
+                                    </div>
+                                    <div class="mt-3"><code class="font-mono text-cyan-400">docker build .</code> を実行すると、myproject/以下すべてがコンテキストとして送信されます。</div>
+                                </div>
+                            </div>
+
+                            <h4>.dockerignore - 除外ファイルの指定</h4>
+                            <p class="mb-4">ビルドコンテキストから除外したいファイルを指定できます（.gitignoreと同じ形式）。</p>
+
+                            <div class="dockerfile-code mb-4">
+<span class="comment"># .dockerignore</span>
+node_modules
+.git
+.env
+*.log
+.DS_Store
+README.md
+                            </div>
+
+                            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-green-300 mb-2">✅ ベストプラクティス</div>
+                                <p class="text-sm">.dockerignoreを作成することで、ビルドコンテキストのサイズを削減し、ビルド速度を向上させることができます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 実践例 -->
+                    <div class="content-section">
+                        <h3>💻 実践例</h3>
+                        <div class="collapsible-content">
+
+                            <h4>例1: Node.jsアプリケーション</h4>
+                            <div class="dockerfile-code mb-6">
+<span class="comment"># Node.js 18のAlpine版をベースに</span>
+<span class="keyword">FROM</span> <span class="string">node:18-alpine</span>
+
+<span class="comment"># 作業ディレクトリを設定</span>
+<span class="keyword">WORKDIR</span> /app
+
+<span class="comment"># package.jsonとpackage-lock.jsonをコピー</span>
+<span class="keyword">COPY</span> package*.json ./
+
+<span class="comment"># 依存関係をインストール</span>
+<span class="keyword">RUN</span> npm ci --only=production
+
+<span class="comment"># アプリケーションのソースをコピー</span>
+<span class="keyword">COPY</span> . .
+
+<span class="comment"># 環境変数を設定</span>
+<span class="keyword">ENV</span> NODE_ENV=production
+
+<span class="comment"># ポートを公開</span>
+<span class="keyword">EXPOSE</span> 3000
+
+<span class="comment"># アプリケーションを起動</span>
+<span class="keyword">CMD</span> [<span class="string">"node"</span>, <span class="string">"server.js"</span>]
+                            </div>
+
+                            <h4>例2: Pythonアプリケーション</h4>
+                            <div class="dockerfile-code mb-6">
+<span class="comment"># Python 3.11のスリム版</span>
+<span class="keyword">FROM</span> <span class="string">python:3.11-slim</span>
+
+<span class="comment"># 作業ディレクトリを設定</span>
+<span class="keyword">WORKDIR</span> /app
+
+<span class="comment"># Pythonの出力をバッファリングしない</span>
+<span class="keyword">ENV</span> PYTHONUNBUFFERED=1
+
+<span class="comment"># 依存関係ファイルをコピー</span>
+<span class="keyword">COPY</span> requirements.txt .
+
+<span class="comment"># 依存関係をインストール</span>
+<span class="keyword">RUN</span> pip install --no-cache-dir -r requirements.txt
+
+<span class="comment"># アプリケーションをコピー</span>
+<span class="keyword">COPY</span> . .
+
+<span class="comment"># ポートを公開</span>
+<span class="keyword">EXPOSE</span> 8000
+
+<span class="comment"># アプリケーションを起動</span>
+<span class="keyword">CMD</span> [<span class="string">"python"</span>, <span class="string">"app.py"</span>]
+                            </div>
+
+                            <h4>例3: Nginxカスタム設定</h4>
+                            <div class="dockerfile-code mb-6">
+<span class="comment"># Nginx公式イメージ</span>
+<span class="keyword">FROM</span> <span class="string">nginx:alpine</span>
+
+<span class="comment"># カスタム設定ファイルをコピー</span>
+<span class="keyword">COPY</span> nginx.conf /etc/nginx/nginx.conf
+<span class="keyword">COPY</span> default.conf /etc/nginx/conf.d/default.conf
+
+<span class="comment"># 静的ファイルをコピー</span>
+<span class="keyword">COPY</span> html/ /usr/share/nginx/html/
+
+<span class="comment"># ポートを公開</span>
+<span class="keyword">EXPOSE</span> 80
+
+<span class="comment"># Nginxを起動</span>
+<span class="keyword">CMD</span> [<span class="string">"nginx"</span>, <span class="string">"-g"</span>, <span class="string">"daemon off;"</span>]
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-blue-300 mb-3">💡 共通のパターン</div>
+                                <ol class="text-sm space-y-2">
+                                    <li>1. <strong>FROM</strong>: 適切なベースイメージを選択</li>
+                                    <li>2. <strong>WORKDIR</strong>: 作業ディレクトリを設定</li>
+                                    <li>3. <strong>COPY</strong>依存関係ファイル → <strong>RUN</strong>インストール（キャッシュ活用）</li>
+                                    <li>4. <strong>COPY</strong>アプリケーションコード</li>
+                                    <li>5. <strong>EXPOSE</strong>: ポート情報を記載</li>
+                                    <li>6. <strong>CMD</strong>: 起動コマンドを指定</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ベストプラクティス -->
+                    <div class="content-section">
+                        <h3>⭐ ベストプラクティス</h3>
+                        <div class="collapsible-content">
+
+                            <h4>1. レイヤーキャッシュを活用する</h4>
+                            <p class="mb-4">変更頻度の低いものを先に、高いものを後に配置します。</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div class="bg-red-900/20 border border-red-500/30 p-4 rounded-lg">
+                                    <div class="font-semibold text-red-300 mb-2">❌ 悪い例</div>
+                                    <div class="dockerfile-code text-xs mb-0">
+<span class="keyword">COPY</span> . .
+<span class="keyword">RUN</span> npm install
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-2">コード変更の度にnpm installが実行される</p>
+                                </div>
+
+                                <div class="bg-green-900/20 border border-green-500/30 p-4 rounded-lg">
+                                    <div class="font-semibold text-green-300 mb-2">✅ 良い例</div>
+                                    <div class="dockerfile-code text-xs mb-0">
+<span class="keyword">COPY</span> package*.json ./
+<span class="keyword">RUN</span> npm install
+<span class="keyword">COPY</span> . .
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-2">package.json変更時のみnpm installが実行される</p>
+                                </div>
+                            </div>
+
+                            <h4>2. イメージサイズを最小化する</h4>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">不要なファイルを削除</div>
+                                <div class="dockerfile-code text-sm mb-0">
+<span class="keyword">RUN</span> apt-get update && \
+    apt-get install -y nginx && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
+                                <div class="font-semibold mb-3">軽量なベースイメージを使用</div>
+                                <div class="dockerfile-code text-sm mb-0">
+<span class="comment"># Alpine版は通常版より90%以上小さい</span>
+<span class="keyword">FROM</span> <span class="string">node:18-alpine</span>
+                                </div>
+                            </div>
+
+                            <h4>3. セキュリティを考慮する</h4>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">rootユーザーを避ける</div>
+                                <div class="dockerfile-code text-sm mb-0">
+<span class="keyword">RUN</span> adduser -D appuser
+<span class="keyword">USER</span> appuser
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
+                                <div class="font-semibold mb-3">機密情報を含めない</div>
+                                <div class="dockerfile-code text-sm mb-0">
+<span class="comment"># 環境変数やシークレットは実行時に渡す</span>
+<span class="keyword">ENV</span> DATABASE_URL=<span class="string">""</span>
+<span class="comment"># docker run -e DATABASE_URL=... で設定</span>
+                                </div>
+                            </div>
+
+                            <h4>4. メタデータを追加する</h4>
+                            <div class="dockerfile-code mb-6">
+<span class="keyword">LABEL</span> maintainer=<span class="string">"your-email@example.com"</span>
+<span class="keyword">LABEL</span> version=<span class="string">"1.0"</span>
+<span class="keyword">LABEL</span> description=<span class="string">"My awesome application"</span>
+                            </div>
+
+                            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-green-300 mb-3">✅ チェックリスト</div>
+                                <ul class="text-sm space-y-2">
+                                    <li>□ 適切なベースイメージを選択している</li>
+                                    <li>□ レイヤーキャッシュを活用している</li>
+                                    <li>□ 不要なファイルを削除している</li>
+                                    <li>□ .dockerignoreを作成している</li>
+                                    <li>□ rootユーザーを避けている</li>
+                                    <li>□ 機密情報を含めていない</li>
+                                    <li>□ メタデータを追加している</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 実践演習 -->
+                    <div class="content-section">
+                        <h3>✍️ 実践演習</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-6">実際にDockerfileを書いてイメージを作成してみましょう。</p>
+
+                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
+                                <h4 class="text-xl mb-4">課題1: シンプルなWebサーバー</h4>
+                                <div class="space-y-3 text-sm mb-4">
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">1.</span>
+                                        <span>nginx:alpineをベースにしたDockerfileを作成</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">2.</span>
+                                        <span>index.htmlを作成し、「Hello Docker!」と表示</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">3.</span>
+                                        <span>index.htmlを/usr/share/nginx/html/にコピー</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">4.</span>
+                                        <span>docker buildでイメージをビルド</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">5.</span>
+                                        <span>docker runで起動してブラウザで確認</span>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-800/50 p-3 rounded text-xs">
+                                    <div class="text-gray-400 mb-1">ヒント: docker runコマンド</div>
+                                    <code class="text-cyan-400">docker run -d -p 8080:80 --name my-nginx イメージ名</code>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
+                                <h4 class="text-xl mb-4">課題2: 環境変数を使う</h4>
+                                <div class="space-y-3 text-sm mb-4">
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">1.</span>
+                                        <span>alpine:latestをベースにしたDockerfileを作成</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">2.</span>
+                                        <span>ENV命令で MESSAGE="Hello from Docker" を設定</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">3.</span>
+                                        <span>CMD命令で echo $MESSAGE を実行</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">4.</span>
+                                        <span>ビルドして実行し、メッセージが表示されることを確認</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">5.</span>
+                                        <span>docker run -e MESSAGE="Custom Message" で環境変数を上書きして実行</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
+                                <h4 class="text-xl mb-4">課題3: マルチステージビルドの準備</h4>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">1.</span>
+                                        <span>node:18-alpineでシンプルなNode.jsアプリのDockerfileを作成</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">2.</span>
+                                        <span>package.jsonを作成（express等を依存関係に追加）</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">3.</span>
+                                        <span>ベストプラクティスに従ってDockerfileを書く</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">4.</span>
+                                        <span>docker buildで2回ビルドし、キャッシュの効果を確認</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-green-300 mb-2">✅ 習得目標</div>
+                                <p class="text-sm">Dockerfileの基本命令を理解し、効率的でメンテナンスしやすいDockerfileを書けるようになりましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>🎯 まとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-6 rounded-xl border border-cyan-500/30">
+                                    <h4 class="text-lg mb-4">主要な命令</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex items-center">
+                                            <span class="font-mono text-cyan-400 w-32">FROM</span>
+                                            <span class="text-gray-400">ベースイメージ</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="font-mono text-cyan-400 w-32">RUN</span>
+                                            <span class="text-gray-400">コマンド実行</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="font-mono text-cyan-400 w-32">COPY</span>
+                                            <span class="text-gray-400">ファイルコピー</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="font-mono text-cyan-400 w-32">WORKDIR</span>
+                                            <span class="text-gray-400">作業ディレクトリ</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="font-mono text-cyan-400 w-32">ENV</span>
+                                            <span class="text-gray-400">環境変数</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="font-mono text-cyan-400 w-32">EXPOSE</span>
+                                            <span class="text-gray-400">ポート公開</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="font-mono text-cyan-400 w-32">CMD</span>
+                                            <span class="text-gray-400">起動コマンド</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-6 rounded-xl border border-cyan-500/30">
+                                    <h4 class="text-lg mb-4">記憶すべきポイント</h4>
+                                    <ul class="space-y-2 text-sm text-gray-300">
+                                        <li>✓ FROMは必ず最初に書く</li>
+                                        <li>✓ RUNは関連コマンドをまとめる</li>
+                                        <li>✓ COPYはADDより優先</li>
+                                        <li>✓ WORKDIRで作業ディレクトリを明示</li>
+                                        <li>✓ キャッシュを活用する順序で書く</li>
+                                        <li>✓ .dockerignoreを作成する</li>
+                                        <li>✓ rootユーザーを避ける</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                                <h4 class="text-lg mb-3">次のステップ</h4>
+                                <p class="mb-4">Dockerfileの基礎をマスターしたら、次のトピックに進みましょう：</p>
+                                <ul class="space-y-2 text-sm">
+                                    <li>• <strong>マルチステージビルド</strong> - ビルドイメージと実行イメージを分離</li>
+                                    <li>• <strong>docker-compose</strong> - 複数コンテナの管理</li>
+                                    <li>• <strong>ボリューム</strong> - データの永続化</li>
+                                    <li>• <strong>ネットワーク</strong> - コンテナ間通信</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+</body>
+</html>

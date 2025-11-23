@@ -2,14 +2,15 @@
 function initSidebar() {
     // 現在のパスから相対パスを計算
     const currentPath = window.location.pathname;
-    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/');
+    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/backend/');
     const rootPath = isInSubfolder ? '../' : './';
 
     // サイドバーHTML
     const sidebarHTML = `
     <!-- サイドバー -->
     <aside id="sidebar"
-        class="fixed left-0 top-0 h-full w-80 glass-dark transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+        class="fixed left-0 top-0 h-full w-80 transform -translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto"
+        style="background-color: rgba(17, 24, 39, 0.95); backdrop-filter: blur(10px); color: white;">
         <div class="p-6">
             <div class="flex justify-between items-center mb-8">
                 <h2
@@ -76,24 +77,39 @@ function initSidebar() {
                         <span class="text-xs text-gray-400 mt-0.5">2025年11月15日</span>
                     </div>
                 </a>
+                <a href="${rootPath}backend/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/backend/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>データベース&バックエンド超入門</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年11月24日</span>
+                    </div>
+                </a>
             </nav>
         </div>
     </aside>
-
-    <!-- ハンバーガーメニューボタン -->
-    <button id="open-sidebar"
-        class="fixed top-4 left-4 z-40 p-3 rounded-full glass hover:bg-white/20 transition-colors duration-200">
-        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-    </button>
 
     <!-- オーバーレイ -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
     `;
 
+    // ハンバーガーメニューボタンHTML
+    const openButtonHTML = `
+    <!-- ハンバーガーメニューボタン -->
+    <button id="open-sidebar"
+        style="position: fixed; top: 1rem; left: 1rem; z-index: 9999; padding: 0.75rem; border-radius: 9999px; background-color: #1f2937; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+        <svg style="height: 1.5rem; width: 1.5rem; color: white;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+    `;
+
     // bodyの最初に挿入
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
+    document.body.insertAdjacentHTML('afterbegin', openButtonHTML);
 
     // イベントリスナーを設定
     setupSidebarEvents();

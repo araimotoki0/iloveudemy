@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>イメージ操作 - Docker入門講座</title>
+    <meta name="description" content="Dockerイメージの検索、取得、管理方法を学ぶ">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: { 400: '#22d3ee', 500: '#06b6d4' } },
+                    fontFamily: { sans: ['Noto Sans JP', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); background-attachment: fixed; }
+        .layer-box { background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(34, 211, 238, 0.05) 100%); border-left: 4px solid #22d3ee; padding: 12px 16px; margin: 8px 0; border-radius: 4px; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+                    <!-- イメージとは -->
+                    <div class="content-section">
+                        <h3>🎯 Dockerイメージとは</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-6">Dockerイメージは、コンテナを作成するための「設計図」または「テンプレート」です。</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-slate-700/50 p-6 rounded-xl border border-cyan-500/30">
+                                    <div class="text-3xl mb-3">📋</div>
+                                    <h4 class="text-lg mb-3">イメージの役割</h4>
+                                    <ul class="text-sm space-y-2 text-gray-300">
+                                        <li>• OSやアプリケーションの実行環境</li>
+                                        <li>• 必要なファイルやライブラリを含む</li>
+                                        <li>• 読み取り専用（変更不可）</li>
+                                        <li>• 何度でもコンテナを作成できる</li>
+                                    </ul>
+                                </div>
+
+                                <div class="bg-slate-700/50 p-6 rounded-xl border border-cyan-500/30">
+                                    <div class="text-3xl mb-3">🏗️</div>
+                                    <h4 class="text-lg mb-3">レイヤー構造</h4>
+                                    <p class="text-sm text-gray-300 mb-3">イメージは複数のレイヤー（層）が積み重なって構成されています。</p>
+                                    <div class="space-y-1">
+                                        <div class="layer-box text-sm">アプリケーション層</div>
+                                        <div class="layer-box text-sm">ライブラリ層</div>
+                                        <div class="layer-box text-sm">ミドルウェア層</div>
+                                        <div class="layer-box text-sm">OS基本層</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                                <div class="font-semibold text-blue-300 mb-3">🔍 レイヤー構造のメリット</div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                    <div>
+                                        <div class="text-cyan-400 font-semibold mb-2">効率的な保存</div>
+                                        <p class="text-gray-300">共通のレイヤーは再利用されるため、ディスク容量を節約できます</p>
+                                    </div>
+                                    <div>
+                                        <div class="text-cyan-400 font-semibold mb-2">高速なダウンロード</div>
+                                        <p class="text-gray-300">既存のレイヤーは再ダウンロード不要です</p>
+                                    </div>
+                                    <div>
+                                        <div class="text-cyan-400 font-semibold mb-2">キャッシュ活用</div>
+                                        <p class="text-gray-300">ビルド時に変更のないレイヤーはキャッシュを利用</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- イメージの検索と取得 -->
+                    <div class="content-section">
+                        <h3>🔍 イメージの検索と取得</h3>
+                        <div class="collapsible-content">
+
+                            <h4>Docker Hubとは</h4>
+                            <p class="mb-4">Docker Hubは、Dockerイメージを共有・配布するための公式レジストリ（リポジトリ）です。</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div class="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 p-5 rounded-xl border border-blue-500/30">
+                                    <div class="font-semibold text-blue-300 mb-3">公式イメージ</div>
+                                    <p class="text-sm text-gray-300 mb-3">Docker社や各プロジェクトが管理する信頼性の高いイメージ</p>
+                                    <div class="font-mono text-xs space-y-1">
+                                        <div>• nginx</div>
+                                        <div>• mysql</div>
+                                        <div>• python</div>
+                                        <div>• node</div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 p-5 rounded-xl border border-blue-500/30">
+                                    <div class="font-semibold text-blue-300 mb-3">コミュニティイメージ</div>
+                                    <p class="text-sm text-gray-300 mb-3">個人やコミュニティが作成したイメージ</p>
+                                    <div class="font-mono text-xs space-y-1">
+                                        <div>• username/myapp</div>
+                                        <div>• organization/tool</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>docker search - イメージの検索</h4>
+                            <p class="mb-4">Docker Hub上のイメージをコマンドラインから検索できます。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker search nginx</div>
+                                <div class="output">
+NAME                     DESCRIPTION                                     STARS     OFFICIAL<br>
+nginx                    Official build of Nginx.                        19856     [OK]<br>
+nginx/nginx-ingress      NGINX and NGINX Plus Ingress Controllers...     89<br>
+bitnami/nginx            Bitnami nginx Docker Image                      178
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+                                <div class="bg-slate-700/30 p-3 rounded-lg">
+                                    <div class="font-mono text-xs text-cyan-400 mb-1">NAME</div>
+                                    <p class="text-xs">イメージ名</p>
+                                </div>
+                                <div class="bg-slate-700/30 p-3 rounded-lg">
+                                    <div class="font-mono text-xs text-cyan-400 mb-1">DESCRIPTION</div>
+                                    <p class="text-xs">説明</p>
+                                </div>
+                                <div class="bg-slate-700/30 p-3 rounded-lg">
+                                    <div class="font-mono text-xs text-cyan-400 mb-1">STARS</div>
+                                    <p class="text-xs">人気度</p>
+                                </div>
+                                <div class="bg-slate-700/30 p-3 rounded-lg">
+                                    <div class="font-mono text-xs text-cyan-400 mb-1">OFFICIAL</div>
+                                    <p class="text-xs">公式フラグ</p>
+                                </div>
+                            </div>
+
+                            <h4>docker pull - イメージの取得</h4>
+                            <p class="mb-4">Docker Hubからイメージをローカルにダウンロードします。</p>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">基本形</div>
+                                <div class="command-box mb-3">
+                                    <div class="command">docker pull nginx</div>
+                                    <div class="text-sm text-gray-400 mt-2">💡 最新版（latest）を取得</div>
+                                </div>
+                                <div class="command-box mb-0">
+                                    <div class="command">docker pull nginx:1.24</div>
+                                    <div class="text-sm text-gray-400 mt-2">💡 バージョン1.24を取得</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">タグの指定</div>
+                                <p class="text-sm text-gray-300 mb-3">タグを使って特定のバージョンや環境を指定できます</p>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between items-center p-2 bg-slate-800/50 rounded">
+                                        <code class="text-cyan-400">nginx:latest</code>
+                                        <span class="text-gray-400">最新版</span>
+                                    </div>
+                                    <div class="flex justify-between items-center p-2 bg-slate-800/50 rounded">
+                                        <code class="text-cyan-400">nginx:1.24</code>
+                                        <span class="text-gray-400">バージョン指定</span>
+                                    </div>
+                                    <div class="flex justify-between items-center p-2 bg-slate-800/50 rounded">
+                                        <code class="text-cyan-400">nginx:alpine</code>
+                                        <span class="text-gray-400">Alpine Linux版（軽量）</span>
+                                    </div>
+                                    <div class="flex justify-between items-center p-2 bg-slate-800/50 rounded">
+                                        <code class="text-cyan-400">python:3.11-slim</code>
+                                        <span class="text-gray-400">Python 3.11のスリム版</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-yellow-300 mb-2">⚠️ latestタグの注意点</div>
+                                <p class="text-sm">「latest」は必ずしも最新版とは限りません。本番環境では必ず具体的なバージョンタグを指定することを推奨します。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- イメージの管理 -->
+                    <div class="content-section">
+                        <h3>🗂️ イメージの管理</h3>
+                        <div class="collapsible-content">
+
+                            <h4>docker images - イメージ一覧の表示</h4>
+                            <p class="mb-4">ローカルに保存されているイメージを確認します。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker images</div>
+                                <div class="output">
+REPOSITORY    TAG       IMAGE ID       CREATED        SIZE<br>
+nginx         latest    a6bd71f48f68   2 weeks ago    187MB<br>
+nginx         1.24      f8f4ffc8092c   3 weeks ago    186MB<br>
+python        3.11      a5d7930b60cc   1 month ago    1.01GB<br>
+python        3.11-slim ee7d5c57a2cd   1 month ago    126MB<br>
+ubuntu        22.04     ca2b0f26964c   2 months ago   77.9MB
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-blue-300 mb-3">🔍 各カラムの意味</div>
+                                <div class="space-y-3 text-sm">
+                                    <div>
+                                        <span class="font-mono text-cyan-400">REPOSITORY</span>: イメージの名前
+                                    </div>
+                                    <div>
+                                        <span class="font-mono text-cyan-400">TAG</span>: バージョンやバリエーション
+                                    </div>
+                                    <div>
+                                        <span class="font-mono text-cyan-400">IMAGE ID</span>: イメージの一意な識別子（短縮形）
+                                    </div>
+                                    <div>
+                                        <span class="font-mono text-cyan-400">CREATED</span>: イメージが作成された日時
+                                    </div>
+                                    <div>
+                                        <span class="font-mono text-cyan-400">SIZE</span>: イメージのサイズ（圧縮前）
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>docker image inspect - 詳細情報の確認</h4>
+                            <p class="mb-4">イメージの詳細な情報をJSON形式で表示します。</p>
+
+                            <div class="command-box mb-4">
+                                <div class="command">docker image inspect nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 設定、レイヤー、環境変数などを確認</div>
+                            </div>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
+                                <div class="font-semibold mb-3">よく確認する情報</div>
+                                <ul class="text-sm space-y-2 text-gray-300">
+                                    <li>• <strong>Layers</strong>: レイヤー構成</li>
+                                    <li>• <strong>Env</strong>: 環境変数</li>
+                                    <li>• <strong>ExposedPorts</strong>: 公開ポート</li>
+                                    <li>• <strong>Cmd</strong>: デフォルトコマンド</li>
+                                    <li>• <strong>WorkingDir</strong>: 作業ディレクトリ</li>
+                                </ul>
+                            </div>
+
+                            <h4>docker image history - レイヤー履歴の確認</h4>
+                            <p class="mb-4">イメージがどのように構築されたか、各レイヤーを確認できます。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker image history nginx</div>
+                                <div class="output text-xs">
+IMAGE          CREATED       CREATED BY                                      SIZE<br>
+a6bd71f48f68   2 weeks ago   CMD ["nginx" "-g" "daemon off;"]                0B<br>
+&lt;missing&gt;     2 weeks ago   STOPSIGNAL SIGQUIT                              0B<br>
+&lt;missing&gt;     2 weeks ago   EXPOSE 80                                       0B<br>
+&lt;missing&gt;     2 weeks ago   RUN /bin/sh -c apt-get update && apt-get...    62.3MB<br>
+&lt;missing&gt;     2 weeks ago   COPY file:1234... in /etc/nginx/               1.2kB
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mt-4">
+                                <div class="font-semibold text-blue-300 mb-2">💡 活用方法</div>
+                                <p class="text-sm">イメージのサイズが大きい原因を調べたり、どのコマンドが実行されたかを確認する際に便利です。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- イメージの削除とクリーンアップ -->
+                    <div class="content-section">
+                        <h3>🗑️ イメージの削除とクリーンアップ</h3>
+                        <div class="collapsible-content">
+
+                            <h4>docker rmi - イメージの削除</h4>
+                            <p class="mb-4">不要なイメージを削除してディスク容量を節約します。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker rmi nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 イメージ名で削除</div>
+                            </div>
+
+                            <div class="command-box">
+                                <div class="command">docker rmi nginx:1.24</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 特定のタグを指定して削除</div>
+                            </div>
+
+                            <div class="command-box">
+                                <div class="command">docker rmi a6bd71f48f68</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 IMAGE IDで削除</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker rmi -f nginx</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 強制削除（コンテナが使用中でも削除）</div>
+                            </div>
+
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-yellow-300 mb-2">⚠️ 削除できない場合</div>
+                                <p class="text-sm mb-3">以下の場合、イメージは削除できません：</p>
+                                <ul class="text-sm space-y-1">
+                                    <li>• コンテナが使用中（実行中または停止中）</li>
+                                    <li>• 別のイメージが依存している</li>
+                                </ul>
+                                <p class="text-sm mt-3">解決方法: 先にコンテナを削除してからイメージを削除します。</p>
+                            </div>
+
+                            <h4>ダングリングイメージとは</h4>
+                            <p class="mb-4">タグがなく、どのコンテナからも参照されていないイメージのことです。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker images -f dangling=true</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 ダングリングイメージを表示</div>
+                                <div class="output">
+REPOSITORY    TAG       IMAGE ID       CREATED        SIZE<br>
+&lt;none&gt;        &lt;none&gt;    3a5e8d7c9f1a   3 days ago     250MB<br>
+&lt;none&gt;        &lt;none&gt;    b8c4d5e2f6a9   1 week ago     180MB
+                                </div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker image prune</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 ダングリングイメージを一括削除</div>
+                            </div>
+
+                            <h4>未使用イメージの一括削除</h4>
+                            <div class="command-box">
+                                <div class="command">docker image prune -a</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 使用されていないイメージをすべて削除</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker system prune -a --volumes</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 未使用のイメージ、コンテナ、ボリューム、ネットワークを全て削除</div>
+                            </div>
+
+                            <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-red-300 mb-2">🚨 注意</div>
+                                <p class="text-sm"><code class="font-mono">docker image prune -a</code> や <code class="font-mono">docker system prune -a</code> は、使用していないすべてのイメージを削除します。実行前に必ず内容を確認してください。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- イメージの保存と共有 -->
+                    <div class="content-section">
+                        <h3>💾 イメージの保存と共有</h3>
+                        <div class="collapsible-content">
+
+                            <h4>docker save - イメージをファイルに保存</h4>
+                            <p class="mb-4">イメージをtarファイルとしてエクスポートします。オフライン環境への移行などに便利です。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker save nginx -o nginx.tar</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 nginxイメージをnginx.tarに保存</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker save nginx:1.24 nginx:latest -o nginx-images.tar</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 複数のタグをまとめて保存</div>
+                            </div>
+
+                            <h4>docker load - ファイルからイメージを読み込み</h4>
+                            <p class="mb-4">tarファイルからイメージをインポートします。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker load -i nginx.tar</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 nginx.tarからイメージを読み込み</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker load &lt; nginx.tar</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 標準入力からの読み込み</div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                                <div class="font-semibold text-blue-300 mb-3">💡 使用例</div>
+                                <div class="space-y-3 text-sm">
+                                    <div>
+                                        <div class="text-cyan-400 mb-1">オフライン環境への移行</div>
+                                        <p class="text-gray-300">インターネット接続のない環境でもイメージを使用できます</p>
+                                    </div>
+                                    <div>
+                                        <div class="text-cyan-400 mb-1">バックアップ</div>
+                                        <p class="text-gray-300">重要なイメージを保存しておけます</p>
+                                    </div>
+                                    <div>
+                                        <div class="text-cyan-400 mb-1">配布</div>
+                                        <p class="text-gray-300">チーム内でイメージを共有できます</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>docker tag - イメージにタグを付ける</h4>
+                            <p class="mb-4">既存のイメージに新しい名前やタグを付けます。</p>
+
+                            <div class="command-box">
+                                <div class="command">docker tag nginx myregistry/nginx:v1.0</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 プライベートレジストリ用にタグ付け</div>
+                            </div>
+
+                            <div class="command-box mb-6">
+                                <div class="command">docker tag nginx:latest nginx:backup</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 バックアップ用のタグを作成</div>
+                            </div>
+
+                            <h4>docker push - イメージをレジストリに公開</h4>
+                            <p class="mb-4">イメージをDocker Hubやプライベートレジストリにアップロードします。</p>
+
+                            <div class="bg-slate-700/30 p-4 rounded-lg mb-4">
+                                <div class="font-semibold mb-3">事前準備</div>
+                                <div class="command-box mb-0">
+                                    <div class="command">docker login</div>
+                                    <div class="text-sm text-gray-400 mt-2">💡 Docker Hubにログイン</div>
+                                </div>
+                            </div>
+
+                            <div class="command-box">
+                                <div class="command">docker push username/myapp:v1.0</div>
+                                <div class="text-sm text-gray-400 mt-2">💡 イメージをDocker Hubにプッシュ</div>
+                            </div>
+
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mt-4">
+                                <div class="font-semibold text-yellow-300 mb-2">📝 注意</div>
+                                <p class="text-sm">pushするには、イメージ名が「username/repository:tag」の形式である必要があります。usernameはDocker Hubのアカウント名です。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 実践演習 -->
+                    <div class="content-section">
+                        <h3>✍️ 実践演習</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-6">イメージ操作を実際に試してみましょう。</p>
+
+                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
+                                <h4 class="text-xl mb-4">課題1: 複数バージョンの管理</h4>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">1.</span>
+                                        <span>nginx:latestとnginx:alpineの両方をpullする</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">2.</span>
+                                        <span>docker imagesでサイズの違いを確認する</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">3.</span>
+                                        <span>docker image historyで各イメージのレイヤーを確認する</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">4.</span>
+                                        <span>alpine版がなぜ軽量なのか考えてみる</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
+                                <h4 class="text-xl mb-4">課題2: イメージの保存と復元</h4>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">1.</span>
+                                        <span>nginx:alpineイメージをnginx-alpine.tarとして保存する</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">2.</span>
+                                        <span>docker rmiでnginx:alpineを削除する</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">3.</span>
+                                        <span>tarファイルからイメージを復元する</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">4.</span>
+                                        <span>docker imagesで復元されたことを確認する</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
+                                <h4 class="text-xl mb-4">課題3: クリーンアップ</h4>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">1.</span>
+                                        <span>docker system dfでディスク使用量を確認する</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">2.</span>
+                                        <span>不要なイメージをdocker rmiで削除する</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">3.</span>
+                                        <span>docker image pruneでダングリングイメージを削除する</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <span class="text-cyan-400 mr-3">4.</span>
+                                        <span>再度docker system dfで削減された容量を確認する</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+                                <div class="font-semibold text-green-300 mb-2">✅ 習得目標</div>
+                                <p class="text-sm">イメージの取得、確認、管理、削除までの一連の流れを理解し、効率的にイメージを管理できるようになりましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>🎯 まとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-6 rounded-xl border border-cyan-500/30">
+                                    <h4 class="text-lg mb-4">重要なコマンド</h4>
+                                    <div class="space-y-3 text-sm">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-mono text-cyan-400">docker pull</span>
+                                            <span class="text-gray-400">取得</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-mono text-cyan-400">docker images</span>
+                                            <span class="text-gray-400">一覧</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-mono text-cyan-400">docker rmi</span>
+                                            <span class="text-gray-400">削除</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-mono text-cyan-400">docker save/load</span>
+                                            <span class="text-gray-400">保存/復元</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-mono text-cyan-400">docker tag</span>
+                                            <span class="text-gray-400">タグ付け</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-mono text-cyan-400">docker push</span>
+                                            <span class="text-gray-400">公開</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-6 rounded-xl border border-cyan-500/30">
+                                    <h4 class="text-lg mb-4">ベストプラクティス</h4>
+                                    <ul class="space-y-2 text-sm text-gray-300">
+                                        <li>✓ 本番環境では具体的なバージョンタグを使用</li>
+                                        <li>✓ alpine版など軽量イメージを検討</li>
+                                        <li>✓ 定期的に不要なイメージをクリーンアップ</li>
+                                        <li>✓ 公式イメージを優先的に使用</li>
+                                        <li>✓ イメージのレイヤー構造を理解する</li>
+                                        <li>✓ セキュリティアップデートに注意</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                                <h4 class="text-lg mb-3">次のステップ</h4>
+                                <p class="mb-4">イメージ操作をマスターしたら、次は独自のイメージを作成しましょう：</p>
+                                <ul class="space-y-2 text-sm">
+                                    <li>• <strong>Dockerfileの基礎</strong> - 独自イメージの作成方法</li>
+                                    <li>• <strong>docker build</strong> - イメージのビルド</li>
+                                    <li>• <strong>マルチステージビルド</strong> - 効率的なイメージ作成</li>
+                                    <li>• <strong>ベストプラクティス</strong> - 最適化とセキュリティ</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+</body>
+</html>

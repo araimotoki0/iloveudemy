@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>環境構築 - Docker入門講座</title>
+    <meta name="description" content="Docker Desktopのインストール方法をWindows/Mac/Linux別に詳しく解説">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+
+        .code-block {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            font-family: 'JetBrains Mono', monospace;
+            overflow-x: auto;
+        }
+
+        .command {
+            color: #22d3ee;
+            font-weight: 600;
+        }
+
+        .output {
+            color: #86efac;
+            margin-top: 8px;
+        }
+
+
+        .step-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+        }
+
+
+        .os-tabs {
+            display: flex;
+            gap: 12px;
+            margin: 24px 0 16px;
+            border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .os-tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .os-tab:hover {
+            background: rgba(34, 211, 238, 0.1);
+        }
+
+        .os-tab.active {
+            background: rgba(34, 211, 238, 0.2);
+            border-color: #22d3ee;
+            color: #22d3ee;
+        }
+
+        .os-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .os-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .screenshot-placeholder {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px dashed rgba(148, 163, 184, 0.4);
+            border-radius: 8px;
+            padding: 60px 20px;
+            text-align: center;
+            color: #94a3b8;
+            margin: 16px 0;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 6px;
+            border-left: 3px solid #22d3ee;
+        }
+
+        .checklist li:before {
+            content: "✓ ";
+            color: #22c55e;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .system-requirements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .requirement-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+
+        .diagram-title {
+            text-align: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: #22d3ee;
+            margin-bottom: 24px;
+        }
+
+        .flow-step {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(6, 182, 212, 0.1));
+            border: 2px solid #22d3ee;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .flow-arrow {
+            text-align: center;
+            color: #22d3ee;
+            font-size: 24px;
+            margin: 8px 0;
+        }
+
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- セクション1: Docker Desktopとは -->
+                    <div class="content-section">
+                        <h3>📦 Docker Desktopとは</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                Dockerを使うには、<strong class="text-cyan-400">Docker Desktop</strong>というソフトウェアをインストールします。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>💡 Docker Desktopって何？</h4>
+                                <p class="mb-2">
+                                    Docker DesktopはDockerを簡単に使えるようにしてくれる統合パッケージです。以下が全て含まれています：
+                                </p>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>Docker Engine</strong> - Dockerの本体（コンテナを動かすエンジン）</li>
+                                    <li><strong>Docker CLI</strong> - コマンドラインツール（ターミナルからDockerを操作）</li>
+                                    <li><strong>Docker Compose</strong> - 複数コンテナを管理するツール</li>
+                                    <li><strong>GUI（管理画面）</strong> - 視覚的にコンテナを管理できる</li>
+                                    <li><strong>Kubernetes</strong> - オーケストレーションツール（オプション）</li>
+                                </ul>
+                            </div>
+
+                        <div class="visual-diagram">
+                            <div class="diagram-title">Docker Desktopの構成</div>
+                            <div style="max-width: 600px; margin: 0 auto;">
+                                <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.1)); border: 2px solid #8b5cf6; border-radius: 12px; padding: 24px; margin-bottom: 16px;">
+                                    <div style="text-align: center; font-weight: 700; color: #8b5cf6; margin-bottom: 16px; font-size: 18px;">Docker Desktop</div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                        <div style="background: rgba(34, 211, 238, 0.15); border: 1px solid #22d3ee; border-radius: 6px; padding: 12px; text-align: center;">
+                                            <div style="color: #22d3ee; font-weight: 600;">GUI</div>
+                                            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">視覚的管理</div>
+                                        </div>
+                                        <div style="background: rgba(34, 211, 238, 0.15); border: 1px solid #22d3ee; border-radius: 6px; padding: 12px; text-align: center;">
+                                            <div style="color: #22d3ee; font-weight: 600;">CLI</div>
+                                            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">コマンド操作</div>
+                                        </div>
+                                        <div style="background: rgba(34, 211, 238, 0.15); border: 1px solid #22d3ee; border-radius: 6px; padding: 12px; text-align: center;">
+                                            <div style="color: #22d3ee; font-weight: 600;">Docker Engine</div>
+                                            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">本体</div>
+                                        </div>
+                                        <div style="background: rgba(34, 211, 238, 0.15); border: 1px solid #22d3ee; border-radius: 6px; padding: 12px; text-align: center;">
+                                            <div style="color: #22d3ee; font-weight: 600;">Compose</div>
+                                            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">複数管理</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 商用利用について</h4>
+                                <p>
+                                    Docker Desktopは個人利用・小規模チーム（従業員250人未満かつ年間売上1000万ドル未満）は<strong>無料</strong>です。
+                                    大企業での使用には有料のサブスクリプションが必要になります。
+                                </p>
+                                <p class="mt-2 text-sm">
+                                    ※ 学習目的や個人開発では全く問題ありません！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2: システム要件 -->
+                    <div class="content-section">
+                        <h3>🖥️ システム要件</h3>
+                        <div class="collapsible-content">
+
+                    <p class="text-lg mb-6">まず、あなたのPCがDockerを動かせるか確認しましょう。</p>
+
+                    <div class="os-tabs">
+                        <div class="os-tab active" onclick="switchTab(event, 'windows-req')">
+                            🪟 Windows
+                        </div>
+                        <div class="os-tab" onclick="switchTab(event, 'mac-req')">
+                            🍎 macOS
+                        </div>
+                        <div class="os-tab" onclick="switchTab(event, 'linux-req')">
+                            🐧 Linux
+                        </div>
+                    </div>
+
+                    <!-- Windows要件 -->
+                    <div id="windows-req" class="os-content active">
+                        <div class="system-requirements">
+                            <div class="requirement-card">
+                                <h4 class="text-lg font-semibold mb-3 text-cyan-400">OS バージョン</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                                    <li>Windows 10 64bit (Pro, Enterprise, Education)</li>
+                                    <li>Windows 11 64bit (Home含む全エディション)</li>
+                                    <li>ビルド 19041 以上</li>
+                                </ul>
+                            </div>
+
+                            <div class="requirement-card">
+                                <h4 class="text-lg font-semibold mb-3 text-cyan-400">ハードウェア</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                                    <li>64ビットプロセッサ</li>
+                                    <li>4GB以上のRAM（8GB推奨）</li>
+                                    <li>仮想化サポート（BIOS/UEFIで有効化）</li>
+                                </ul>
+                            </div>
+
+                            <div class="requirement-card">
+                                <h4 class="text-lg font-semibold mb-3 text-cyan-400">必要な機能</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                                    <li>WSL 2（Windows Subsystem for Linux 2）</li>
+                                    <li>Hyper-V（Windows 10 Pro以上の場合）</li>
+                                    <li>仮想化技術の有効化</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <h4 class="text-xl font-semibold mb-3 text-cyan-400">💡 Windows Homeユーザーの方へ</h4>
+                            <p>
+                                Windows 10 HomeでもWSL 2を使えばDocker Desktopが動きます！
+                                Windows 11 Homeなら問題なく使えます。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- macOS要件 -->
+                    <div id="mac-req" class="os-content">
+                        <div class="system-requirements">
+                            <div class="requirement-card">
+                                <h4 class="text-lg font-semibold mb-3 text-cyan-400">macOS バージョン</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                                    <li>macOS 11（Big Sur）以降</li>
+                                    <li>macOS 12（Monterey）推奨</li>
+                                    <li>macOS 13（Ventura）以降ならさらに高速</li>
+                                </ul>
+                            </div>
+
+                            <div class="requirement-card">
+                                <h4 class="text-lg font-semibold mb-3 text-cyan-400">Mac の種類</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                                    <li><strong>Apple Silicon（M1/M2/M3）</strong> - 専用版あり</li>
+                                    <li><strong>Intel Mac</strong> - 通常版を使用</li>
+                                    <li>最低4GB RAM（8GB以上推奨）</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4 class="text-xl font-semibold mb-3 text-yellow-400">⚠️ Appleシリコン版の注意点</h4>
+                            <p class="mb-2">
+                                M1/M2/M3チップのMacでは、ARM64アーキテクチャ用のイメージが必要です。
+                            </p>
+                            <p>
+                                多くのイメージは両方に対応していますが、古いイメージではエミュレーション（Rosetta 2）で動作するため少し遅くなることがあります。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Linux要件 -->
+                    <div id="linux-req" class="os-content">
+                        <div class="system-requirements">
+                            <div class="requirement-card">
+                                <h4 class="text-lg font-semibold mb-3 text-cyan-400">対応ディストリビューション</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                                    <li>Ubuntu 20.04 LTS 以降</li>
+                                    <li>Debian 10 以降</li>
+                                    <li>Fedora 35 以降</li>
+                                    <li>その他主要ディストリビューション</li>
+                                </ul>
+                            </div>
+
+                            <div class="requirement-card">
+                                <h4 class="text-lg font-semibold mb-3 text-cyan-400">ハードウェア</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                                    <li>64ビットカーネル・CPU</li>
+                                    <li>最低4GB RAM</li>
+                                    <li>KVMサポート（推奨）</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                                <h4>💡 Linuxユーザーへの注意</h4>
+                                <p class="mb-2">
+                                    LinuxではDocker Desktopの代わりに<strong>Docker Engine</strong>を直接インストールすることもできます。
+                                </p>
+                                <p>
+                                    このコースではDocker Desktopを使って解説しますが、Docker Engineでもほぼ同じように学習できます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                    <!-- セクション3: インストール手順 -->
+                    <div class="content-section">
+                        <h3>📥 インストール手順</h3>
+                        <div class="collapsible-content">
+
+                            <p class="text-lg mb-6">
+                                それでは実際にDocker Desktopをインストールしていきましょう！
+                                あなたのOSに合わせたタブを選んでください。
+                            </p>
+
+                    <div class="os-tabs">
+                        <div class="os-tab active" onclick="switchTab(event, 'windows-install')">
+                            🪟 Windows
+                        </div>
+                        <div class="os-tab" onclick="switchTab(event, 'mac-install')">
+                            🍎 macOS
+                        </div>
+                        <div class="os-tab" onclick="switchTab(event, 'linux-install')">
+                            🐧 Linux
+                        </div>
+                    </div>
+
+                    <!-- Windowsインストール -->
+                    <div id="windows-install" class="os-content active">
+
+                        <!-- ステップ1: WSL2のセットアップ -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">1</span>
+                                WSL 2のインストール
+                            </h4>
+
+                            <p class="mb-4">
+                                WindowsでDockerを動かすには、まずWSL 2（Windows Subsystem for Linux 2）が必要です。
+                            </p>
+
+                            <div class="info-box">
+                                <h4 class="text-lg font-semibold mb-2 text-cyan-400">💡 WSL 2とは？</h4>
+                                <p class="mb-2">
+                                    Windows上でLinuxを動かすための仕組みです。DockerはもともとLinux向けの技術なので、WindowsでもLinux環境が必要なんです。
+                                </p>
+                                <p>
+                                    WSL 2では軽量な仮想化技術を使って、Linuxカーネルを直接実行します。これによりDockerを高速に動かせます！
+                                </p>
+                            </div>
+
+                            <h4 class="text-lg font-semibold mt-6 mb-3 text-cyan-400">🔧 WSL 2のインストール手順</h4>
+
+                            <p class="mb-3"><strong>① PowerShellを管理者権限で開く</strong></p>
+                            <ul class="list-disc list-inside ml-4 mb-4 space-y-1">
+                                <li>スタートメニューで「PowerShell」を検索</li>
+                                <li>右クリック → 「管理者として実行」を選択</li>
+                            </ul>
+
+                            <p class="mb-3"><strong>② 以下のコマンドを実行</strong></p>
+                            <div class="code-block">
+                                <div class="command">wsl --install</div>
+                            </div>
+
+                            <div class="info-box">
+                                <p class="mb-2">このコマンドは自動的に以下を行います：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1">
+                                    <li>WSL機能の有効化</li>
+                                    <li>仮想マシンプラットフォームの有効化</li>
+                                    <li>Linuxカーネルコンポーネントのダウンロード</li>
+                                    <li>WSL 2をデフォルトに設定</li>
+                                    <li>Ubuntu（デフォルトのLinuxディストリビューション）のインストール</li>
+                                </ul>
+                            </div>
+
+                            <p class="mt-4 mb-3"><strong>③ PCを再起動</strong></p>
+                            <p class="mb-4">インストールが完了したら、PCを再起動してください。</p>
+
+                            <p class="mb-3"><strong>④ WSL 2の確認</strong></p>
+                            <p class="mb-2">再起動後、もう一度PowerShellを開いて以下を実行：</p>
+                            <div class="code-block">
+                                <div class="command">wsl --status</div>
+                                <div class="output">
+既定のバージョン: 2<br>
+既定のディストリビューション: Ubuntu
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <p class="font-semibold">✓ 「既定のバージョン: 2」と表示されればOKです！</p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4 class="text-lg font-semibold mb-2 text-yellow-400">⚠️ エラーが出た場合</h4>
+                                <p class="mb-2">「仮想化が有効になっていません」というエラーが出たら：</p>
+                                <ol class="list-decimal list-inside ml-4 space-y-1">
+                                    <li>PCを再起動してBIOS/UEFI設定画面に入る（起動時にF2、Del、F12などを押す）</li>
+                                    <li>「Virtualization Technology」や「VT-x」「AMD-V」を探して有効化</li>
+                                    <li>設定を保存して再起動</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- ステップ2: Docker Desktopのダウンロード -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">2</span>
+                                Docker Desktopのダウンロード
+                            </h4>
+
+                            <p class="mb-4">
+                                公式サイトからDocker Desktopをダウンロードします。
+                            </p>
+
+                            <div class="code-block">
+                                <div style="color: #94a3b8;">ダウンロードURL:</div>
+                                <a href="https://www.docker.com/products/docker-desktop" target="_blank" class="text-cyan-400 underline">
+                                    https://www.docker.com/products/docker-desktop
+                                </a>
+                            </div>
+
+                            <ul class="checklist">
+                                <li>「Download for Windows」ボタンをクリック</li>
+                                <li>インストーラー（Docker Desktop Installer.exe）がダウンロードされる</li>
+                                <li>ファイルサイズは約500MB（インターネット回線によっては時間がかかります）</li>
+                            </ul>
+                        </div>
+
+                        <!-- ステップ3: インストール実行 -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">3</span>
+                                インストールの実行
+                            </h4>
+
+                            <p class="mb-4">ダウンロードしたインストーラーを実行します。</p>
+
+                            <ul class="checklist">
+                                <li>「Docker Desktop Installer.exe」をダブルクリック</li>
+                                <li>「Use WSL 2 instead of Hyper-V」にチェックが入っていることを確認（推奨）</li>
+                                <li>「Add shortcut to desktop」もチェック推奨</li>
+                                <li>「OK」をクリックしてインストール開始</li>
+                                <li>インストールには5-10分ほどかかります</li>
+                            </ul>
+
+                            <div class="screenshot-placeholder">
+                                📸 スクリーンショット：インストール設定画面<br>
+                                <span class="text-sm">※ WSL 2オプションにチェックが入っていることを確認</span>
+                            </div>
+                        </div>
+
+                        <!-- ステップ4: 初回起動 -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">4</span>
+                                Docker Desktopの起動と設定
+                            </h4>
+
+                            <p class="mb-4">インストールが完了したら、Docker Desktopを起動します。</p>
+
+                            <ul class="checklist">
+                                <li>インストール完了後、「Close and restart」をクリックしてPCを再起動</li>
+                                <li>デスクトップの「Docker Desktop」アイコンをダブルクリック</li>
+                                <li>初回起動時はライセンス同意画面が表示される → 「Accept」</li>
+                                <li>アンケート画面はスキップ可能</li>
+                                <li>Docker Engineが起動するまで1-2分待つ</li>
+                            </ul>
+
+                            <div class="success-box">
+                                <p class="font-semibold mb-2">✓ 起動成功のサイン</p>
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>タスクバーにDockerのクジラアイコンが表示される</li>
+                                    <li>アイコンが緑色になれば起動完了！</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- macOSインストール -->
+                    <div id="mac-install" class="os-content">
+
+                        <!-- ステップ1: チップの確認 -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">1</span>
+                                Macのチップ種類を確認
+                            </h4>
+
+                            <p class="mb-4">
+                                まず、あなたのMacがAppleシリコン（M1/M2/M3）かIntelかを確認します。
+                            </p>
+
+                            <h4 class="text-lg font-semibold mb-3 text-cyan-400">🔍 確認方法</h4>
+                            <ul class="checklist">
+                                <li>画面左上のAppleロゴをクリック</li>
+                                <li>「このMacについて」を選択</li>
+                                <li>「チップ」または「プロセッサ」の項目を確認</li>
+                            </ul>
+
+                            <div class="system-requirements">
+                                <div class="requirement-card">
+                                    <h4 class="text-lg font-semibold mb-2 text-cyan-400">Appleシリコンの表示例</h4>
+                                    <div class="code-block">
+                                        <div>チップ: Apple M1</div>
+                                        <div>チップ: Apple M2 Pro</div>
+                                        <div>チップ: Apple M3 Max</div>
+                                    </div>
+                                </div>
+
+                                <div class="requirement-card">
+                                    <h4 class="text-lg font-semibold mb-2 text-cyan-400">Intelの表示例</h4>
+                                    <div class="code-block">
+                                        <div>プロセッサ: 2.3 GHz Intel Core i5</div>
+                                        <div>プロセッサ: 3.1 GHz Intel Core i7</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ステップ2: ダウンロード -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">2</span>
+                                Docker Desktopのダウンロード
+                            </h4>
+
+                            <p class="mb-4">チップに合ったバージョンをダウンロードします。</p>
+
+                            <div class="code-block">
+                                <div style="color: #94a3b8;">公式ダウンロードページ:</div>
+                                <a href="https://www.docker.com/products/docker-desktop" target="_blank" class="text-cyan-400 underline">
+                                    https://www.docker.com/products/docker-desktop
+                                </a>
+                            </div>
+
+                            <div class="system-requirements">
+                                <div class="requirement-card">
+                                    <h4 class="text-lg font-semibold mb-2 text-cyan-400">🍎 Appleシリコンの場合</h4>
+                                    <p class="mb-2">「Download for Mac - Apple Chip」を選択</p>
+                                    <div class="code-block" style="font-size: 14px;">
+                                        Docker Desktop for Mac (Apple Silicon)
+                                    </div>
+                                </div>
+
+                                <div class="requirement-card">
+                                    <h4 class="text-lg font-semibold mb-2 text-cyan-400">💻 Intel Macの場合</h4>
+                                    <p class="mb-2">「Download for Mac - Intel Chip」を選択</p>
+                                    <div class="code-block" style="font-size: 14px;">
+                                        Docker Desktop for Mac (Intel)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4 class="text-lg font-semibold mb-2 text-yellow-400">⚠️ 重要</h4>
+                                <p>
+                                    チップに合わない方をダウンロードすると動かないので注意してください！
+                                    ファイルサイズは約600MBです。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- ステップ3: インストール -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">3</span>
+                                インストールの実行
+                            </h4>
+
+                            <p class="mb-4">ダウンロードしたDMGファイルからインストールします。</p>
+
+                            <ul class="checklist">
+                                <li>ダウンロードした「Docker.dmg」をダブルクリック</li>
+                                <li>Dockerアイコンを「Applications」フォルダにドラッグ&ドロップ</li>
+                                <li>コピーが完了するまで待つ（1-2分）</li>
+                                <li>DMGウィンドウを閉じてOK</li>
+                            </ul>
+
+                            <div class="screenshot-placeholder">
+                                📸 スクリーンショット：DMGインストール画面<br>
+                                <span class="text-sm">※ Dockerアイコン → Applicationsフォルダへドラッグ</span>
+                            </div>
+                        </div>
+
+                        <!-- ステップ4: 初回起動 -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">4</span>
+                                Docker Desktopの起動
+                            </h4>
+
+                            <p class="mb-4">アプリケーションフォルダからDocker Desktopを起動します。</p>
+
+                            <ul class="checklist">
+                                <li>Finderで「アプリケーション」フォルダを開く</li>
+                                <li>「Docker」を探してダブルクリック</li>
+                                <li>「開いてもよろしいですか？」→「開く」をクリック</li>
+                                <li>初回起動時は権限の許可を求められる → パスワードを入力</li>
+                                <li>ライセンス同意画面 → 「Accept」</li>
+                                <li>Docker Engineの起動を待つ（1-2分）</li>
+                            </ul>
+
+                            <div class="success-box">
+                                <p class="font-semibold mb-2">✓ 起動成功のサイン</p>
+                                <ul class="list-disc list-inside ml-4">
+                                    <li>メニューバー（画面上部）にDockerのクジラアイコンが表示される</li>
+                                    <li>アイコンが動かなくなれば起動完了！</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4 class="text-lg font-semibold mb-2 text-cyan-400">💡 Appleシリコン版の追加設定（推奨）</h4>
+                                <p class="mb-2">
+                                    M1/M2/M3 Macを使っている場合、Rosetta 2エミュレーションを有効にすると、Intel用のイメージも動かせるようになります。
+                                </p>
+                                <ul class="list-disc list-inside ml-4 space-y-1">
+                                    <li>Docker Desktopの設定（⚙️アイコン）を開く</li>
+                                    <li>「Features in development」→「Use Rosetta for x86/amd64 emulation」をオン</li>
+                                    <li>「Apply & restart」で再起動</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Linuxインストール -->
+                    <div id="linux-install" class="os-content">
+
+                        <div class="info-box">
+                            <h4 class="text-xl font-semibold mb-3 text-cyan-400">💡 LinuxでのDocker利用について</h4>
+                            <p class="mb-2">
+                                Linuxでは2つの選択肢があります：
+                            </p>
+                            <ol class="list-decimal list-inside ml-4 space-y-2">
+                                <li><strong>Docker Desktop for Linux</strong> - GUIツール付き（このコースで推奨）</li>
+                                <li><strong>Docker Engine</strong> - CLI のみ（軽量だがGUIなし）</li>
+                            </ol>
+                            <p class="mt-3">
+                                ここではDocker Desktop for Linuxのインストール方法を説明します。
+                            </p>
+                        </div>
+
+                        <!-- Ubuntu/Debianの場合 -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">1</span>
+                                Ubuntu/Debian でのインストール
+                            </h4>
+
+                            <p class="mb-4"><strong>① 古いバージョンの削除（既にインストールしている場合）</strong></p>
+                            <div class="code-block">
+                                <div class="command">sudo apt-get remove docker docker-engine docker.io containerd runc</div>
+                            </div>
+
+                            <p class="mt-4 mb-4"><strong>② 必要なパッケージのインストール</strong></p>
+                            <div class="code-block">
+                                <div class="command">sudo apt-get update</div>
+                                <div class="command">sudo apt-get install ca-certificates curl gnupg</div>
+                            </div>
+
+                            <p class="mt-4 mb-4"><strong>③ GPGキーの追加</strong></p>
+                            <div class="code-block">
+                                <div class="command">sudo install -m 0755 -d /etc/apt/keyrings</div>
+                                <div class="command">curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg</div>
+                                <div class="command">sudo chmod a+r /etc/apt/keyrings/docker.gpg</div>
+                            </div>
+
+                            <p class="mt-4 mb-4"><strong>④ リポジトリの追加</strong></p>
+                            <div class="code-block">
+                                <div class="command" style="font-size: 12px;">
+echo \<br>
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \<br>
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \<br>
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+                                </div>
+                            </div>
+
+                            <p class="mt-4 mb-4"><strong>⑤ Docker Desktopのインストール</strong></p>
+                            <div class="code-block">
+                                <div class="command">sudo apt-get update</div>
+                                <div class="command">sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</div>
+                            </div>
+
+                            <p class="mt-4 mb-4"><strong>⑥ Docker Desktopのダウンロードとインストール</strong></p>
+                            <div class="code-block">
+                                <div class="command">wget https://desktop.docker.com/linux/main/amd64/docker-desktop-4.26.1-amd64.deb</div>
+                                <div class="command">sudo apt-get install ./docker-desktop-4.26.1-amd64.deb</div>
+                            </div>
+
+                            <div class="info-box">
+                                <p class="mb-2">
+                                    ※ バージョン番号は最新のものに変わっている可能性があります。
+                                </p>
+                                <p>
+                                    公式サイト（https://docs.docker.com/desktop/install/linux-install/）で最新バージョンを確認してください。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- ユーザーグループ設定 -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">2</span>
+                                ユーザー権限の設定
+                            </h4>
+
+                            <p class="mb-4">
+                                Dockerを一般ユーザーで使えるようにするため、dockerグループに自分を追加します。
+                            </p>
+
+                            <div class="code-block">
+                                <div class="command">sudo groupadd docker</div>
+                                <div class="command">sudo usermod -aG docker $USER</div>
+                            </div>
+
+                            <p class="mt-4 mb-3"><strong>設定を反映するため、一度ログアウトして再ログイン</strong></p>
+
+                            <div class="warning-box">
+                                <h4 class="text-lg font-semibold mb-2 text-yellow-400">⚠️ セキュリティ注意</h4>
+                                <p>
+                                    dockerグループに追加されたユーザーは、root権限と同等の権限を持ちます。
+                                    本番サーバーでは慎重に設定してください。
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 起動 -->
+                        <div class="step-card">
+                            <h4 class="text-2xl font-bold mb-4 flex items-center">
+                                <span class="step-number">3</span>
+                                Docker Desktopの起動
+                            </h4>
+
+                            <p class="mb-4">アプリケーションメニューからDocker Desktopを起動します。</p>
+
+                            <ul class="checklist">
+                                <li>アプリケーションメニューで「Docker Desktop」を検索</li>
+                                <li>クリックして起動</li>
+                                <li>初回起動時はライセンス同意画面 → 「Accept」</li>
+                                <li>Docker Engineの起動を待つ</li>
+                            </ul>
+
+                            <p class="mt-4 mb-3">または、ターミナルから起動：</p>
+                            <div class="code-block">
+                                <div class="command">systemctl --user start docker-desktop</div>
+                            </div>
+
+                            <div class="success-box">
+                                <p class="font-semibold">✓ システムトレイにDockerアイコンが表示されれば起動完了！</p>
+                            </div>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション4: インストール確認 -->
+                    <div class="content-section">
+                        <h3>✅ インストールの確認</h3>
+                        <div class="collapsible-content">
+
+                            <p class="text-lg mb-6">
+                                正しくインストールできたか確認しましょう！
+                            </p>
+
+                    <div class="step-card">
+                        <h4 class="text-2xl font-bold mb-4 flex items-center">
+                            <span class="step-number">1</span>
+                            ターミナル/コマンドプロンプトを開く
+                        </h4>
+
+                        <div class="system-requirements">
+                            <div class="requirement-card">
+                                <h4 class="text-lg font-semibold mb-2 text-cyan-400">🪟 Windows</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>スタートメニュー → 「cmd」または「PowerShell」を検索</li>
+                                    <li>または Windows Terminal（推奨）</li>
+                                </ul>
+                            </div>
+
+                            <div class="requirement-card">
+                                <h4 class="text-lg font-semibold mb-2 text-cyan-400">🍎 macOS</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Spotlight検索（⌘ + Space）</li>
+                                    <li>「ターミナル」と入力してEnter</li>
+                                </ul>
+                            </div>
+
+                            <div class="requirement-card">
+                                <h4 class="text-lg font-semibold mb-2 text-cyan-400">🐧 Linux</h4>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Ctrl + Alt + T</li>
+                                    <li>またはアプリメニューから「Terminal」</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <h4 class="text-2xl font-bold mb-4 flex items-center">
+                            <span class="step-number">2</span>
+                            Dockerバージョンの確認
+                        </h4>
+
+                        <p class="mb-4">以下のコマンドを入力してEnterキーを押します：</p>
+
+                        <div class="code-block">
+                            <div class="command">docker --version</div>
+                            <div class="output">Docker version 24.0.7, build afdd53b</div>
+                        </div>
+
+                        <div class="success-box">
+                            <p class="font-semibold mb-2">✓ バージョン番号が表示されればOK！</p>
+                            <p>
+                                バージョン番号は異なっていても問題ありません。
+                                「Docker version」という文字が表示されていれば成功です。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <h4 class="text-2xl font-bold mb-4 flex items-center">
+                            <span class="step-number">3</span>
+                            より詳しい情報の確認
+                        </h4>
+
+                        <p class="mb-4">さらに詳しい情報を見てみましょう：</p>
+
+                        <div class="code-block">
+                            <div class="command">docker version</div>
+                            <div class="output">
+Client: Docker Engine - Community<br>
+ Version:           24.0.7<br>
+ API version:       1.43<br>
+ Go version:        go1.20.10<br>
+ Git commit:        afdd53b<br>
+ Built:             Thu Oct 26 09:07:41 2023<br>
+ OS/Arch:           darwin/arm64<br>
+ Context:           desktop-linux<br>
+<br>
+Server: Docker Desktop 4.26.1 (131620)<br>
+ Engine:<br>
+  Version:          24.0.7<br>
+  API version:      1.43 (minimum version 1.12)<br>
+  Go version:       go1.20.10
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <h4 class="text-lg font-semibold mb-2 text-cyan-400">💡 出力の見方</h4>
+                            <ul class="list-disc list-inside ml-4 space-y-2">
+                                <li><strong>Client</strong> - あなたがコマンドを打つDockerクライアント（CLI）</li>
+                                <li><strong>Server</strong> - 実際にコンテナを動かすDocker Engine</li>
+                                <li><strong>OS/Arch</strong> - あなたのOS・CPU種類（darwin=macOS, linux, windows / arm64, amd64など）</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <h4 class="text-2xl font-bold mb-4 flex items-center">
+                            <span class="step-number">4</span>
+                            Docker Composeの確認
+                        </h4>
+
+                        <p class="mb-4">Docker Composeも一緒にインストールされているか確認：</p>
+
+                        <div class="code-block">
+                            <div class="command">docker compose version</div>
+                            <div class="output">Docker Compose version v2.23.3</div>
+                        </div>
+
+                        <div class="success-box">
+                            <p class="font-semibold">✓ バージョンが表示されればOK！</p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4 class="text-lg font-semibold mb-2 text-cyan-400">💡 docker-compose vs docker compose</h4>
+                            <p class="mb-2">
+                                古いバージョンでは「docker-compose」（ハイフン付き）というコマンドでしたが、
+                                現在は「docker compose」（スペース）が推奨されています。
+                            </p>
+                            <p>
+                                このコースでは新しい方（docker compose）を使います。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <h4 class="text-2xl font-bold mb-4 flex items-center">
+                            <span class="step-number">5</span>
+                            テストコンテナの起動
+                        </h4>
+
+                        <p class="mb-4">
+                            実際にコンテナを動かしてみましょう！<br>
+                            公式のテスト用イメージ「hello-world」を使います。
+                        </p>
+
+                        <div class="code-block">
+                            <div class="command">docker run hello-world</div>
+                            <div class="output">
+Unable to find image 'hello-world:latest' locally<br>
+latest: Pulling from library/hello-world<br>
+719385e32844: Pull complete<br>
+Digest: sha256:4f53e2564790c8e7856ec08e384732aa38dc43c52f02952483e3f003afbf23db<br>
+Status: Downloaded newer image for hello-world:latest<br>
+<br>
+<span style="color: #fbbf24;">Hello from Docker!</span><br>
+This message shows that your installation appears to be working correctly.<br>
+<br>
+To generate this message, Docker took the following steps:<br>
+ 1. The Docker client contacted the Docker daemon.<br>
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.<br>
+ 3. The Docker daemon created a new container from that image which runs the<br>
+    executable that produces the output you are currently reading.<br>
+ 4. The Docker daemon streamed that output to the Docker client, which sent it<br>
+    to your terminal.
+                            </div>
+                        </div>
+
+                        <div class="success-box">
+                            <p class="font-semibold mb-3">🎉 おめでとうございます！</p>
+                            <p class="mb-2">「Hello from Docker!」というメッセージが表示されましたか？</p>
+                            <p>これでDockerが正常に動作していることが確認できました！</p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4 class="text-lg font-semibold mb-2 text-cyan-400">💡 何が起こったの？</h4>
+                            <p class="mb-2">このコマンドで以下のことが自動で行われました：</p>
+                            <ol class="list-decimal list-inside ml-4 space-y-2">
+                                <li><strong>イメージの検索</strong> - ローカルにhello-worldイメージがないことを確認</li>
+                                <li><strong>イメージのダウンロード</strong> - Docker Hubから自動的にダウンロード</li>
+                                <li><strong>コンテナの作成</strong> - イメージからコンテナを作成</li>
+                                <li><strong>コンテナの実行</strong> - メッセージを表示するプログラムを実行</li>
+                                <li><strong>コンテナの終了</strong> - 処理が終わったら自動的に停止</li>
+                            </ol>
+                            <p class="mt-3">
+                                この一連の流れがDockerの基本動作です。次のセクションで詳しく学んでいきます！
+                            </p>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション5: トラブルシューティング -->
+                    <div class="content-section">
+                        <h3>🔧 トラブルシューティング</h3>
+                        <div class="collapsible-content">
+
+                            <p class="text-lg mb-6">
+                                よくあるエラーと解決方法をまとめました。
+                            </p>
+
+                    <!-- エラー1 -->
+                    <div class="step-card">
+                        <h4 class="text-xl font-bold mb-4 text-red-400">
+                            ❌ エラー: "docker: command not found"
+                        </h4>
+
+                        <div class="code-block">
+                            <div style="color: #ef4444;">
+bash: docker: command not found
+                            </div>
+                        </div>
+
+                        <h4 class="text-lg font-semibold mt-4 mb-3 text-cyan-400">🔍 原因</h4>
+                        <ul class="list-disc list-inside ml-4 space-y-1 mb-4">
+                            <li>Dockerがインストールされていない</li>
+                            <li>Docker Desktopが起動していない</li>
+                            <li>PATHが通っていない</li>
+                        </ul>
+
+                        <h4 class="text-lg font-semibold mb-3 text-cyan-400">✅ 解決方法</h4>
+                        <ol class="list-decimal list-inside ml-4 space-y-2">
+                            <li><strong>Docker Desktopが起動しているか確認</strong>
+                                <ul class="list-disc list-inside ml-6 mt-1">
+                                    <li>Windows: タスクバーにクジラアイコンがあるか</li>
+                                    <li>Mac: メニューバーにクジラアイコンがあるか</li>
+                                    <li>起動していなければダブルクリックで起動</li>
+                                </ul>
+                            </li>
+                            <li><strong>ターミナル/コマンドプロンプトを再起動</strong>
+                                <p class="ml-6 mt-1">一度閉じて、もう一度開いてから試す</p>
+                            </li>
+                            <li><strong>PCを再起動</strong>
+                                <p class="ml-6 mt-1">それでもダメなら一度PCを再起動してみる</p>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <!-- エラー2 -->
+                    <div class="step-card">
+                        <h4 class="text-xl font-bold mb-4 text-red-400">
+                            ❌ エラー: "Cannot connect to the Docker daemon"
+                        </h4>
+
+                        <div class="code-block">
+                            <div style="color: #ef4444;">
+Cannot connect to the Docker daemon at unix:///var/run/docker.sock.<br>
+Is the docker daemon running?
+                            </div>
+                        </div>
+
+                        <h4 class="text-lg font-semibold mt-4 mb-3 text-cyan-400">🔍 原因</h4>
+                        <p class="ml-4 mb-4">Docker Engineが起動していません。</p>
+
+                        <h4 class="text-lg font-semibold mb-3 text-cyan-400">✅ 解決方法</h4>
+                        <ol class="list-decimal list-inside ml-4 space-y-2">
+                            <li><strong>Docker Desktopを起動</strong>
+                                <p class="ml-6 mt-1">アプリケーションからDocker Desktopを起動してください</p>
+                            </li>
+                            <li><strong>起動完了まで待つ</strong>
+                                <p class="ml-6 mt-1">クジラアイコンが動かなくなるまで1-2分待ちます</p>
+                            </li>
+                            <li><strong>Windowsの場合：WSL 2の確認</strong>
+                                <div class="code-block ml-6 mt-2">
+                                    <div class="command">wsl --status</div>
+                                </div>
+                                <p class="ml-6 mt-1">WSL 2が起動しているか確認</p>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <!-- エラー3 -->
+                    <div class="step-card">
+                        <h4 class="text-xl font-bold mb-4 text-red-400">
+                            ❌ エラー: "Hardware assisted virtualization is not enabled"
+                        </h4>
+
+                        <div class="code-block">
+                            <div style="color: #ef4444;">
+Hardware assisted virtualization and data execution protection<br>
+must be enabled in the BIOS.
+                            </div>
+                        </div>
+
+                        <h4 class="text-lg font-semibold mt-4 mb-3 text-cyan-400">🔍 原因</h4>
+                        <p class="ml-4 mb-4">BIOSで仮想化技術が無効になっています。</p>
+
+                        <h4 class="text-lg font-semibold mb-3 text-cyan-400">✅ 解決方法</h4>
+                        <ol class="list-decimal list-inside ml-4 space-y-3">
+                            <li><strong>PCを再起動してBIOS/UEFI設定に入る</strong>
+                                <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
+                                    <li>起動時にF2、Del、F12、ESCキーなどを連打（PCメーカーによる）</li>
+                                    <li>ASUSならF2、DellならF2、HPならESCが多い</li>
+                                </ul>
+                            </li>
+                            <li><strong>仮想化設定を探す</strong>
+                                <p class="ml-6 mt-2 mb-2">BIOSの中で以下のような名前の項目を探します：</p>
+                                <ul class="list-disc list-inside ml-6 space-y-1">
+                                    <li><strong>Intel CPU:</strong> "Intel Virtualization Technology" (VT-x)</li>
+                                    <li><strong>AMD CPU:</strong> "AMD-V" または "SVM Mode"</li>
+                                    <li>「Advanced」「CPU Configuration」などのメニューにあることが多い</li>
+                                </ul>
+                            </li>
+                            <li><strong>有効化（Enabled）に変更</strong>
+                                <p class="ml-6 mt-1">DisabledまたはOffになっていればEnabledまたはOnに変更</p>
+                            </li>
+                            <li><strong>設定を保存して終了</strong>
+                                <p class="ml-6 mt-1">F10キーで保存＆終了（Save and Exit）することが多い</p>
+                            </li>
+                        </ol>
+
+                        <div class="warning-box mt-4">
+                            <h4 class="text-lg font-semibold mb-2 text-yellow-400">⚠️ 注意</h4>
+                            <p>
+                                BIOS設定は慎重に行ってください。不明な項目は変更しないようにしましょう。
+                                分からない場合は、お使いのPCのメーカー名＋機種名＋「仮想化 有効化」で検索すると、
+                                詳しい手順が見つかります。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- エラー4 -->
+                    <div class="step-card">
+                        <h4 class="text-xl font-bold mb-4 text-red-400">
+                            ❌ エラー: "WSL 2 installation is incomplete" (Windows)
+                        </h4>
+
+                        <div class="code-block">
+                            <div style="color: #ef4444;">
+WSL 2 installation is incomplete.<br>
+The WSL 2 Linux kernel is now installed using a separate MSI update package.
+                            </div>
+                        </div>
+
+                        <h4 class="text-lg font-semibold mt-4 mb-3 text-cyan-400">🔍 原因</h4>
+                        <p class="ml-4 mb-4">WSL 2のLinuxカーネルがインストールされていません。</p>
+
+                        <h4 class="text-lg font-semibold mb-3 text-cyan-400">✅ 解決方法</h4>
+                        <ol class="list-decimal list-inside ml-4 space-y-2">
+                            <li><strong>Linuxカーネル更新プログラムをダウンロード</strong>
+                                <div class="code-block mt-2">
+                                    <div style="color: #94a3b8;">公式ダウンロードURL:</div>
+                                    <a href="https://aka.ms/wsl2kernel" target="_blank" class="text-cyan-400 underline">
+                                        https://aka.ms/wsl2kernel
+                                    </a>
+                                </div>
+                            </li>
+                            <li><strong>ダウンロードしたMSIファイルを実行</strong>
+                                <p class="ml-6 mt-1">wsl_update_x64.msiをダブルクリックしてインストール</p>
+                            </li>
+                            <li><strong>PCを再起動</strong></li>
+                            <li><strong>Docker Desktopを再度起動</strong></li>
+                        </ol>
+                    </div>
+
+                    <!-- エラー5 -->
+                    <div class="step-card">
+                        <h4 class="text-xl font-bold mb-4 text-red-400">
+                            ❌ Docker Desktopが起動するけどコマンドが動かない
+                        </h4>
+
+                        <h4 class="text-lg font-semibold mb-3 text-cyan-400">✅ 解決方法</h4>
+                        <ol class="list-decimal list-inside ml-4 space-y-2">
+                            <li><strong>Docker Desktopの再起動</strong>
+                                <ul class="list-disc list-inside ml-6 mt-1">
+                                    <li>Docker Desktop の設定からQuit（終了）</li>
+                                    <li>もう一度起動</li>
+                                </ul>
+                            </li>
+                            <li><strong>完全なリセット</strong>
+                                <ul class="list-disc list-inside ml-6 mt-1">
+                                    <li>Docker Desktop設定 → Troubleshoot → Reset to factory defaults</li>
+                                    <li>※ 全てのコンテナやイメージが削除されるので注意</li>
+                                </ul>
+                            </li>
+                            <li><strong>再インストール</strong>
+                                <ul class="list-disc list-inside ml-6 mt-1">
+                                    <li>Docker Desktopをアンインストール</li>
+                                    <li>PCを再起動</li>
+                                    <li>もう一度インストール</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="info-box">
+                        <h4 class="text-xl font-semibold mb-3 text-cyan-400">💡 それでも解決しない場合</h4>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li>Docker公式ドキュメントのトラブルシューティング:
+                                <a href="https://docs.docker.com/desktop/troubleshoot/overview/" target="_blank" class="text-cyan-400 underline ml-2">
+                                    https://docs.docker.com/desktop/troubleshoot/overview/
+                                </a>
+                            </li>
+                            <li>エラーメッセージをそのままGoogle検索すると、同じ問題の解決法が見つかることが多いです</li>
+                            <li>Docker公式フォーラム: https://forums.docker.com/</li>
+                        </ul>
+                    </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション6: 次のステップ -->
+                    <div class="content-section">
+                        <h3>🎯 次のステップ</h3>
+                        <div class="collapsible-content">
+
+                            <div class="success-box">
+                                <h4>🎉 環境構築完了です！</h4>
+                                <p class="mb-4">
+                                    お疲れさまでした！これでDockerを使う準備が整いました。
+                                </p>
+                                <p>
+                                    次のセクションでは、実際にDockerを動かしながら基本的な使い方を学んでいきます。
+                                </p>
+                            </div>
+
+                    <div class="visual-diagram">
+                        <div class="diagram-title">学習の流れ</div>
+                        <div style="max-width: 800px; margin: 0 auto;">
+                            <div class="flow-step" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.1)); border-color: #22c55e;">
+                                <div style="font-weight: 700; color: #22c55e; margin-bottom: 8px;">✓ 環境構築完了</div>
+                                <div style="font-size: 14px; color: #94a3b8;">Dockerをインストールして動作確認できました</div>
+                            </div>
+
+                            <div class="flow-arrow">↓</div>
+
+                            <div class="flow-step">
+                                <div style="font-weight: 700; color: #22d3ee; margin-bottom: 8px;">次: はじめてのDocker</div>
+                                <div style="font-size: 14px; color: #94a3b8;">実際にコンテナを動かしてみよう</div>
+                            </div>
+
+                            <div class="flow-arrow">↓</div>
+
+                            <div class="flow-step" style="opacity: 0.6;">
+                                <div style="font-weight: 700; color: #22d3ee; margin-bottom: 8px;">基本コマンド</div>
+                                <div style="font-size: 14px; color: #94a3b8;">Dockerの基本的な操作を学ぶ</div>
+                            </div>
+
+                            <div class="flow-arrow">↓</div>
+
+                            <div class="flow-step" style="opacity: 0.6;">
+                                <div style="font-weight: 700; color: #22d3ee; margin-bottom: 8px;">さらに先へ...</div>
+                                <div style="font-size: 14px; color: #94a3b8;">イメージ作成、Compose、実践演習</div>
+                            </div>
+                        </div>
+                    </div>
+
+                            <div class="info-box">
+                                <h4>💡 学習のヒント</h4>
+                                <ul class="list-disc list-inside ml-4 space-y-2">
+                                    <li><strong>焦らず進めよう</strong> - わからないことがあれば、前のセクションに戻って復習しましょう</li>
+                                    <li><strong>実際に手を動かそう</strong> - コマンドは読むだけでなく、必ず自分で打って試してみてください</li>
+                                    <li><strong>エラーを恐れない</strong> - エラーが出ても大丈夫。トラブルシューティングも大切な学習です</li>
+                                    <li><strong>Docker Desktopも使ってみよう</strong> - GUIで視覚的に確認すると理解が深まります</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        // OSタブの切り替え
+        function switchTab(event, tabId) {
+            // タブグループ内の全てのタブとコンテンツを取得
+            const tabGroup = event.target.parentElement;
+            const contentGroup = tabGroup.nextElementSibling;
+
+            // 同じタブグループ内の全てのタブを非アクティブに
+            const tabs = tabGroup.querySelectorAll('.os-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // クリックされたタブをアクティブに
+            event.target.classList.add('active');
+
+            // そのタブグループに続く全てのコンテンツを非アクティブに
+            let currentContent = contentGroup;
+            while(currentContent && currentContent.classList && currentContent.classList.contains('os-content')) {
+                currentContent.classList.remove('active');
+                currentContent = currentContent.nextElementSibling;
+            }
+
+            // 対応するコンテンツをアクティブに
+            const targetContent = document.getElementById(tabId);
+            if(targetContent) {
+                targetContent.classList.add('active');
+            }
+        }
+    </script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+</body>
+</html>

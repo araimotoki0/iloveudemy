@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>イメージとコンテナの関係 - Docker入門講座</title>
+    <meta name="description" content="イメージとコンテナの関係をハンズオン形式で学習します">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- イメージとコンテナの関係 -->
+                    <div class="content-section">
+                        <h3>🔗 イメージとコンテナの関係</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-4">
+                                イメージとコンテナの関係を理解することは、Dockerを使いこなす上で非常に重要です。
+                                ここでは、両者の関係性を実践的に学びます。
+                            </p>
+
+                            <div class="success-box">
+                                <h4>✅ このセクションで学ぶこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>1つのイメージから複数のコンテナを作成する方法</li>
+                                    <li>コンテナの変更内容とイメージの関係</li>
+                                    <li>コンテナからイメージを作成する方法</li>
+                                    <li>書き込み可能レイヤーの仕組み</li>
+                                </ul>
+                            </div>
+
+                            <h4>基本的な関係</h4>
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #22d3ee; margin-bottom: 24px;">
+                                    1つのイメージから複数のコンテナ
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: center;">
+                                    <div>
+                                        <div style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; border-radius: 8px; padding: 20px; text-align: center;">
+                                            <div style="font-size: 48px; margin-bottom: 8px;">📦</div>
+                                            <strong style="color: #22d3ee;">nginx:alpine</strong>
+                                            <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">イメージ（1つ）</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                                            <div style="background: rgba(103, 232, 249, 0.1); border: 2px solid #67e8f9; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 12px;">
+                                                <div style="font-size: 32px;">🚢</div>
+                                                <div>
+                                                    <strong style="color: #67e8f9;">Container 1</strong>
+                                                    <div style="font-size: 14px; color: #94a3b8;">ポート: 8080</div>
+                                                </div>
+                                            </div>
+                                            <div style="background: rgba(103, 232, 249, 0.1); border: 2px solid #67e8f9; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 12px;">
+                                                <div style="font-size: 32px;">🚢</div>
+                                                <div>
+                                                    <strong style="color: #67e8f9;">Container 2</strong>
+                                                    <div style="font-size: 14px; color: #94a3b8;">ポート: 8081</div>
+                                                </div>
+                                            </div>
+                                            <div style="background: rgba(103, 232, 249, 0.1); border: 2px solid #67e8f9; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 12px;">
+                                                <div style="font-size: 32px;">🚢</div>
+                                                <div>
+                                                    <strong style="color: #67e8f9;">Container 3</strong>
+                                                    <div style="font-size: 14px; color: #94a3b8;">ポート: 8082</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 重要なポイント</h4>
+                                <ul class="list-disc list-inside space-y-1 ml-4">
+                                    <li>1つのイメージから、何個でもコンテナを作成できる</li>
+                                    <li>各コンテナは独立しており、互いに影響しない</li>
+                                    <li>イメージは変更されないため、何度でも同じ状態のコンテナを作れる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ハンズオン: 1つのイメージから複数コンテナ -->
+                    <div class="content-section">
+                        <h3>🎯 ハンズオン: 1つのイメージから複数のコンテナを作成</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                実際に1つのイメージから複数のコンテナを起動してみましょう。
+                            </p>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">1</span>1つ目のコンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -d -p 8080:80 --name web1 nginx:alpine</div>
+                                    <div class="output">3a7f9c2d1e8b...</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">2</span>2つ目のコンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -d -p 8081:80 --name web2 nginx:alpine</div>
+                                    <div class="output">9b4c8e1f2a3d...</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">3</span>3つ目のコンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -d -p 8082:80 --name web3 nginx:alpine</div>
+                                    <div class="output">7e2a9f4c1b6d...</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">4</span>実行中のコンテナを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker ps</div>
+                                    <div class="output">CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS                  NAMES
+7e2a9f4c1b6d   nginx:alpine   "/docker-entrypoint.…"   10 seconds ago   Up 9 seconds    0.0.0.0:8082->80/tcp   web3
+9b4c8e1f2a3d   nginx:alpine   "/docker-entrypoint.…"   20 seconds ago   Up 19 seconds   0.0.0.0:8081->80/tcp   web2
+3a7f9c2d1e8b   nginx:alpine   "/docker-entrypoint.…"   30 seconds ago   Up 29 seconds   0.0.0.0:8080->80/tcp   web1</div>
+                                </div>
+                                <p class="mb-4">
+                                    全て同じ <code class="code-inline">nginx:alpine</code> イメージから作成されていますが、
+                                    独立したコンテナとして動作しています。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">5</span>アクセスして確認</h4>
+                                <p class="mb-4">
+                                    ブラウザで以下のURLにアクセスすると、それぞれ独立したNginxサーバーが動作していることを確認できます：
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 mb-4">
+                                    <li><code class="code-inline">http://localhost:8080</code></li>
+                                    <li><code class="code-inline">http://localhost:8081</code></li>
+                                    <li><code class="code-inline">http://localhost:8082</code></li>
+                                </ul>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">6</span>クリーンアップ</h4>
+                                <div class="command-box">
+                                    <div class="command">docker stop web1 web2 web3</div>
+                                    <div class="output">web1
+web2
+web3</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">docker rm web1 web2 web3</div>
+                                    <div class="output">web1
+web2
+web3</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 書き込み可能レイヤー -->
+                    <div class="content-section">
+                        <h3>📝 書き込み可能レイヤーの仕組み</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                コンテナを起動すると、イメージの読み取り専用レイヤーの上に、
+                                <strong>書き込み可能レイヤー</strong>が追加されます。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #22d3ee; margin-bottom: 24px;">
+                                    コンテナのレイヤー構造
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px; max-width: 500px; margin: 0 auto;">
+                                    <div style="background: rgba(34, 211, 238, 0.2); border: 2px solid #22d3ee; border-radius: 8px; padding: 12px; text-align: center;">
+                                        <strong style="color: #22d3ee;">書き込み可能レイヤー</strong>
+                                        <div style="font-size: 14px; color: #94a3b8; margin-top: 4px;">コンテナ起動時に作成</div>
+                                        <div style="font-size: 14px; color: #d1d5db; margin-top: 4px;">変更内容はここに保存</div>
+                                    </div>
+                                    <div style="border-top: 2px dashed #94a3b8; margin: 8px 0;"></div>
+                                    <div style="background: rgba(148, 163, 184, 0.1); border: 2px solid #94a3b8; border-radius: 8px; padding: 12px; text-align: center;">
+                                        <strong style="color: #cbd5e1;">読み取り専用レイヤー</strong>
+                                        <div style="font-size: 14px; color: #94a3b8; margin-top: 4px;">イメージのレイヤー</div>
+                                    </div>
+                                    <div style="background: rgba(148, 163, 184, 0.1); border: 2px solid #94a3b8; border-radius: 8px; padding: 12px; text-align: center;">
+                                        <strong style="color: #cbd5e1;">読み取り専用レイヤー</strong>
+                                    </div>
+                                    <div style="background: rgba(148, 163, 184, 0.1); border: 2px solid #94a3b8; border-radius: 8px; padding: 12px; text-align: center;">
+                                        <strong style="color: #cbd5e1;">読み取り専用レイヤー</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>書き込み可能レイヤーの特徴</h4>
+                            <ul class="list-disc list-inside space-y-2 ml-4 mb-4">
+                                <li><strong>一時的</strong>: コンテナを削除するとレイヤーも消える</li>
+                                <li><strong>独立</strong>: 各コンテナが独自の書き込み可能レイヤーを持つ</li>
+                                <li><strong>変更の保存</strong>: ファイル追加、編集、削除はここに記録される</li>
+                                <li><strong>元のイメージは不変</strong>: イメージ自体は変更されない</li>
+                            </ul>
+
+                            <div class="info-box">
+                                <h4>💡 Copy-on-Write（CoW）の仕組み</h4>
+                                <p class="mb-2">
+                                    コンテナ内でファイルを編集すると、以下の流れで処理されます：
+                                </p>
+                                <ol class="list-decimal list-inside space-y-1 ml-4">
+                                    <li>イメージレイヤーから該当ファイルをコピー</li>
+                                    <li>書き込み可能レイヤーにコピーを配置</li>
+                                    <li>コピーされたファイルを編集</li>
+                                </ol>
+                                <p class="mt-2">
+                                    この仕組みにより、イメージを変更せずにファイルを編集できます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ハンズオン: コンテナの変更を確認 -->
+                    <div class="content-section">
+                        <h3>🎯 ハンズオン: コンテナの変更を確認</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                コンテナ内でファイルを変更して、書き込み可能レイヤーの動作を確認しましょう。
+                            </p>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">1</span>コンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -d -p 8080:80 --name my-web nginx:alpine</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">2</span>デフォルトのHTMLファイルを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker exec my-web cat /usr/share/nginx/html/index.html</div>
+                                    <div class="output"><!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+...
+</html></div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">3</span>HTMLファイルを変更</h4>
+                                <div class="command-box">
+                                    <div class="command">docker exec my-web sh -c 'echo "&lt;h1&gt;Hello Docker!&lt;/h1&gt;" > /usr/share/nginx/html/index.html'</div>
+                                </div>
+                                <p class="mb-4">
+                                    ブラウザで <code class="code-inline">http://localhost:8080</code> にアクセスすると、
+                                    「Hello Docker!」と表示されます。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">4</span>変更差分を確認</h4>
+                                <p class="mb-4">
+                                    <code class="code-inline">docker diff</code> で、コンテナ内のファイルシステムの変更を確認できます。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker diff my-web</div>
+                                    <div class="output">C /usr
+C /usr/share
+C /usr/share/nginx
+C /usr/share/nginx/html
+C /usr/share/nginx/html/index.html
+C /var
+C /var/cache
+C /var/cache/nginx
+A /var/cache/nginx/client_temp
+A /var/cache/nginx/proxy_temp
+...</div>
+                                </div>
+                                <p class="mb-4">
+                                    記号の意味：
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 mb-4">
+                                    <li><code class="code-inline">A</code>: Added（追加されたファイル）</li>
+                                    <li><code class="code-inline">C</code>: Changed（変更されたファイル）</li>
+                                    <li><code class="code-inline">D</code>: Deleted（削除されたファイル）</li>
+                                </ul>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">5</span>新しいコンテナを起動して確認</h4>
+                                <p class="mb-4">
+                                    同じイメージから新しいコンテナを起動すると、元の状態に戻っていることを確認できます。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker run -d -p 8081:80 --name my-web2 nginx:alpine</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">docker exec my-web2 cat /usr/share/nginx/html/index.html</div>
+                                    <div class="output"><!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+...
+</html></div>
+                                </div>
+                                <p class="mb-4">
+                                    <code class="code-inline">my-web2</code> は元のファイルを持っています。
+                                    これは、イメージ自体は変更されていないためです。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">6</span>クリーンアップ</h4>
+                                <div class="command-box">
+                                    <div class="command">docker rm -f my-web my-web2</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- コンテナからイメージを作成 -->
+                    <div class="content-section">
+                        <h3>💾 コンテナからイメージを作成</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                コンテナの変更内容を保存して、新しいイメージを作成できます。
+                                これを<strong>コミット</strong>と呼びます。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #22d3ee; margin-bottom: 24px;">
+                                    docker commit の仕組み
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center;">
+                                    <div>
+                                        <div style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; border-radius: 8px; padding: 16px; text-align: center;">
+                                            <div style="font-size: 40px; margin-bottom: 8px;">🚢</div>
+                                            <strong style="color: #67e8f9;">変更済みコンテナ</strong>
+                                            <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">書き込み可能レイヤーに変更あり</div>
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 24px; color: #22d3ee;">→</div>
+                                    <div>
+                                        <div style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; border-radius: 8px; padding: 16px; text-align: center;">
+                                            <div style="font-size: 40px; margin-bottom: 8px;">📦</div>
+                                            <strong style="color: #22d3ee;">新しいイメージ</strong>
+                                            <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">変更内容が含まれる</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ docker commit の使いどころ</h4>
+                                <p class="mb-2">
+                                    <code class="code-inline">docker commit</code> は便利ですが、本番環境では推奨されません。
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4">
+                                    <li><strong>推奨</strong>: Dockerfileを使ってイメージを作成（再現性が高い）</li>
+                                    <li><strong>非推奨</strong>: docker commitで手作業で作成（手順が記録されない）</li>
+                                </ul>
+                                <p class="mt-2">
+                                    docker commitは、テストや一時的な変更の保存に使います。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ハンズオン: コンテナからイメージを作成 -->
+                    <div class="content-section">
+                        <h3>🎯 ハンズオン: コンテナからイメージを作成</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">
+                                カスタマイズしたコンテナから、新しいイメージを作成してみましょう。
+                            </p>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">1</span>ベースとなるコンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -it --name my-custom ubuntu:22.04 bash</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">2</span>コンテナ内でカスタマイズ</h4>
+                                <p class="mb-4">
+                                    コンテナ内で、パッケージをインストールしたり設定を変更します。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">apt update</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">apt install -y curl vim git</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">echo "Custom Ubuntu Image" > /root/README.txt</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">exit</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">3</span>変更をイメージとして保存</h4>
+                                <div class="command-box">
+                                    <div class="command">docker commit my-custom my-ubuntu:v1.0</div>
+                                    <div class="output">sha256:a1b2c3d4e5f6...</div>
+                                </div>
+                                <p class="mb-4">
+                                    構文: <code class="code-inline">docker commit [コンテナ名] [新しいイメージ名:タグ]</code>
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">4</span>作成したイメージを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker images</div>
+                                    <div class="output">REPOSITORY   TAG       IMAGE ID       CREATED         SIZE
+my-ubuntu    v1.0      a1b2c3d4e5f6   5 seconds ago   189MB
+ubuntu       22.04     fb52e22af1b0   2 weeks ago     77.8MB</div>
+                                </div>
+                                <p class="mb-4">
+                                    <code class="code-inline">my-ubuntu:v1.0</code> のサイズが元の <code class="code-inline">ubuntu:22.04</code> より大きくなっています。
+                                    これは、インストールしたパッケージが含まれているためです。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">5</span>新しいイメージから、コンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker run -it --rm my-ubuntu:v1.0 bash</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">curl --version</div>
+                                    <div class="output">curl 7.81.0 (x86_64-pc-linux-gnu)...</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">cat /root/README.txt</div>
+                                    <div class="output">Custom Ubuntu Image</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">exit</div>
+                                </div>
+                                <p class="mb-4">
+                                    カスタマイズした内容が保存されていることを確認できました。
+                                </p>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">6</span>メタデータを付けてコミット</h4>
+                                <p class="mb-4">
+                                    イメージにメッセージや作成者情報を付けることもできます。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker commit -m "Added curl, vim, git" -a "Your Name" my-custom my-ubuntu:v1.1</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">docker inspect my-ubuntu:v1.1 | grep -A 5 "Comment"</div>
+                                    <div class="output">"Comment": "Added curl, vim, git",
+"Author": "Your Name",</div>
+                                </div>
+                            </div>
+
+                            <div class="step-box">
+                                <h4><span class="step-number">7</span>クリーンアップ</h4>
+                                <div class="command-box">
+                                    <div class="command">docker rm my-custom</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">docker rmi my-ubuntu:v1.0 my-ubuntu:v1.1</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📝 まとめと次のステップ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>🎉 このセクションで学んだこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>1つのイメージから複数の独立したコンテナを作成できる</li>
+                                    <li>コンテナには書き込み可能レイヤーがあり、変更内容はここに保存される</li>
+                                    <li>イメージ自体は読み取り専用で、変更されない</li>
+                                    <li><code class="code-inline">docker diff</code> でコンテナの変更を確認できる</li>
+                                    <li><code class="code-inline">docker commit</code> でコンテナからイメージを作成できる</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のセクションへ</h4>
+                                <p class="mb-2">
+                                    イメージとコンテナの関係を理解したら、次は<strong>Dockerのメカニズム</strong>を深く学びます。
+                                    名前空間、cgroups、Union File Systemなど、Dockerを支える技術をハンズオンで学びましょう。
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>💪 復習チェック</h4>
+                                <p class="mb-2">次に進む前に、以下ができるか確認してみましょう：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1">
+                                    <li>1つのイメージから複数のコンテナを起動できる</li>
+                                    <li>コンテナ内でファイルを変更し、差分を確認できる</li>
+                                    <li>書き込み可能レイヤーの仕組みを説明できる</li>
+                                    <li>コンテナから新しいイメージを作成できる</li>
+                                    <li>イメージとコンテナの関係を図で説明できる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script src="js/docker-common.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+
+</body>
+
+</html>

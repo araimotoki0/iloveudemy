@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravelプロジェクト実践 - Docker入門講座</title>
+    <meta name="description" content="実際のLaravelプロジェクトでDocker環境を構築する">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        .yaml-code .key {
+            color: #22d3ee;
+            font-weight: 600;
+        }
+
+        .yaml-code .value {
+            color: #86efac;
+        }
+
+        .yaml-code .comment {
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .yaml-code .string {
+            color: #fbbf24;
+        }
+
+        .file-tree .dir {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+
+        .file-tree .file {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- 概要 -->
+                    <div class="content-section">
+                        <h3>🎨 実際のLaravelプロジェクトを動かそう</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-4">GitHubにある実際のプロジェクトを使って、実践的なDocker環境を構築します。</p>
+
+                            <div class="info-box">
+                                <h4 class="text-lg font-bold mb-2">🎯 このセクションで学ぶこと</h4>
+                                <ul class="list-disc list-inside space-y-2">
+                                    <li>実際のプロジェクト構成の理解</li>
+                                    <li>カスタムDockerfileの読み方</li>
+                                    <li>infraディレクトリでの設定管理</li>
+                                    <li>PHP拡張機能のインストール理由</li>
+                                    <li>Composerの事前インストール</li>
+                                    <li>Node.jsを含めたフロントエンド環境</li>
+                                </ul>
+                            </div>
+
+                            <div class="success-box">
+                                <h4 class="text-lg font-bold mb-2">📦 使用するリポジトリ</h4>
+                                <p class="mb-2"><a href="https://github.com/sbtest1218-oss/udemy-aws3-laravel-new" target="_blank" class="text-cyan-400 hover:text-cyan-300 underline">https://github.com/sbtest1218-oss/udemy-aws3-laravel-new</a></p>
+                                <p class="text-sm">このリポジトリは、AWS環境へのデプロイも想定した実践的な構成です。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- プロジェクト構造 -->
+                    <div class="content-section">
+                        <h3>📂 プロジェクト構造を理解する</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">このプロジェクトは、本番環境も想定したプロフェッショナルな構成になっています。</p>
+
+                            <div class="file-tree">
+<span class="dir">プロジェクトルート/</span>
+├── <span class="dir">infra/</span>                 <span class="comment"># Docker関連ファイル</span>
+│   ├── <span class="dir">php/</span>
+│   │   ├── <span class="file">Dockerfile</span>     <span class="comment"># PHPカスタムイメージ</span>
+│   │   └── <span class="file">php.ini</span>       <span class="comment"># PHP設定</span>
+│   ├── <span class="dir">mysql/</span>
+│   │   ├── <span class="file">Dockerfile</span>     <span class="comment"># MySQLカスタムイメージ</span>
+│   │   └── <span class="file">my.cnf</span>        <span class="comment"># MySQL設定</span>
+│   └── <span class="dir">nginx/</span>
+│       └── <span class="file">default.conf</span>   <span class="comment"># Nginx設定</span>
+├── <span class="file">docker-compose.yml</span>    <span class="comment"># 開発環境用</span>
+├── <span class="file">docker-compose.prod.yml</span> <span class="comment"># 本番環境用</span>
+├── <span class="file">.env.example</span>         <span class="comment"># 環境変数テンプレート</span>
+└── <span class="dir">src/</span>                  <span class="comment"># Laravelプロジェクト</span></div>
+
+                            <div class="info-box mt-4">
+                                <h4 class="text-lg font-bold mb-2">🏗️ 構成の特徴</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>infraディレクトリ</strong>: Docker関連ファイルを分離（見通しが良い）</li>
+                                    <li><strong>カスタムDockerfile</strong>: 必要なPHP拡張やツールを事前インストール</li>
+                                    <li><strong>環境別設定</strong>: 開発用と本番用でdocker-compose.ymlを分離</li>
+                                    <li><strong>設定ファイル分離</strong>: php.ini、my.cnf、default.confで細かく調整</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 1: リポジトリ取得 -->
+                    <div class="content-section">
+                        <h3>Step 1: GitHubからプロジェクトを取得</h3>
+                        <div class="collapsible-content">
+                            <h4>リポジトリをクローン</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># プロジェクトをクローン</span>
+git clone https://github.com/sbtest1218-oss/udemy-aws3-laravel-new.git
+cd udemy-aws3-laravel-new</div>
+
+                            <div class="warning-box mt-4">
+                                <p><strong>💡 自分のリポジトリにする場合</strong></p>
+                                <p class="mt-2">GitHubで「Use this template」ボタンを押して、自分のアカウントにコピーしてから使うこともできます。その場合は自分のリポジトリURLでcloneしてください。</p>
+                            </div>
+
+                            <h4 class="mt-6">環境変数ファイルを作成</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># .env.exampleをコピー</span>
+cp .env.example .env</div>
+
+                            <p class="mt-4"><code>.env</code>ファイルには、データベース接続情報などが含まれています。必要に応じて編集してください。</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: docker-compose.yml解説 -->
+                    <div class="content-section">
+                        <h3>Step 2: docker-compose.ymlを理解する</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">プロジェクトの<code>docker-compose.yml</code>を見てみましょう。</p>
+
+                            <h4>appサービス（PHP-FPM）</h4>
+                            <div class="yaml-code">
+<span class="key">app:</span>
+  <span class="key">build:</span>
+    <span class="key">context:</span> <span class="value">./infra/php</span>
+  <span class="key">user:</span> <span class="string">"1000:1000"</span>
+  <span class="key">working_dir:</span> <span class="value">/data</span>
+  <span class="key">volumes:</span>
+    - <span class="value">./src:/data</span>
+  <span class="key">ports:</span>
+    - <span class="string">"5173:5173"</span>  <span class="comment"># Vite開発サーバー用</span>
+  <span class="key">depends_on:</span>
+    - <span class="value">db</span>
+  <span class="key">environment:</span>
+    <span class="key">DB_HOST:</span> <span class="value">db</span>
+    <span class="key">DB_PORT:</span> <span class="value">3306</span>
+    <span class="key">DB_DATABASE:</span> <span class="value">laravel_db</span>
+    <span class="key">DB_USERNAME:</span> <span class="value">laravel_user</span>
+    <span class="key">DB_PASSWORD:</span> <span class="value">laravel_pass</span>
+  <span class="key">restart:</span> <span class="value">unless-stopped</span></div>
+
+                            <div class="info-box mt-4">
+                                <h4 class="text-lg font-bold mb-2">🔍 重要なポイント</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>build: ./infra/php</strong>: カスタムDockerfileでイメージをビルド</li>
+                                    <li><strong>user: "1000:1000"</strong>: ファイル権限の問題を回避（ホストユーザーと一致）</li>
+                                    <li><strong>ports: 5173</strong>: Vite（フロントエンドビルドツール）用のポート</li>
+                                    <li><strong>restart: unless-stopped</strong>: コンテナが落ちたら自動再起動</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="mt-6">webサービス（Nginx）</h4>
+                            <div class="yaml-code">
+<span class="key">web:</span>
+  <span class="key">image:</span> <span class="value">nginx:1.25-alpine</span>
+  <span class="key">ports:</span>
+    - <span class="string">"80:80"</span>
+  <span class="key">volumes:</span>
+    - <span class="value">./src:/data</span>
+    - <span class="value">./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf</span>
+  <span class="key">depends_on:</span>
+    - <span class="value">app</span>
+  <span class="key">working_dir:</span> <span class="value">/data</span>
+  <span class="key">restart:</span> <span class="value">unless-stopped</span></div>
+
+                            <div class="info-box mt-4">
+                                <p><strong>💡 Nginxは公式イメージを使用</strong></p>
+                                <p class="mt-2">Nginxは設定ファイル（default.conf）をマウントするだけで十分なので、カスタムDockerfileは不要です。</p>
+                            </div>
+
+                            <h4 class="mt-6">dbサービス（MySQL）</h4>
+                            <div class="yaml-code">
+<span class="key">db:</span>
+  <span class="key">build:</span>
+    <span class="key">context:</span> <span class="value">./infra/mysql</span>
+  <span class="key">ports:</span>
+    - <span class="string">"3306:3306"</span>
+  <span class="key">volumes:</span>
+    - <span class="value">db-store:/var/lib/mysql</span>
+  <span class="key">environment:</span>
+    <span class="key">MYSQL_DATABASE:</span> <span class="value">laravel_db</span>
+    <span class="key">MYSQL_USER:</span> <span class="value">laravel_user</span>
+    <span class="key">MYSQL_PASSWORD:</span> <span class="value">laravel_pass</span>
+    <span class="key">MYSQL_ROOT_PASSWORD:</span> <span class="value">root</span>
+    <span class="key">TZ:</span> <span class="string">'Asia/Tokyo'</span>
+  <span class="key">restart:</span> <span class="value">unless-stopped</span></div>
+
+                            <div class="info-box mt-4">
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>ports: 3306</strong>: ホストから直接MySQLにアクセス可能（開発時に便利）</li>
+                                    <li><strong>TZ: 'Asia/Tokyo'</strong>: タイムゾーンを日本時間に設定</li>
+                                    <li><strong>db-store</strong>: 名前付きボリュームでデータ永続化</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="mt-6">ネットワーク</h4>
+                            <div class="yaml-code">
+<span class="key">networks:</span>
+  <span class="key">app-network:</span>
+    <span class="key">driver:</span> <span class="value">bridge</span></div>
+
+                            <p class="mt-2">すべてのサービスが<code>app-network</code>で接続され、サービス名で通信できます。</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: PHPのDockerfile解説 -->
+                    <div class="content-section">
+                        <h3>Step 3: PHPのDockerfileを理解する</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4"><code>infra/php/Dockerfile</code>を見てみましょう。</p>
+
+                            <div class="command-box">FROM php:8.3-fpm-bookworm
+
+<span class="comment"># Composerをインストール</span>
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+
+<span class="comment"># 必要なパッケージをインストール</span>
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libzip-dev \
+    libicu-dev \
+    libonig-dev \
+    <span class="comment"># 画像処理用</span>
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev
+
+<span class="comment"># Node.js 24.xをインストール（フロントエンド用）</span>
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+    && apt-get install -y nodejs
+
+<span class="comment"># PHP拡張をインストール</span>
+RUN docker-php-ext-install \
+    intl \        <span class="comment"># 国際化</span>
+    pdo_mysql \   <span class="comment"># MySQLデータベース接続</span>
+    zip \         <span class="comment"># ZIP圧縮</span>
+    bcmath        <span class="comment"># 高精度計算</span>
+
+<span class="comment"># GD拡張（画像処理）を設定してインストール</span>
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd
+
+<span class="comment"># php.iniをコピー</span>
+COPY php.ini /usr/local/etc/php/php.ini
+
+<span class="comment"># 専用ユーザーを作成（権限問題の回避）</span>
+RUN useradd -m -u 1000 -s /bin/bash appuser
+
+WORKDIR /data</div>
+
+                            <div class="success-box mt-4">
+                                <h4 class="text-lg font-bold mb-2">✨ このDockerfileのすごいところ</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>Composer内蔵</strong>: 別途インストール不要</li>
+                                    <li><strong>Node.js内蔵</strong>: フロントエンドのビルドもできる</li>
+                                    <li><strong>必要なPHP拡張がすべて揃っている</strong>: Laravel開発に必要な機能完備</li>
+                                    <li><strong>権限問題を回避</strong>: ホストユーザーと同じUID/GIDのユーザーを作成</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h4 class="text-lg font-bold mb-2">🔍 各PHP拡張の役割</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><strong>intl</strong>: 多言語対応（日本語処理など）</li>
+                                    <li><strong>pdo_mysql</strong>: MySQLデータベースへの接続（必須）</li>
+                                    <li><strong>zip</strong>: ZIPファイルの作成・展開（Composer依存）</li>
+                                    <li><strong>bcmath</strong>: 高精度な数値計算（金額計算など）</li>
+                                    <li><strong>gd</strong>: 画像の加工・サムネイル生成</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: コンテナ起動 -->
+                    <div class="content-section">
+                        <h3>Step 4: コンテナを起動してLaravelをインストール</h3>
+                        <div class="collapsible-content">
+                            <h4>イメージをビルドしてコンテナ起動</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># イメージをビルドして起動</span>
+docker compose up -d --build</div>
+
+                            <p class="mt-4">初回は時間がかかります（5〜10分程度）。以下の処理が実行されます：</p>
+                            <ul class="list-disc list-inside space-y-2 ml-4 mt-2 mb-4">
+                                <li>PHPイメージのビルド（Composer、Node.js、PHP拡張のインストール）</li>
+                                <li>MySQLイメージのビルド</li>
+                                <li>Nginxイメージのダウンロード</li>
+                                <li>3つのコンテナの起動</li>
+                            </ul>
+
+                            <h4>appコンテナに入る</h4>
+                            <div class="command-box">docker compose exec app bash</div>
+
+                            <h4 class="mt-4">Laravelをインストール</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># Laravelをカレントディレクトリ（/data = src/）にインストール</span>
+composer create-project laravel/laravel:"^12.0" .
+
+<span class="text-gray-400"># 権限を設定</span>
+chmod -R 777 storage bootstrap/cache</div>
+
+                            <div class="warning-box mt-4">
+                                <p><strong>⚠️ 最後のドット（.）を忘れずに</strong></p>
+                                <p class="mt-2"><code>.</code>は「現在のディレクトリにインストール」を意味します。これがないと、laravelという名前のサブディレクトリが作られてしまいます。</p>
+                            </div>
+
+                            <h4 class="mt-6">一旦コンテナから出る</h4>
+                            <div class="command-box">exit</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Laravel設定 -->
+                    <div class="content-section">
+                        <h3>Step 5: Laravelのデータベース設定</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4"><code>src/.env</code>ファイルを開き、データベース接続情報を設定します。</p>
+
+                            <div class="command-box">DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=laravel_db
+DB_USERNAME=laravel_user
+DB_PASSWORD=laravel_pass</div>
+
+                            <div class="info-box mt-4">
+                                <p><strong>💡 これらの値は...</strong></p>
+                                <p class="mt-2"><code>docker-compose.yml</code>のdbサービスの環境変数と一致させてください。</p>
+                            </div>
+
+                            <h4 class="mt-6">コンテナを再起動</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># 設定を反映させるため、データベースも含めて再起動</span>
+docker compose down -v
+docker compose up -d</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 6: マイグレーション -->
+                    <div class="content-section">
+                        <h3>Step 6: データベースマイグレーション</h3>
+                        <div class="collapsible-content">
+                            <div class="command-box">
+<span class="text-gray-400"># appコンテナに入る</span>
+docker compose exec app bash
+
+<span class="text-gray-400"># マイグレーション実行</span>
+php artisan migrate</div>
+
+                            <div class="success-box mt-4">
+                                <p><strong>✅ 成功メッセージ</strong></p>
+                                <div class="command-box mt-2">Migration table created successfully.
+Migrating: 0001_01_01_000000_create_users_table
+Migrated:  0001_01_01_000000_create_users_table (XX.XXms)
+...</div>
+                            </div>
+
+                            <div class="command-box mt-4">exit</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 7: 動作確認 -->
+                    <div class="content-section">
+                        <h3>Step 7: ブラウザで確認</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4"><code>http://localhost</code> にアクセスしてみましょう（ポート80）。</p>
+
+                            <div class="success-box">
+                                <h4 class="text-lg font-bold mb-2">✅ 表示されるもの</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>Laravelのウェルカムページ</li>
+                                    <li>「Laravel」のロゴとバージョン番号</li>
+                                    <li>ドキュメントへのリンク</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h4 class="text-lg font-bold mb-2">🎨 フロントエンドの開発サーバーも起動できる</h4>
+                                <div class="command-box mt-2">
+<span class="text-gray-400"># appコンテナ内で</span>
+npm install
+npm run dev</div>
+                                <p class="mt-2">Vite開発サーバーが <code>http://localhost:5173</code> で起動します（ホットリロード対応）。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 本番環境設定の紹介 -->
+                    <div class="content-section">
+                        <h3>🌍 本番環境用の設定（docker-compose.prod.yml）</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">このプロジェクトには、本番環境用の<code>docker-compose.prod.yml</code>も含まれています。</p>
+
+                            <h4>主な違い</h4>
+                            <ul class="list-disc list-inside space-y-2 ml-4 mb-4">
+                                <li><strong>dbサービスがない</strong>: 外部のデータベース（AWS RDSなど）を使用</li>
+                                <li><strong>環境変数を外部から取得</strong>: .envファイルからDB接続情報を読み込む</li>
+                                <li><strong>ポート公開が異なる</strong>: 必要最小限のポートのみ</li>
+                            </ul>
+
+                            <h4>本番用で起動する場合</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># 開発用と本番用の両方を使って起動</span>
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d</div>
+
+                            <div class="warning-box mt-4">
+                                <p><strong>⚠️ 本番環境での注意点</strong></p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 mt-2">
+                                    <li>デバッグモードをOFFに（APP_DEBUG=false）</li>
+                                    <li>強力なAPP_KEYを生成</li>
+                                    <li>データベースパスワードを複雑に</li>
+                                    <li>HTTPSを使用</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- よく使うコマンド -->
+                    <div class="content-section">
+                        <h3>📝 よく使うDockerコマンド（このプロジェクト用）</h3>
+                        <div class="collapsible-content">
+                            <div class="command-box">
+<span class="text-gray-400"># コンテナを起動</span>
+docker compose up -d
+
+<span class="text-gray-400"># コンテナを停止</span>
+docker compose down
+
+<span class="text-gray-400"># コンテナを停止してボリュームも削除（データリセット）</span>
+docker compose down -v
+
+<span class="text-gray-400"># appコンテナに入る</span>
+docker compose exec app bash
+
+<span class="text-gray-400"># ログを確認</span>
+docker compose logs
+docker compose logs -f web
+
+<span class="text-gray-400"># コンテナの状態確認</span>
+docker compose ps
+
+<span class="text-gray-400"># イメージを再ビルドして起動</span>
+docker compose up -d --build</div>
+
+                            <h4 class="mt-6">Laravel関連のコマンド（appコンテナ内で）</h4>
+                            <div class="command-box">
+<span class="text-gray-400"># マイグレーション</span>
+php artisan migrate
+
+<span class="text-gray-400"># マイグレーションをロールバック</span>
+php artisan migrate:rollback
+
+<span class="text-gray-400"># マイグレーションをリフレッシュ（全削除→再実行）</span>
+php artisan migrate:fresh
+
+<span class="text-gray-400"># キャッシュクリア</span>
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+
+<span class="text-gray-400"># Composerでパッケージインストール</span>
+composer install
+
+<span class="text-gray-400"># フロントエンドのビルド</span>
+npm install
+npm run build    <span class="comment"># 本番用</span>
+npm run dev      <span class="comment"># 開発用（ホットリロード）</span></div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📚 まとめ</h3>
+                        <div class="collapsible-content">
+                            <p class="mb-4">実際のプロジェクトで使われる、実践的なDocker構成を学びました！</p>
+
+                            <div class="success-box">
+                                <h4 class="text-lg font-bold mb-3">✅ 習得したスキル</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li>実際のプロジェクト構成の理解</li>
+                                    <li>カスタムDockerfileの読み方と意味</li>
+                                    <li>infraディレクトリでの設定管理</li>
+                                    <li>PHP拡張のインストール理由</li>
+                                    <li>Node.jsを含めたフルスタック環境</li>
+                                    <li>開発環境と本番環境の使い分け</li>
+                                    <li>GitHubリポジトリからのプロジェクト取得</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box mt-6">
+                                <h4 class="text-lg font-bold mb-3">🚀 次のステップ</h4>
+                                <p>次のセクションでは、Dockerfileを自分でカスタマイズする方法を学びます。</p>
+                                <p class="mt-2">プロジェクトに必要な拡張を追加したり、最適化したりする方法をマスターしましょう。</p>
+                            </div>
+
+                            <div class="warning-box mt-6">
+                                <h4 class="text-lg font-bold mb-2">💪 復習チェック</h4>
+                                <p class="mb-2">次に進む前に、以下を確認してみましょう：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1">
+                                    <li>☐ infraディレクトリの役割を理解した</li>
+                                    <li>☐ カスタムDockerfileの各行の意味がわかる</li>
+                                    <li>☐ なぜPHP拡張が必要か説明できる</li>
+                                    <li>☐ ブラウザでLaravelページが表示される</li>
+                                    <li>☐ appコンテナでLaravelコマンドを実行できる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+</body>
+
+</html>
