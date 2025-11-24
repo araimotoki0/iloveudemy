@@ -52,6 +52,11 @@
         /* セクションスタイル */
         .content-section {
             margin-bottom: 32px;
+            transition: margin-bottom 0.3s ease;
+        }
+
+        .content-section:has(.accordion-header.collapsed) {
+            margin-bottom: 0;
         }
 
         .content-section h3 {
@@ -128,6 +133,46 @@
             border-radius: 8px;
             margin: 16px 0;
         }
+
+        /* アコーディオン */
+        .accordion-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            transition: color 0.3s ease, padding 0.3s ease;
+        }
+
+        .accordion-header.collapsed {
+            padding: 4px 0;
+        }
+
+        .accordion-header:hover {
+            color: #5aa3ff;
+        }
+
+        .accordion-header::after {
+            content: '▼';
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: #8b5cf6;
+        }
+
+        .accordion-header.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .accordion-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .accordion-content.collapsed {
+            max-height: 0 !important;
+            opacity: 0;
+        }
     </style>
 </head>
 
@@ -150,6 +195,16 @@
                     データベース＆バックエンド超入門
                 </h1>
 
+                <!-- 全部開く/閉じるボタン -->
+                <div class="flex justify-end gap-3 mb-4">
+                    <button id="expand-all" class="px-4 py-2 text-sm bg-primary-600 hover:bg-primary-500 rounded-lg transition-colors">
+                        全部開く
+                    </button>
+                    <button id="collapse-all" class="px-4 py-2 text-sm bg-gray-600 hover:bg-gray-500 rounded-lg transition-colors">
+                        全部閉じる
+                    </button>
+                </div>
+
                 <!-- コンテンツ -->
                 <div class="glass rounded-3xl p-8">
                     <!-- セミナー情報 -->
@@ -167,7 +222,8 @@
 
                     <!-- HTML/JSの限界 -->
                     <div class="content-section">
-                        <h3>HTML/JavaScriptだけでは限界がある</h3>
+                        <h3 class="accordion-header">HTML/JavaScriptだけでは限界がある</h3>
+                        <div class="accordion-content">
 
                         <p>
                             まずは実際に動くタスク管理アプリを触ってみてください。
@@ -219,11 +275,13 @@ tasks.push({ title: "買い物" });<br>
 // リロード → tasks = [] に戻る！
                             </code>
                         </div>
+                        </div>
                     </div>
 
                     <!-- データベースの必要性 -->
                     <div class="content-section">
-                        <h3>データベースがなぜ必要か</h3>
+                        <h3 class="accordion-header">データベースがなぜ必要か</h3>
+                        <div class="accordion-content">
 
                         <p>
                             データを<strong>永続的に保存</strong>するには、サーバー側にデータベースが必要です。
@@ -253,11 +311,13 @@ HTML/JS        PHP, Ruby, Python等        MySQL, PostgreSQL等
                             ブラウザ（フロントエンド）だけでは完結できません。
                             <strong>サーバー（バックエンド）とデータベース</strong>が必要です。
                         </p>
+                        </div>
                     </div>
 
                     <!-- フレームワークとORM -->
                     <div class="content-section">
-                        <h3>フレームワークとORMの重要性</h3>
+                        <h3 class="accordion-header">フレームワークとORMの重要性</h3>
+                        <div class="accordion-content">
 
                         <p>
                             バックエンド開発では、プログラミング言語だけでなく<strong>フレームワーク</strong>を使うのが当たり前です。
@@ -317,11 +377,13 @@ $tasks = Task::where('user_id', $userId)->get();<br>
                                 <li><strong class="text-green-500">Node.js</strong> → Prisma / TypeORM / Sequelize</li>
                             </ul>
                         </div>
+                        </div>
                     </div>
 
                     <!-- SQLとは -->
                     <div class="content-section">
-                        <h3>SQLとは何か</h3>
+                        <h3 class="accordion-header">SQLとは何か</h3>
+                        <div class="accordion-content">
 
                         <p>
                             <strong>SQL（Structured Query Language）</strong>は、データベースを操作するための言語です。
@@ -382,11 +444,13 @@ SELECT * FROM tasks WHERE title LIKE '%会議%';
                                 <li>・<strong>D</strong>elete（削除）: DELETE文</li>
                             </ul>
                         </div>
+                        </div>
                     </div>
 
                     <!-- SQLインジェクションデモ -->
                     <div class="content-section">
-                        <h3>実際にSQLインジェクションを体験してみよう</h3>
+                        <h3 class="accordion-header">実際にSQLインジェクションを体験してみよう</h3>
+                        <div class="accordion-content">
 
                         <p>
                             「SQLインジェクション」と聞いてもピンとこないかもしれません。
@@ -411,11 +475,13 @@ SELECT * FROM tasks WHERE title LIKE '%会議%';
                             このように、ユーザーの入力をそのままSQLに埋め込むと、
                             <strong>攻撃者がSQLの構造を書き換えてしまう</strong>ことができます。
                         </p>
+                        </div>
                     </div>
 
                     <!-- フレームワークを使わないリスク -->
                     <div class="content-section">
-                        <h3>フレームワーク・ORMを使わないとどうなるか</h3>
+                        <h3 class="accordion-header">フレームワーク・ORMを使わないとどうなるか</h3>
+                        <div class="accordion-content">
 
                         <div class="warning-box">
                             <p class="text-red-300 font-bold mb-3">自分で全部書くリスク</p>
@@ -464,11 +530,13 @@ $sql = "SELECT * FROM users WHERE name = '$name'";<br>
                             これらを<strong>全部自分で正しく実装するのは非常に困難</strong>です。
                             セキュリティの専門家でも見落としがあるレベルの複雑さです。
                         </p>
+                        </div>
                     </div>
 
                     <!-- なぜフレームワークを使うのか -->
                     <div class="content-section">
-                        <h3>だからフレームワークを使う</h3>
+                        <h3 class="accordion-header">だからフレームワークを使う</h3>
+                        <div class="accordion-content">
 
                         <p>
                             フレームワークは、<strong>先人たちが何十年もかけて改良してきた</strong>ベストプラクティスの集大成です。
@@ -497,11 +565,13 @@ $sql = "SELECT * FROM users WHERE name = '$name'";<br>
                                 実際には「Laravel経験者募集」という意味であることがほとんどです。
                             </p>
                         </div>
+                        </div>
                     </div>
 
                     <!-- まとめ -->
                     <div class="content-section">
-                        <h3>まとめ</h3>
+                        <h3 class="accordion-header">まとめ</h3>
+                        <div class="accordion-content">
 
                         <div class="glass-dark p-6 rounded-xl border-l-4 border-yellow-500">
                             <ol class="space-y-3">
@@ -531,6 +601,7 @@ $sql = "SELECT * FROM users WHERE name = '$name'";<br>
                                 </li>
                             </ol>
                         </div>
+                        </div>
                     </div>
 
                 </div>
@@ -559,6 +630,50 @@ $sql = "SELECT * FROM users WHERE name = '$name'";<br>
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'
+            });
+        });
+
+        // アコーディオン機能
+        document.querySelectorAll('.accordion-header').forEach(function(header) {
+            const content = header.nextElementSibling;
+
+            // 初期状態で開いている状態にする
+            content.style.maxHeight = content.scrollHeight + 'px';
+
+            header.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+
+                if (this.classList.contains('collapsed')) {
+                    // 開く
+                    this.classList.remove('collapsed');
+                    content.classList.remove('collapsed');
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                } else {
+                    // 閉じる
+                    this.classList.add('collapsed');
+                    content.classList.add('collapsed');
+                    content.style.maxHeight = '0';
+                }
+            });
+        });
+
+        // 全部開くボタン
+        document.getElementById('expand-all').addEventListener('click', function() {
+            document.querySelectorAll('.accordion-header').forEach(function(header) {
+                const content = header.nextElementSibling;
+                header.classList.remove('collapsed');
+                content.classList.remove('collapsed');
+                content.style.maxHeight = content.scrollHeight + 'px';
+            });
+        });
+
+        // 全部閉じるボタン
+        document.getElementById('collapse-all').addEventListener('click', function() {
+            document.querySelectorAll('.accordion-header').forEach(function(header) {
+                const content = header.nextElementSibling;
+                header.classList.add('collapsed');
+                content.classList.add('collapsed');
+                content.style.maxHeight = '0';
             });
         });
     </script>
