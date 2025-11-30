@@ -202,18 +202,9 @@
                                     <li>✅ <strong>独立した実行環境</strong> - 他のコンテナやホストに影響しない</li>
                                     <li>✅ <strong>起動が速い</strong> - 仮想マシンより圧倒的に速い（秒単位）</li>
                                     <li>✅ <strong>使い捨て可能</strong> - 削除しても元のイメージは残る</li>
+                                    <li>✅ <strong>いくつでも作れる</strong> - 1つのイメージから複数のコンテナを起動できる（イメージの「再利用可能」とはこのこと！）</li>
                                 </ul>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- これから学ぶコマンド -->
-                    <div class="content-section">
-                        <h3>🎓 コンテナ操作コマンドを学ぼう</h3>
-                        <div class="collapsible-content">
-                            <p>
-                                コンテナの概念が分かったところで、次は<strong>実際にコマンドを打ちながら</strong>コンテナを操作していきます。
-                            </p>
 
                             <div class="info-box">
                                 <h4>❓ なぜコマンドを学ぶのか</h4>
@@ -226,384 +217,713 @@
                                     <li>• <strong>コンテナの状態</strong>を確認・操作できる</li>
                                 </ul>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- コンテナのライフサイクル -->
+                    <div class="content-section">
+                        <h3>🔄 コンテナのライフサイクル</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                コンテナには<strong>状態（ライフサイクル）</strong>があります。
+                                まずはこれを理解しましょう。
+                            </p>
+                            <p style="margin-top: 12px;">
+                                ライフサイクルとは、コンテナが<strong>「作成されてから削除されるまでの一連の流れ」</strong>のことです。
+                            </p>
 
                             <div class="success-box">
-                                <h4>📋 これから学ぶコマンド</h4>
+                                <h4>💡 なぜライフサイクルを学ぶ？</h4>
+                                <p>
+                                    Web開発では、Webサーバーを常に<strong>Up（実行中）</strong>の状態にしておく必要があります。
+                                </p>
+                                <p style="margin-top: 8px;">
+                                    ライフサイクルを理解すると、「今のステータスからどう変更すればいいか」が分かるようになります。
+                                </p>
+                                <p style="margin-top: 8px;">
+                                    <strong>状態の変更はコマンドで行います</strong>（start, stop, rm など）。
+                                </p>
+                            </div>
+
+                            <!-- ライフサイクル図 -->
+                            <div style="padding: 24px; margin: 24px 0;">
+                                <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px;">
+                                    <!-- Created -->
+                                    <div style="text-align: center;">
+                                        <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #64748b, #475569); display: flex; align-items: center; justify-content: center; border: 3px solid #94a3b8; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                                            <span style="font-size: 14px; font-weight: 600; color: #e2e8f0;">Created</span>
+                                        </div>
+                                        <p style="margin-top: 8px; font-size: 12px; color: #94a3b8;">作成済み</p>
+                                    </div>
+
+                                    <!-- 矢印 -->
+                                    <div style="display: flex; flex-direction: column; align-items: center;">
+                                        <div style="color: #22d3ee; font-size: 24px;">→</div>
+                                        <span style="font-size: 10px; color: #22d3ee;">start</span>
+                                    </div>
+
+                                    <!-- Up -->
+                                    <div style="text-align: center;">
+                                        <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a); display: flex; align-items: center; justify-content: center; border: 3px solid #4ade80; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4); animation: pulse-slow 2s infinite;">
+                                            <span style="font-size: 14px; font-weight: 600; color: #fff;">Up</span>
+                                        </div>
+                                        <p style="margin-top: 8px; font-size: 12px; color: #4ade80;">実行中</p>
+                                    </div>
+
+                                    <!-- 双方向矢印（stop / start / restart） -->
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                        <div style="display: flex; align-items: center;">
+                                            <span style="font-size: 10px; color: #fbbf24; margin-right: 4px;">stop</span>
+                                            <span style="color: #fbbf24; font-size: 24px;">→</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center;">
+                                            <span style="color: #22d3ee; font-size: 24px;">←</span>
+                                            <span style="font-size: 10px; color: #22d3ee; margin-left: 4px;">start</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; margin-top: 4px;">
+                                            <span style="font-size: 9px; color: #a78bfa; background: rgba(167, 139, 250, 0.2); padding: 2px 6px; border-radius: 4px;">restart = stop + start</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Exited -->
+                                    <div style="text-align: center;">
+                                        <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; border: 3px solid #fbbf24; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);">
+                                            <span style="font-size: 14px; font-weight: 600; color: #fff;">Exited</span>
+                                        </div>
+                                        <p style="margin-top: 8px; font-size: 12px; color: #fbbf24;">停止</p>
+                                    </div>
+
+                                    <!-- 矢印 -->
+                                    <div style="display: flex; flex-direction: column; align-items: center;">
+                                        <div style="color: #ef4444; font-size: 24px;">→</div>
+                                        <span style="font-size: 10px; color: #ef4444;">rm</span>
+                                    </div>
+
+                                    <!-- 削除 -->
+                                    <div style="text-align: center;">
+                                        <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #1e293b, #0f172a); display: flex; align-items: center; justify-content: center; border: 3px dashed #64748b; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                                            <span style="font-size: 20px;">🗑️</span>
+                                        </div>
+                                        <p style="margin-top: 8px; font-size: 12px; color: #64748b;">削除</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📋 コンテナの状態</h4>
                                 <table class="command-table" style="width: 100%; margin-top: 12px;">
                                     <thead>
                                         <tr>
-                                            <th>コマンド</th>
-                                            <th>できること</th>
+                                            <th>状態</th>
+                                            <th>意味</th>
+                                            <th>操作</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td><code>docker container ls</code></td>
-                                            <td>コンテナ一覧を見る</td>
+                                            <td><strong>Created</strong></td>
+                                            <td>作成されたが、まだ起動していない</td>
+                                            <td><code>docker container create</code></td>
                                         </tr>
                                         <tr>
-                                            <td><code>docker container run</code></td>
-                                            <td>コンテナを作成・起動</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>docker container stop</code></td>
-                                            <td>コンテナを停止</td>
-                                        </tr>
-                                        <tr>
+                                            <td><strong>Up</strong></td>
+                                            <td>実行中</td>
                                             <td><code>docker container start</code></td>
-                                            <td>停止したコンテナを再起動</td>
                                         </tr>
                                         <tr>
+                                            <td><strong>Exited</strong></td>
+                                            <td>停止した</td>
+                                            <td><code>docker container stop</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>（削除）</strong></td>
+                                            <td>コンテナが消える</td>
                                             <td><code>docker container rm</code></td>
-                                            <td>コンテナを削除</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>docker container logs</code></td>
-                                            <td>コンテナのログを見る</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>docker container exec</code></td>
-                                            <td>コンテナ内でコマンド実行</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
 
                             <p style="margin-top: 16px;">
-                                では、Step 1から順番にやっていきましょう！
+                                では、ライフサイクルを<strong>ステップバイステップ</strong>で体験しましょう！
                             </p>
                         </div>
                     </div>
 
-                    <!-- Step 1: コンテナ一覧を見る -->
+                    <!-- Step 1: コンテナを作成する（Created） -->
                     <div class="content-section">
-                        <h3>🖥️ Step 1: コンテナ一覧を見る</h3>
+                        <h3>📦 Step 1: コンテナを作成する（Created）</h3>
                         <div class="collapsible-content">
                             <div class="progress-indicator">
-                                <span class="step">Step 1/6</span>
-                                <span>docker container ls</span>
+                                <span class="step">Step 1/5</span>
+                                <span>docker container create</span>
                             </div>
 
                             <p>
-                                まずは現在のコンテナの状態を確認しましょう。
+                                まずは<strong>コンテナを作成するだけ</strong>（まだ起動しない）をやってみます。
                             </p>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">1</span>実行中のコンテナを表示</h4>
+                                <h4><span class="step-number">1</span>alpineコンテナを作成</h4>
                                 <div class="command-box">
-                                    <div class="command">docker container ls</div>
+                                    <div class="command">docker container create --name my-alpine alpine</div>
                                 </div>
-                                <div class="output">CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</div>
+                                <div class="output">Unable to find image 'alpine:latest' locally
+latest: Pulling from library/alpine
+...
+Status: Downloaded newer image for alpine:latest
+a1b2c3d4e5f6789...</div>
                                 <p style="margin-top: 12px; color: #94a3b8;">
-                                    何も表示されない？それは<strong>実行中のコンテナがない</strong>からです。
+                                    CONTAINER IDが表示されます。これでコンテナが作成されました。
                                 </p>
                             </div>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">2</span>全てのコンテナを表示（停止中も含む）</h4>
+                                <h4><span class="step-number">2</span>コンテナの状態を確認</h4>
                                 <div class="command-box">
                                     <div class="command">docker container ls -a</div>
                                 </div>
-                                <div class="output">CONTAINER ID   IMAGE         COMMAND    CREATED          STATUS                      PORTS     NAMES
-be1937c0a0c8   hello-world   "/hello"   10 minutes ago   Exited (0) 10 minutes ago             eager_bell</div>
+                                <div class="output">CONTAINER ID   IMAGE    COMMAND     CREATED          STATUS    PORTS   NAMES
+a1b2c3d4e5f6   alpine   "/bin/sh"   10 seconds ago   Created           my-alpine</div>
                                 <p style="margin-top: 12px; color: #22c55e;">
-                                    ✅ 前に実行したhello-worldコンテナが見つかりました！
+                                    ✅ STATUSが「<strong>Created</strong>」= 作成されたがまだ起動していない
                                 </p>
                             </div>
 
                             <div class="info-box">
-                                <h4>📋 表示される項目の意味</h4>
-                                <ul>
-                                    <li><strong>CONTAINER ID</strong>: コンテナの一意のID</li>
-                                    <li><strong>IMAGE</strong>: コンテナの元になったイメージ</li>
-                                    <li><strong>COMMAND</strong>: 実行されたコマンド</li>
-                                    <li><strong>CREATED</strong>: 作成された日時</li>
-                                    <li><strong>STATUS</strong>: 現在の状態（Up=実行中、Exited=停止）</li>
-                                    <li><strong>PORTS</strong>: ポートマッピング</li>
-                                    <li><strong>NAMES</strong>: コンテナの名前（自動生成）</li>
+                                <h4>📝 なぜ docker container ls では表示されない？</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container ls</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE   COMMAND   CREATED   STATUS   PORTS   NAMES</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    何も表示されない = Created状態のコンテナは「実行中」ではないから
+                                </p>
+                                <ul style="margin-top: 16px;">
+                                    <li><code>docker container ls</code> → <strong>Up（実行中）</strong>のコンテナだけ表示</li>
+                                    <li><code>docker container ls -a</code> → <strong>すべての状態</strong>（Created, Up, Exited）のコンテナを表示</li>
                                 </ul>
                             </div>
 
-                            <div class="success-box">
-                                <h4>🎯 学んだコマンド</h4>
+                            <div class="info-box">
+                                <h4>💡 --name を付けるメリット</h4>
                                 <ul>
-                                    <li><code>docker container ls</code> - 実行中のコンテナを表示</li>
-                                    <li><code>docker container ls -a</code> - 全てのコンテナを表示（停止中も含む）</li>
+                                    <li>コンテナの操作が分かりやすい（<code>docker container stop my-alpine</code>）</li>
+                                    <li>CONTAINER IDを覚えなくていい</li>
+                                    <li>自動生成される名前（eager_bell など）より管理しやすい</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #f59e0b;">
+                                    ⚠️ 同じ名前のコンテナは作れません。先に削除する必要があります。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>docker container create --name 名前</code> - 名前を付けてコンテナを作成</li>
+                                    <li>作成直後の状態は「<strong>Created</strong>」</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 2: コンテナを起動する -->
+                    <!-- Step 2: コンテナを起動する（Up / Exited） -->
                     <div class="content-section">
-                        <h3>🚀 Step 2: コンテナを起動する</h3>
+                        <h3>▶️ Step 2: コンテナを起動する（Up / Exited）</h3>
                         <div class="collapsible-content">
                             <div class="progress-indicator">
-                                <span class="step">Step 2/6</span>
-                                <span>docker container run</span>
+                                <span class="step">Step 2/5</span>
+                                <span>docker container start</span>
                             </div>
 
                             <p>
-                                今度は<strong>ずっと動き続けるコンテナ</strong>を起動してみましょう。
-                                Webサーバーの「nginx」を使います。
+                                作成したコンテナを<strong>起動</strong>してみましょう。
                             </p>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">1</span>nginxコンテナをバックグラウンドで起動</h4>
+                                <h4><span class="step-number">1</span>コンテナを起動</h4>
                                 <div class="command-box">
-                                    <div class="command">docker container run -d -p 8080:80 --name my-nginx nginx</div>
+                                    <div class="command">docker container start my-alpine</div>
+                                </div>
+                                <div class="output">my-alpine</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>コンテナの状態を確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container ls -a</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE    COMMAND     CREATED         STATUS                     PORTS   NAMES
+a1b2c3d4e5f6   alpine   "/bin/sh"   1 minute ago    Exited (0) 2 seconds ago           my-alpine</div>
+                                <p style="margin-top: 12px; color: #fbbf24;">
+                                    🤔 あれ？STATUSが「<strong>Exited</strong>」になっている...
+                                </p>
+                            </div>
+
+                            <div class="question-box">
+                                <h4>❓ なぜすぐ終了した？</h4>
+                                <p>
+                                    コンテナは<strong>「実行するコマンドが終わると終了」</strong>します。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    alpineイメージは、起動時に <code>/bin/sh</code>（シェル）を実行します。<br>
+                                    シェルは<strong>入力がないと即座に終了</strong>するので、コンテナもすぐ終了したのです。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>デフォルトコマンドを確認してみよう</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    イメージが起動時に実行するコマンドを確認できます：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker image inspect alpine --format '{{.Config.Cmd}}'</div>
+                                </div>
+                                <div class="output">[/bin/sh]</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ やはり <code>/bin/sh</code> がデフォルトコマンドでした！
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 Docker Hub でも確認できる</h4>
+                                <p>
+                                    <a href="https://hub.docker.com/_/alpine" target="_blank" style="color: #22d3ee; text-decoration: underline;">Docker Hub の alpine ページ</a> でも、どんなコマンドが実行されるか確認できます。
+                                </p>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    このデフォルトコマンドは「Dockerfile」で設定されています（後のセクションで学びます）。
+                                </p>
+                            </div>
+
+                            <!-- シェルの説明 -->
+                            <div class="info-box">
+                                <h4>🐚 シェルって何？</h4>
+                                <p>
+                                    シェル（Shell）は、<strong>ユーザーとOS（カーネル）の間に立って、コマンドを解釈・実行するプログラム</strong>です。
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>• ユーザーが入力したコマンド（テキスト）を<strong>解釈</strong>する</li>
+                                    <li>• それをカーネルが理解できる形に変換して<strong>渡す</strong></li>
+                                    <li>• カーネルからの結果を受け取って、ユーザーに<strong>表示</strong>する</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    「シェル（Shell = 殻）」という名前は、OSの核（Kernel = カーネル）を包む殻というイメージから来ています。
+                                </p>
+
+                                <!-- シェルの図解 -->
+                                <div style="margin: 20px 0; padding: 20px; background: rgba(15, 23, 42, 0.6); border-radius: 12px;">
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;">
+                                        <!-- 人間 -->
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 40px;">👤</div>
+                                            <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">あなた</p>
+                                        </div>
+
+                                        <!-- 矢印とコマンド -->
+                                        <div style="text-align: center;">
+                                            <div style="background: rgba(34, 211, 238, 0.2); padding: 4px 12px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #22d3ee;">ls</div>
+                                            <div style="color: #22d3ee; font-size: 20px;">→</div>
+                                        </div>
+
+                                        <!-- シェル -->
+                                        <div style="text-align: center;">
+                                            <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; border: 3px solid #60a5fa; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                                                <span style="font-size: 11px; font-weight: 600; color: #fff;">Shell<br>🐚 殻</span>
+                                            </div>
+                                            <p style="font-size: 12px; color: #60a5fa; margin-top: 4px;">シェル</p>
+                                        </div>
+
+                                        <!-- 矢印 -->
+                                        <div style="text-align: center;">
+                                            <div style="color: #22d3ee; font-size: 20px;">→</div>
+                                        </div>
+
+                                        <!-- カーネル -->
+                                        <div style="text-align: center;">
+                                            <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; border: 3px solid #fbbf24; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);">
+                                                <span style="font-size: 11px; font-weight: 600; color: #fff;">Kernel<br>🌰 核</span>
+                                            </div>
+                                            <p style="font-size: 12px; color: #fbbf24; margin-top: 4px;">カーネル</p>
+                                        </div>
+
+                                        <!-- 矢印と結果 -->
+                                        <div style="text-align: center;">
+                                            <div style="color: #22c55e; font-size: 20px;">→</div>
+                                            <div style="background: rgba(34, 197, 94, 0.2); padding: 4px 12px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #22c55e;">結果</div>
+                                        </div>
+
+                                        <!-- 結果表示 -->
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 40px;">📄</div>
+                                            <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">ファイル一覧</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p style="color: #94a3b8; font-size: 14px;">
+                                    普段「ターミナル」で使っているのがシェルです。
+                                </p>
+                            </div>
+
+                            <!-- シェルを体験 -->
+                            <div class="hands-on-section">
+                                <h4>💻 シェルを体験してみよう</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    今使っているターミナルで、別のシェルを起動してみましょう：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command"># sh を起動</div>
+                                    <div class="command">/bin/sh</div>
+                                </div>
+                                <div class="output">sh-3.2$</div>
+                                <p style="margin-top: 8px; color: #94a3b8;">
+                                    プロンプトが変わりました。sh の中にいます。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># sh の中でコマンドを実行</div>
+                                    <div class="command">echo "Hello from sh!"</div>
+                                </div>
+                                <div class="output">Hello from sh!</div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># sh を終了して元のシェルに戻る</div>
+                                    <div class="command">exit</div>
+                                </div>
+                                <p style="margin-top: 16px; color: #22c55e;">
+                                    ✅ これと同じことを、Dockerコンテナの中でやっているのです！
+                                </p>
+                            </div>
+
+                            <!-- sh と bash の違い -->
+                            <div class="info-box">
+                                <h4>📋 シェルの種類</h4>
+                                <p style="margin-bottom: 16px;">
+                                    シェルにはいくつか種類があります。
+                                </p>
+
+                                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                                    <!-- sh -->
+                                    <div style="flex: 1; min-width: 200px; background: rgba(15, 23, 42, 0.6); border: 2px solid #64748b; border-radius: 12px; padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                            <code style="background: #334155; padding: 4px 8px; border-radius: 4px; font-size: 14px;">/bin/sh</code>
+                                            <span style="font-size: 12px; color: #94a3b8;">（Bourne Shell）</span>
+                                        </div>
+                                        <ul style="font-size: 13px; color: #e2e8f0; padding-left: 16px; margin: 0;">
+                                            <li>1977年に登場した<strong>最も古い</strong>シェル</li>
+                                            <li>シンプルで軽量</li>
+                                            <li>Alpine などで使用</li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- bash -->
+                                    <div style="flex: 1; min-width: 200px; background: rgba(15, 23, 42, 0.6); border: 2px solid #22c55e; border-radius: 12px; padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                            <code style="background: #166534; padding: 4px 8px; border-radius: 4px; font-size: 14px;">/bin/bash</code>
+                                            <span style="font-size: 12px; color: #4ade80;">（Bourne Again Shell）</span>
+                                        </div>
+                                        <ul style="font-size: 13px; color: #e2e8f0; padding-left: 16px; margin: 0;">
+                                            <li>1989年登場。<strong>shの後継・改良版</strong></li>
+                                            <li><strong>最も広く使われている</strong>シェル</li>
+                                            <li>Ubuntu, CentOS などで使用</li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- zsh -->
+                                    <div style="flex: 1; min-width: 200px; background: rgba(15, 23, 42, 0.6); border: 2px solid #a78bfa; border-radius: 12px; padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                            <code style="background: #5b21b6; padding: 4px 8px; border-radius: 4px; font-size: 14px;">/bin/zsh</code>
+                                            <span style="font-size: 12px; color: #a78bfa;">（Z Shell）</span>
+                                        </div>
+                                        <ul style="font-size: 13px; color: #e2e8f0; padding-left: 16px; margin: 0;">
+                                            <li>bashの機能 + さらに便利機能</li>
+                                            <li>プラグインやテーマが豊富</li>
+                                            <li><strong>macOS のデフォルト</strong></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div style="margin-top: 16px; padding: 12px; background: rgba(34, 211, 238, 0.1); border-radius: 8px;">
+                                    <p style="font-size: 13px; color: #94a3b8; margin: 0;">
+                                        💡 <strong style="color: #e2e8f0;">名前の由来</strong><br>
+                                        <strong>sh</strong> = 開発者 <strong>Stephen Bourne</strong>（スティーブン・ボーン）の名前から<br>
+                                        <strong>bash</strong> = 「Bourne Again（ボーンの再来）」と「born again（生まれ変わり）」をかけたダジャレ<br>
+                                        <strong>zsh</strong> = 開発者の教授 <strong>Zhong Shao</strong>（ゾン・シャオ）のログイン名「zsh」から
+                                    </p>
+                                </div>
+
+                                <p style="margin-top: 16px; color: #94a3b8; font-size: 14px;">
+                                    Alpine は<strong>軽量化のため sh を使用</strong>しています（bash より小さい）。<br>
+                                    Dockerイメージでは軽量なshか、広く使われているbashがよく使われます。
+                                </p>
+                            </div>
+
+                            <div class="analogy-card">
+                                <h5>💡 docker container run の正体</h5>
+                                <p>
+                                    ここから使う <code>docker container run</code> は、実は<strong>3つの操作を一度にやる</strong>便利コマンドです：
+                                </p>
+                                <ol style="margin-top: 12px; padding-left: 20px;">
+                                    <li><code>docker image pull</code> - イメージがなければダウンロード</li>
+                                    <li><code>docker container create</code> - コンテナを作成</li>
+                                    <li><code>docker container start</code> - コンテナを起動</li>
+                                </ol>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    Step 1 で <code>create</code>、上で <code>start</code> を学んだので、これらをまとめた <code>run</code> を使っていきます。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>別のコマンドを実行してみよう</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    イメージ名の後にコマンドを指定すると、デフォルトの代わりにそのコマンドが実行されます：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker container run --name my-alpine2 alpine ls /</div>
+                                </div>
+                                <div class="output">bin
+dev
+etc
+home
+lib
+...</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">5</span>状態を確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container ls -a</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE    COMMAND     CREATED          STATUS                     PORTS   NAMES
+b2c3d4e5f678   alpine   "ls /"      5 seconds ago    Exited (0) 4 seconds ago           my-alpine2
+a1b2c3d4e5f6   alpine   "/bin/sh"   3 minutes ago    Exited (0) 3 minutes ago           my-alpine</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    COMMAND が「<code>ls /</code>」になっています。<br>
+                                    <code>ls</code> は一瞬で終わるコマンドなので、コンテナもすぐ Exited になりました。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 ポイント</h4>
+                                <p>
+                                    コンテナは<strong>「指定されたコマンドが終了すると、コンテナも終了」</strong>します。
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>• <code>ls</code> → 結果を表示したら終了 → コンテナも終了</li>
+                                    <li>• <code>/bin/sh</code> → 入力がないと終了 → コンテナも終了</li>
+                                    <li>• <code>nginx</code> → サーバーがずっと動く → コンテナも動き続ける</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">6</span>-it を付けて起動してみよう</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    では、シェルを終了させずに使うにはどうすればいいでしょう？<br>
+                                    <code>-it</code> オプションを付けると、シェルが入力を待ってくれます：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker container run -it --name my-alpine3 alpine</div>
+                                </div>
+                                <div class="output">/ # </div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ シェルが待機状態になりました！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">7</span>別ターミナルでUp状態を確認</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    <strong>新しいターミナルを開いて</strong>、コンテナの状態を確認してみましょう：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker container ls</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE    COMMAND     CREATED          STATUS         PORTS   NAMES
+c3d4e5f67890   alpine   "/bin/sh"   30 seconds ago   Up 29 seconds          my-alpine3</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ STATUSが「<strong>Up</strong>」= 実行中！
+                                </p>
+                                <p style="margin-top: 8px; color: #94a3b8;">
+                                    <code>-a</code>なしの<code>docker container ls</code>で表示される = 今まさに動いている証拠です。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">8</span>コンテナ内で操作してみる</h4>
+                                <div class="command-box">
+                                    <div class="command"># コンテナ内で実行</div>
+                                    <div class="command">ls</div>
+                                </div>
+                                <div class="output">bin    dev    etc    home   lib    media  mnt    opt    proc   root   run    sbin   srv    sys    tmp    usr    var</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    Alpine Linux の中身が見えます。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">9</span>コンテナから出る</h4>
+                                <div class="command-box">
+                                    <div class="command">exit</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    <code>exit</code> でシェルを終了すると、コンテナも Exited になります。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 -it とは？</h4>
+                                <ul>
+                                    <li><strong>-i</strong>（interactive）: 標準入力を開いたままにする</li>
+                                    <li><strong>-t</strong>（tty）: 疑似ターミナルを割り当てる</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    この2つを組み合わせることで、シェルがキーボード入力を待ってくれます。<br>
+                                    詳しくは後のセクションで学びます。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 ずっと動くコンテナとすぐ終わるコンテナ</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>イメージ</th>
+                                            <th>デフォルト動作</th>
+                                            <th>結果</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>alpine, ubuntu</td>
+                                            <td>シェルを起動</td>
+                                            <td>入力がないと即終了<br><code>-it</code>を付ければ待機</td>
+                                        </tr>
+                                        <tr>
+                                            <td>hello-world</td>
+                                            <td>メッセージを表示</td>
+                                            <td>表示したら終了</td>
+                                        </tr>
+                                        <tr>
+                                            <td>nginx, mysql</td>
+                                            <td>サーバーを起動</td>
+                                            <td>ずっと実行中</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>docker container start</code> - 作成済みのコンテナを起動</li>
+                                    <li>コンテナは<strong>実行するプログラムが終わると停止</strong>する</li>
+                                    <li><code>-it</code> を付けるとシェルが対話モードで待機する</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: コンテナを停止する（Exited） -->
+                    <div class="content-section">
+                        <h3>⏹️ Step 3: コンテナを停止する（Exited）</h3>
+                        <div class="collapsible-content">
+                            <div class="progress-indicator">
+                                <span class="step">Step 3/5</span>
+                                <span>docker container stop</span>
+                            </div>
+
+                            <p>
+                                今度は<strong>ずっと動くコンテナ</strong>を作って、それを停止してみましょう。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>nginxコンテナを作成・起動</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    ここでは <code>run</code> を使います（create + start を一度に）：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker container run --name my-nginx nginx</div>
                                 </div>
                                 <div class="output">Unable to find image 'nginx:latest' locally
 latest: Pulling from library/nginx
 ...
-Status: Downloaded newer image for nginx:latest
-a1b2c3d4e5f6...</div>
-                            </div>
-
-                            <div class="info-box">
-                                <h4>📋 オプションの意味</h4>
-                                <ul>
-                                    <li><strong>-d</strong>: デタッチモード（バックグラウンドで実行）</li>
-                                    <li><strong>-p 8080:80</strong>: ホストの8080番ポート → コンテナの80番ポート</li>
-                                    <li><strong>--name my-nginx</strong>: コンテナに名前を付ける</li>
-                                </ul>
-                            </div>
-
-                            <div class="hands-on-section">
-                                <h4><span class="step-number">2</span>ブラウザで確認</h4>
-                                <p style="color: #94a3b8;">
-                                    ブラウザで <a href="http://localhost:8080" target="_blank" style="color: #22d3ee; text-decoration: underline;">http://localhost:8080</a> を開いてみてください。
-                                </p>
-                            </div>
-
-                            <div class="wow-section">
-                                <h4>🎊 Webサーバーが動いた！</h4>
-                                <p style="font-size: 18px;">
-                                    「Welcome to nginx!」が表示されたら成功です！
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2024/01/15 10:30:00 [notice] 1#1: start worker processes</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    ログが流れ続けます。コンテナが<strong>フォアグラウンド</strong>で実行中です。
                                 </p>
                             </div>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">3</span>実行中のコンテナを確認</h4>
-                                <div class="command-box">
+                                <h4><span class="step-number">2</span>別のターミナルを開く</h4>
+                                <p style="color: #fbbf24;">
+                                    ⚠️ 新しいターミナルウィンドウ/タブを開いてください
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># 新しいターミナルで実行</div>
                                     <div class="command">docker container ls</div>
                                 </div>
-                                <div class="output">CONTAINER ID   IMAGE   COMMAND                  CREATED          STATUS          PORTS                  NAMES
-a1b2c3d4e5f6   nginx   "/docker-entrypoint.…"   30 seconds ago   Up 29 seconds   0.0.0.0:8080->80/tcp   my-nginx</div>
+                                <div class="output">CONTAINER ID   IMAGE   COMMAND                  CREATED          STATUS         PORTS     NAMES
+b2c3d4e5f678   nginx   "/docker-entrypoint.…"   30 seconds ago   Up 29 seconds   80/tcp    my-nginx</div>
                                 <p style="margin-top: 12px; color: #22c55e;">
-                                    ✅ STATUSが「Up」になっている = 実行中です！
+                                    ✅ STATUSが「<strong>Up</strong>」= 実行中！
                                 </p>
                             </div>
 
-                            <div class="success-box">
-                                <h4>🎯 学んだコマンド</h4>
-                                <p><code>docker container run [オプション] イメージ名</code> - コンテナを作成・起動</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: コンテナを停止・起動 -->
-                    <div class="content-section">
-                        <h3>⏹️ Step 3: コンテナを停止・再起動</h3>
-                        <div class="collapsible-content">
-                            <div class="progress-indicator">
-                                <span class="step">Step 3/6</span>
-                                <span>docker container stop / start</span>
-                            </div>
-
-                            <p>
-                                実行中のコンテナを停止してみましょう。
-                            </p>
-
                             <div class="hands-on-section">
-                                <h4><span class="step-number">1</span>コンテナを停止</h4>
+                                <h4><span class="step-number">3</span>コンテナを停止</h4>
                                 <div class="command-box">
+                                    <div class="command"># 新しいターミナルで実行</div>
                                     <div class="command">docker container stop my-nginx</div>
                                 </div>
                                 <div class="output">my-nginx</div>
                                 <p style="margin-top: 12px; color: #94a3b8;">
-                                    ブラウザで <a href="http://localhost:8080" target="_blank" style="color: #22d3ee;">http://localhost:8080</a> にアクセスすると、もう表示されません。
+                                    最初のターミナルを見ると、コンテナが終了しています。
                                 </p>
                             </div>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">2</span>停止を確認</h4>
+                                <h4><span class="step-number">4</span>停止を確認</h4>
                                 <div class="command-box">
                                     <div class="command">docker container ls -a</div>
                                 </div>
-                                <div class="output">CONTAINER ID   IMAGE   COMMAND                  CREATED         STATUS                      PORTS   NAMES
-a1b2c3d4e5f6   nginx   "/docker-entrypoint.…"   2 minutes ago   Exited (0) 10 seconds ago           my-nginx</div>
+                                <div class="output">CONTAINER ID   IMAGE    COMMAND                  CREATED         STATUS                      PORTS   NAMES
+b2c3d4e5f678   nginx    "/docker-entrypoint.…"   1 minute ago    Exited (0) 10 seconds ago           my-nginx
+a1b2c3d4e5f6   alpine   "/bin/sh"                5 minutes ago   Exited (0) 4 minutes ago            my-alpine</div>
                                 <p style="margin-top: 12px;">
-                                    STATUSが「Exited」= 停止しています
+                                    両方とも「<strong>Exited</strong>」= 停止状態
                                 </p>
                             </div>
 
-                            <div class="hands-on-section">
-                                <h4><span class="step-number">3</span>コンテナを再起動</h4>
-                                <div class="command-box">
+                            <div class="info-box">
+                                <h4>💡 停止したコンテナは残っている</h4>
+                                <p>
+                                    <code>stop</code>はコンテナを<strong>停止するだけ</strong>で、削除はしません。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    停止したコンテナは <code>start</code> でいつでも再起動できます：
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
                                     <div class="command">docker container start my-nginx</div>
                                 </div>
-                                <div class="output">my-nginx</div>
-                                <p style="margin-top: 12px; color: #22c55e;">
-                                    ✅ 再び <a href="http://localhost:8080" target="_blank" style="color: #22d3ee;">http://localhost:8080</a> にアクセスできるようになりました！
-                                </p>
-                            </div>
-
-                            <div class="info-box">
-                                <h4>💡 stop と start の違い</h4>
-                                <ul>
-                                    <li><strong>stop</strong>: コンテナを停止（データは保持される）</li>
-                                    <li><strong>start</strong>: 停止したコンテナを再起動</li>
-                                </ul>
-                                <p style="margin-top: 12px; color: #94a3b8;">
-                                    停止したコンテナは削除しない限り残っているので、<code>start</code>でいつでも再起動できます。
-                                </p>
                             </div>
 
                             <div class="success-box">
-                                <h4>🎯 学んだコマンド</h4>
+                                <h4>🎯 学んだこと</h4>
                                 <ul>
-                                    <li><code>docker container stop コンテナ名</code> - コンテナを停止</li>
-                                    <li><code>docker container start コンテナ名</code> - コンテナを起動</li>
+                                    <li><code>docker container stop</code> - 実行中のコンテナを停止</li>
+                                    <li>停止後の状態は「<strong>Exited</strong>」</li>
+                                    <li>停止したコンテナは<code>start</code>で再起動できる</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 4: コンテナのログを見る -->
+                    <!-- Step 4: コンテナを削除する -->
                     <div class="content-section">
-                        <h3>📜 Step 4: コンテナのログを見る</h3>
+                        <h3>🗑️ Step 4: コンテナを削除する</h3>
                         <div class="collapsible-content">
                             <div class="progress-indicator">
-                                <span class="step">Step 4/6</span>
-                                <span>docker container logs</span>
-                            </div>
-
-                            <p>
-                                コンテナが何をしているか、ログを見てみましょう。
-                            </p>
-
-                            <div class="hands-on-section">
-                                <h4><span class="step-number">1</span>ログを表示</h4>
-                                <div class="command-box">
-                                    <div class="command">docker container logs my-nginx</div>
-                                </div>
-                                <div class="output">/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-...
-2024/01/15 10:30:00 [notice] 1#1: start worker processes
-172.17.0.1 - - [15/Jan/2024:10:30:15 +0000] "GET / HTTP/1.1" 200 615 "-" "Mozilla/5.0..."</div>
-                                <p style="margin-top: 12px; color: #94a3b8;">
-                                    ブラウザからのアクセス履歴も確認できます。
-                                </p>
-                            </div>
-
-                            <div class="hands-on-section">
-                                <h4><span class="step-number">2</span>リアルタイムでログを追跡</h4>
-                                <div class="command-box">
-                                    <div class="command">docker container logs -f my-nginx</div>
-                                </div>
-                                <p style="margin-top: 12px; color: #94a3b8;">
-                                    <code>-f</code>オプションでリアルタイム表示。ブラウザを更新すると新しいログが流れます。
-                                </p>
-                                <p style="margin-top: 8px; color: #fbbf24;">
-                                    終了するには <kbd>Ctrl</kbd> + <kbd>C</kbd> を押してください。
-                                </p>
-                            </div>
-
-                            <div class="success-box">
-                                <h4>🎯 学んだコマンド</h4>
-                                <ul>
-                                    <li><code>docker container logs コンテナ名</code> - ログを表示</li>
-                                    <li><code>docker container logs -f コンテナ名</code> - リアルタイムでログを追跡</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 5: コンテナ内でコマンドを実行 -->
-                    <div class="content-section">
-                        <h3>🔧 Step 5: コンテナ内でコマンドを実行</h3>
-                        <div class="collapsible-content">
-                            <div class="progress-indicator">
-                                <span class="step">Step 5/6</span>
-                                <span>docker container exec</span>
-                            </div>
-
-                            <p>
-                                実行中のコンテナの中に入って、コマンドを実行できます。
-                            </p>
-
-                            <div class="hands-on-section">
-                                <h4><span class="step-number">1</span>コンテナ内でコマンドを実行</h4>
-                                <div class="command-box">
-                                    <div class="command">docker container exec my-nginx cat /etc/nginx/nginx.conf</div>
-                                </div>
-                                <p style="margin-top: 12px; color: #94a3b8;">
-                                    nginxの設定ファイルの中身が表示されます。
-                                </p>
-                            </div>
-
-                            <div class="hands-on-section">
-                                <h4><span class="step-number">2</span>コンテナ内でシェルを起動</h4>
-                                <div class="command-box">
-                                    <div class="command">docker container exec -it my-nginx /bin/bash</div>
-                                </div>
-                                <div class="output">root@a1b2c3d4e5f6:/# </div>
-                                <p style="margin-top: 12px; color: #22c55e;">
-                                    ✅ コンテナの中に入りました！
-                                </p>
-                            </div>
-
-                            <div class="info-box">
-                                <h4>📋 オプションの意味</h4>
-                                <ul>
-                                    <li><strong>-i</strong>: 標準入力を開いたままにする（interactive）</li>
-                                    <li><strong>-t</strong>: 疑似ターミナルを割り当てる（tty）</li>
-                                </ul>
-                                <p style="margin-top: 12px; color: #94a3b8;">
-                                    シェルを起動するときは<code>-it</code>をセットで使います。
-                                </p>
-                            </div>
-
-                            <div class="hands-on-section">
-                                <h4><span class="step-number">3</span>コンテナ内で操作してみる</h4>
-                                <div class="command-box">
-                                    <div class="command"># コンテナ内で実行</div>
-                                    <div class="command">ls /usr/share/nginx/html</div>
-                                </div>
-                                <div class="output">50x.html  index.html</div>
-                                <p style="margin-top: 12px; color: #94a3b8;">
-                                    nginxのドキュメントルートが見えます。
-                                </p>
-                            </div>
-
-                            <div class="hands-on-section">
-                                <h4><span class="step-number">4</span>コンテナから出る</h4>
-                                <div class="command-box">
-                                    <div class="command">exit</div>
-                                </div>
-                                <p style="margin-top: 12px; color: #22c55e;">
-                                    ✅ コンテナから出ました。コンテナは引き続き実行中です。
-                                </p>
-                            </div>
-
-                            <div class="success-box">
-                                <h4>🎯 学んだコマンド</h4>
-                                <ul>
-                                    <li><code>docker container exec コンテナ名 コマンド</code> - コンテナ内でコマンド実行</li>
-                                    <li><code>docker container exec -it コンテナ名 /bin/bash</code> - コンテナ内でシェル起動</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 6: コンテナを削除 -->
-                    <div class="content-section">
-                        <h3>🗑️ Step 6: コンテナを削除</h3>
-                        <div class="collapsible-content">
-                            <div class="progress-indicator">
-                                <span class="step">Step 6/6</span>
-                                <span>docker container rm / prune</span>
+                                <span class="step">Step 4/5</span>
+                                <span>docker container rm</span>
                             </div>
 
                             <p>
@@ -611,14 +931,11 @@ a1b2c3d4e5f6   nginx   "/docker-entrypoint.…"   2 minutes ago   Exited (0) 10 
                             </p>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">1</span>コンテナを停止してから削除</h4>
+                                <h4><span class="step-number">1</span>コンテナを削除</h4>
                                 <div class="command-box">
-                                    <div class="command"># まず停止</div>
-                                    <div class="command">docker container stop my-nginx</div>
-                                    <div class="command" style="margin-top: 8px;"># 削除</div>
-                                    <div class="command">docker container rm my-nginx</div>
+                                    <div class="command">docker container rm my-alpine</div>
                                 </div>
-                                <div class="output">my-nginx</div>
+                                <div class="output">my-alpine</div>
                             </div>
 
                             <div class="hands-on-section">
@@ -626,8 +943,10 @@ a1b2c3d4e5f6   nginx   "/docker-entrypoint.…"   2 minutes ago   Exited (0) 10 
                                 <div class="command-box">
                                     <div class="command">docker container ls -a</div>
                                 </div>
+                                <div class="output">CONTAINER ID   IMAGE   COMMAND                  CREATED         STATUS                      PORTS   NAMES
+b2c3d4e5f678   nginx   "/docker-entrypoint.…"   3 minutes ago   Exited (0) 2 minutes ago            my-nginx</div>
                                 <p style="margin-top: 12px; color: #22c55e;">
-                                    ✅ my-nginxが削除されました！
+                                    ✅ my-alpineが削除されました！
                                 </p>
                             </div>
 
@@ -636,106 +955,405 @@ a1b2c3d4e5f6   nginx   "/docker-entrypoint.…"   2 minutes ago   Exited (0) 10 
                                 <p>
                                     実行中のコンテナを削除しようとするとエラーになります。
                                 </p>
+                                <p style="margin-top: 12px;">
+                                    先に <code>stop</code> するか、<code>-f</code> で強制削除します：
+                                </p>
                                 <div class="command-box" style="margin-top: 12px;">
-                                    <div class="command"># 強制削除する場合</div>
-                                    <div class="command">docker container rm -f コンテナ名</div>
+                                    <div class="command"># 方法1: 先に停止してから削除</div>
+                                    <div class="command">docker container stop my-nginx && docker container rm my-nginx</div>
+                                    <div class="command" style="margin-top: 8px;"># 方法2: 強制削除</div>
+                                    <div class="command">docker container rm -f my-nginx</div>
                                 </div>
                             </div>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">3</span>停止中のコンテナを一括削除</h4>
+                                <h4><span class="step-number">3</span>残りのコンテナも削除</h4>
                                 <div class="command-box">
+                                    <div class="command">docker container rm my-nginx</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 停止中のコンテナを一括削除</h4>
+                                <div class="command-box" style="margin-top: 12px;">
                                     <div class="command">docker container prune</div>
                                 </div>
                                 <div class="output">WARNING! This will remove all stopped containers.
 Are you sure you want to continue? [y/N] y
 Deleted Containers:
-be1937c0a0c8...
+...
 Total reclaimed space: 0B</div>
-                                <p style="margin-top: 12px; color: #fbbf24;">
-                                    ⚠️ hello-worldなど停止中のコンテナが全て削除されます
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    <code>y</code>を入力すると、停止中のコンテナが全て削除されます。
                                 </p>
                             </div>
 
                             <div class="success-box">
-                                <h4>🎯 学んだコマンド</h4>
+                                <h4>🎯 学んだこと</h4>
                                 <ul>
-                                    <li><code>docker container rm コンテナ名</code> - コンテナを削除</li>
-                                    <li><code>docker container rm -f コンテナ名</code> - 強制削除</li>
+                                    <li><code>docker container rm</code> - コンテナを削除</li>
+                                    <li><code>docker container rm -f</code> - 強制削除（実行中でも）</li>
                                     <li><code>docker container prune</code> - 停止中のコンテナを一括削除</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 便利なオプション -->
+                    <!-- Step 5: ライフサイクルまとめ -->
                     <div class="content-section">
-                        <h3>⚡ 便利なオプション</h3>
+                        <h3>🔄 Step 5: ライフサイクルまとめ</h3>
                         <div class="collapsible-content">
+                            <div class="progress-indicator">
+                                <span class="step">Step 5/5</span>
+                                <span>まとめ</span>
+                            </div>
+
                             <p>
-                                <code>docker container run</code>でよく使うオプションを紹介します。
+                                ここまでで、コンテナのライフサイクルを一通り体験しました。
                             </p>
 
-                            <div class="info-box">
-                                <h4>📋 よく使うオプション</h4>
+                            <div class="success-box">
+                                <h4>📋 ライフサイクルとコマンド</h4>
                                 <table class="command-table" style="width: 100%; margin-top: 12px;">
                                     <thead>
                                         <tr>
-                                            <th>オプション</th>
-                                            <th>説明</th>
-                                            <th>例</th>
+                                            <th>状態遷移</th>
+                                            <th>コマンド</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td><code>-d</code></td>
-                                            <td>バックグラウンドで実行</td>
-                                            <td><code>-d</code></td>
+                                            <td>（なし）→ Created</td>
+                                            <td><code>docker container create</code></td>
                                         </tr>
                                         <tr>
-                                            <td><code>-p</code></td>
-                                            <td>ポートマッピング</td>
-                                            <td><code>-p 8080:80</code></td>
+                                            <td>Created → Up</td>
+                                            <td><code>docker container start</code></td>
                                         </tr>
                                         <tr>
-                                            <td><code>--name</code></td>
-                                            <td>コンテナに名前を付ける</td>
-                                            <td><code>--name my-app</code></td>
+                                            <td>Up → Exited</td>
+                                            <td><code>docker container stop</code></td>
                                         </tr>
                                         <tr>
-                                            <td><code>-e</code></td>
-                                            <td>環境変数を設定</td>
-                                            <td><code>-e MYSQL_ROOT_PASSWORD=secret</code></td>
+                                            <td>Exited → Up</td>
+                                            <td><code>docker container start</code></td>
                                         </tr>
                                         <tr>
-                                            <td><code>-v</code></td>
-                                            <td>ボリュームをマウント</td>
-                                            <td><code>-v ./data:/var/lib/mysql</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>--rm</code></td>
-                                            <td>停止時に自動削除</td>
-                                            <td><code>--rm</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>-it</code></td>
-                                            <td>対話モードで起動</td>
-                                            <td><code>-it ubuntu /bin/bash</code></td>
+                                            <td>Exited → （削除）</td>
+                                            <td><code>docker container rm</code></td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
 
+                        </div>
+                    </div>
+
+                    <!-- コンテナを一発で起動する（run） -->
+                    <div class="content-section">
+                        <h3>🚀 コンテナを一発で起動する（run）</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                ライフサイクルでは <code>create</code> → <code>start</code> と順番に学びましたが、
+                                実際の作業では <code>run</code> を使うことがほとんどです。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>💡 run = 3つのコマンドを一度に</h4>
+                                <p>
+                                    <code>docker container run</code> は以下を自動で行います：
+                                </p>
+                                <ol style="margin-top: 12px; padding-left: 20px;">
+                                    <li><code>docker image pull</code> - イメージをダウンロード（なければ）</li>
+                                    <li><code>docker container create</code> - コンテナを作成</li>
+                                    <li><code>docker container start</code> - コンテナを起動</li>
+                                </ol>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">基本的な使い方</h4>
+
                             <div class="hands-on-section">
-                                <h4>🎯 オプションの組み合わせ例</h4>
+                                <h4><span class="step-number">1</span>シンプルな実行</h4>
                                 <div class="command-box">
-                                    <div class="command"># Webサーバーを起動</div>
-                                    <div class="command">docker container run -d -p 8080:80 --name web nginx</div>
-                                    <div class="command" style="margin-top: 12px;"># 対話モードでUbuntuを起動（終了時に自動削除）</div>
-                                    <div class="command">docker container run -it --rm ubuntu /bin/bash</div>
-                                    <div class="command" style="margin-top: 12px;"># MySQLを起動（パスワード設定）</div>
-                                    <div class="command">docker container run -d --name db -e MYSQL_ROOT_PASSWORD=secret mysql</div>
+                                    <div class="command">docker container run hello-world</div>
                                 </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    イメージがなければ自動でダウンロードし、コンテナを作成・起動します。
+                                </p>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">よく使うオプション</h4>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>バックグラウンドで実行（-d）</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -d --name my-nginx nginx</div>
+                                </div>
+                                <div class="output">b2c3d4e5f678...</div>
+                                <p style="margin-top: 12px;">
+                                    <code>-d</code>（detach）を付けると、バックグラウンドで実行されます。<br>
+                                    Webサーバーなど、<strong>ずっと動かし続けたいコンテナ</strong>に使います。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># 確認</div>
+                                    <div class="command">docker container ls</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE   COMMAND                  CREATED          STATUS         PORTS     NAMES
+b2c3d4e5f678   nginx   "/docker-entrypoint.…"   10 seconds ago   Up 9 seconds   80/tcp    my-nginx</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>対話モードで実行（-it）</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -it --name my-alpine2 alpine /bin/sh</div>
+                                </div>
+                                <div class="output">/ #</div>
+                                <p style="margin-top: 12px;">
+                                    <code>-it</code>を付けると、コンテナの中に入って操作できます。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># コンテナ内で実行</div>
+                                    <div class="command">echo "Hello from Alpine!"</div>
+                                    <div class="command">exit</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #f59e0b;">
+                                    ⚠️ <code>exit</code>するとコンテナも<strong>停止</strong>します
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command"># 作成したコンテナを削除</div>
+                                    <div class="command">docker container stop my-nginx && docker container rm my-nginx</div>
+                                    <div class="command">docker container rm my-alpine2</div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>📋 runのオプションまとめ</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>オプション</th>
+                                            <th>意味</th>
+                                            <th>用途</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>--name</code></td>
+                                            <td>コンテナに名前を付ける</td>
+                                            <td>管理しやすくする</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-d</code></td>
+                                            <td>バックグラウンド実行</td>
+                                            <td>Webサーバーなど</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-it</code></td>
+                                            <td>対話モード</td>
+                                            <td>コンテナ内で作業</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 実行中のコンテナに入る -->
+                    <div class="content-section">
+                        <h3>🔌 実行中のコンテナに入る（exec）</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <strong>Up（実行中）</strong>のコンテナに対して、中に入ってコマンドを実行できます。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>💡 execとは？</h4>
+                                <p>
+                                    <code>exec</code>は「すでに動いているコンテナに接続する」コマンドです。
+                                </p>
+                                <p style="margin-top: 8px;">
+                                    サーバーの設定確認やログ調査など、<strong>実務で頻繁に使います</strong>。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>nginxコンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -d --name my-nginx nginx</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    <code>-d</code>でバックグラウンド実行します。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>実行中のコンテナに入る</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container exec -it my-nginx /bin/bash</div>
+                                </div>
+                                <div class="output">root@b2c3d4e5f678:/#</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ コンテナの中に入りました！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>コンテナ内でコマンドを実行</h4>
+                                <div class="command-box">
+                                    <div class="command"># コンテナ内のファイルを確認</div>
+                                    <div class="command">ls</div>
+                                </div>
+                                <div class="output">bin  boot  dev  docker-entrypoint.d  docker-entrypoint.sh  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var</div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># nginxの設定ファイルを確認</div>
+                                    <div class="command">cat /etc/nginx/nginx.conf | head -5</div>
+                                </div>
+                                <div class="output">user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log notice;
+pid        /var/run/nginx.pid;</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>コンテナから出る</h4>
+                                <div class="command-box">
+                                    <div class="command">exit</div>
+                                </div>
+                                <p style="margin-top: 12px;">
+                                    ホストに戻りました。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">5</span>コンテナがまだ動いていることを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container ls</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE   COMMAND                  CREATED          STATUS         PORTS     NAMES
+b2c3d4e5f678   nginx   "/docker-entrypoint.…"   2 minutes ago    Up 2 minutes   80/tcp    my-nginx</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ <code>exec</code>で入って<code>exit</code>しても、コンテナは<strong>停止しません</strong>！
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ exec vs run の -it の違い</h4>
+                                <table style="width: 100%; margin-top: 12px; border-collapse: collapse;">
+                                    <tr style="background: rgba(255,255,255,0.1);">
+                                        <th style="padding: 8px; text-align: left; border: 1px solid #4a5568;">コマンド</th>
+                                        <th style="padding: 8px; text-align: left; border: 1px solid #4a5568;">exitした時</th>
+                                        <th style="padding: 8px; text-align: left; border: 1px solid #4a5568;">用途</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #4a5568;"><code>run -it</code></td>
+                                        <td style="padding: 8px; border: 1px solid #4a5568;">コンテナも<strong>停止</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #4a5568;">一時的な作業用コンテナ</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #4a5568;"><code>exec -it</code></td>
+                                        <td style="padding: 8px; border: 1px solid #4a5568;">コンテナは<strong>動き続ける</strong></td>
+                                        <td style="padding: 8px; border: 1px solid #4a5568;">実行中コンテナの調査・デバッグ</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">6</span>後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container stop my-nginx && docker container rm my-nginx</div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>docker container exec -it コンテナ名 /bin/bash</code> - 実行中のコンテナに入る</li>
+                                    <li><code>exec</code>で入って<code>exit</code>してもコンテナは停止しない</li>
+                                    <li><code>exec</code>は<strong>Up状態</strong>のコンテナに対してのみ使える</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- コンテナ一覧の見方 -->
+                    <div class="content-section">
+                        <h3>🖥️ コンテナ一覧の見方</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <code>docker container ls -a</code> の出力を詳しく見てみましょう。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4>出力例</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container ls -a</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE         COMMAND      CREATED          STATUS                      PORTS     NAMES
+be1937c0a0c8   hello-world   "/hello"     10 minutes ago   Exited (0) 10 minutes ago             eager_bell
+a1b2c3d4e5f6   nginx         "/docker…"   5 minutes ago    Up 5 minutes                80/tcp    my-nginx</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📋 各項目の意味</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>項目</th>
+                                            <th>説明</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>CONTAINER ID</strong></td>
+                                            <td>コンテナの一意のID（先頭12文字）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>IMAGE</strong></td>
+                                            <td>コンテナの元になったイメージ</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>COMMAND</strong></td>
+                                            <td>コンテナ起動時に実行されるコマンド</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>CREATED</strong></td>
+                                            <td>コンテナが作成された時間</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>STATUS</strong></td>
+                                            <td>現在の状態（Up, Exited, Created など）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>PORTS</strong></td>
+                                            <td>ポートマッピング（後で学びます）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>NAMES</strong></td>
+                                            <td>コンテナの名前（指定しないと自動生成）</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 CONTAINER IDでもコンテナを指定できる</h4>
+                                <p>
+                                    コンテナ名の代わりに、CONTAINER IDでも指定できます：
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># 名前で指定</div>
+                                    <div class="command">docker container stop my-nginx</div>
+                                    <div class="command" style="margin-top: 8px;"># IDで指定（先頭数文字でOK）</div>
+                                    <div class="command">docker container stop a1b2</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    IMAGE IDと同様に、一意に特定できれば先頭3〜4文字で指定できます。
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -755,36 +1373,36 @@ Total reclaimed space: 0B</div>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td><code>docker container ls</code></td>
-                                            <td>実行中のコンテナを表示</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>docker container ls -a</code></td>
-                                            <td>全てのコンテナを表示</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>docker container run</code></td>
-                                            <td>コンテナを作成・起動</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>docker container stop</code></td>
-                                            <td>コンテナを停止</td>
+                                            <td><code>docker container create</code></td>
+                                            <td>コンテナを作成（起動しない）</td>
                                         </tr>
                                         <tr>
                                             <td><code>docker container start</code></td>
                                             <td>コンテナを起動</td>
                                         </tr>
                                         <tr>
+                                            <td><code>docker container stop</code></td>
+                                            <td>コンテナを停止</td>
+                                        </tr>
+                                        <tr>
                                             <td><code>docker container rm</code></td>
                                             <td>コンテナを削除</td>
                                         </tr>
                                         <tr>
-                                            <td><code>docker container logs</code></td>
-                                            <td>ログを表示</td>
+                                            <td><code>docker container run</code></td>
+                                            <td>作成+起動を一度に</td>
                                         </tr>
                                         <tr>
-                                            <td><code>docker container exec</code></td>
-                                            <td>コンテナ内でコマンド実行</td>
+                                            <td><code>docker container restart</code></td>
+                                            <td>stop + start を一度に</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker container ls</code></td>
+                                            <td>実行中のコンテナを表示</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker container ls -a</code></td>
+                                            <td>全てのコンテナを表示</td>
                                         </tr>
                                         <tr>
                                             <td><code>docker container prune</code></td>
@@ -814,11 +1432,10 @@ Total reclaimed space: 0B</div>
                             <div class="success-box">
                                 <h4>✅ 学んだこと</h4>
                                 <ul>
-                                    <li>コンテナは<strong>「イメージを実行している状態」</strong></li>
-                                    <li><code>docker container run</code>でコンテナを作成・起動</li>
-                                    <li><code>docker container stop/start</code>で停止・再起動</li>
-                                    <li><code>docker container exec</code>でコンテナ内に入れる</li>
-                                    <li><code>docker container rm</code>で不要なコンテナを削除</li>
+                                    <li>ライフサイクル: <strong>Created → Up → Exited → 削除</strong></li>
+                                    <li><code>docker container run</code> = pull + create + start</li>
+                                    <li>コンテナは<strong>プログラムが終わると停止</strong>する</li>
+                                    <li>停止したコンテナは<code>start</code>で再起動できる</li>
                                 </ul>
                             </div>
 
@@ -828,17 +1445,17 @@ Total reclaimed space: 0B</div>
                                     <li>• <strong>イメージ</strong>は設計図、<strong>コンテナ</strong>は実体</li>
                                     <li>• 1つのイメージから複数のコンテナを作れる</li>
                                     <li>• コンテナを削除しても元のイメージは残る</li>
-                                    <li>• <code>-d</code>、<code>-p</code>、<code>--name</code>は頻出オプション</li>
+                                    <li>• CONTAINER IDも一意なので、先頭数文字で指定できる</li>
                                 </ul>
                             </div>
 
                             <div class="info-box">
                                 <h4>🎯 次のステップ</h4>
                                 <p>
-                                    次のセクションでは<strong>「イメージとコンテナの関係」</strong>をより深く学びます。
+                                    次のセクションでは<strong>「コンテナ操作」</strong>をより詳しく学びます。
                                 </p>
                                 <p style="margin-top: 12px;">
-                                    コンテナを作ると何が起きるのか、データはどこに保存されるのかを理解しましょう。
+                                    オプション（-d, -p, --name など）を習得しましょう。
                                 </p>
                             </div>
                         </div>

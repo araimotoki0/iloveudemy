@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>runオプション - Docker入門講座</title>
+    <meta name="description" content="docker container runのオプションをハンズオン形式で学習 - ポート公開、環境変数、ボリュームなど">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        .hands-on-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+        }
+
+        .hands-on-section h4 {
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #0f172a;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+
+        .wow-section {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(6, 182, 212, 0.1));
+            border: 3px solid #22d3ee;
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+            text-align: center;
+        }
+
+        .wow-section h4 {
+            font-size: 24px;
+            color: #22d3ee;
+            margin-bottom: 16px;
+        }
+
+        .question-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .question-box h4 {
+            color: #fbbf24;
+            margin-bottom: 12px;
+        }
+
+        .analogy-card {
+            background: rgba(34, 211, 238, 0.1);
+            border: 2px solid rgba(34, 211, 238, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .analogy-card h5 {
+            color: #22d3ee;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .progress-indicator .step {
+            background: rgba(34, 211, 238, 0.3);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .option-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #0f172a;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- runオプションとは -->
+                    <div class="content-section">
+                        <h3>🚀 runオプションとは</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                前のセクションで <code>docker container run</code> を学びました。
+                                このコマンドには<strong>多くのオプション</strong>があり、コンテナの動作を細かく制御できます。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>❓ なぜrunオプションを学ぶのか</h4>
+                                <p>
+                                    最終的には<strong>docker compose</strong>で自動化しますが、その前にrunオプションを理解しておくと：
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>• <strong>docker-compose.yml</strong> の設定が何をしているか分かる</li>
+                                    <li>• オプションが長くなる → <strong>Docker Composeで楽になる理由</strong>が分かる</li>
+                                    <li>• <strong>トラブル時</strong>に個別のコンテナを操作できる</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 基本構文</h4>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker container run [オプション] イメージ [コマンド]</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    オプションは <code>イメージ名の前</code> に書きます。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 このセクションで学ぶオプション</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>オプション</th>
+                                            <th>用途</th>
+                                            <th>重要度</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>--name</code></td>
+                                            <td>コンテナに名前を付ける</td>
+                                            <td>⭐⭐⭐</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-p</code></td>
+                                            <td>ポートを公開する</td>
+                                            <td>⭐⭐⭐</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-d</code></td>
+                                            <td>バックグラウンドで実行</td>
+                                            <td>⭐⭐⭐</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-it</code></td>
+                                            <td>対話モードで実行</td>
+                                            <td>⭐⭐⭐</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-e</code></td>
+                                            <td>環境変数を設定</td>
+                                            <td>⭐⭐⭐</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-v</code></td>
+                                            <td>ボリュームをマウント</td>
+                                            <td>⭐⭐⭐</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>--rm</code></td>
+                                            <td>終了時に自動削除</td>
+                                            <td>⭐⭐</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <p style="margin-top: 16px;">
+                                では、一つずつハンズオンで学んでいきましょう！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- --name オプション -->
+                    <div class="content-section">
+                        <h3>🏷️ コンテナに名前を付ける（--name）</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="option-badge">--name</span> を使うと、コンテナに分かりやすい名前を付けられます。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>名前を付けて起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -d --name my-nginx nginx</div>
+                                </div>
+                                <div class="output">a1b2c3d4e5f6...</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container ls</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE   COMMAND                  CREATED          STATUS         PORTS     NAMES
+a1b2c3d4e5f6   nginx   "/docker-entrypoint.…"   10 seconds ago   Up 9 seconds   80/tcp    my-nginx</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ NAMES が「my-nginx」になっています！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>名前でコンテナを操作</h4>
+                                <div class="command-box">
+                                    <div class="command"># 名前で停止</div>
+                                    <div class="command">docker container stop my-nginx</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    CONTAINER ID を覚えなくても操作できます。
+                                </p>
+                            </div>
+
+                            <div class="question-box">
+                                <h4>❓ 同じ名前で作ろうとすると？</h4>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker container run -d --name my-nginx nginx</div>
+                                </div>
+                                <div class="output" style="color: #ef4444;">docker: Error response from daemon: Conflict. The container name "/my-nginx" is already in use...</div>
+                                <p style="margin-top: 12px;">
+                                    <strong>同じ名前のコンテナは作れません！</strong><br>
+                                    先に削除するか、別の名前を使います。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>削除して再作成</h4>
+                                <div class="command-box">
+                                    <div class="command"># 停止中のコンテナを削除</div>
+                                    <div class="command">docker container rm my-nginx</div>
+                                    <div class="command" style="margin-top: 8px;"># 同じ名前で再作成できる</div>
+                                    <div class="command">docker container run -d --name my-nginx nginx</div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>--name 名前</code> でコンテナに名前を付ける</li>
+                                    <li>名前を付けると操作が分かりやすい</li>
+                                    <li>同じ名前のコンテナは作れない（先に削除が必要）</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4>🧹 後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container stop my-nginx && docker container rm my-nginx</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- -p オプション -->
+                    <div class="content-section">
+                        <h3>🔌 ポートを公開する（-p）</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="option-badge">-p</span> は最も重要なオプションの一つです。
+                                <strong>コンテナ内のサービスに外部からアクセスできるようにします。</strong>
+                            </p>
+
+                            <div class="question-box">
+                                <h4>❓ なぜポート公開が必要？</h4>
+                                <p>
+                                    コンテナは<strong>隔離された環境</strong>で動いています。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    nginxをコンテナで起動しても、そのままでは<strong>ホスト（あなたのPC）からアクセスできません</strong>。
+                                </p>
+                            </div>
+
+                            <!-- ポートマッピング図解 -->
+                            <div style="padding: 24px; margin: 24px 0; background: rgba(15, 23, 42, 0.6); border-radius: 12px;">
+                                <p style="text-align: center; color: #94a3b8; margin-bottom: 16px;">ポートマッピングの仕組み</p>
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                                    <!-- ブラウザ -->
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 48px;">🌐</div>
+                                        <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">ブラウザ</p>
+                                        <p style="font-size: 11px; color: #22d3ee;">localhost:8080</p>
+                                    </div>
+
+                                    <!-- 矢印 -->
+                                    <div style="color: #22d3ee; font-size: 24px;">→</div>
+
+                                    <!-- ホスト -->
+                                    <div style="text-align: center; padding: 16px; border: 2px solid #3b82f6; border-radius: 12px; background: rgba(59, 130, 246, 0.1);">
+                                        <p style="font-size: 12px; color: #60a5fa; margin-bottom: 8px;">ホスト（あなたのPC）</p>
+                                        <div style="background: #1e40af; padding: 8px 16px; border-radius: 6px;">
+                                            <span style="color: #93c5fd; font-family: monospace;">:8080</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 矢印 -->
+                                    <div style="display: flex; flex-direction: column; align-items: center;">
+                                        <span style="color: #22c55e; font-size: 24px;">→</span>
+                                        <span style="font-size: 10px; color: #22c55e;">-p 8080:80</span>
+                                    </div>
+
+                                    <!-- コンテナ -->
+                                    <div style="text-align: center; padding: 16px; border: 2px solid #22c55e; border-radius: 12px; background: rgba(34, 197, 94, 0.1);">
+                                        <p style="font-size: 12px; color: #4ade80; margin-bottom: 8px;">コンテナ（nginx）</p>
+                                        <div style="background: #166534; padding: 8px 16px; border-radius: 6px;">
+                                            <span style="color: #86efac; font-family: monospace;">:80</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p style="text-align: center; color: #94a3b8; margin-top: 16px; font-size: 13px;">
+                                    <code>-p 8080:80</code> = ホストの8080番 → コンテナの80番 に転送
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>ポートなしで起動（アクセスできない）</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -d --name nginx-no-port nginx</div>
+                                </div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker container ls</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE   COMMAND                  CREATED          STATUS         PORTS     NAMES
+a1b2c3d4e5f6   nginx   "/docker-entrypoint.…"   5 seconds ago    Up 4 seconds   80/tcp    nginx-no-port</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    PORTS が「80/tcp」= コンテナ内で80番を使っているが、<strong>公開されていない</strong>
+                                </p>
+                                <p style="margin-top: 8px; color: #f59e0b;">
+                                    ⚠️ ブラウザで <code>http://localhost</code> にアクセスしても<strong>接続できません</strong>
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>ポート公開して起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -d --name nginx-with-port -p 8080:80 nginx</div>
+                                </div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker container ls</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE   COMMAND                  CREATED          STATUS         PORTS                  NAMES
+b2c3d4e5f678   nginx   "/docker-entrypoint.…"   5 seconds ago    Up 4 seconds   0.0.0.0:8080->80/tcp   nginx-with-port
+a1b2c3d4e5f6   nginx   "/docker-entrypoint.…"   1 minute ago     Up 1 minute    80/tcp                 nginx-no-port</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ PORTS が「0.0.0.0:8080->80/tcp」= ホストの8080番からアクセス可能！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>ブラウザでアクセス</h4>
+                                <p style="margin-bottom: 12px;">
+                                    ブラウザで以下にアクセスしてください：
+                                </p>
+                                <div class="wow-section" style="padding: 20px;">
+                                    <a href="http://localhost:8080" target="_blank" style="font-size: 20px; color: #22d3ee; text-decoration: underline;">
+                                        http://localhost:8080
+                                    </a>
+                                </div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ 「Welcome to nginx!」が表示されれば成功！
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 ポート番号の書き方</h4>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">-p ホスト側:コンテナ側</div>
+                                </div>
+                                <table class="command-table" style="width: 100%; margin-top: 16px;">
+                                    <thead>
+                                        <tr>
+                                            <th>例</th>
+                                            <th>意味</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>-p 8080:80</code></td>
+                                            <td>ホスト8080 → コンテナ80</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-p 80:80</code></td>
+                                            <td>ホスト80 → コンテナ80（同じ番号）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-p 3000:3000</code></td>
+                                            <td>Node.js アプリでよく使う</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-p 3306:3306</code></td>
+                                            <td>MySQL のデフォルトポート</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 複数ポートを公開する</h4>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker container run -d -p 8080:80 -p 8443:443 nginx</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    <code>-p</code> を複数回指定できます。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>-p ホスト:コンテナ</code> でポートを公開</li>
+                                    <li>ポートを公開しないとブラウザからアクセスできない</li>
+                                    <li>ホスト側とコンテナ側のポート番号は違っていてもOK</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4>🧹 後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container stop nginx-no-port nginx-with-port</div>
+                                    <div class="command">docker container rm nginx-no-port nginx-with-port</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- -d オプション -->
+                    <div class="content-section">
+                        <h3>🔇 バックグラウンドで実行（-d）</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="option-badge">-d</span>（detach）を付けると、コンテナがバックグラウンドで動作します。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>-d なしで起動（フォアグラウンド）</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run --name nginx-fg nginx</div>
+                                </div>
+                                <div class="output">/docker-entrypoint.sh: Configuration complete; ready for start up
+2024/01/15 10:30:00 [notice] 1#1: start worker processes
+...</div>
+                                <p style="margin-top: 12px; color: #f59e0b;">
+                                    ⚠️ ログが流れ続けて、ターミナルが占有されます
+                                </p>
+                                <p style="margin-top: 8px; color: #94a3b8;">
+                                    <code>Ctrl + C</code> で停止してください。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>-d ありで起動（バックグラウンド）</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -d --name nginx-bg nginx</div>
+                                </div>
+                                <div class="output">a1b2c3d4e5f6789...</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ CONTAINER ID だけ表示されて、すぐにプロンプトが戻ります！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>ログを確認する</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    バックグラウンドで動いているコンテナのログを見るには：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker container logs nginx-bg</div>
+                                </div>
+                                <div class="output">/docker-entrypoint.sh: Configuration complete; ready for start up
+2024/01/15 10:30:00 [notice] 1#1: start worker processes
+...</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>リアルタイムでログを監視</h4>
+                                <div class="command-box">
+                                    <div class="command"># -f でリアルタイム監視（Ctrl+C で終了）</div>
+                                    <div class="command">docker container logs -f nginx-bg</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    <code>-f</code>（follow）を付けると、新しいログが出るたびに表示されます。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 いつ -d を使う？</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>ケース</th>
+                                            <th>-d</th>
+                                            <th>理由</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Webサーバー（nginx, Apache）</td>
+                                            <td>✅ あり</td>
+                                            <td>ずっと動かしたい</td>
+                                        </tr>
+                                        <tr>
+                                            <td>データベース（MySQL, PostgreSQL）</td>
+                                            <td>✅ あり</td>
+                                            <td>ずっと動かしたい</td>
+                                        </tr>
+                                        <tr>
+                                            <td>コンテナ内で作業（-it）</td>
+                                            <td>❌ なし</td>
+                                            <td>対話したい</td>
+                                        </tr>
+                                        <tr>
+                                            <td>一時的なコマンド実行</td>
+                                            <td>❌ なし</td>
+                                            <td>結果を見たい</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>-d</code> でバックグラウンド実行</li>
+                                    <li><code>docker container logs コンテナ名</code> でログ確認</li>
+                                    <li><code>docker container logs -f コンテナ名</code> でリアルタイム監視</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4>🧹 後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container rm nginx-fg</div>
+                                    <div class="command">docker container stop nginx-bg && docker container rm nginx-bg</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- -it オプション -->
+                    <div class="content-section">
+                        <h3>🖥️ 対話モードで実行（-it）</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="option-badge">-it</span> を使うと、コンテナの中に入って操作できます。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>📝 -it の意味</h4>
+                                <ul>
+                                    <li><strong>-i</strong>（interactive）: 標準入力を開いたままにする</li>
+                                    <li><strong>-t</strong>（tty）: 疑似ターミナルを割り当てる</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    この2つを組み合わせて <code>-it</code> と書くのが一般的です。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>Ubuntuコンテナに入る</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -it --name my-ubuntu ubuntu</div>
+                                </div>
+                                <div class="output">root@a1b2c3d4e5f6:/#</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ Ubuntuコンテナの中に入りました！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>コンテナ内でコマンドを実行</h4>
+                                <div class="command-box">
+                                    <div class="command"># OSを確認</div>
+                                    <div class="command">cat /etc/os-release</div>
+                                </div>
+                                <div class="output">PRETTY_NAME="Ubuntu 22.04.3 LTS"
+NAME="Ubuntu"
+VERSION_ID="22.04"
+...</div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># パッケージをインストールしてみる</div>
+                                    <div class="command">apt update && apt install -y curl</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    普通の Ubuntu と同じようにコマンドが使えます！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>コンテナから出る</h4>
+                                <div class="command-box">
+                                    <div class="command">exit</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #f59e0b;">
+                                    ⚠️ <code>exit</code> するとコンテナも<strong>停止</strong>します
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 -it と exec の違い（復習）</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>コマンド</th>
+                                            <th>用途</th>
+                                            <th>exit時</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>run -it</code></td>
+                                            <td>新しいコンテナを作って入る</td>
+                                            <td>コンテナ停止</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>exec -it</code></td>
+                                            <td>動いているコンテナに入る</td>
+                                            <td>コンテナ継続</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>-it</code> でコンテナ内に入って操作できる</li>
+                                    <li><code>exit</code> でコンテナから出る（コンテナも停止）</li>
+                                    <li>動いているコンテナに入るには <code>exec -it</code> を使う</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4>🧹 後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container rm my-ubuntu</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- -e オプション -->
+                    <div class="content-section">
+                        <h3>🌍 環境変数を設定（-e）</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="option-badge">-e</span> を使うと、コンテナに環境変数を渡せます。
+                                <strong>データベースの設定などで必須</strong>です。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>環境変数を渡して確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -it -e MY_NAME="Docker User" ubuntu</div>
+                                </div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># コンテナ内で確認</div>
+                                    <div class="command">echo $MY_NAME</div>
+                                </div>
+                                <div class="output">Docker User</div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">exit</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>MySQLを環境変数で設定</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    MySQL は環境変数でパスワードを設定する必要があります：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker container run -d --name my-mysql \
+  -e MYSQL_ROOT_PASSWORD=secret123 \
+  mysql</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ MySQL が起動しました！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>MySQLに接続してみる</h4>
+                                <div class="command-box">
+                                    <div class="command"># MySQLコンテナに入る</div>
+                                    <div class="command">docker container exec -it my-mysql mysql -u root -p</div>
+                                </div>
+                                <div class="output">Enter password:</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    <code>secret123</code> と入力してください。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># MySQL内で確認</div>
+                                    <div class="command">SHOW DATABASES;</div>
+                                    <div class="command">exit</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 複数の環境変数を設定</h4>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker container run -d --name my-mysql \
+  -e MYSQL_ROOT_PASSWORD=secret123 \
+  -e MYSQL_DATABASE=myapp \
+  -e MYSQL_USER=appuser \
+  -e MYSQL_PASSWORD=apppass \
+  mysql</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    <code>-e</code> を複数回指定できます。
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ セキュリティ注意</h4>
+                                <p>
+                                    本番環境では、パスワードをコマンドに直接書くのは危険です。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    <code>docker compose</code> と <code>.env</code> ファイルを使うのが一般的です（後で学びます）。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>-e 変数名=値</code> で環境変数を設定</li>
+                                    <li>データベースの設定に環境変数が使われる</li>
+                                    <li><code>-e</code> は複数回指定できる</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4>🧹 後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container stop my-mysql && docker container rm my-mysql</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- -v オプション -->
+                    <div class="content-section">
+                        <h3>📁 ファイルを共有する（-v）</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="option-badge">-v</span> を使うと、ホスト（あなたのPC）とコンテナでファイルを共有できます。
+                            </p>
+
+                            <div class="question-box">
+                                <h4>❓ なぜファイル共有が必要？</h4>
+                                <ul>
+                                    <li>• 開発中のコードをコンテナに渡したい</li>
+                                    <li>• コンテナが生成したデータを保存したい</li>
+                                    <li>• 設定ファイルを外から変更したい</li>
+                                </ul>
+                            </div>
+
+                            <!-- ボリューム図解 -->
+                            <div style="padding: 24px; margin: 24px 0; background: rgba(15, 23, 42, 0.6); border-radius: 12px;">
+                                <p style="text-align: center; color: #94a3b8; margin-bottom: 16px;">ファイル共有の仕組み</p>
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                                    <!-- ホスト -->
+                                    <div style="text-align: center; padding: 16px; border: 2px solid #3b82f6; border-radius: 12px; background: rgba(59, 130, 246, 0.1);">
+                                        <p style="font-size: 12px; color: #60a5fa; margin-bottom: 8px;">ホスト（あなたのPC）</p>
+                                        <div style="background: #1e40af; padding: 12px; border-radius: 6px;">
+                                            <span style="font-size: 24px;">📄</span>
+                                            <p style="color: #93c5fd; font-family: monospace; font-size: 11px; margin-top: 4px;">./my-html/</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- 矢印 -->
+                                    <div style="display: flex; flex-direction: column; align-items: center;">
+                                        <span style="color: #a78bfa; font-size: 24px;">⟷</span>
+                                        <span style="font-size: 10px; color: #a78bfa;">-v 同期</span>
+                                    </div>
+
+                                    <!-- コンテナ -->
+                                    <div style="text-align: center; padding: 16px; border: 2px solid #22c55e; border-radius: 12px; background: rgba(34, 197, 94, 0.1);">
+                                        <p style="font-size: 12px; color: #4ade80; margin-bottom: 8px;">コンテナ（nginx）</p>
+                                        <div style="background: #166534; padding: 12px; border-radius: 6px;">
+                                            <span style="font-size: 24px;">📄</span>
+                                            <p style="color: #86efac; font-family: monospace; font-size: 11px; margin-top: 4px;">/usr/share/nginx/html/</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>HTMLファイルを作成</h4>
+                                <div class="command-box">
+                                    <div class="command"># ディレクトリを作成</div>
+                                    <div class="command">mkdir -p ~/docker-test/my-html</div>
+                                    <div class="command" style="margin-top: 8px;"># HTMLファイルを作成</div>
+                                    <div class="command">echo '&lt;h1&gt;Hello from Docker!&lt;/h1&gt;' > ~/docker-test/my-html/index.html</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>ファイルを共有してnginxを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -d --name my-nginx \
+  -p 8080:80 \
+  -v ~/docker-test/my-html:/usr/share/nginx/html \
+  nginx</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>ブラウザで確認</h4>
+                                <p style="margin-bottom: 12px;">
+                                    ブラウザで以下にアクセス：
+                                </p>
+                                <div class="wow-section" style="padding: 20px;">
+                                    <a href="http://localhost:8080" target="_blank" style="font-size: 20px; color: #22d3ee; text-decoration: underline;">
+                                        http://localhost:8080
+                                    </a>
+                                </div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ 「Hello from Docker!」が表示されれば成功！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>ファイルを編集して確認</h4>
+                                <div class="command-box">
+                                    <div class="command"># ホスト側でファイルを編集</div>
+                                    <div class="command">echo '&lt;h1&gt;Updated! 🎉&lt;/h1&gt;' > ~/docker-test/my-html/index.html</div>
+                                </div>
+                                <p style="margin-top: 12px;">
+                                    ブラウザをリロードしてください。
+                                </p>
+                                <p style="margin-top: 8px; color: #22c55e;">
+                                    ✅ 「Updated! 🎉」に変わりました！<strong>リアルタイムで反映</strong>されます。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 -v の書き方</h4>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">-v ホスト側パス:コンテナ側パス</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    ホスト側は<strong>絶対パス</strong>で指定します（<code>~/</code> や <code>$(pwd)</code> が使えます）。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 バインドマウントとボリュームの違い</h4>
+                                <p>
+                                    実は <code>-v</code> には<strong>2つの使い方</strong>があります：
+                                </p>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>種類</th>
+                                            <th>書き方</th>
+                                            <th>用途</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>バインドマウント</strong></td>
+                                            <td><code>-v ./src:/app</code></td>
+                                            <td>開発時（コード編集がすぐ反映）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>ボリューム</strong></td>
+                                            <td><code>-v db-data:/var/lib/mysql</code></td>
+                                            <td>データ永続化（DB等）</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    <strong>見分け方：</strong> パスが <code>/</code> や <code>./</code> で始まる → バインドマウント、それ以外 → ボリューム
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    今回学んだのは<strong>バインドマウント</strong>です。<br>
+                                    ボリュームはDocker Composeで定義するのが一般的なので、詳しくは<strong>ボリューム専用のセクション</strong>で学びます。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>-v ホスト:コンテナ</code> でファイルを共有</li>
+                                    <li>ホスト側の変更がリアルタイムで反映される</li>
+                                    <li>開発中のコードをコンテナに渡すのに便利</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4>🧹 後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container stop my-nginx && docker container rm my-nginx</div>
+                                    <div class="command">rm -rf ~/docker-test</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- --rm オプション -->
+                    <div class="content-section">
+                        <h3>🗑️ 終了時に自動削除（--rm）</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="option-badge">--rm</span> を付けると、コンテナ終了時に<strong>自動で削除</strong>されます。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>--rm なしの場合（残る）</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run --name test-normal ubuntu echo "Hello"</div>
+                                </div>
+                                <div class="output">Hello</div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker container ls -a</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE    COMMAND        CREATED         STATUS                     PORTS   NAMES
+a1b2c3d4e5f6   ubuntu   "echo Hello"   5 seconds ago   Exited (0) 4 seconds ago           test-normal</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    コンテナが <strong>Exited 状態で残っています</strong>。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>--rm ありの場合（消える）</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run --rm --name test-rm ubuntu echo "Hello"</div>
+                                </div>
+                                <div class="output">Hello</div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker container ls -a</div>
+                                </div>
+                                <div class="output">CONTAINER ID   IMAGE    COMMAND        CREATED         STATUS                     PORTS   NAMES
+a1b2c3d4e5f6   ubuntu   "echo Hello"   1 minute ago    Exited (0) 1 minute ago            test-normal</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ test-rm は<strong>自動で削除されました</strong>！
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 --rm が便利なケース</h4>
+                                <ul>
+                                    <li>• 一時的なコマンド実行</li>
+                                    <li>• テストやデバッグ</li>
+                                    <li>• スクリプトの実行</li>
+                                </ul>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># 例: Node.js のバージョン確認</div>
+                                    <div class="command">docker container run --rm node node --version</div>
+                                </div>
+                                <div class="output">v21.5.0</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    コンテナが残らないので、後片付け不要！
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>--rm</code> でコンテナ終了時に自動削除</li>
+                                    <li>一時的な作業に便利</li>
+                                    <li>後片付けが不要になる</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4>🧹 後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container rm test-normal</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📝 オプションまとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>🎯 学んだオプション一覧</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 16px;">
+                                    <thead>
+                                        <tr>
+                                            <th>オプション</th>
+                                            <th>説明</th>
+                                            <th>例</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>--name</code></td>
+                                            <td>コンテナに名前を付ける</td>
+                                            <td><code>--name my-app</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-p</code></td>
+                                            <td>ポートを公開</td>
+                                            <td><code>-p 8080:80</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-d</code></td>
+                                            <td>バックグラウンド実行</td>
+                                            <td><code>-d</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-it</code></td>
+                                            <td>対話モード</td>
+                                            <td><code>-it</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-e</code></td>
+                                            <td>環境変数を設定</td>
+                                            <td><code>-e KEY=value</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-v</code></td>
+                                            <td>ファイルを共有</td>
+                                            <td><code>-v ~/data:/app</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>--rm</code></td>
+                                            <td>終了時に自動削除</td>
+                                            <td><code>--rm</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 よく使う組み合わせ</h4>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># Webサーバーを起動</div>
+                                    <div class="command">docker container run -d --name my-web -p 8080:80 nginx</div>
+                                </div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># 開発環境（ファイル共有 + ポート公開）</div>
+                                    <div class="command">docker container run -d --name my-app -p 3000:3000 -v $(pwd):/app node</div>
+                                </div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># データベース（環境変数 + ポート公開）</div>
+                                    <div class="command">docker container run -d --name my-db -p 3306:3306 -e MYSQL_ROOT_PASSWORD=secret mysql</div>
+                                </div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># 一時的なコマンド実行</div>
+                                    <div class="command">docker container run --rm -it ubuntu bash</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🔑 覚えておくポイント</h4>
+                                <ul>
+                                    <li>• オプションは<strong>イメージ名の前</strong>に書く</li>
+                                    <li>• <code>-d</code> と <code>-it</code> は一緒に使わない（目的が違う）</li>
+                                    <li>• <code>-p</code> と <code>-v</code> は<strong>ホスト:コンテナ</strong>の順番</li>
+                                    <li>• 本番では <code>docker compose</code> で管理するのが一般的</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のステップ</h4>
+                                <p>
+                                    次のセクションでは<strong>ボリューム</strong>について詳しく学びます。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    データの永続化や、コンテナ間でのデータ共有などを習得しましょう。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+
+</body>
+
+</html>

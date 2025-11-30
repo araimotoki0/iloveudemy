@@ -682,6 +682,347 @@
                         </div>
                     </div>
 
+                    <!-- IMAGE IDを活用する -->
+                    <div class="content-section">
+                        <h3>🔑 IMAGE IDを活用する</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                イメージ名だけでなく、<strong>IMAGE ID</strong>でもイメージを指定できます。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>📝 IDは2種類ある</h4>
+                                <p>
+                                    Dockerには<strong>2種類のID</strong>があります。混同しないようにしましょう：
+                                </p>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>種類</th>
+                                            <th>何を識別？</th>
+                                            <th>確認コマンド</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>IMAGE ID</strong></td>
+                                            <td>イメージ（設計図）</td>
+                                            <td><code>docker image ls</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>CONTAINER ID</strong></td>
+                                            <td>コンテナ（実行中のインスタンス）</td>
+                                            <td><code>docker container ls</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    イメージとコンテナの違いは次のセクションで詳しく学びます。<br>
+                                    今は「<strong>それぞれに固有のIDがある</strong>」ことだけ覚えておきましょう。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 IMAGE IDの便利な使い方</h4>
+                                <p>
+                                    IMAGE IDは<strong>一意</strong>なので、先頭の数文字だけでも指定できます：
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># フルIDで指定</div>
+                                    <div class="command">docker image rm d2c94e258dcb</div>
+                                    <div class="command" style="margin-top: 8px;"># 先頭の数文字でもOK（一意に特定できれば）</div>
+                                    <div class="command">docker image rm d2c</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    3〜4文字あれば大抵は一意に特定できます。<br>
+                                    複数のイメージに該当する場合はエラーになるので、もう少し長く指定しましょう。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>📋 IMAGE IDが使えるコマンド</h4>
+                                <p style="margin-bottom: 12px;">
+                                    以下のコマンドは、イメージ名の代わりにIMAGE IDでも指定できます：
+                                </p>
+                                <table class="command-table" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th>コマンド</th>
+                                            <th>例</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>docker image rm</code></td>
+                                            <td><code>docker image rm d2c</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image history</code></td>
+                                            <td><code>docker image history 054</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker image inspect</code></td>
+                                            <td><code>docker image inspect 054</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker container run</code></td>
+                                            <td><code>docker container run 054</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="analogy-card">
+                                <h5>🎯 いつIMAGE IDを使う？</h5>
+                                <ul>
+                                    <li>• <strong>同じイメージ名で複数タグ</strong>があるとき → IDなら確実に1つを指定できる</li>
+                                    <li>• <strong>タグがない（&lt;none&gt;）イメージ</strong>を削除したいとき</li>
+                                    <li>• <strong>長いイメージ名</strong>を打つのが面倒なとき → IDの先頭3文字で楽々</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- コマンドを調べる方法 -->
+                    <div class="content-section">
+                        <h3>❓ コマンドを忘れたら</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                「あのコマンド何だっけ？」と思ったら、<strong>--help</strong>オプションで確認できます。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4>docker imageで使えるコマンド一覧</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image --help</div>
+                                </div>
+                                <div class="output">Usage:  docker image COMMAND
+
+Manage images
+
+Commands:
+  build       Build an image from a Dockerfile
+  history     Show the history of an image
+  import      Import the contents from a tarball to create a filesystem image
+  inspect     Display detailed information on one or more images
+  load        Load an image from a tar archive or STDIN
+  ls          List images
+  prune       Remove unused images
+  pull        Download an image from a registry
+  push        Upload an image to a registry
+  rm          Remove one or more images
+  save        Save one or more images to a tar archive
+  tag         Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE
+
+Run 'docker image COMMAND --help' for more information on a command.</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 さらに詳しく知りたいとき</h4>
+                                <p>
+                                    各コマンドの詳細も <code>--help</code> で確認できます：
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># pullコマンドの詳細オプションを確認</div>
+                                    <div class="command">docker image pull --help</div>
+                                    <div class="command" style="margin-top: 8px;"># rmコマンドの詳細オプションを確認</div>
+                                    <div class="command">docker image rm --help</div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 覚えておくと便利</h4>
+                                <p>
+                                    Dockerのコマンドは <strong>「docker [対象] [操作]」</strong> の形式になっています：
+                                </p>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>対象</th>
+                                            <th>意味</th>
+                                            <th>例</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>docker image</code></td>
+                                            <td>イメージを操作</td>
+                                            <td><code>docker image ls</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker container</code></td>
+                                            <td>コンテナを操作</td>
+                                            <td><code>docker container run</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker volume</code></td>
+                                            <td>ボリュームを操作</td>
+                                            <td><code>docker volume ls</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker network</code></td>
+                                            <td>ネットワークを操作</td>
+                                            <td><code>docker network ls</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    この規則を覚えておけば、「<code>docker [対象] --help</code>」で<br>
+                                    いつでも使えるコマンドを調べられます！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 旧コマンドについて -->
+                    <div class="content-section">
+                        <h3>📜 旧コマンドについて</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                ネットで検索すると <code>docker images</code> や <code>docker ps</code> といった<strong>短いコマンド</strong>を見かけることがあります。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>🤔 なぜ2種類のコマンドがあるの？</h4>
+                                <p>
+                                    <strong>Docker 1.13（2017年1月リリース）</strong>でコマンド体系が整理されました。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    <strong>整理前の問題点：</strong>
+                                </p>
+                                <ul style="margin-top: 8px;">
+                                    <li>• コマンドが<strong>40個以上</strong>あり、覚えにくかった</li>
+                                    <li>• 命名に<strong>一貫性がなかった</strong>（例：<code>docker images</code>は複数形、<code>docker ps</code>は単数形）</li>
+                                    <li>• <code>--help</code> の表示がごちゃごちゃしていた</li>
+                                </ul>
+                                <p style="margin-top: 12px;">
+                                    <strong>整理後：</strong>「<code>docker [対象] [操作]</code>」の形式に統一され、直感的になりました。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>📋 新旧コマンド対応表</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">イメージ関連</p>
+                                <table class="command-table" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th>旧コマンド</th>
+                                            <th>新コマンド</th>
+                                            <th>説明</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>docker images</code></td>
+                                            <td><code>docker image ls</code></td>
+                                            <td>イメージ一覧</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker rmi</code></td>
+                                            <td><code>docker image rm</code></td>
+                                            <td>イメージ削除</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker build</code></td>
+                                            <td><code>docker image build</code></td>
+                                            <td>イメージをビルド</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker pull</code></td>
+                                            <td><code>docker image pull</code></td>
+                                            <td>イメージをダウンロード</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker push</code></td>
+                                            <td><code>docker image push</code></td>
+                                            <td>イメージをアップロード</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker history</code></td>
+                                            <td><code>docker image history</code></td>
+                                            <td>イメージの履歴</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <p style="margin-top: 20px; margin-bottom: 12px; color: #94a3b8;">コンテナ関連</p>
+                                <table class="command-table" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th>旧コマンド</th>
+                                            <th>新コマンド</th>
+                                            <th>説明</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>docker ps</code></td>
+                                            <td><code>docker container ls</code></td>
+                                            <td>コンテナ一覧</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker rm</code></td>
+                                            <td><code>docker container rm</code></td>
+                                            <td>コンテナ削除</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker run</code></td>
+                                            <td><code>docker container run</code></td>
+                                            <td>コンテナ実行</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker start</code></td>
+                                            <td><code>docker container start</code></td>
+                                            <td>コンテナ開始</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker stop</code></td>
+                                            <td><code>docker container stop</code></td>
+                                            <td>コンテナ停止</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker exec</code></td>
+                                            <td><code>docker container exec</code></td>
+                                            <td>コンテナ内でコマンド実行</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker logs</code></td>
+                                            <td><code>docker container logs</code></td>
+                                            <td>コンテナのログ表示</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker inspect</code></td>
+                                            <td><code>docker container inspect</code></td>
+                                            <td>コンテナの詳細情報</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 旧コマンドは使える？</h4>
+                                <p>
+                                    <strong>はい、今でも使えます。</strong>後方互換性のために残されています。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    ただし、この講座では<strong>新コマンドを使用</strong>します：
+                                </p>
+                                <ul style="margin-top: 8px;">
+                                    <li>✅ 一貫性があり覚えやすい</li>
+                                    <li>✅ <code>--help</code> で関連コマンドがまとまって表示される</li>
+                                    <li>✅ 新しいドキュメントは新コマンドで書かれている</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🔗 参考リンク</h4>
+                                <ul>
+                                    <li><a href="https://www.docker.com/blog/whats-new-in-docker-1-13/" target="_blank" style="color: #22d3ee; text-decoration: underline;">Docker公式ブログ: What's New in Docker 1.13</a></li>
+                                    <li><a href="https://docs.docker.com/reference/cli/docker/image/ls/" target="_blank" style="color: #22d3ee; text-decoration: underline;">Docker公式ドキュメント: docker image ls</a>（Aliasesに旧コマンドの記載あり）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- コマンドまとめ -->
                     <div class="content-section">
