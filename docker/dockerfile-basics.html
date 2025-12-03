@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dockerfile - Docker入門講座</title>
+    <meta name="description" content="Dockerfileをハンズオン形式で学習 - 自分だけのイメージを作成する方法をステップバイステップで実践">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts: Noto Sans JPを中心に -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        .hands-on-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+        }
+
+        .hands-on-section h4 {
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #0f172a;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+
+        .wow-section {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(6, 182, 212, 0.1));
+            border: 3px solid #22d3ee;
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+            text-align: center;
+        }
+
+        .wow-section h4 {
+            font-size: 24px;
+            color: #22d3ee;
+            margin-bottom: 16px;
+        }
+
+        .question-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .question-box h4 {
+            color: #fbbf24;
+            margin-bottom: 12px;
+        }
+
+        .analogy-card {
+            background: rgba(34, 211, 238, 0.1);
+            border: 2px solid rgba(34, 211, 238, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .analogy-card h5 {
+            color: #22d3ee;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .progress-indicator .step {
+            background: rgba(34, 211, 238, 0.3);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .dockerfile-code {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        .dockerfile-code .keyword {
+            color: #f472b6;
+            font-weight: 600;
+        }
+
+        .dockerfile-code .string {
+            color: #a5f3fc;
+        }
+
+        .dockerfile-code .comment {
+            color: #64748b;
+        }
+
+        .instruction-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            color: #0f172a;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <!-- サイドバーはsidebar.jsで生成されます -->
+    <!-- ヘッダーとナビゲーションはheader.jsで生成されます -->
+
+    <div class="min-h-screen flex flex-col">
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- コンテンツ -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- ゴール：自分だけのイメージを作ろう -->
+                    <div class="content-section">
+                        <h3>🎯 ゴール：自分だけのイメージを作ろう！</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                このセクションでは、<strong>自分だけのDockerイメージ</strong>を作成します。
+                            </p>
+
+                            <!-- 完成形のDockerfile -->
+                            <div class="info-box">
+                                <h4>📄 Dockerfileというファイルを作ります。例</h4>
+                                <div class="dockerfile-code" style="margin-top: 12px; text-align: left;"><span class="comment"># ベースイメージを指定</span><br><span class="keyword">FROM</span> nginx:1.28-alpine<br><br><span class="comment"># 環境変数</span><br><span class="keyword">ENV</span> APP_NAME="My Docker App"<br><br><span class="comment"># パッケージインストール</span><br><span class="keyword">RUN</span> apk add --no-cache curl<br><br><span class="comment"># HTMLファイルをコピー</span><br><span class="keyword">COPY</span> index.html /usr/share/nginx/html/<br><br><span class="comment"># 起動コマンド</span><br><span class="keyword">CMD</span> ["nginx", "-g", "daemon off;"]</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    各命令を1つずつ学んでいきます！
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📦 イメージを取得する2つの方法</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>方法</th>
+                                            <th>説明</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Docker Hub</strong></td>
+                                            <td>既存のイメージをそのまま使う。そのまま使うことはほぼない</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Dockerfile</strong></td>
+                                            <td>既存イメージを土台に、自分の設定を追加してカスタマイズ。本番の製品ではこちらを使う</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ コンテナの中で設定しても残らない！</h4>
+                                <p>
+                                    コンテナ内でパッケージをインストールしたり設定を変更しても、<br>
+                                    <strong>コンテナを削除すると全て消えてしまいます。</strong>
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>• チームメンバーに共有できない</li>
+                                    <li>• 本番環境に持っていけない</li>
+                                    <li>• 毎回同じ設定を手作業でやり直す必要がある</li>
+                                </ul>
+                                <p style="margin-top: 12px;">
+                                    <strong>→ Dockerfileに書いておけば、いつでも同じ環境を再現できます！</strong>
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    <strong>→ 実はここから環境をコードで管理するというDockerの本質の学習に辿り着きました。</strong>
+                                </p>
+                            </div>
+
+                            <!-- 図：コンテナ vs Dockerfile -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0;">
+                                <!-- 左：コンテナ内で設定（NG） -->
+                                <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; border-radius: 12px; padding: 20px;">
+                                    <h5 style="color: #ef4444; font-size: 16px; margin-bottom: 16px; text-align: center;">❌ コンテナ内で設定</h5>
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                                        <div style="background: #1e293b; border: 2px solid #64748b; border-radius: 8px; padding: 12px 20px; text-align: center;">
+                                            <div style="font-size: 12px; color: #94a3b8;">コンテナ</div>
+                                            <div style="font-size: 14px; margin-top: 4px;">curl インストール済み</div>
+                                        </div>
+                                        <div style="font-size: 24px;">⬇️</div>
+                                        <div style="background: #1e293b; border: 2px dashed #ef4444; border-radius: 8px; padding: 12px 20px; text-align: center; opacity: 0.5;">
+                                            <div style="font-size: 12px; color: #94a3b8;">コンテナ削除</div>
+                                            <div style="font-size: 14px; margin-top: 4px; text-decoration: line-through;">curl 消えた...</div>
+                                        </div>
+                                        <div style="color: #ef4444; font-size: 14px; font-weight: 600;">共有できない</div>
+                                    </div>
+                                </div>
+                                <!-- 右：Dockerfileで設定（OK） -->
+                                <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid #22c55e; border-radius: 12px; padding: 20px;">
+                                    <h5 style="color: #22c55e; font-size: 16px; margin-bottom: 16px; text-align: center;">✅ Dockerfileで設定</h5>
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                                        <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 8px; padding: 12px 20px; text-align: center;">
+                                            <div style="font-size: 12px; color: #94a3b8;">Dockerfile</div>
+                                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; margin-top: 4px;">RUN apk add curl</div>
+                                        </div>
+                                        <div style="font-size: 24px;">⬇️</div>
+                                        <div style="display: flex; gap: 8px;">
+                                            <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 8px; padding: 8px 12px; text-align: center; font-size: 12px;">自分</div>
+                                            <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 8px; padding: 8px 12px; text-align: center; font-size: 12px;">チーム</div>
+                                            <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 8px; padding: 8px 12px; text-align: center; font-size: 12px;">本番</div>
+                                        </div>
+                                        <div style="color: #22c55e; font-size: 14px; font-weight: 600;">全員同じ環境！</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>❓ なぜDockerfileを学ぶのか</h4>
+                                <p>
+                                    <strong>実際の開発では、Docker Hubのイメージをそのまま使うことはほとんどありません。</strong><br>
+                                    必ず自分のアプリや設定を追加する必要があるからです。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    Dockerfileを理解しておくと：
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>• <strong>Docker Hubのイメージをカスタマイズ</strong>できる</li>
+                                    <li>• <strong>チームで同じ環境を共有</strong>できる</li>
+                                    <li>• <strong>docker-compose.yml</strong> の build 設定が理解できる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dockerfileとは -->
+                    <div class="content-section">
+                        <h3>📝 Dockerfileとは</h3>
+                        <div class="collapsible-content">
+                            <div class="wow-section" style="padding: 24px;">
+                                <p style="font-size: 20px; font-weight: 600; color: #22d3ee; margin: 0;">
+                                    Dockerfile = 「Dockerイメージの設計図」
+                                </p>
+                            </div>
+
+                            <div class="analogy-card">
+                                <h5>🏠 リフォームに例えると...</h5>
+                                <ul>
+                                    <li>• <strong>ベースイメージ（FROM）</strong> = 既存の家（土台）</li>
+                                    <li>• <strong>Dockerfile</strong> = リフォームの設計図</li>
+                                    <li>• <strong>docker image build</strong> = リフォーム工事を実行</li>
+                                    <li>• <strong>完成したイメージ</strong> = リフォーム済みの家</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📋 Dockerfileの特徴</h4>
+                                <ul>
+                                    <li>✅ ファイル名は <code>Dockerfile</code>（拡張子なし）</li>
+                                    <li>✅ テキストファイルなので<strong>Git管理</strong>できる</li>
+                                    <li>✅ 誰でも<strong>同じイメージ</strong>を再現できる</li>
+                                    <li>✅ 1行ごとに<strong>レイヤー</strong>が作られる</li>
+                                </ul>
+                            </div>
+
+                            <p style="margin-top: 16px;">
+                                では、<strong>コマンドを1つずつ学びながら</strong>Dockerfileを書いていきましょう！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 作業フォルダを準備 -->
+                    <div class="content-section">
+                        <h3>📁 作業フォルダを準備</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                まずは作業用のフォルダを作成し、必要なファイルを準備します。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>作業フォルダを作成</h4>
+                                <div class="command-box">
+                                    <div class="command">mkdir -p ~/dockerfile-practice</div>
+                                    <div class="command">cd ~/dockerfile-practice</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>HTMLファイルを作成</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    表示させたいHTMLファイルを作成します：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">echo '&lt;h1&gt;Hello from my Dockerfile&lt;/h1&gt;' > index.html</div>
+                                </div>
+                                <p style="margin-top: 8px; color: #94a3b8; font-size: 13px;">
+                                    💡 シンプルなHTMLで十分です。凝ったデザインは後からでOK！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>ファイルを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">ls -la</div>
+                                </div>
+                                <div class="output">total 8
+drwxr-xr-x  3 user  staff    96 Jan 15 10:00 .
+drwxr-xr-x  5 user  staff   160 Jan 15 10:00 ..
+-rw-r--r--  1 user  staff   612 Jan 15 10:00 index.html</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ index.html が作成されました！
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 現在のフォルダ構成</h4>
+                                <pre style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; margin-top: 12px;">dockerfile-practice/
+└── index.html</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FROM：ベースイメージを指定 -->
+                    <div class="content-section">
+                        <h3>🏗️ FROM：ベースイメージを指定</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <strong>すべてのDockerfileは FROM から始まります。</strong><br>
+                                どのイメージを土台にするかを指定します。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>Dockerfileを作成</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    まずは FROM だけのシンプルなDockerfileを作ります：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">echo 'FROM nginx:1.28-alpine' > Dockerfile</div>
+                                </div>
+                                <p style="margin-top: 8px; color: #94a3b8;">
+                                    ファイル名は必ず <code>Dockerfile</code>（拡張子なし、大文字D）
+                                </p>
+                            </div>
+
+                            <!-- FROM の分解 -->
+                            <div class="info-box">
+                                <h4>📝 FROM を分解すると</h4>
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 16px; margin-top: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                        <div style="background: #1e293b; border: 2px solid #f472b6; border-radius: 8px; padding: 8px 12px;">
+                                            <div style="font-size: 10px; color: #94a3b8;">命令</div>
+                                            <code style="color: #f472b6;">FROM</code>
+                                        </div>
+                                        <div style="background: #1e293b; border: 2px solid #22d3ee; border-radius: 8px; padding: 8px 12px;">
+                                            <div style="font-size: 10px; color: #94a3b8;">イメージ名</div>
+                                            <code style="color: #22d3ee;">nginx</code>
+                                        </div>
+                                        <div style="font-size: 20px; color: #64748b;">:</div>
+                                        <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 8px; padding: 8px 12px;">
+                                            <div style="font-size: 10px; color: #94a3b8;">タグ（バージョン）</div>
+                                            <code style="color: #22c55e;">1.28-alpine</code>
+                                        </div>
+                                    </div>
+                                    <p style="margin-top: 12px; color: #94a3b8; font-size: 14px;">
+                                        → Docker Hubの <code>nginx:1.28-alpine</code> イメージを土台にする
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ タグは必ず指定する</h4>
+                                <p style="margin-top: 8px;">
+                                    <code>nginx</code> や <code>nginx:latest</code> ではなく、<strong>具体的なバージョン</strong>を指定しましょう。
+                                </p>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                                    <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; border-radius: 8px; padding: 12px;">
+                                        <div style="color: #ef4444; font-weight: 600; margin-bottom: 8px;">❌ 避ける</div>
+                                        <code style="font-size: 12px;">FROM nginx</code><br>
+                                        <code style="font-size: 12px;">FROM nginx:latest</code>
+                                        <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">バージョンが変わると動作が変わる可能性</p>
+                                    </div>
+                                    <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid #22c55e; border-radius: 8px; padding: 12px;">
+                                        <div style="color: #22c55e; font-weight: 600; margin-bottom: 8px;">✅ 推奨</div>
+                                        <code style="font-size: 12px;">FROM nginx:1.28-alpine</code>
+                                        <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">いつでも同じ環境を再現できる</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 現在のフォルダ構成</h4>
+                                <pre style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; margin-top: 12px;">dockerfile-practice/
+├── Dockerfile     ← NEW!
+└── index.html</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- docker image build -->
+                    <div class="content-section">
+                        <h3>🔨 docker image build：イメージをビルド</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                Dockerfileからイメージを作成します。これを<strong>「ビルド」</strong>と呼びます。
+                            </p>
+
+                            <!-- 新コマンド紹介 -->
+                            <div class="info-box" style="border-color: #f472b6; background: rgba(244, 114, 182, 0.1);">
+                                <h4>🆕 新しいコマンド: docker image build</h4>
+                                <p style="margin-top: 8px;">
+                                    <code>docker image build</code> は、Dockerfileからイメージを作成するコマンドです。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker image build -t イメージ名:タグ パス</div>
+                                </div>
+                            </div>
+
+                            <!-- -t オプションの説明 -->
+                            <div class="info-box">
+                                <h4>🏷️ -t オプション（タグ付け）</h4>
+                                <p style="margin-top: 8px;">
+                                    <code>-t</code> は <strong>--tag</strong> の省略形で、イメージに名前を付けます。
+                                </p>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>コマンド</th>
+                                            <th>結果</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>-t my-web</code></td>
+                                            <td>my-web:<strong>latest</strong>（タグ省略時はlatest）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-t my-web:v1</code></td>
+                                            <td>my-web:<strong>v1</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-t my-web:production</code></td>
+                                            <td>my-web:<strong>production</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>イメージをビルド</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image build -t my-web .</div>
+                                </div>
+                                <div class="output">[+] Building 2.3s (6/6) FINISHED
+ => [internal] load build definition from Dockerfile
+ => [internal] load .dockerignore
+ => [internal] load metadata for docker.io/library/nginx:1.28-alpine
+ => [1/1] FROM docker.io/library/nginx:1.28-alpine
+ => exporting to image
+ => => naming to docker.io/library/my-web</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    ビルドコンテキストが送信され、Dockerfileの各命令が順番に実行されています。
+                                </p>
+                            </div>
+
+                            <!-- コマンド分解 -->
+                            <div class="info-box">
+                                <h4>📝 コマンドを分解すると</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center;">
+                                    <div style="background: #1e293b; border: 2px solid #64748b; border-radius: 8px; padding: 8px 12px;">
+                                        <div style="font-size: 10px; color: #94a3b8;">対象</div>
+                                        <code style="color: #22d3ee;">docker image</code>
+                                    </div>
+                                    <div style="background: #1e293b; border: 2px solid #f472b6; border-radius: 8px; padding: 8px 12px;">
+                                        <div style="font-size: 10px; color: #94a3b8;">操作</div>
+                                        <code style="color: #f472b6;">build</code>
+                                    </div>
+                                    <div style="background: #1e293b; border: 2px solid #fbbf24; border-radius: 8px; padding: 8px 12px;">
+                                        <div style="font-size: 10px; color: #94a3b8;">オプション</div>
+                                        <code style="color: #fbbf24;">-t my-web</code>
+                                    </div>
+                                    <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 8px; padding: 8px 12px;">
+                                        <div style="font-size: 10px; color: #94a3b8;">ビルドコンテキスト</div>
+                                        <code style="color: #22c55e;">.</code>
+                                    </div>
+                                </div>
+                                <ul style="margin-top: 16px;">
+                                    <li><code style="color: #22d3ee;">docker image</code> - イメージを操作</li>
+                                    <li><code style="color: #f472b6;">build</code> - Dockerfileからビルド</li>
+                                    <li><code style="color: #fbbf24;">-t my-web</code> - 「my-web」という名前を付ける</li>
+                                    <li><code style="color: #22c55e;">.</code> - 現在のディレクトリをビルドコンテキストとして使う</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>作成されたイメージを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image ls my-web</div>
+                                </div>
+                                <div class="output">REPOSITORY   TAG       IMAGE ID       CREATED          SIZE
+my-web       latest    abc123def456   10 seconds ago   43.2MB</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ 「my-web」イメージが作成されました！
+                                </p>
+                            </div>
+
+                            <!-- ビルドコンテキストの説明 -->
+                            <div class="info-box" style="border-color: #22c55e; background: rgba(34, 197, 94, 0.1);">
+                                <h4>📦 ビルドコンテキストとは？</h4>
+                                <p style="margin-top: 8px;">
+                                    コマンドの最後にパスを指定すると、そのディレクトリが<strong>「ビルドコンテキスト」</strong>になります。<br>
+                                    今回は <code>.</code>（現在のディレクトリ）を指定しています。
+                                </p>
+                                <p style="margin-top: 8px;">
+                                    <strong>ビルドコンテキスト = Dockerデーモンに送るファイル一式</strong>
+                                </p>
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 12px; padding: 16px; margin-top: 16px;">
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;">
+                                        <div style="text-align: center;">
+                                            <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 12px; padding: 12px;">
+                                                <div style="font-size: 11px; color: #22c55e; margin-bottom: 8px;">ビルドコンテキスト（.）</div>
+                                                <div style="font-size: 12px; font-family: monospace;">
+                                                    📄 Dockerfile<br>
+                                                    📄 index.html
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="color: #22d3ee; font-size: 24px;">→</div>
+                                        <div style="text-align: center;">
+                                            <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center;">
+                                                <span style="font-size: 11px; color: #fff; text-align: center;">Docker<br>デーモン</span>
+                                            </div>
+                                        </div>
+                                        <div style="color: #22d3ee; font-size: 24px;">→</div>
+                                        <div style="text-align: center;">
+                                            <div style="background: #1e293b; border: 2px solid #f472b6; border-radius: 12px; padding: 12px;">
+                                                <div style="font-size: 11px; color: #f472b6; margin-bottom: 4px;">イメージ</div>
+                                                <div style="font-size: 14px;">📦 my-web</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 <code>.</code> は現在のディレクトリを意味します
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>docker image build -t 名前 .</code> でイメージをビルド</li>
+                                    <li><code>.</code> はビルドコンテキスト（Dockerデーモンに送るファイル一式）</li>
+                                    <li><code>-t</code> でイメージに名前（タグ）を付ける</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 動作確認 -->
+                    <div class="content-section">
+                        <h3>🚀 動作確認：コンテナを起動</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                作成したイメージからコンテナを起動してみましょう！
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>コンテナを起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -d --name my-web-container -p 8080:80 my-web</div>
+                                </div>
+                                <div class="output">a1b2c3d4e5f6...</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>ブラウザでアクセス</h4>
+                                <p style="margin-bottom: 12px;">
+                                    ブラウザで以下にアクセスしてください：
+                                </p>
+                                <div class="wow-section" style="padding: 20px;">
+                                    <a href="http://localhost:8080" target="_blank" style="font-size: 20px; color: #22d3ee; text-decoration: underline;">
+                                        http://localhost:8080
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>👀 何が表示される？</h4>
+                                <p style="margin-top: 8px;">
+                                    <strong>「Welcome to nginx!」</strong>というnginxのデフォルトページが表示されます。
+                                </p>
+                                <p style="margin-top: 8px; color: #94a3b8;">
+                                    まだ自分のHTMLをコピーしていないので、nginxの初期ページが表示されています。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>確認したら停止・削除</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container rm -f my-web-container</div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 ここまでの成果</h4>
+                                <p>FROM だけのDockerfileでイメージを作成・起動できました！</p>
+                                <p style="margin-top: 8px;">次は COPY を追加して、自分のHTMLを表示させましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COPY：ファイルをコピー -->
+                    <div class="content-section">
+                        <h3>📋 COPY：ファイルをコピー</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="instruction-badge">COPY</span> でホスト（あなたのPC）のファイルをイメージ内にコピーできます。
+                            </p>
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>Dockerfileに COPY を追加</h4>
+                                <div class="command-box">
+                                    <div class="command">echo 'COPY index.html /usr/share/nginx/html/' >> Dockerfile</div>
+                                </div>
+                                <p style="margin-top: 8px; color: #94a3b8; font-size: 13px;">
+                                    💡 <code>>></code> は追記です（上書きではない）
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>Dockerfileを確認</h4>
+                                <div class="command-box">
+                                    <div class="command">cat Dockerfile</div>
+                                </div>
+                                <div class="output">FROM nginx:1.28-alpine
+COPY index.html /usr/share/nginx/html/</div>
+                            </div>
+
+                            <!-- COPY の分解 -->
+                            <div class="info-box">
+                                <h4>📝 COPY を分解すると</h4>
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 16px; margin-top: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                        <div style="background: #1e293b; border: 2px solid #f472b6; border-radius: 8px; padding: 8px 12px;">
+                                            <div style="font-size: 10px; color: #94a3b8;">命令</div>
+                                            <code style="color: #f472b6;">COPY</code>
+                                        </div>
+                                        <div style="background: #1e293b; border: 2px solid #fbbf24; border-radius: 8px; padding: 8px 12px;">
+                                            <div style="font-size: 10px; color: #94a3b8;">コピー元（ホスト）</div>
+                                            <code style="color: #fbbf24;">index.html</code>
+                                        </div>
+                                        <div style="font-size: 20px; color: #64748b;">→</div>
+                                        <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 8px; padding: 8px 12px;">
+                                            <div style="font-size: 10px; color: #94a3b8;">コピー先（コンテナ）</div>
+                                            <code style="color: #22c55e;">/usr/share/nginx/html/</code>
+                                        </div>
+                                    </div>
+                                    <p style="margin-top: 12px; color: #94a3b8; font-size: 14px;">
+                                        → 作成した index.html を、nginxの公開ディレクトリにコピー
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>再ビルド</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image build -t my-web .</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>コンテナを起動して確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run -d --name my-web-container -p 8080:80 my-web</div>
+                                </div>
+                                <p style="margin-top: 12px;">
+                                    ブラウザで <a href="http://localhost:8080" target="_blank" style="color: #22d3ee;">http://localhost:8080</a> を開いてください。
+                                </p>
+                            </div>
+
+                            <div class="wow-section">
+                                <h4>🎊 成功！</h4>
+                                <p style="font-size: 18px; margin-top: 12px;">
+                                    「Hello from my Dockerfile」が表示されれば成功です！
+                                </p>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    自分で作ったHTMLが表示されています！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">5</span>確認したら停止・削除</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container rm -f my-web-container</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 COPY と -v の違い</h4>
+                                <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; border-radius: 8px; padding: 12px;">
+                                        <div style="font-weight: 600; color: #22c55e; margin-bottom: 4px;">COPY</div>
+                                        <div style="font-size: 13px; color: #94a3b8;">ビルド時にイメージ内にコピー<br>（イメージの一部になる）</div>
+                                    </div>
+                                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; border-radius: 8px; padding: 12px;">
+                                        <div style="font-weight: 600; color: #3b82f6; margin-bottom: 4px;">-v（バインドマウント）</div>
+                                        <div style="font-size: 13px; color: #94a3b8;">実行時にホストのファイルをマウント<br>（イメージには含まれない）</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>COPY コピー元 コピー先</code> でファイルをコピー</li>
+                                    <li>Dockerfileを変更したら再ビルドが必要</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ビルドコンテキストを理解する -->
+                    <div class="content-section">
+                        <h3>📦 ビルドコンテキストを理解する</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <code>COPY</code> でエラーが出ることがあります。<br>
+                                <strong>わざとエラーを起こして</strong>、ビルドコンテキストの仕組みを理解しましょう。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>親ディレクトリにファイルを作成</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    作業フォルダの<strong>外</strong>にファイルを作ります：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">echo 'secret data' > ~/secret.txt</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>親ディレクトリからCOPYしてみる</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    Dockerfileを作成して、親ディレクトリのファイルをコピーしようとします：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">echo 'FROM nginx:1.28-alpine' > Dockerfile.test</div>
+                                    <div class="command">echo 'COPY ../secret.txt /app/' >> Dockerfile.test</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>ビルドしてみる（エラーになる）</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image build -f Dockerfile.test -t test .</div>
+                                </div>
+                                <div class="output" style="border-color: #ef4444; background: rgba(239, 68, 68, 0.1);">ERROR: failed to solve: failed to compute cache key:
+failed to calculate checksum of ref:
+"/secret.txt": not found</div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>❌ なぜエラー？</h4>
+                                <p style="margin-top: 8px;">
+                                    <code>COPY ../secret.txt</code> は<strong>ビルドコンテキストの外</strong>なのでアクセスできません。
+                                </p>
+                            </div>
+
+                            <!-- ビルドコンテキストの図解 -->
+                            <div class="info-box">
+                                <h4>📁 今回の状況を図で確認</h4>
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 12px; padding: 20px; margin-top: 12px;">
+                                    <pre style="color: #e2e8f0; font-size: 13px; margin: 0;">
+~/
+├── secret.txt           ← ビルドコンテキストの<span style="color: #ef4444;">外</span>（アクセス不可）
+│
+└── dockerfile-practice/  ← ビルドコンテキスト（<code style="color: #22d3ee;">.</code> で指定）
+    ├── Dockerfile
+    ├── Dockerfile.test
+    └── index.html        ← ビルドコンテキストの<span style="color: #22c55e;">中</span>（アクセス可能）</pre>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    💡 セキュリティのため、ビルドコンテキスト外のファイルにはアクセスできません
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>正しい方法：ファイルをビルドコンテキスト内に置く</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    コピーしたいファイルは、ビルドコンテキスト内に配置します：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command"># ファイルをビルドコンテキスト内にコピー</div>
+                                    <div class="command">cp ~/secret.txt ./secret.txt</div>
+                                    <div class="command" style="margin-top: 8px;"># Dockerfileを修正</div>
+                                    <div class="command">echo 'FROM nginx:1.28-alpine' > Dockerfile.test</div>
+                                    <div class="command">echo 'COPY secret.txt /app/' >> Dockerfile.test</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">5</span>再度ビルド（成功する）</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image build -f Dockerfile.test -t my-web:test .</div>
+                                </div>
+                                <div class="output">[+] Building 0.5s (7/7) FINISHED
+ => [1/2] FROM docker.io/library/nginx:1.28-alpine
+ => [2/2] COPY secret.txt /app/
+ => exporting to image
+ => => naming to docker.io/library/my-web:test</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ ビルド成功！
+                                </p>
+                            </div>
+
+                            <!-- -f オプションの説明 -->
+                            <div class="info-box">
+                                <h4>📄 -f オプションとは？</h4>
+                                <p style="margin-top: 8px;">
+                                    デフォルトでは <code>Dockerfile</code> という名前のファイルを探しますが、
+                                    <code>-f</code> で別のファイルを指定できます。
+                                </p>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                                    <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px;">
+                                        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 4px;">デフォルト</div>
+                                        <code style="font-size: 12px;">docker image build -t my-web .</code>
+                                        <p style="font-size: 11px; color: #64748b; margin-top: 4px;">→ Dockerfile を使用</p>
+                                    </div>
+                                    <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px;">
+                                        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 4px;">-f で指定</div>
+                                        <code style="font-size: 12px;">docker image build -f Dockerfile.test -t my-web .</code>
+                                        <p style="font-size: 11px; color: #64748b; margin-top: 4px;">→ Dockerfile.test を使用</p>
+                                    </div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    💡 開発用・本番用でDockerfileを分けたい場合に便利！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">6</span>後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image rm my-web:test</div>
+                                    <div class="command">rm Dockerfile.test secret.txt ~/secret.txt</div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>COPY</code> はビルドコンテキスト内のファイルのみコピー可能</li>
+                                    <li>ビルドコンテキスト = <code>docker image build</code> の最後の引数（<code>.</code>）</li>
+                                    <li><code>-f</code> オプションで別のDockerfileを指定できる</li>
+                                </ul>
+                            </div>
+
+                            <!-- 補足：柔軟な指定 -->
+                            <div class="info-box" style="border-color: #64748b; background: rgba(100, 116, 139, 0.1);">
+                                <h4>📚 補足：柔軟な指定が可能</h4>
+                                <p style="margin-top: 8px;">
+                                    ビルドコンテキストは <code>.</code> 以外も指定できます。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># サブディレクトリを指定</div>
+                                    <div class="command">docker image build -t my-web ./app</div>
+                                    <div class="command" style="margin-top: 8px;"># 絶対パスで指定</div>
+                                    <div class="command">docker image build -t my-web /path/to/project</div>
+                                    <div class="command" style="margin-top: 8px;"># Dockerfileとビルドコンテキストを別々に指定</div>
+                                    <div class="command">docker image build -f ../Dockerfile -t my-web ./app</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 <code>Dockerfile</code> はビルドコンテキスト外に置いてもOK（<code>-f</code> で指定）<br>
+                                    💡 <code>COPY</code> できるのはビルドコンテキスト内のファイルのみ
+                                </p>
+                            </div>
+
+                            <!-- 補足：Dockerfileの名前 -->
+                            <div class="info-box" style="border-color: #64748b; background: rgba(100, 116, 139, 0.1);">
+                                <h4>📚 補足：Dockerfileの名前</h4>
+                                <p style="margin-top: 8px;">
+                                    <code>Dockerfile</code> という名前でなくてもOKです。<code>-f</code> で指定すればどんな名前でもビルドできます。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker image build -f MyDockerfile -t my-web .</div>
+                                    <div class="command">docker image build -f Dockerfile.prod -t my-web:prod .</div>
+                                    <div class="command">docker image build -f docker/web.dockerfile -t my-web .</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 <code>-f</code> を省略すると <code>Dockerfile</code> という名前を探す<br>
+                                    💡 慣習として <code>Dockerfile</code> を使うことが多い
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RUN -->
+                    <div class="content-section">
+                        <h3>🔧 RUN：コマンドを実行</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="instruction-badge">RUN</span> を使って、ビルド時にコマンドを実行できます。
+                            </p>
+
+                            <!-- RUN の説明 -->
+                            <div class="info-box" style="border-color: #f472b6; background: rgba(244, 114, 182, 0.1);">
+                                <h4>🆕 RUN とは？</h4>
+                                <p style="margin-top: 8px;">
+                                    <strong>イメージのビルド時</strong>にコマンドを実行します。<br>
+                                    パッケージのインストール、ファイルの作成などに使います。
+                                </p>
+                                <div class="dockerfile-code" style="margin-top: 12px;">
+<span class="keyword">RUN</span> コマンド
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>まずはシンプルに書いてみる</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    最初は RUN を複数行で書いてOKです。何回ビルドしても大丈夫！
+                                </p>
+                                <div class="dockerfile-code">
+<span class="keyword">FROM</span> php:8.3-fpm
+<span class="keyword">RUN</span> apt-get update
+<span class="keyword">RUN</span> apt-get install -y git
+<span class="keyword">RUN</span> apt-get install -y curl
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 <code>apt-get update</code> はパッケージリストを取得します（最初に必須）<br>
+                                    💡 <code>-y</code> は確認なしでYes（Dockerfileでは必須）
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker image build -t php:test .</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>もう一度ビルドしてみる（キャッシュ体験）</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    同じコマンドをもう一度実行してください：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker image build -t php:test2 .</div>
+                                </div>
+                                <div class="output" style="margin-top: 12px;">
+[+] Building 0.5s (7/7) FINISHED
+ => <span style="color: #22c55e;">CACHED</span> [2/4] RUN apt-get update
+ => <span style="color: #22c55e;">CACHED</span> [3/4] RUN apt-get install -y git
+ => <span style="color: #22c55e;">CACHED</span> [4/4] RUN apt-get install -y curl</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ⚡ 一瞬で終わる！すべて「CACHED」と表示されます。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>途中を変更してビルド（キャッシュが無効になる）</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    2行目を変更してみましょう：
+                                </p>
+                                <div class="dockerfile-code">
+<span class="keyword">FROM</span> php:8.3-fpm
+<span class="keyword">RUN</span> apt-get update
+<span class="keyword">RUN</span> apt-get install -y git <span style="color: #fbbf24;">vim</span>  ← 変更！
+<span class="keyword">RUN</span> apt-get install -y curl
+                                </div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker image build -t php:test3 .</div>
+                                </div>
+                                <div class="output" style="margin-top: 12px;">
+ => <span style="color: #22c55e;">CACHED</span> [2/4] RUN apt-get update
+ => [3/4] RUN apt-get install -y git vim  ← 再実行
+ => [4/4] RUN apt-get install -y curl     ← これも再実行</div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    ⚠️ 変更した行<strong>以降</strong>はすべてキャッシュが無効になります
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>⚡ キャッシュの仕組み</h4>
+                                <ul style="margin: 8px 0 0 0; padding-left: 20px; line-height: 1.8;">
+                                    <li>Dockerは各RUNの結果を<strong>キャッシュ</strong>します</li>
+                                    <li>同じ命令なら「CACHED」でスキップ → 高速</li>
+                                    <li>変更があると、その行<strong>以降</strong>すべて再実行</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image rm php:test</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🧱 レイヤーとは？</h4>
+                                <p style="margin-top: 8px;">
+                                    Dockerイメージは「レイヤー」の積み重ねで構成されています。<br>
+                                    各命令（FROM、RUN、COPYなど）が1つのレイヤーを作ります。
+                                </p>
+                                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 16px;">
+                                    <div style="background: #334155; border: 2px solid #22d3ee; border-radius: 8px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+                                        <code style="color: #22d3ee;">RUN apt-get install -y curl</code>
+                                        <span style="color: #94a3b8; font-size: 12px;">Layer 4</span>
+                                    </div>
+                                    <div style="background: #334155; border: 2px solid #22d3ee; border-radius: 8px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+                                        <code style="color: #22d3ee;">RUN apt-get install -y git</code>
+                                        <span style="color: #94a3b8; font-size: 12px;">Layer 3</span>
+                                    </div>
+                                    <div style="background: #334155; border: 2px solid #22d3ee; border-radius: 8px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+                                        <code style="color: #22d3ee;">RUN apt-get update</code>
+                                        <span style="color: #94a3b8; font-size: 12px;">Layer 2</span>
+                                    </div>
+                                    <div style="background: #1e3a5f; border: 2px solid #3b82f6; border-radius: 8px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+                                        <code style="color: #3b82f6;">FROM php:8.3-fpm</code>
+                                        <span style="color: #94a3b8; font-size: 12px;">Layer 1（ベース）</span>
+                                    </div>
+                                </div>
+                                <p style="margin-top: 16px; color: #94a3b8; font-size: 13px;">
+                                    <code>docker image history</code> でレイヤーを確認できます：
+                                </p>
+                                <div class="command-box" style="margin-top: 8px;">
+                                    <div class="command">docker image history php:test</div>
+                                </div>
+                                <div class="output" style="margin-top: 8px; font-size: 12px;">
+IMAGE          CREATED         SIZE    CREATED BY
+abc123         2 min ago       5MB     RUN apt-get install -y curl
+def456         2 min ago       50MB    RUN apt-get install -y git
+ghi789         2 min ago       25MB    RUN apt-get update
+...</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 レイヤーを意識するのはどんな時？</h4>
+                                <ul style="margin: 8px 0 0 0; padding-left: 20px; line-height: 1.8; font-size: 13px; color: #94a3b8;">
+                                    <li><strong>イメージサイズを小さくしたい</strong> → RUNをまとめてレイヤーを減らす</li>
+                                    <li><strong>ビルドを速くしたい</strong> → 変更が多い命令は後ろに置く（キャッシュが効きやすい）</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #64748b; font-size: 12px;">
+                                    ※ ML（機械学習）系の巨大イメージでは重要ですが、Web開発では意識しなくても問題ないことが多いです
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">5</span>慣れたら1つにまとめる（実務向け）</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    実務ではイメージサイズを小さくするため、1つのRUNにまとめます：
+                                </p>
+                                <div class="dockerfile-code">
+<span class="keyword">FROM</span> php:8.3-fpm
+<span class="keyword">RUN</span> apt-get update && apt-get install -y \
+    git \
+    curl \
+    libzip-dev \
+    && docker-php-ext-install zip pdo_mysql \
+    && apt-get clean
+                                </div>
+                                <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                                    <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 8px; padding: 8px;">
+                                        <code style="color: #22d3ee; font-size: 13px;">\</code>
+                                        <div style="font-size: 11px; color: #94a3b8;">行を継続</div>
+                                    </div>
+                                    <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid #fbbf24; border-radius: 8px; padding: 8px;">
+                                        <code style="color: #fbbf24; font-size: 13px;">&&</code>
+                                        <div style="font-size: 11px; color: #94a3b8;">成功したら次へ</div>
+                                    </div>
+                                    <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; border-radius: 8px; padding: 8px;">
+                                        <code style="color: #22c55e; font-size: 13px;">-y</code>
+                                        <div style="font-size: 11px; color: #94a3b8;">確認なしでYes</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 12px; font-size: 12px; color: #94a3b8;">
+                                    <strong>パッケージの役割：</strong>
+                                    <ul style="margin: 8px 0 0 0; padding-left: 20px; line-height: 1.8;">
+                                        <li><code>git</code> → Composer用</li>
+                                        <li><code>curl</code> → API通信</li>
+                                        <li><code>libzip-dev</code> → Excel操作（PhpSpreadsheet）</li>
+                                        <li><code>pdo_mysql</code> → DB接続</li>
+                                        <li><code>apt-get clean</code> → キャッシュ削除で軽量化</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>再ビルド（タグを変えて）</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image build -t my-web:v2 .</div>
+                                </div>
+                                <div class="output">[+] Building 3.1s (8/8) FINISHED
+ => [1/3] FROM docker.io/library/nginx:1.28-alpine
+ => [2/3] RUN apk add --no-cache curl
+ => [3/3] COPY index.html /usr/share/nginx/html/
+ => exporting to image
+ => => naming to docker.io/library/my-web:v2</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    <strong>[2/3] RUN apk add --no-cache curl</strong> が実行されています！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>curlがインストールされたか確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run --rm my-web:v2 curl --version</div>
+                                </div>
+                                <div class="output">curl 8.5.0 (x86_64-alpine-linux-musl) libcurl/8.5.0 ...</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ curlがインストールされています！
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>RUN</code> はビルド時にコマンドを実行</li>
+                                    <li>パッケージのインストールなどに使う</li>
+                                    <li>各 <code>RUN</code> がイメージのレイヤーになる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CMD -->
+                    <div class="content-section">
+                        <h3>▶️ CMD：起動コマンド</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="instruction-badge">CMD</span> はコンテナ起動時に実行されるデフォルトコマンドを設定します。
+                            </p>
+
+                            <!-- CMD の説明 -->
+                            <div class="info-box" style="border-color: #f472b6; background: rgba(244, 114, 182, 0.1);">
+                                <h4>🆕 CMD とは？</h4>
+                                <p style="margin-top: 8px;">
+                                    <strong>コンテナ起動時</strong>に実行されるデフォルトのコマンドを設定します。
+                                </p>
+                                <div class="dockerfile-code" style="margin-top: 12px;">
+                                    <span class="keyword">CMD</span> ["実行ファイル", "引数1", "引数2"]
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    配列形式（exec form）が推奨されます。
+                                </p>
+                            </div>
+
+                            <!-- RUN vs CMD -->
+                            <div class="warning-box">
+                                <h4>⚠️ RUN と CMD の違い</h4>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                                    <div style="background: rgba(244, 114, 182, 0.1); border: 2px solid #f472b6; border-radius: 8px; padding: 12px;">
+                                        <div style="color: #f472b6; font-weight: 600; margin-bottom: 8px;">RUN</div>
+                                        <p style="font-size: 13px; color: #e2e8f0;"><strong>ビルド時</strong>に実行</p>
+                                        <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">パッケージインストールなど</p>
+                                    </div>
+                                    <div style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; border-radius: 8px; padding: 12px;">
+                                        <div style="color: #22d3ee; font-weight: 600; margin-bottom: 8px;">CMD</div>
+                                        <p style="font-size: 13px; color: #e2e8f0;"><strong>コンテナ起動時</strong>に実行</p>
+                                        <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">アプリの起動など</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>Dockerfileを更新</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    CMDを追加します（nginxはデフォルトでCMDを持っていますが、明示的に書きます）：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">echo 'FROM nginx:1.28-alpine' > Dockerfile</div>
+                                    <div class="command">echo 'RUN apk add --no-cache curl' >> Dockerfile</div>
+                                    <div class="command">echo 'COPY index.html /usr/share/nginx/html/' >> Dockerfile</div>
+                                    <div class="command">echo 'CMD ["nginx", "-g", "daemon off;"]' >> Dockerfile</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 CMD を分解すると</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center;">
+                                    <div style="background: #1e293b; border: 2px solid #f472b6; border-radius: 8px; padding: 8px 12px;">
+                                        <div style="font-size: 10px; color: #94a3b8;">命令</div>
+                                        <code style="color: #f472b6;">CMD</code>
+                                    </div>
+                                    <div style="background: #1e293b; border: 2px solid #22d3ee; border-radius: 8px; padding: 8px 12px;">
+                                        <div style="font-size: 10px; color: #94a3b8;">実行ファイル</div>
+                                        <code style="color: #22d3ee;">"nginx"</code>
+                                    </div>
+                                    <div style="background: #1e293b; border: 2px solid #fbbf24; border-radius: 8px; padding: 8px 12px;">
+                                        <div style="font-size: 10px; color: #94a3b8;">オプション</div>
+                                        <code style="color: #fbbf24;">"-g"</code>
+                                    </div>
+                                    <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 8px; padding: 8px 12px;">
+                                        <div style="font-size: 10px; color: #94a3b8;">設定</div>
+                                        <code style="color: #22c55e;">"daemon off;"</code>
+                                    </div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    💡 <code>daemon off;</code> はnginxをフォアグラウンドで動かす設定（コンテナが終了しないように）
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>再ビルド</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image build -t my-web:v3 .</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 CMD は上書きできる</h4>
+                                <p style="margin-top: 8px;">
+                                    <code>docker container run</code> でコマンドを指定すると、CMDが上書きされます：
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># デフォルトのCMD（nginx）を実行</div>
+                                    <div class="command">docker container run my-web:v3</div>
+                                    <div class="command" style="margin-top: 8px;"># CMDを上書きしてシェルを起動</div>
+                                    <div class="command">docker container run -it my-web:v3 /bin/sh</div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>CMD</code> はコンテナ起動時のデフォルトコマンド</li>
+                                    <li><code>RUN</code>（ビルド時）と <code>CMD</code>（起動時）の違い</li>
+                                    <li><code>CMD</code> は <code>docker container run</code> で上書きできる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ENV -->
+                    <div class="content-section">
+                        <h3>🌍 ENV：環境変数</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="instruction-badge">ENV</span> でコンテナ内で使える環境変数を設定できます。
+                            </p>
+
+                            <!-- ENV の説明 -->
+                            <div class="info-box" style="border-color: #f472b6; background: rgba(244, 114, 182, 0.1);">
+                                <h4>🆕 ENV とは？</h4>
+                                <p style="margin-top: 8px;">
+                                    コンテナ内で使える<strong>環境変数</strong>を設定します。
+                                </p>
+                                <div class="dockerfile-code" style="margin-top: 12px;">
+                                    <span class="keyword">ENV</span> 変数名=値
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>Dockerfileを更新</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    環境変数を追加します：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">echo 'FROM nginx:1.28-alpine' > Dockerfile</div>
+                                    <div class="command">echo 'ENV APP_NAME="My Docker App"' >> Dockerfile</div>
+                                    <div class="command">echo 'ENV APP_VERSION="1.0"' >> Dockerfile</div>
+                                    <div class="command">echo 'RUN apk add --no-cache curl' >> Dockerfile</div>
+                                    <div class="command">echo 'COPY index.html /usr/share/nginx/html/' >> Dockerfile</div>
+                                    <div class="command">echo 'CMD ["nginx", "-g", "daemon off;"]' >> Dockerfile</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>再ビルド</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image build -t my-web:v3 .</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>環境変数を確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run --rm my-web:v3 env | grep APP</div>
+                                </div>
+                                <div class="output">APP_NAME=My Docker App
+APP_VERSION=1.0</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ 環境変数が設定されています！
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 ENV の使用例</h4>
+                                <div class="dockerfile-code" style="margin-top: 12px;">
+                                    <span class="comment"># 本番/開発の切り替え</span><br>
+                                    <span class="keyword">ENV</span> NODE_ENV=production<br><br>
+                                    <span class="comment"># ポート番号</span><br>
+                                    <span class="keyword">ENV</span> PORT=3000<br><br>
+                                    <span class="comment"># データベース接続</span><br>
+                                    <span class="keyword">ENV</span> DB_HOST=localhost<br>
+                                    <span class="keyword">ENV</span> DB_PORT=5432
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 docker run で上書きできる</h4>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># -e オプションで環境変数を上書き</div>
+                                    <div class="command">docker container run -e APP_VERSION="2.0" my-web:v3</div>
+                                </div>
+                            </div>
+
+                            <!-- 上級者向け参考：ARG -->
+                            <div class="info-box" style="border-color: #64748b; background: rgba(100, 116, 139, 0.1);">
+                                <h4>📚 上級者向け参考：ARG</h4>
+                                <p style="margin-top: 8px;">
+                                    <code>ENV</code> と似た命令に <code>ARG</code> があります。
+                                </p>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>ENV</th>
+                                            <th>ARG</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>使える時期</td>
+                                            <td>ビルド時 + <strong>実行時</strong></td>
+                                            <td><strong>ビルド時のみ</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>値の上書き</td>
+                                            <td><code>docker run -e</code></td>
+                                            <td><code>docker build --build-arg</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 この講座では <code>ENV</code> だけ覚えればOKです。<br>
+                                    <code>ARG</code> はCI/CDパイプラインやマルチステージビルドで使われます。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>ENV</code> でコンテナ内の環境変数を設定</li>
+                                    <li><code>docker run -e</code> で上書き可能</li>
+                                    <li>設定値の外部化に便利</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WORKDIR -->
+                    <div class="content-section">
+                        <h3>📂 WORKDIR：作業ディレクトリ</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <span class="instruction-badge">WORKDIR</span> で作業ディレクトリを設定できます。
+                            </p>
+
+                            <!-- WORKDIR の説明 -->
+                            <div class="info-box" style="border-color: #f472b6; background: rgba(244, 114, 182, 0.1);">
+                                <h4>🆕 WORKDIR とは？</h4>
+                                <p style="margin-top: 8px;">
+                                    以降の <code>RUN</code>, <code>CMD</code>, <code>COPY</code> などの<strong>作業ディレクトリ</strong>を設定します。<br>
+                                    <code>cd</code> コマンドのようなものです。
+                                </p>
+                                <div class="dockerfile-code" style="margin-top: 12px;">
+                                    <span class="keyword">WORKDIR</span> /path/to/dir
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 WORKDIR の効果</h4>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                                    <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; border-radius: 8px; padding: 12px;">
+                                        <div style="color: #ef4444; font-weight: 600; margin-bottom: 8px;">❌ WORKDIRなし</div>
+                                        <div class="dockerfile-code" style="font-size: 11px; padding: 8px;">
+                                            <span class="keyword">COPY</span> . /app/<br>
+                                            <span class="keyword">RUN</span> cd /app && npm install
+                                        </div>
+                                    </div>
+                                    <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid #22c55e; border-radius: 8px; padding: 12px;">
+                                        <div style="color: #22c55e; font-weight: 600; margin-bottom: 8px;">✅ WORKDIRあり</div>
+                                        <div class="dockerfile-code" style="font-size: 11px; padding: 8px;">
+                                            <span class="keyword">WORKDIR</span> /app<br>
+                                            <span class="keyword">COPY</span> . .<br>
+                                            <span class="keyword">RUN</span> npm install
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 典型的なNode.js アプリのDockerfile</h4>
+                                <div class="dockerfile-code" style="margin-top: 12px;">
+                                    <span class="keyword">FROM</span> node:20-alpine<br><br>
+                                    <span class="comment"># 作業ディレクトリを設定</span><br>
+                                    <span class="keyword">WORKDIR</span> /app<br><br>
+                                    <span class="comment"># 依存関係ファイルをコピー</span><br>
+                                    <span class="keyword">COPY</span> package*.json ./<br><br>
+                                    <span class="comment"># 依存関係をインストール</span><br>
+                                    <span class="keyword">RUN</span> npm install<br><br>
+                                    <span class="comment"># ソースコードをコピー</span><br>
+                                    <span class="keyword">COPY</span> . .<br><br>
+                                    <span class="keyword">EXPOSE</span> 3000<br><br>
+                                    <span class="keyword">CMD</span> ["node", "server.js"]
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    💡 <code>WORKDIR /app</code> を設定すると、以降の <code>COPY . .</code> は <code>/app</code> にコピーされます。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>WORKDIR</code> で作業ディレクトリを設定</li>
+                                    <li>以降の <code>RUN</code>, <code>COPY</code>, <code>CMD</code> に影響</li>
+                                    <li>ディレクトリが存在しない場合は自動作成</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- .dockerignore -->
+                    <div class="content-section">
+                        <h3>🚫 .dockerignore：除外ファイル</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                <code>.dockerignore</code> ファイルを使うと、<strong>ビルドコンテキストから除外するファイル</strong>を指定できます。
+                            </p>
+
+                            <!-- .dockerignore の説明 -->
+                            <div class="info-box" style="border-color: #f472b6; background: rgba(244, 114, 182, 0.1);">
+                                <h4>🆕 .dockerignore とは？</h4>
+                                <p style="margin-top: 8px;">
+                                    <strong>ビルドコンテキストに含めたくないファイル</strong>を指定するファイルです。<br>
+                                    <code>.gitignore</code> と同じような書き方ができます。
+                                </p>
+                            </div>
+
+                            <!-- なぜ必要か -->
+                            <div class="warning-box">
+                                <h4>⚠️ なぜ必要？</h4>
+                                <p style="margin-top: 8px;">
+                                    ビルドコンテキストは<strong>すべてDockerデーモンに送信</strong>されます。
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>• <strong>node_modules</strong> など大きなフォルダ → ビルドが遅くなる</li>
+                                    <li>• <strong>.env</strong> など機密情報 → セキュリティリスク</li>
+                                    <li>• <strong>.git</strong> など不要なファイル → イメージサイズ増大</li>
+                                </ul>
+                            </div>
+
+                            <!-- 図解 -->
+                            <div style="background: rgba(15, 23, 42, 0.6); border-radius: 12px; padding: 20px; margin: 20px 0;">
+                                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center;">
+                                    <!-- ビルドコンテキスト（除外前） -->
+                                    <div style="text-align: center;">
+                                        <div style="background: #1e293b; border: 2px solid #ef4444; border-radius: 12px; padding: 16px;">
+                                            <div style="font-size: 12px; color: #ef4444; margin-bottom: 8px;">❌ .dockerignore なし</div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                                                <div style="background: #334155; padding: 4px 8px; border-radius: 4px;">📄 Dockerfile</div>
+                                                <div style="background: #334155; padding: 4px 8px; border-radius: 4px;">📄 index.js</div>
+                                                <div style="background: #7f1d1d; padding: 4px 8px; border-radius: 4px;">📁 node_modules (300MB)</div>
+                                                <div style="background: #7f1d1d; padding: 4px 8px; border-radius: 4px;">📄 .env (秘密情報)</div>
+                                                <div style="background: #7f1d1d; padding: 4px 8px; border-radius: 4px;">📁 .git</div>
+                                            </div>
+                                        </div>
+                                        <p style="font-size: 12px; color: #ef4444; margin-top: 8px;">送信: 320MB 😱</p>
+                                    </div>
+
+                                    <!-- 矢印 -->
+                                    <div style="text-align: center;">
+                                        <div style="color: #22d3ee; font-size: 28px;">→</div>
+                                        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">.dockerignore<br>で除外</div>
+                                    </div>
+
+                                    <!-- ビルドコンテキスト（除外後） -->
+                                    <div style="text-align: center;">
+                                        <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 12px; padding: 16px;">
+                                            <div style="font-size: 12px; color: #22c55e; margin-bottom: 8px;">✅ .dockerignore あり</div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                                                <div style="background: #334155; padding: 4px 8px; border-radius: 4px;">📄 Dockerfile</div>
+                                                <div style="background: #334155; padding: 4px 8px; border-radius: 4px;">📄 index.js</div>
+                                            </div>
+                                        </div>
+                                        <p style="font-size: 12px; color: #22c55e; margin-top: 8px;">送信: 5KB ✨</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>.dockerignore を作成</h4>
+                                <div class="command-box">
+                                    <div class="command">echo 'node_modules' > .dockerignore</div>
+                                    <div class="command">echo '.git' >> .dockerignore</div>
+                                    <div class="command">echo '.env' >> .dockerignore</div>
+                                </div>
+                                <p style="margin-top: 8px; color: #94a3b8; font-size: 13px;">
+                                    💡 最低限この3つを除外しておけばOK
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 よく使うパターン</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>パターン</th>
+                                            <th>説明</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>node_modules</code></td>
+                                            <td>Node.jsの依存関係</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>.git</code></td>
+                                            <td>Gitの履歴データ</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>.env</code></td>
+                                            <td>環境変数（機密情報）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>*.log</code></td>
+                                            <td>すべてのログファイル</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>**/*.tmp</code></td>
+                                            <td>サブディレクトリ含む一時ファイル</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>!important.log</code></td>
+                                            <td>除外の例外（これは含める）</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>効果を確認</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    ビルド時の出力を見てみましょう：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker image build -t my-web:v4 .</div>
+                                </div>
+                                <div class="output">[+] Building 0.5s (8/8) FINISHED
+ => [internal] load build definition from Dockerfile
+ => [internal] load <strong>.dockerignore</strong>          ← ここで読み込まれる
+ => ...</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ <code>.dockerignore</code> が読み込まれ、不要なファイルが除外されます！
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>🎯 学んだこと</h4>
+                                <ul>
+                                    <li><code>.dockerignore</code> でビルドコンテキストからファイルを除外</li>
+                                    <li>ビルド速度の向上・セキュリティ向上に効果的</li>
+                                    <li><code>.gitignore</code> と同じ書き方が使える</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 命令まとめ -->
+                    <div class="content-section">
+                        <h3>📋 Dockerfile命令まとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>🎯 よく使う命令一覧</h4>
+                                <table class="command-table" style="width: 100%; margin-top: 16px;">
+                                    <thead>
+                                        <tr>
+                                            <th>命令</th>
+                                            <th>説明</th>
+                                            <th>例</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>FROM</code></td>
+                                            <td>ベースイメージを指定</td>
+                                            <td><code>FROM nginx:1.28-alpine</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>COPY</code></td>
+                                            <td>ファイルをコピー</td>
+                                            <td><code>COPY . /app</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>RUN</code></td>
+                                            <td>コマンドを実行</td>
+                                            <td><code>RUN npm install</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>WORKDIR</code></td>
+                                            <td>作業ディレクトリ</td>
+                                            <td><code>WORKDIR /app</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>CMD</code></td>
+                                            <td>デフォルトコマンド</td>
+                                            <td><code>CMD ["node", "app.js"]</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>ENV</code></td>
+                                            <td>環境変数を設定</td>
+                                            <td><code>ENV PORT=3000</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>EXPOSE</code></td>
+                                            <td>ポートを明示</td>
+                                            <td><code>EXPOSE 80</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 典型的なDockerfileの構成</h4>
+                                <div class="dockerfile-code" style="margin-top: 12px;">
+                                    <span class="comment"># 1. ベースイメージ</span><br>
+                                    <span class="keyword">FROM</span> node:20-alpine<br><br>
+                                    <span class="comment"># 2. 作業ディレクトリ</span><br>
+                                    <span class="keyword">WORKDIR</span> /app<br><br>
+                                    <span class="comment"># 3. 依存関係ファイルをコピー</span><br>
+                                    <span class="keyword">COPY</span> package*.json ./<br><br>
+                                    <span class="comment"># 4. 依存関係をインストール</span><br>
+                                    <span class="keyword">RUN</span> npm install<br><br>
+                                    <span class="comment"># 5. ソースコードをコピー</span><br>
+                                    <span class="keyword">COPY</span> . .<br><br>
+                                    <span class="comment"># 6. ポートを明示</span><br>
+                                    <span class="keyword">EXPOSE</span> 3000<br><br>
+                                    <span class="comment"># 7. 起動コマンド</span><br>
+                                    <span class="keyword">CMD</span> ["node", "server.js"]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 後片付け -->
+                    <div class="content-section">
+                        <h3>🧹 後片付け</h3>
+                        <div class="collapsible-content">
+                            <div class="hands-on-section">
+                                <h4>作成したリソースを削除</h4>
+                                <div class="command-box">
+                                    <div class="command"># コンテナを削除（停止していない場合）</div>
+                                    <div class="command">docker container rm -f my-web-container</div>
+                                    <div class="command" style="margin-top: 8px;"># イメージを削除</div>
+                                    <div class="command">docker image rm my-web my-web:dev my-web:v1 my-web:v2 my-web:v3 my-web:v4</div>
+                                    <div class="command" style="margin-top: 8px;"># 作業フォルダを削除（任意）</div>
+                                    <div class="command">rm -rf ~/dockerfile-practice</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>📝 このセクションのまとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="success-box">
+                                <h4>✅ 学んだこと</h4>
+                                <ul>
+                                    <li>Dockerfileは<strong>イメージの設計図</strong></li>
+                                    <li><code>docker image build -t 名前 .</code> でイメージをビルド</li>
+                                    <li><strong>ビルドコンテキスト</strong>（<code>.</code>）がDockerデーモンに送られる</li>
+                                    <li><strong>FROM</strong>でベースイメージを指定</li>
+                                    <li><strong>COPY</strong>でファイルをコピー（ビルドコンテキスト内のみ）</li>
+                                    <li><strong>RUN</strong>でビルド時にコマンドを実行</li>
+                                    <li><strong>CMD</strong>でコンテナ起動時のコマンドを設定</li>
+                                    <li><strong>ENV</strong>で環境変数を設定</li>
+                                    <li><strong>WORKDIR</strong>で作業ディレクトリを設定</li>
+                                    <li><strong>.dockerignore</strong>で不要なファイルを除外</li>
+                                </ul>
+                            </div>
+
+                            <div class="wow-section" style="padding: 20px;">
+                                <h4>🎉 おめでとうございます！</h4>
+                                <p style="margin-top: 12px;">
+                                    自分だけのDockerイメージを作成できるようになりました！
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のステップ</h4>
+                                <p>
+                                    次のセクションでは<strong>Docker Hub</strong>について学びます。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    今作ったDockerfileの命令が、Docker Hubで<strong>レイヤーとして表示</strong>されることを確認しましょう！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- フッターはfooter.jsで生成されます -->
+    </div>
+
+    <!-- コース設定を読み込んでからヘッダーを初期化 -->
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+
+    <!-- サイドバー・フッター -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+
+</body>
+
+</html>

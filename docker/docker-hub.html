@@ -518,6 +518,198 @@
                         </div>
                     </div>
 
+                    <!-- イメージサイズの驚き -->
+                    <div class="content-section">
+                        <h3>😱 驚き！イメージサイズの違い</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                同じ「Python」でも、タグによって<strong>サイズが全然違います</strong>。実際に確認してみましょう！
+                            </p>
+
+                            <div class="explore-section">
+                                <h4>🔬 ハンズオン：Pythonイメージのサイズを比較</h4>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">1</span>3種類のPythonイメージをダウンロード</h4>
+                                    <div class="command-box">
+                                        <div class="command"># 通常版</div>
+                                        <div class="command">docker image pull python:3.12</div>
+                                        <div class="command" style="margin-top: 8px;"># slim版（軽量）</div>
+                                        <div class="command">docker image pull python:3.12-slim</div>
+                                        <div class="command" style="margin-top: 8px;"># alpine版（超軽量）</div>
+                                        <div class="command">docker image pull python:3.12-alpine</div>
+                                    </div>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">2</span>サイズを比較</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker image ls python</div>
+                                    </div>
+                                    <div class="output">REPOSITORY   TAG           IMAGE ID       CREATED       SIZE
+python       3.12          abc123...      2 days ago    1.02GB
+python       3.12-slim     def456...      2 days ago    154MB
+python       3.12-alpine   ghi789...      2 days ago    51.8MB</div>
+                                </div>
+                            </div>
+
+                            <div class="wow-section">
+                                <h4>🤯 サイズ比較結果</h4>
+                                <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 16px;">
+                                    <div style="text-align: center; padding: 16px; background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; border-radius: 12px;">
+                                        <p style="font-size: 32px; font-weight: 700; color: #ef4444;">1.02GB</p>
+                                        <p style="color: #94a3b8;">python:3.12</p>
+                                        <p style="font-size: 12px; color: #94a3b8;">通常版</p>
+                                    </div>
+                                    <div style="text-align: center; padding: 16px; background: rgba(251, 191, 36, 0.2); border: 2px solid #fbbf24; border-radius: 12px;">
+                                        <p style="font-size: 32px; font-weight: 700; color: #fbbf24;">154MB</p>
+                                        <p style="color: #94a3b8;">python:3.12-slim</p>
+                                        <p style="font-size: 12px; color: #94a3b8;">約85%削減！</p>
+                                    </div>
+                                    <div style="text-align: center; padding: 16px; background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; border-radius: 12px;">
+                                        <p style="font-size: 32px; font-weight: 700; color: #22c55e;">51.8MB</p>
+                                        <p style="color: #94a3b8;">python:3.12-alpine</p>
+                                        <p style="font-size: 12px; color: #94a3b8;">約95%削減！</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 なぜこんなに違うの？</h4>
+                                <table style="width: 100%; margin-top: 16px;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid #22d3ee;">
+                                            <th style="text-align: left; padding: 8px;">タグ</th>
+                                            <th style="text-align: left; padding: 8px;">ベースOS</th>
+                                            <th style="text-align: left; padding: 8px;">含まれるもの</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><code>3.12</code></td>
+                                            <td style="padding: 8px;">Debian（フル版）</td>
+                                            <td style="padding: 8px;">開発ツール、コンパイラ、多くのライブラリ</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><code>3.12-slim</code></td>
+                                            <td style="padding: 8px;">Debian（最小構成）</td>
+                                            <td style="padding: 8px;">Python実行に必要な最小限</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px;"><code>3.12-alpine</code></td>
+                                            <td style="padding: 8px;">Alpine Linux</td>
+                                            <td style="padding: 8px;">超軽量OS + Python</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 軽いほど良いわけではない</h4>
+                                <ul>
+                                    <li>• <strong>alpine</strong>は一部のPythonライブラリでビルドエラーが起きることがある</li>
+                                    <li>• <strong>slim</strong>は多くの場合で問題なく動く（おすすめ）</li>
+                                    <li>• <strong>通常版</strong>は開発時に便利（デバッグツールが揃っている）</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    💡 迷ったら<strong>slim</strong>から始めるのがおすすめ！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4>🧹 後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image rm python:3.12 python:3.12-slim python:3.12-alpine</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DockerfileがDocker Hubで見れる -->
+                    <div class="content-section">
+                        <h3>🔓 公式イメージの中身が丸見え！</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                実は、公式イメージの<strong>Dockerfile</strong>はGitHubで公開されています。
+                                「このイメージ、どうやって作られてるんだろう？」が全部分かります！
+                            </p>
+
+                            <div class="explore-section">
+                                <h4>👀 NginxのDockerfileを見てみよう</h4>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">1</span>Docker Hubでnginxのページを開く</h4>
+                                    <p>
+                                        <a href="https://hub.docker.com/_/nginx" target="_blank" style="color: #22d3ee; text-decoration: underline;">
+                                            https://hub.docker.com/_/nginx
+                                        </a>
+                                    </p>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">2</span>「Dockerfile」リンクを探す</h4>
+                                    <p style="color: #94a3b8;">
+                                        ページの「Quick reference」や「Supported tags」セクションに<br>
+                                        GitHubへのリンクがあります。
+                                    </p>
+                                    <p style="margin-top: 12px;">
+                                        <a href="https://github.com/nginxinc/docker-nginx" target="_blank" style="color: #22d3ee; text-decoration: underline;">
+                                            https://github.com/nginxinc/docker-nginx
+                                        </a>
+                                    </p>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">3</span>Dockerfileの中身を確認</h4>
+                                    <div class="layer-visual">
+                                        <p style="color: #94a3b8; font-size: 12px; margin-bottom: 12px;">nginx/mainline/debian/Dockerfile（抜粋）</p>
+                                        <pre style="background: rgba(15, 23, 42, 0.8); padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; color: #e2e8f0;"><code>FROM debian:bookworm-slim
+
+LABEL maintainer="NGINX Docker Maintainers &lt;docker-maint@nginx.com&gt;"
+
+ENV NGINX_VERSION   1.25.3
+
+RUN set -x \
+    && groupadd --system nginx \
+    && useradd --system --no-create-home -g nginx nginx \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y nginx \
+    ...
+
+COPY docker-entrypoint.sh /
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>💡 Dockerfileを見るメリット</h4>
+                                <ul>
+                                    <li>📚 <strong>学習になる</strong> - プロの書き方が分かる</li>
+                                    <li>🔧 <strong>カスタマイズのヒント</strong> - どこを変えればいいか分かる</li>
+                                    <li>🔍 <strong>セキュリティ確認</strong> - 何がインストールされているか分かる</li>
+                                    <li>🐛 <strong>トラブルシューティング</strong> - 問題の原因を特定しやすい</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 他の公式イメージのDockerfile</h4>
+                                <ul>
+                                    <li>• <a href="https://github.com/docker-library/python" target="_blank" style="color: #22d3ee;">Python</a></li>
+                                    <li>• <a href="https://github.com/docker-library/mysql" target="_blank" style="color: #22d3ee;">MySQL</a></li>
+                                    <li>• <a href="https://github.com/docker-library/postgres" target="_blank" style="color: #22d3ee;">PostgreSQL</a></li>
+                                    <li>• <a href="https://github.com/nodejs/docker-node" target="_blank" style="color: #22d3ee;">Node.js</a></li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    自分でDockerfileを書くときの参考にしましょう！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Docker Hubでイメージを探す -->
                     <div class="content-section">
                         <h3>🔎 実践：必要なイメージを探してみよう</h3>
@@ -629,16 +821,29 @@
                                     <li>イメージは<strong>レイヤー構造</strong>で効率的に管理される</li>
                                     <li><strong>公式イメージ</strong>を優先的に使うべき</li>
                                     <li>タグで<strong>バージョンを明確に指定</strong>することが重要</li>
-                                    <li>Docker Hubで<strong>イメージの詳細情報</strong>を確認できる</li>
+                                    <li><strong>alpine / slim / 通常版</strong>でサイズが大きく違う</li>
+                                    <li>公式イメージの<strong>Dockerfileが公開されている</strong></li>
                                 </ul>
+                            </div>
+
+                            <div class="wow-section" style="padding: 20px;">
+                                <h4>🎉 Dockerfileとの繋がり</h4>
+                                <p style="margin-top: 12px;">
+                                    前のセクションで学んだ<strong>Dockerfile</strong>の命令（FROM, RUN, COPY など）が、<br>
+                                    Docker Hubで<strong>レイヤーとして表示</strong>されていることが分かりましたね！
+                                </p>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    Dockerfile → ビルド → イメージ → Docker Hub という流れが見えてきました。
+                                </p>
                             </div>
 
                             <div class="info-box">
                                 <h4>🎯 次のステップ</h4>
                                 <p>
-                                    Docker Hubの仕組みが理解できたので、次は実際に<strong>イメージを取得して使ってみましょう</strong>！<br>
-                                    次のセクションでは、<code>docker pull</code>コマンドを使って、Docker Hubからイメージをダウンロードし、
-                                    実際に動かしてみます。
+                                    Dockerfileとイメージの関係が分かったので、次は<strong>複数のコンテナを連携</strong>させる方法を学びます。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    <strong>Docker Compose</strong>を使って、Webサーバー + データベースなどを一括管理しましょう！
                                 </p>
                             </div>
                         </div>
