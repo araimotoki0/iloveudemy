@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>複数コンテナを手動で起動 - Docker入門講座</title>
+    <meta name="description" content="nginx + Laravel + MySQL の3コンテナ構成を手動で起動し、Docker Composeの必要性を体感する">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="css/docker-common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            background-attachment: fixed;
+        }
+
+        .hands-on-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+        }
+
+        .hands-on-section h4 {
+            color: #22d3ee;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #0f172a;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+
+        .architecture-diagram {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 32px;
+            margin: 24px 0;
+            text-align: center;
+        }
+
+        .container-box {
+            display: inline-block;
+            background: rgba(34, 211, 238, 0.2);
+            border: 2px solid #22d3ee;
+            border-radius: 8px;
+            padding: 16px 24px;
+            margin: 8px;
+            min-width: 120px;
+        }
+
+        .container-box .name {
+            font-weight: 700;
+            color: #22d3ee;
+            font-size: 18px;
+        }
+
+        .container-box .port {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .arrow {
+            color: #22d3ee;
+            font-size: 24px;
+            margin: 0 8px;
+        }
+
+        .problem-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid #ef4444;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .problem-box h4 {
+            color: #ef4444;
+            margin-bottom: 12px;
+        }
+
+        .long-command {
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
+
+                    <!-- イントロ -->
+                    <div class="content-section">
+                        <h3>🎯 このセクションのゴール</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                実際のWebアプリケーション開発では、<strong>複数のコンテナを連携</strong>させて使います。
+                                今回は nginx + Laravel + MySQL の3コンテナ構成を<strong>手動で起動</strong>してみましょう。
+                            </p>
+
+                            <div class="architecture-diagram">
+                                <h4 style="color: #22d3ee; margin-bottom: 20px;">今回作る構成</h4>
+                                <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
+                                    <div style="color: #94a3b8;">ブラウザ</div>
+                                    <span class="arrow">→</span>
+                                    <div class="container-box">
+                                        <div class="name">nginx</div>
+                                        <div class="port">:80</div>
+                                    </div>
+                                    <span class="arrow">→</span>
+                                    <div class="container-box">
+                                        <div class="name">Laravel</div>
+                                        <div class="port">PHP-FPM :9000</div>
+                                    </div>
+                                    <span class="arrow">→</span>
+                                    <div class="container-box">
+                                        <div class="name">MySQL</div>
+                                        <div class="port">:3306</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 なぜこの構成？</h4>
+                                <ul>
+                                    <li><strong>nginx</strong>: Webサーバー（リクエストを受け取る）</li>
+                                    <li><strong>Laravel/PHP-FPM</strong>: アプリケーション（PHPを実行）</li>
+                                    <li><strong>MySQL</strong>: データベース（データを保存）</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    これが実際のWebアプリケーション開発でよく使われる構成です。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 準備 -->
+                    <div class="content-section">
+                        <h3>📁 作業ディレクトリの準備</h3>
+                        <div class="collapsible-content">
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>プロジェクトフォルダを作成</h4>
+                                <div class="command-box">
+                                    <div class="command">mkdir -p ~/docker-laravel</div>
+                                    <div class="command">cd ~/docker-laravel</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>必要なフォルダを作成</h4>
+                                <div class="command-box">
+                                    <div class="command"># nginx設定ファイル用</div>
+                                    <div class="command">mkdir -p docker/nginx</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>nginx設定ファイルを作成</h4>
+                                <p style="color: #94a3b8; margin-bottom: 12px;">
+                                    以下の内容で <code>docker/nginx/default.conf</code> を作成してください。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">cat > docker/nginx/default.conf << 'EOF'
+server {
+    listen 80;
+    server_name localhost;
+    root /var/www/html/public;
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass app:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+EOF</div>
+                                </div>
+                                <p style="color: #94a3b8; margin-top: 12px;">
+                                    <strong>ポイント:</strong> <code>fastcgi_pass app:9000</code> で「app」というコンテナ名を指定しています。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ネットワーク作成 -->
+                    <div class="content-section">
+                        <h3>🌐 Dockerネットワークの作成</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                複数のコンテナが<strong>お互いに通信</strong>するために、専用のネットワークを作成します。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>ネットワークを作成</h4>
+                                <div class="command-box">
+                                    <div class="command">docker network create laravel-network</div>
+                                </div>
+                                <div class="output">abc123def456...</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 なぜネットワークが必要？</h4>
+                                <p>
+                                    同じネットワークに所属するコンテナは、<strong>コンテナ名で通信</strong>できます。
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>nginx → <code>app:9000</code> でLaravelコンテナに接続</li>
+                                    <li>Laravel → <code>db:3306</code> でMySQLコンテナに接続</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MySQLコンテナ -->
+                    <div class="content-section">
+                        <h3>🗄️ MySQLコンテナを起動</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                まずデータベースから起動します。他のコンテナがDBに依存するためです。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">5</span>MySQLコンテナを起動</h4>
+                                <div class="long-command">docker container run -d \
+  --name db \
+  --network laravel-network \
+  -e MYSQL_ROOT_PASSWORD=secret \
+  -e MYSQL_DATABASE=laravel \
+  -e MYSQL_USER=laravel \
+  -e MYSQL_PASSWORD=secret \
+  -v mysql-data:/var/lib/mysql \
+  mysql:8.0</div>
+                                <p style="color: #94a3b8; margin-top: 12px;">
+                                    <strong>長い...</strong> でもこれでやっと1つ目のコンテナが起動しました。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 オプションの説明</h4>
+                                <table style="width: 100%; margin-top: 12px;">
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>--name db</code></td>
+                                        <td style="padding: 8px;">コンテナ名を「db」に設定</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>--network</code></td>
+                                        <td style="padding: 8px;">作成したネットワークに参加</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>-e MYSQL_...</code></td>
+                                        <td style="padding: 8px;">環境変数でDB設定</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;"><code>-v mysql-data:...</code></td>
+                                        <td style="padding: 8px;">データを永続化</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Laravelコンテナ -->
+                    <div class="content-section">
+                        <h3>🐘 Laravel/PHPコンテナを起動</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                次にアプリケーションコンテナを起動します。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">6</span>Laravelプロジェクトを作成</h4>
+                                <p style="color: #94a3b8; margin-bottom: 12px;">
+                                    まずComposerでLaravelプロジェクトを作成します。
+                                </p>
+                                <div class="long-command">docker container run --rm \
+  -v $(pwd):/app \
+  -w /app \
+  composer:latest \
+  composer create-project laravel/laravel src</div>
+                                <p style="color: #94a3b8; margin-top: 12px;">
+                                    これで <code>src/</code> フォルダにLaravelがインストールされます（少し時間がかかります）。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">7</span>PHP-FPMコンテナを起動</h4>
+                                <div class="long-command">docker container run -d \
+  --name app \
+  --network laravel-network \
+  -v $(pwd)/src:/var/www/html \
+  -e DB_CONNECTION=mysql \
+  -e DB_HOST=db \
+  -e DB_PORT=3306 \
+  -e DB_DATABASE=laravel \
+  -e DB_USERNAME=laravel \
+  -e DB_PASSWORD=secret \
+  php:8.3-fpm</div>
+                                <p style="color: #94a3b8; margin-top: 12px;">
+                                    <strong>また長い...</strong> 2つ目のコンテナが起動しました。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- nginxコンテナ -->
+                    <div class="content-section">
+                        <h3>🌐 nginxコンテナを起動</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                最後にWebサーバーを起動します。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">8</span>nginxコンテナを起動</h4>
+                                <div class="long-command">docker container run -d \
+  --name web \
+  --network laravel-network \
+  -p 8080:80 \
+  -v $(pwd)/src:/var/www/html \
+  -v $(pwd)/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf \
+  nginx:1.28</div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">9</span>動作確認</h4>
+                                <p style="margin-bottom: 12px;">
+                                    ブラウザで <a href="http://localhost:8080" target="_blank" style="color: #22d3ee;">http://localhost:8080</a> にアクセス！
+                                </p>
+                                <div class="success-box">
+                                    <p>Laravelのウェルカムページが表示されれば成功です！</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 問題点 -->
+                    <div class="content-section">
+                        <h3>😰 ここまでの問題点</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                動きましたね！でも...ちょっと振り返ってみましょう。
+                            </p>
+
+                            <div class="problem-box">
+                                <h4>😱 問題1: コマンドが長すぎる</h4>
+                                <p>MySQLコンテナを起動するコマンドだけでこれだけ...</p>
+                                <div class="long-command">docker container run -d --name db --network laravel-network -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=laravel -e MYSQL_USER=laravel -e MYSQL_PASSWORD=secret -v mysql-data:/var/lib/mysql mysql:8.0</div>
+                                <p style="margin-top: 12px;">覚えられますか？毎回打てますか？</p>
+                            </div>
+
+                            <div class="problem-box">
+                                <h4>😱 問題2: 起動順序を間違えると動かない</h4>
+                                <ul>
+                                    <li>1. ネットワーク作成</li>
+                                    <li>2. MySQL起動（先に起動しないとLaravelが接続できない）</li>
+                                    <li>3. Laravel起動</li>
+                                    <li>4. nginx起動</li>
+                                </ul>
+                                <p style="margin-top: 12px;">順番を間違えたら？ → エラーになる</p>
+                            </div>
+
+                            <div class="problem-box">
+                                <h4>😱 問題3: 設定がどこにも残らない</h4>
+                                <ul>
+                                    <li>コマンド履歴から探す？</li>
+                                    <li>メモ帳に書いておく？</li>
+                                    <li>チームメンバーにどう共有する？</li>
+                                </ul>
+                            </div>
+
+                            <div class="problem-box">
+                                <h4>😱 問題4: 停止・削除も面倒</h4>
+                                <div class="command-box">
+                                    <div class="command"># 停止（3回）</div>
+                                    <div class="command">docker container stop web app db</div>
+                                    <div class="command" style="margin-top: 8px;"># 削除（3回）</div>
+                                    <div class="command">docker container rm web app db</div>
+                                    <div class="command" style="margin-top: 8px;"># ネットワーク削除</div>
+                                    <div class="command">docker network rm laravel-network</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 解決策の予告 -->
+                    <div class="content-section">
+                        <h3>💡 解決策: Docker Compose</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                これらの問題を<strong>すべて解決</strong>するのが<strong>Docker Compose</strong>です！
+                            </p>
+
+                            <div class="success-box">
+                                <h4>Docker Composeでできること</h4>
+                                <ul>
+                                    <li>✅ 設定を<strong>ファイル（yml）に保存</strong></li>
+                                    <li>✅ <strong>1コマンド</strong>で全コンテナ起動</li>
+                                    <li>✅ 起動順序を<strong>自動管理</strong></li>
+                                    <li>✅ <strong>1コマンド</strong>で全コンテナ停止・削除</li>
+                                    <li>✅ チームで<strong>設定を共有</strong>できる</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🎯 次のセクション</h4>
+                                <p>
+                                    次のセクションで、今やったことを<strong>docker-compose.yml</strong>に書き換えます。
+                                    驚くほど簡単になりますよ！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 後片付け -->
+                    <div class="content-section">
+                        <h3>🧹 後片付け</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                次のセクションに進む前に、今作ったコンテナを削除しておきましょう。
+                            </p>
+
+                            <div class="hands-on-section">
+                                <h4>コンテナとネットワークを削除</h4>
+                                <div class="command-box">
+                                    <div class="command"># コンテナを停止・削除</div>
+                                    <div class="command">docker container stop web app db</div>
+                                    <div class="command">docker container rm web app db</div>
+                                    <div class="command" style="margin-top: 8px;"># ネットワークを削除</div>
+                                    <div class="command">docker network rm laravel-network</div>
+                                    <div class="command" style="margin-top: 8px;"># ボリュームを削除</div>
+                                    <div class="command">docker volume rm mysql-data</div>
+                                </div>
+                                <p style="color: #94a3b8; margin-top: 12px;">
+                                    <strong>注意:</strong> srcフォルダ（Laravelプロジェクト）は残しておいてください。次で使います。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+    <script src="js/docker-common.js"></script>
+</body>
+
+</html>

@@ -1058,11 +1058,97 @@ failed to calculate checksum of ref:
                                 </div>
                             </div>
 
+                            <!-- 実際のDockerfileの作り方 -->
+                            <div class="info-box" style="border-color: #22c55e; background: rgba(34, 197, 94, 0.1);">
+                                <h4>🛠️ 実際のDockerfileの作り方（実践的なワークフロー）</h4>
+                                <p style="margin-top: 8px;">
+                                    実務では、いきなり完璧なDockerfileを書くのではなく、<strong>試行錯誤しながら作っていきます</strong>。
+                                </p>
+
+                                <div style="margin-top: 16px;">
+                                    <h5 style="color: #22c55e; font-size: 15px; margin-bottom: 12px;">📝 ポイント1：RUNは1つにまとめない（開発段階）</h5>
+                                    <p style="color: #94a3b8; font-size: 14px;">
+                                        開発・学習段階では、RUNを分けて書いた方がデバッグしやすいです：
+                                    </p>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
+                                        <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid #22c55e; border-radius: 8px; padding: 12px;">
+                                            <div style="color: #22c55e; font-weight: 600; margin-bottom: 8px;">✅ 開発中はこう書く</div>
+                                            <div class="dockerfile-code" style="font-size: 12px;">
+<span class="keyword">RUN</span> apt-get update
+<span class="keyword">RUN</span> apt-get install -y git
+<span class="keyword">RUN</span> apt-get install -y curl</div>
+                                            <p style="font-size: 11px; color: #94a3b8; margin-top: 8px;">• エラー箇所がわかりやすい<br>• レイヤー単位でキャッシュ（下記参照↓）</p>
+                                        </div>
+                                        <div style="background: rgba(251, 191, 36, 0.1); border: 2px solid #fbbf24; border-radius: 8px; padding: 12px;">
+                                            <div style="color: #fbbf24; font-weight: 600; margin-bottom: 8px;">⚡ 必要なものが決まったらまとめる</div>
+                                            <div class="dockerfile-code" style="font-size: 12px;">
+<span class="keyword">RUN</span> apt-get update && \
+    apt-get install -y git curl</div>
+                                            <p style="font-size: 11px; color: #94a3b8; margin-top: 8px;">• レイヤーが減る<br>• イメージサイズが小さくなる</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="margin-top: 24px;">
+                                    <h5 style="color: #22c55e; font-size: 15px; margin-bottom: 12px;">📝 ポイント2：コンテナ内で試す → 成功したらDockerfileに追記</h5>
+                                    <p style="color: #94a3b8; font-size: 14px;">
+                                        「何をインストールすればいいか」は、まずコンテナ内で試してから確定させます：
+                                    </p>
+                                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <span style="background: #22c55e; color: #0f172a; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">1</span>
+                                            <div style="flex: 1; background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 8px 12px;">
+                                                <code style="font-size: 12px;">docker container run -it php:8.3-fpm bash</code>
+                                                <span style="color: #64748b; font-size: 11px; margin-left: 8px;">← コンテナに入る</span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <span style="background: #22c55e; color: #0f172a; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">2</span>
+                                            <div style="flex: 1; background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 8px 12px;">
+                                                <code style="font-size: 12px;">apt-get update && apt-get install -y curl</code>
+                                                <span style="color: #64748b; font-size: 11px; margin-left: 8px;">← 試す</span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <span style="background: #22c55e; color: #0f172a; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">3</span>
+                                            <div style="flex: 1; background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 8px 12px;">
+                                                <code style="font-size: 12px;">curl --version</code>
+                                                <span style="color: #64748b; font-size: 11px; margin-left: 8px;">← 動作確認 → 成功！</span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <span style="background: #22c55e; color: #0f172a; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">4</span>
+                                            <div style="flex: 1; background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 8px 12px;">
+                                                <span style="color: #22c55e; font-size: 12px;">Dockerfileに <code>RUN apt-get install -y curl</code> を追記</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="warning-box" style="margin-top: 20px; border-color: #ef4444;">
+                                    <h4 style="color: #ef4444;">⚠️ 重要：コンテナ内の変更は消える！</h4>
+                                    <p style="margin-top: 8px;">
+                                        コンテナ内でインストールした内容は、<strong>exitしてコンテナを削除すると消えます</strong>。<br>
+                                        だからこそ、<strong>うまくいったコマンドは必ずDockerfileに追記</strong>してください！
+                                    </p>
+                                </div>
+
+                                <div style="margin-top: 16px; padding: 12px; background: rgba(34, 211, 238, 0.1); border-radius: 8px;">
+                                    <p style="color: #22d3ee; font-size: 14px; margin: 0;">
+                                        💡 この「試す → 成功したら追記」のサイクルを繰り返して、Dockerfileを完成させていきます。
+                                    </p>
+                                </div>
+                            </div>
+
                             <div class="info-box">
                                 <h4>🧱 レイヤーとは？</h4>
                                 <p style="margin-top: 8px;">
                                     Dockerイメージは「レイヤー」の積み重ねで構成されています。<br>
                                     各命令（FROM、RUN、COPYなど）が1つのレイヤーを作ります。
+                                </p>
+                                <p style="margin-top: 12px; color: #fbbf24; font-size: 14px;">
+                                    ⚡ <strong>キャッシュはレイヤー単位</strong>で保存されます。<br>
+                                    だからRUNを分けておくと、変更していないレイヤーはスキップされてビルドが速くなります。
                                 </p>
                                 <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 16px;">
                                     <div style="background: #334155; border: 2px solid #22d3ee; border-radius: 8px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
@@ -1148,23 +1234,22 @@ ghi789         2 min ago       25MB    RUN apt-get update
                             </div>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">2</span>再ビルド（タグを変えて）</h4>
+                                <h4><span class="step-number">6</span>ビルド</h4>
                                 <div class="command-box">
                                     <div class="command">docker image build -t my-web:v2 .</div>
                                 </div>
-                                <div class="output">[+] Building 3.1s (8/8) FINISHED
- => [1/3] FROM docker.io/library/nginx:1.28-alpine
- => [2/3] RUN apk add --no-cache curl
- => [3/3] COPY index.html /usr/share/nginx/html/
+                                <div class="output">[+] Building 16.1s (6/6) FINISHED
+ => [1/2] FROM docker.io/library/php:8.3-fpm
+ => [2/2] RUN apt-get update && apt-get install -y git curl libzip-dev ...
  => exporting to image
  => => naming to docker.io/library/my-web:v2</div>
                                 <p style="margin-top: 12px; color: #94a3b8;">
-                                    <strong>[2/3] RUN apk add --no-cache curl</strong> が実行されています！
+                                    RUNが1つにまとまっているので、<strong>レイヤーも1つ</strong>になります。
                                 </p>
                             </div>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">3</span>curlがインストールされたか確認</h4>
+                                <h4><span class="step-number">7</span>curlがインストールされたか確認</h4>
                                 <div class="command-box">
                                     <div class="command">docker container run --rm my-web:v2 curl --version</div>
                                 </div>
@@ -1200,11 +1285,8 @@ ghi789         2 min ago       25MB    RUN apt-get update
                                     <strong>コンテナ起動時</strong>に実行されるデフォルトのコマンドを設定します。
                                 </p>
                                 <div class="dockerfile-code" style="margin-top: 12px;">
-                                    <span class="keyword">CMD</span> ["実行ファイル", "引数1", "引数2"]
+                                    <span class="keyword">CMD</span> ["コマンド", "引数1", "引数2"]
                                 </div>
-                                <p style="margin-top: 12px; color: #94a3b8;">
-                                    配列形式（exec form）が推奨されます。
-                                </p>
                             </div>
 
                             <!-- RUN vs CMD -->
@@ -1233,7 +1315,7 @@ ghi789         2 min ago       25MB    RUN apt-get update
                                     <div class="command">echo 'FROM nginx:1.28-alpine' > Dockerfile</div>
                                     <div class="command">echo 'RUN apk add --no-cache curl' >> Dockerfile</div>
                                     <div class="command">echo 'COPY index.html /usr/share/nginx/html/' >> Dockerfile</div>
-                                    <div class="command">echo 'CMD ["nginx", "-g", "daemon off;"]' >> Dockerfile</div>
+                                    <div class="command">echo 'CMD ["ls", "-la"]' >> Dockerfile</div>
                                 </div>
                             </div>
 
@@ -1245,20 +1327,16 @@ ghi789         2 min ago       25MB    RUN apt-get update
                                         <code style="color: #f472b6;">CMD</code>
                                     </div>
                                     <div style="background: #1e293b; border: 2px solid #22d3ee; border-radius: 8px; padding: 8px 12px;">
-                                        <div style="font-size: 10px; color: #94a3b8;">実行ファイル</div>
-                                        <code style="color: #22d3ee;">"nginx"</code>
+                                        <div style="font-size: 10px; color: #94a3b8;">コマンド</div>
+                                        <code style="color: #22d3ee;">"ls"</code>
                                     </div>
                                     <div style="background: #1e293b; border: 2px solid #fbbf24; border-radius: 8px; padding: 8px 12px;">
-                                        <div style="font-size: 10px; color: #94a3b8;">オプション</div>
-                                        <code style="color: #fbbf24;">"-g"</code>
-                                    </div>
-                                    <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 8px; padding: 8px 12px;">
-                                        <div style="font-size: 10px; color: #94a3b8;">設定</div>
-                                        <code style="color: #22c55e;">"daemon off;"</code>
+                                        <div style="font-size: 10px; color: #94a3b8;">引数</div>
+                                        <code style="color: #fbbf24;">"-la"</code>
                                     </div>
                                 </div>
                                 <p style="margin-top: 12px; color: #94a3b8;">
-                                    💡 <code>daemon off;</code> はnginxをフォアグラウンドで動かす設定（コンテナが終了しないように）
+                                    💡 JSON配列形式で書きます。ダブルクォート <code>"</code> を使うこと！
                                 </p>
                             </div>
 
@@ -1321,6 +1399,8 @@ ghi789         2 min ago       25MB    RUN apt-get update
                                     <div class="command">echo 'FROM nginx:1.28-alpine' > Dockerfile</div>
                                     <div class="command">echo 'ENV APP_NAME="My Docker App"' >> Dockerfile</div>
                                     <div class="command">echo 'ENV APP_VERSION="1.0"' >> Dockerfile</div>
+                                    <div class="command">echo 'ENV TZ=Asia/Tokyo' >> Dockerfile</div>
+                                    <div class="command">echo 'ENV LANG=ja_JP.UTF-8' >> Dockerfile</div>
                                     <div class="command">echo 'RUN apk add --no-cache curl' >> Dockerfile</div>
                                     <div class="command">echo 'COPY index.html /usr/share/nginx/html/' >> Dockerfile</div>
                                     <div class="command">echo 'CMD ["nginx", "-g", "daemon off;"]' >> Dockerfile</div>
@@ -1330,17 +1410,19 @@ ghi789         2 min ago       25MB    RUN apt-get update
                             <div class="hands-on-section">
                                 <h4><span class="step-number">2</span>再ビルド</h4>
                                 <div class="command-box">
-                                    <div class="command">docker image build -t my-web:v3 .</div>
+                                    <div class="command">docker image build -t my-web:v4 .</div>
                                 </div>
                             </div>
 
                             <div class="hands-on-section">
                                 <h4><span class="step-number">3</span>環境変数を確認</h4>
                                 <div class="command-box">
-                                    <div class="command">docker container run --rm my-web:v3 env | grep APP</div>
+                                    <div class="command">docker container run --rm my-web:v4 env | grep -E "APP|TZ|LANG"</div>
                                 </div>
                                 <div class="output">APP_NAME=My Docker App
-APP_VERSION=1.0</div>
+APP_VERSION=1.0
+TZ=Asia/Tokyo
+LANG=ja_JP.UTF-8</div>
                                 <p style="margin-top: 12px; color: #22c55e;">
                                     ✅ 環境変数が設定されています！
                                 </p>
@@ -1351,11 +1433,10 @@ APP_VERSION=1.0</div>
                                 <div class="dockerfile-code" style="margin-top: 12px;">
                                     <span class="comment"># 本番/開発の切り替え</span><br>
                                     <span class="keyword">ENV</span> NODE_ENV=production<br><br>
-                                    <span class="comment"># ポート番号</span><br>
-                                    <span class="keyword">ENV</span> PORT=3000<br><br>
-                                    <span class="comment"># データベース接続</span><br>
-                                    <span class="keyword">ENV</span> DB_HOST=localhost<br>
-                                    <span class="keyword">ENV</span> DB_PORT=5432
+                                    <span class="comment"># タイムゾーン</span><br>
+                                    <span class="keyword">ENV</span> TZ=Asia/Tokyo<br><br>
+                                    <span class="comment"># 言語設定</span><br>
+                                    <span class="keyword">ENV</span> LANG=ja_JP.UTF-8
                                 </div>
                             </div>
 
@@ -1363,7 +1444,7 @@ APP_VERSION=1.0</div>
                                 <h4>💡 docker run で上書きできる</h4>
                                 <div class="command-box" style="margin-top: 12px;">
                                     <div class="command"># -e オプションで環境変数を上書き</div>
-                                    <div class="command">docker container run -e APP_VERSION="2.0" my-web:v3</div>
+                                    <div class="command">docker container run -e APP_VERSION="2.0" my-web:v4</div>
                                 </div>
                             </div>
 
@@ -1371,29 +1452,27 @@ APP_VERSION=1.0</div>
                             <div class="info-box" style="border-color: #64748b; background: rgba(100, 116, 139, 0.1);">
                                 <h4>📚 上級者向け参考：ARG</h4>
                                 <p style="margin-top: 8px;">
-                                    <code>ENV</code> と似た命令に <code>ARG</code> があります。
+                                    <code>ENV</code> と似た命令に <code>ARG</code> があります。<br>
+                                    <strong>ARGはビルド時にだけ使える変数</strong>で、完成したイメージには残りません。
                                 </p>
-                                <table class="command-table" style="width: 100%; margin-top: 12px;">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th>ENV</th>
-                                            <th>ARG</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>使える時期</td>
-                                            <td>ビルド時 + <strong>実行時</strong></td>
-                                            <td><strong>ビルド時のみ</strong></td>
-                                        </tr>
-                                        <tr>
-                                            <td>値の上書き</td>
-                                            <td><code>docker run -e</code></td>
-                                            <td><code>docker build --build-arg</code></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+
+                                <div style="margin-top: 16px;">
+                                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 8px;">Dockerfileの例：</p>
+                                    <div class="dockerfile-code" style="font-size: 12px;">
+<span class="keyword">ARG</span> NODE_VERSION=20<br>
+<span class="keyword">FROM</span> node:${NODE_VERSION}-alpine</div>
+                                </div>
+
+                                <div style="margin-top: 12px;">
+                                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 8px;">ビルド時に値を変更：</p>
+                                    <div class="command-box">
+                                        <div class="command"># デフォルト（node:20）でビルド</div>
+                                        <div class="command">docker image build -t myapp .</div>
+                                        <div class="command" style="margin-top: 8px;"># node:18 でビルド</div>
+                                        <div class="command">docker image build --build-arg NODE_VERSION=18 -t myapp .</div>
+                                    </div>
+                                </div>
+
                                 <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
                                     💡 この講座では <code>ENV</code> だけ覚えればOKです。<br>
                                     <code>ARG</code> はCI/CDパイプラインやマルチステージビルドで使われます。
@@ -1404,9 +1483,36 @@ APP_VERSION=1.0</div>
                                 <h4>🎯 学んだこと</h4>
                                 <ul>
                                     <li><code>ENV</code> でコンテナ内の環境変数を設定</li>
-                                    <li><code>docker run -e</code> で上書き可能</li>
+                                    <li><code>docker container run -e</code> で上書き可能</li>
                                     <li>設定値の外部化に便利</li>
                                 </ul>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ ENVに機密情報を書かない！</h4>
+                                <p style="margin-top: 8px;">
+                                    ENVに書いた値は<strong>イメージに残る</strong>ため、誰でも見れてしまいます。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># イメージの環境変数を確認できる</div>
+                                    <div class="command">docker image inspect my-web:v4 | grep -A 10 '"Env"'</div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                                    <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; border-radius: 8px; padding: 12px;">
+                                        <div style="color: #ef4444; font-weight: 600; margin-bottom: 8px;">❌ Dockerfileに書かない</div>
+                                        <div style="font-size: 12px; color: #94a3b8;">
+                                            • DBパスワード<br>
+                                            • APIキー・シークレット<br>
+                                            • 認証トークン
+                                        </div>
+                                    </div>
+                                    <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid #22c55e; border-radius: 8px; padding: 12px;">
+                                        <div style="color: #22c55e; font-weight: 600; margin-bottom: 8px;">✅ 実行時に渡す</div>
+                                        <div class="command-box" style="margin-top: 8px; font-size: 11px;">
+                                            <div class="command">docker container run -e DB_PASSWORD="secret" ...</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1424,58 +1530,94 @@ APP_VERSION=1.0</div>
                                 <h4>🆕 WORKDIR とは？</h4>
                                 <p style="margin-top: 8px;">
                                     以降の <code>RUN</code>, <code>CMD</code>, <code>COPY</code> などの<strong>作業ディレクトリ</strong>を設定します。<br>
-                                    <code>cd</code> コマンドのようなものです。
+                                    <code>cd</code> コマンドのようなものです。ディレクトリが存在しない場合は自動作成されます。
                                 </p>
-                                <div class="dockerfile-code" style="margin-top: 12px;">
-                                    <span class="keyword">WORKDIR</span> /path/to/dir
+                                <div class="dockerfile-code" style="margin-top: 12px; text-align: left;">
+<span class="keyword">WORKDIR</span> /app
                                 </div>
                             </div>
 
-                            <div class="info-box">
-                                <h4>📝 WORKDIR の効果</h4>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
-                                    <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; border-radius: 8px; padding: 12px;">
-                                        <div style="color: #ef4444; font-weight: 600; margin-bottom: 8px;">❌ WORKDIRなし</div>
-                                        <div class="dockerfile-code" style="font-size: 11px; padding: 8px;">
-                                            <span class="keyword">COPY</span> . /app/<br>
-                                            <span class="keyword">RUN</span> cd /app && npm install
-                                        </div>
-                                    </div>
-                                    <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid #22c55e; border-radius: 8px; padding: 12px;">
-                                        <div style="color: #22c55e; font-weight: 600; margin-bottom: 8px;">✅ WORKDIRあり</div>
-                                        <div class="dockerfile-code" style="font-size: 11px; padding: 8px;">
-                                            <span class="keyword">WORKDIR</span> /app<br>
-                                            <span class="keyword">COPY</span> . .<br>
-                                            <span class="keyword">RUN</span> npm install
-                                        </div>
-                                    </div>
+                            <div class="warning-box">
+                                <h4>⚠️ WORKDIRを指定しないと / （ルート）になる</h4>
+                                <p style="margin-top: 8px;">
+                                    WORKDIRを指定しない場合、作業ディレクトリは <code>/</code>（ルートディレクトリ）になります。<br>
+                                    コンテナに入った時のプロンプトが <code>/#</code> になっているのはこのためです。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>WORKDIRなしでファイルを作成</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    まずWORKDIRを指定せずにファイルを作ってみます：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">echo 'FROM nginx:1.28-alpine' > Dockerfile</div>
+                                    <div class="command">echo 'RUN touch test.txt' >> Dockerfile</div>
+                                </div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker image build -t workdir-test:v1 .</div>
                                 </div>
                             </div>
 
-                            <div class="info-box">
-                                <h4>💡 典型的なNode.js アプリのDockerfile</h4>
-                                <div class="dockerfile-code" style="margin-top: 12px;">
-                                    <span class="keyword">FROM</span> node:20-alpine<br><br>
-                                    <span class="comment"># 作業ディレクトリを設定</span><br>
-                                    <span class="keyword">WORKDIR</span> /app<br><br>
-                                    <span class="comment"># 依存関係ファイルをコピー</span><br>
-                                    <span class="keyword">COPY</span> package*.json ./<br><br>
-                                    <span class="comment"># 依存関係をインストール</span><br>
-                                    <span class="keyword">RUN</span> npm install<br><br>
-                                    <span class="comment"># ソースコードをコピー</span><br>
-                                    <span class="keyword">COPY</span> . .<br><br>
-                                    <span class="keyword">EXPOSE</span> 3000<br><br>
-                                    <span class="keyword">CMD</span> ["node", "server.js"]
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">2</span>ファイルがどこにあるか確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run --rm workdir-test:v1 ls -la /test.txt</div>
                                 </div>
+                                <div class="output">-rw-r--r--    1 root     root             0 Jan 15 10:00 /test.txt</div>
                                 <p style="margin-top: 12px; color: #94a3b8;">
-                                    💡 <code>WORKDIR /app</code> を設定すると、以降の <code>COPY . .</code> は <code>/app</code> にコピーされます。
+                                    → ルート <code>/</code> に作成されました。
                                 </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>WORKDIRを指定してファイルを作成</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    今度はWORKDIRを指定します：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">echo 'FROM nginx:1.28-alpine' > Dockerfile</div>
+                                    <div class="command">echo 'WORKDIR /app' >> Dockerfile</div>
+                                    <div class="command">echo 'RUN touch test.txt' >> Dockerfile</div>
+                                </div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker image build -t workdir-test:v2 .</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>ファイルの場所を確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run --rm workdir-test:v2 ls -la /app/test.txt</div>
+                                </div>
+                                <div class="output">-rw-r--r--    1 root     root             0 Jan 15 10:00 /app/test.txt</div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    → <code>/app</code> に作成されました！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">5</span>プロンプトの違いを確認</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    コンテナに入った時のプロンプトも変わります：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command"># WORKDIRなし → プロンプトは /#</div>
+                                    <div class="command">docker container run --rm -it workdir-test:v1 /bin/sh</div>
+                                </div>
+                                <div class="output">/ #</div>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># WORKDIRあり → プロンプトは /app #</div>
+                                    <div class="command">docker container run --rm -it workdir-test:v2 /bin/sh</div>
+                                </div>
+                                <div class="output">/app #</div>
                             </div>
 
                             <div class="success-box">
                                 <h4>🎯 学んだこと</h4>
                                 <ul>
                                     <li><code>WORKDIR</code> で作業ディレクトリを設定</li>
+                                    <li>指定しないとルート <code>/</code> になる</li>
                                     <li>以降の <code>RUN</code>, <code>COPY</code>, <code>CMD</code> に影響</li>
                                     <li>ディレクトリが存在しない場合は自動作成</li>
                                 </ul>
@@ -1488,14 +1630,14 @@ APP_VERSION=1.0</div>
                         <h3>🚫 .dockerignore：除外ファイル</h3>
                         <div class="collapsible-content">
                             <p>
-                                <code>.dockerignore</code> ファイルを使うと、<strong>ビルドコンテキストから除外するファイル</strong>を指定できます。
+                                <code>.dockerignore</code> ファイルを使うと、<strong>COPYでコピーされないファイル</strong>を指定できます。
                             </p>
 
                             <!-- .dockerignore の説明 -->
                             <div class="info-box" style="border-color: #f472b6; background: rgba(244, 114, 182, 0.1);">
                                 <h4>🆕 .dockerignore とは？</h4>
                                 <p style="margin-top: 8px;">
-                                    <strong>ビルドコンテキストに含めたくないファイル</strong>を指定するファイルです。<br>
+                                    <code>COPY</code> でコピーしたくないファイルやフォルダを指定するファイルです。<br>
                                     <code>.gitignore</code> と同じような書き方ができます。
                                 </p>
                             </div>
@@ -1503,126 +1645,120 @@ APP_VERSION=1.0</div>
                             <!-- なぜ必要か -->
                             <div class="warning-box">
                                 <h4>⚠️ なぜ必要？</h4>
-                                <p style="margin-top: 8px;">
-                                    ビルドコンテキストは<strong>すべてDockerデーモンに送信</strong>されます。
-                                </p>
-                                <ul style="margin-top: 12px;">
-                                    <li>• <strong>node_modules</strong> など大きなフォルダ → ビルドが遅くなる</li>
+                                <ul style="margin-top: 8px;">
+                                    <li>• <strong>node_modules</strong> → コンテナ内で <code>npm install</code> するので不要。ホスト（Mac）とコンテナ（Linux）でOSが違うと動かないパッケージもある</li>
                                     <li>• <strong>.env</strong> など機密情報 → セキュリティリスク</li>
-                                    <li>• <strong>.git</strong> など不要なファイル → イメージサイズ増大</li>
+                                    <li>• <strong>.git</strong> など不要なファイル → 無駄なコピー</li>
                                 </ul>
                             </div>
 
-                            <!-- 図解 -->
-                            <div style="background: rgba(15, 23, 42, 0.6); border-radius: 12px; padding: 20px; margin: 20px 0;">
-                                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center;">
-                                    <!-- ビルドコンテキスト（除外前） -->
-                                    <div style="text-align: center;">
-                                        <div style="background: #1e293b; border: 2px solid #ef4444; border-radius: 12px; padding: 16px;">
-                                            <div style="font-size: 12px; color: #ef4444; margin-bottom: 8px;">❌ .dockerignore なし</div>
-                                            <div style="display: flex; flex-direction: column; gap: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
-                                                <div style="background: #334155; padding: 4px 8px; border-radius: 4px;">📄 Dockerfile</div>
-                                                <div style="background: #334155; padding: 4px 8px; border-radius: 4px;">📄 index.js</div>
-                                                <div style="background: #7f1d1d; padding: 4px 8px; border-radius: 4px;">📁 node_modules (300MB)</div>
-                                                <div style="background: #7f1d1d; padding: 4px 8px; border-radius: 4px;">📄 .env (秘密情報)</div>
-                                                <div style="background: #7f1d1d; padding: 4px 8px; border-radius: 4px;">📁 .git</div>
-                                            </div>
-                                        </div>
-                                        <p style="font-size: 12px; color: #ef4444; margin-top: 8px;">送信: 320MB 😱</p>
-                                    </div>
-
-                                    <!-- 矢印 -->
-                                    <div style="text-align: center;">
-                                        <div style="color: #22d3ee; font-size: 28px;">→</div>
-                                        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">.dockerignore<br>で除外</div>
-                                    </div>
-
-                                    <!-- ビルドコンテキスト（除外後） -->
-                                    <div style="text-align: center;">
-                                        <div style="background: #1e293b; border: 2px solid #22c55e; border-radius: 12px; padding: 16px;">
-                                            <div style="font-size: 12px; color: #22c55e; margin-bottom: 8px;">✅ .dockerignore あり</div>
-                                            <div style="display: flex; flex-direction: column; gap: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
-                                                <div style="background: #334155; padding: 4px 8px; border-radius: 4px;">📄 Dockerfile</div>
-                                                <div style="background: #334155; padding: 4px 8px; border-radius: 4px;">📄 index.js</div>
-                                            </div>
-                                        </div>
-                                        <p style="font-size: 12px; color: #22c55e; margin-top: 8px;">送信: 5KB ✨</p>
-                                    </div>
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">1</span>テスト用ファイルを作成</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    まず、コピーされるファイルとされないファイルを用意します：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">echo 'これはコピーされる' > copy-me.txt</div>
+                                    <div class="command">echo 'これはコピーされない' > secret.txt</div>
                                 </div>
                             </div>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">1</span>.dockerignore を作成</h4>
+                                <h4><span class="step-number">2</span>.dockerignoreなしでビルド</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    まず .dockerignore なしで試します：
+                                </p>
                                 <div class="command-box">
-                                    <div class="command">echo 'node_modules' > .dockerignore</div>
-                                    <div class="command">echo '.git' >> .dockerignore</div>
-                                    <div class="command">echo '.env' >> .dockerignore</div>
+                                    <div class="command">rm -f .dockerignore</div>
+                                    <div class="command">echo 'FROM nginx:1.28-alpine' > Dockerfile</div>
+                                    <div class="command">echo 'COPY . /data/' >> Dockerfile</div>
                                 </div>
-                                <p style="margin-top: 8px; color: #94a3b8; font-size: 13px;">
-                                    💡 最低限この3つを除外しておけばOK
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">docker image build -t ignore-test:v1 .</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">3</span>両方のファイルがコピーされたか確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run --rm ignore-test:v1 ls /data/</div>
+                                </div>
+                                <div class="output">Dockerfile
+copy-me.txt
+index.html
+secret.txt</div>
+                                <p style="margin-top: 12px; color: #ef4444;">
+                                    ⚠️ <code>secret.txt</code> もコピーされています！
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>.dockerignore を作成</h4>
+                                <p style="margin-bottom: 12px; color: #94a3b8;">
+                                    secret.txt を除外するように設定します：
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">echo 'secret.txt' > .dockerignore</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">5</span>再ビルド</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image build -t ignore-test:v2 .</div>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">6</span>除外されたか確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker container run --rm ignore-test:v2 ls /data/</div>
+                                </div>
+                                <div class="output">Dockerfile
+copy-me.txt
+index.html</div>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    ✅ <code>secret.txt</code> がコピーされていません！
                                 </p>
                             </div>
 
                             <div class="info-box">
-                                <h4>📝 よく使うパターン</h4>
-                                <table class="command-table" style="width: 100%; margin-top: 12px;">
-                                    <thead>
-                                        <tr>
-                                            <th>パターン</th>
-                                            <th>説明</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><code>node_modules</code></td>
-                                            <td>Node.jsの依存関係</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>.git</code></td>
-                                            <td>Gitの履歴データ</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>.env</code></td>
-                                            <td>環境変数（機密情報）</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>*.log</code></td>
-                                            <td>すべてのログファイル</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>**/*.tmp</code></td>
-                                            <td>サブディレクトリ含む一時ファイル</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>!important.log</code></td>
-                                            <td>除外の例外（これは含める）</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <h4>📝 よく使う .dockerignore の内容</h4>
+                                <div class="dockerfile-code" style="margin-top: 12px; text-align: left;">
+<span class="comment"># 依存関係（コンテナ内で再インストールする）</span>
+node_modules
+vendor
+
+<span class="comment"># 機密情報</span>
+.env
+*.pem
+
+<span class="comment"># Git関連</span>
+.git
+.gitignore
+
+<span class="comment"># ログ・一時ファイル</span>
+*.log
+*.tmp
+                                </div>
                             </div>
 
-                            <div class="hands-on-section">
-                                <h4><span class="step-number">2</span>効果を確認</h4>
-                                <p style="margin-bottom: 12px; color: #94a3b8;">
-                                    ビルド時の出力を見てみましょう：
-                                </p>
-                                <div class="command-box">
-                                    <div class="command">docker image build -t my-web:v4 .</div>
-                                </div>
-                                <div class="output">[+] Building 0.5s (8/8) FINISHED
- => [internal] load build definition from Dockerfile
- => [internal] load <strong>.dockerignore</strong>          ← ここで読み込まれる
- => ...</div>
-                                <p style="margin-top: 12px; color: #22c55e;">
-                                    ✅ <code>.dockerignore</code> が読み込まれ、不要なファイルが除外されます！
+                            <div class="info-box">
+                                <h4>💡 .dockerignore を見直すタイミング</h4>
+                                <ul style="margin-top: 8px;">
+                                    <li>• ビルドに時間がかかる</li>
+                                    <li>• イメージサイズが大きい（1GB超えたら要チェック）</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 <code>docker image ls</code> でイメージサイズを確認できます
                                 </p>
                             </div>
 
                             <div class="success-box">
                                 <h4>🎯 学んだこと</h4>
                                 <ul>
-                                    <li><code>.dockerignore</code> でビルドコンテキストからファイルを除外</li>
-                                    <li>ビルド速度の向上・セキュリティ向上に効果的</li>
+                                    <li><code>.dockerignore</code> でCOPYから除外するファイルを指定</li>
+                                    <li>機密情報や不要なファイルをイメージに含めない</li>
                                     <li><code>.gitignore</code> と同じ書き方が使える</li>
                                 </ul>
                             </div>
@@ -1676,32 +1812,13 @@ APP_VERSION=1.0</div>
                                         </tr>
                                         <tr>
                                             <td><code>EXPOSE</code></td>
-                                            <td>ポートを明示</td>
+                                            <td>ポートを明示（書いても書かなくても動作は同じ。「このコンテナは何番ポートを使うか」を明示するドキュメント用。実際にポートを開けるのは <code>-p</code>）</td>
                                             <td><code>EXPOSE 80</code></td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
 
-                            <div class="info-box">
-                                <h4>💡 典型的なDockerfileの構成</h4>
-                                <div class="dockerfile-code" style="margin-top: 12px;">
-                                    <span class="comment"># 1. ベースイメージ</span><br>
-                                    <span class="keyword">FROM</span> node:20-alpine<br><br>
-                                    <span class="comment"># 2. 作業ディレクトリ</span><br>
-                                    <span class="keyword">WORKDIR</span> /app<br><br>
-                                    <span class="comment"># 3. 依存関係ファイルをコピー</span><br>
-                                    <span class="keyword">COPY</span> package*.json ./<br><br>
-                                    <span class="comment"># 4. 依存関係をインストール</span><br>
-                                    <span class="keyword">RUN</span> npm install<br><br>
-                                    <span class="comment"># 5. ソースコードをコピー</span><br>
-                                    <span class="keyword">COPY</span> . .<br><br>
-                                    <span class="comment"># 6. ポートを明示</span><br>
-                                    <span class="keyword">EXPOSE</span> 3000<br><br>
-                                    <span class="comment"># 7. 起動コマンド</span><br>
-                                    <span class="keyword">CMD</span> ["node", "server.js"]
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -1712,13 +1829,16 @@ APP_VERSION=1.0</div>
                             <div class="hands-on-section">
                                 <h4>作成したリソースを削除</h4>
                                 <div class="command-box">
-                                    <div class="command"># コンテナを削除（停止していない場合）</div>
-                                    <div class="command">docker container rm -f my-web-container</div>
-                                    <div class="command" style="margin-top: 8px;"># イメージを削除</div>
-                                    <div class="command">docker image rm my-web my-web:dev my-web:v1 my-web:v2 my-web:v3 my-web:v4</div>
+                                    <div class="command"># 停止しているコンテナをまとめて削除</div>
+                                    <div class="command">docker container prune</div>
+                                    <div class="command" style="margin-top: 8px;"># 使っていないイメージをまとめて削除</div>
+                                    <div class="command">docker image prune -a</div>
                                     <div class="command" style="margin-top: 8px;"># 作業フォルダを削除（任意）</div>
                                     <div class="command">rm -rf ~/dockerfile-practice</div>
                                 </div>
+                                <p style="margin-top: 12px; color: #fbbf24; font-size: 13px;">
+                                    ⚠️ prune は使っていないもの全てを削除します。他のプロジェクトのイメージも消える可能性があるので注意。
+                                </p>
                             </div>
                         </div>
                     </div>
