@@ -226,6 +226,63 @@
                                     </ul>
                                 </div>
                             </div>
+
+                            <div class="info-box" style="margin-top: 24px;">
+                                <h4>📝 新旧コマンドの違い</h4>
+                                <p>
+                                    ネット上には2種類のコマンドが混在しています。
+                                </p>
+                                <table class="comparison-table" style="margin-top: 12px;">
+                                    <tbody>
+                                        <tr>
+                                            <td><code>docker compose</code>（スペース）</td>
+                                            <td><strong>新しい</strong>書き方（V2）。こちらを使う</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>docker-compose</code>（ハイフン）</td>
+                                            <td><strong>古い</strong>書き方（V1）。非推奨</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    📌 Docker Desktop をインストールしていれば <code>docker compose</code>（V2）が使えます。<br>
+                                    古い記事では <code>docker-compose</code> と書かれていることがありますが、同じ機能です。
+                                </p>
+                                <details style="margin-top: 12px;">
+                                    <summary style="cursor: pointer; color: #22d3ee;">V2 でのその他の変更点</summary>
+                                    <div style="margin-top: 12px; padding: 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px;">
+                                        <table class="comparison-table" style="font-size: 13px;">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>V1（旧）</th>
+                                                    <th>V2（新）</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>コマンド</td>
+                                                    <td><code>docker-compose</code></td>
+                                                    <td><code>docker compose</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>STATUS 表示</td>
+                                                    <td>Up 10 minutes</td>
+                                                    <td>running</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>ps の出力</td>
+                                                    <td>IMAGE 列あり</td>
+                                                    <td>SERVICE 列あり</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <p style="margin-top: 12px; color: #94a3b8; font-size: 12px;">
+                                            📌 古い記事やチュートリアルで表示が違う場合は、バージョンの違いです。
+                                        </p>
+                                    </div>
+                                </details>
+                            </div>
                         </div>
                     </div>
 
@@ -236,6 +293,163 @@
                             <p>
                                 前のセクションで手動起動した構成を、ymlファイルに書き換えましょう。
                             </p>
+
+                            <div class="warning-box">
+                                <h4>⚠️ YAMLはインデントがとても重要！</h4>
+                                <p>
+                                    YAMLファイルは<strong>インデント（字下げ）で階層構造を表現</strong>します。<br>
+                                    スペースの数が違うだけでエラーになるので、注意してください。
+                                </p>
+                                <div style="display: flex; gap: 16px; margin-top: 12px;">
+                                    <div style="flex: 1; background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; border-radius: 8px; padding: 12px;">
+                                        <div style="color: #22c55e; font-weight: bold; margin-bottom: 8px;">✅ 正しい例</div>
+<pre style="margin: 0; font-size: 12px; color: #e2e8f0;">services:
+  app:
+    image: php:8.4-fpm
+    volumes:
+      - ./src:/var/www/html</pre>
+                                    </div>
+                                    <div style="flex: 1; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 12px;">
+                                        <div style="color: #ef4444; font-weight: bold; margin-bottom: 8px;">❌ 間違い例</div>
+<pre style="margin: 0; font-size: 12px; color: #e2e8f0;">services:
+  app:
+   image: php:8.4-fpm  <span style="color: #f87171;">← 1個足りない</span>
+     volumes:  <span style="color: #f87171;">← 1個多い</span>
+      - ./src:/var/www/html</pre>
+                                    </div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    📌 <strong>スペース2個</strong>で1階層を表します（タブ文字は使わない）
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📖 YAMLの基本ルール</h4>
+                                <p>
+                                    docker-compose.ymlは<strong>YAML（ヤムル）</strong>という形式で書きます。<br>
+                                    JSONと似ていますが、<strong>インデント（字下げ）で階層を表現</strong>するのが特徴です。
+                                </p>
+
+                                <!-- JSONとの違い -->
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <div style="color: #22d3ee; font-weight: bold; margin-bottom: 8px;">JSONとの違い</div>
+                                    <div style="display: flex; gap: 12px;">
+                                        <div style="flex: 1;">
+                                            <div style="color: #fbbf24; font-size: 12px; margin-bottom: 4px;">JSON</div>
+<pre style="margin: 0; font-size: 11px; color: #e2e8f0;">{
+  "services": {
+    "db": {
+      "image": "mysql:8.0"
+    }
+  }
+}</pre>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #22c55e; font-size: 12px; margin-bottom: 4px;">YAML</div>
+<pre style="margin: 0; font-size: 11px; color: #e2e8f0;">services:
+  db:
+    image: mysql:8.0</pre>
+                                        </div>
+                                    </div>
+                                    <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">
+                                        📌 <code>{}</code> や <code>""</code> が不要でシンプル。インデントで階層を表現するので、<strong>誰が書いても同じ書き方になる</strong>
+                                    </p>
+                                </div>
+
+                                <!-- キーと値 -->
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <div style="color: #22d3ee; font-weight: bold; margin-bottom: 8px;">① キーと値（マッピング）</div>
+                                    <p style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">
+                                        <code>キー: 値</code> の形式で書きます。<code>:</code> の後にスペースが必要です。
+                                    </p>
+<pre style="margin: 0; font-size: 12px; color: #e2e8f0;">image: mysql:8.0      <span style="color: #6b7280;"># キー: 値</span>
+container_name: db    <span style="color: #6b7280;"># キー: 値</span></pre>
+                                </div>
+
+                                <!-- ネスト -->
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <div style="color: #22d3ee; font-weight: bold; margin-bottom: 8px;">② ネスト（階層構造）</div>
+                                    <p style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">
+                                        インデント（スペース2個）で階層を表現します。
+                                    </p>
+<pre style="margin: 0; font-size: 12px; color: #e2e8f0;">services:           <span style="color: #6b7280;"># 第1階層</span>
+  db:               <span style="color: #6b7280;"># 第2階層（スペース2個）</span>
+    image: mysql    <span style="color: #6b7280;"># 第3階層（スペース4個）</span>
+    environment:    <span style="color: #6b7280;"># 第3階層</span>
+      MYSQL_ROOT_PASSWORD: secret  <span style="color: #6b7280;"># 第4階層（スペース6個）</span></pre>
+                                </div>
+
+                                <!-- 配列 -->
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <div style="color: #22d3ee; font-weight: bold; margin-bottom: 8px;">③ 配列（リスト）</div>
+                                    <p style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">
+                                        <code>-</code>（ハイフン + スペース）で配列の要素を表現します。
+                                    </p>
+<pre style="margin: 0; font-size: 12px; color: #e2e8f0;">ports:
+  - "8080:80"       <span style="color: #6b7280;"># 配列の1つ目</span>
+  - "443:443"       <span style="color: #6b7280;"># 配列の2つ目</span>
+
+volumes:
+  - ./src:/var/www/html     <span style="color: #6b7280;"># 配列の1つ目</span>
+  - ./docker:/etc/docker    <span style="color: #6b7280;"># 配列の2つ目</span>
+
+depends_on:
+  - db              <span style="color: #6b7280;"># 配列の1つ目</span>
+  - redis           <span style="color: #6b7280;"># 配列の2つ目</span></pre>
+                                </div>
+
+                                <!-- コメント -->
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <div style="color: #22d3ee; font-weight: bold; margin-bottom: 8px;">④ コメント</div>
+                                    <p style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">
+                                        <code>#</code> 以降はコメントになります。メモを残せます。
+                                    </p>
+<pre style="margin: 0; font-size: 12px; color: #e2e8f0;"># これはコメント
+services:
+  db:
+    image: mysql:8.0  # 行末コメントもOK</pre>
+                                </div>
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <div style="color: #fbbf24; font-weight: bold; margin-bottom: 8px;">⚠️ クォート（""）が必要なケース</div>
+                                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 8px;">
+                                        YAMLでは <code>:</code> が特別な意味を持つため、値に <code>:</code> が含まれる場合はクォートで囲みます。
+                                    </p>
+<pre style="margin: 0; font-size: 12px; color: #e2e8f0;">ports:
+  - "8080:80"    <span style="color: #94a3b8;"># ← : が含まれるのでクォート必要</span>
+
+image: mysql:8.0 <span style="color: #94a3b8;"># ← image: の後なので曖昧さがない、クォート不要</span></pre>
+                                    <table style="width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 12px;">
+                                        <tr style="background: rgba(15, 23, 42, 0.5);">
+                                            <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px; text-align: left;">値</th>
+                                            <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px; text-align: left;">クォート</th>
+                                            <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px; text-align: left;">理由</th>
+                                        </tr>
+                                        <tr>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px;"><code>8080:80</code></td>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px;">必要</td>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px;"><code>:</code> が含まれる</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px;"><code>yes</code> / <code>no</code></td>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px;">必要</td>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px;">true/falseと誤解される</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px;"><code>3.10</code></td>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px;">推奨</td>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 6px;">3.1と解釈されることも</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(34, 211, 238, 0.2);">
+                                    <div style="color: #94a3b8; font-size: 13px;">📚 参考リンク</div>
+                                    <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px;">
+                                        <li><a href="https://magazine.rubyist.net/articles/0009/0009-YAML.html" target="_blank" style="color: #22d3ee;">YAML入門（日本語）</a> - わかりやすい解説記事</li>
+                                        <li><a href="https://yaml.org/" target="_blank" style="color: #22d3ee;">YAML公式サイト</a> - YAML形式の仕様</li>
+                                        <li><a href="https://docs.docker.com/compose/compose-file/" target="_blank" style="color: #22d3ee;">Docker Compose公式リファレンス</a> - 全オプションの説明</li>
+                                    </ul>
+                                </div>
+                            </div>
 
                             <div class="hands-on-section">
                                 <h4><span class="step-number">1</span>docker-compose.ymlを作成</h4>
@@ -256,9 +470,12 @@ services:
       <span class="key">MYSQL_PASSWORD</span>: <span class="value">secret</span>
     <span class="key">volumes</span>:
       - <span class="value">mysql-data:/var/lib/mysql</span>
+      - <span class="value">./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf</span>
 
   <span class="key">app</span>:
-    <span class="key">image</span>: <span class="value">php:8.3-fpm</span>
+    <span class="key">build</span>:
+      <span class="key">context</span>: <span class="value">./docker/php</span>
+      <span class="key">dockerfile</span>: <span class="value">Dockerfile</span>
     <span class="key">volumes</span>:
       - <span class="value">./src:/var/www/html</span>
     <span class="key">environment</span>:
@@ -272,7 +489,7 @@ services:
       - <span class="value">db</span>
 
   <span class="key">web</span>:
-    <span class="key">image</span>: <span class="value">nginx:1.28</span>
+    <span class="key">image</span>: <span class="value">nginx:1.28-alpine</span>
     <span class="key">ports</span>:
       - <span class="value">"8080:80"</span>
     <span class="key">volumes</span>:
@@ -290,70 +507,26 @@ services:
                                 <ul>
                                     <li><code>services:</code> - コンテナの定義（db, app, web）</li>
                                     <li><code>image:</code> - 使用するイメージ</li>
+                                    <li><code>build:</code> - Dockerfileからビルド（imageの代わり）</li>
                                     <li><code>environment:</code> - 環境変数（-e オプション相当）</li>
                                     <li><code>volumes:</code> - ボリュームマウント（-v オプション相当）</li>
                                     <li><code>ports:</code> - ポート公開（-p オプション相当）</li>
                                     <li><code>depends_on:</code> - 起動順序の制御</li>
                                 </ul>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- runオプションとの対応 -->
-                    <div class="content-section">
-                        <h3>🔄 runオプションとの対応表</h3>
-                        <div class="collapsible-content">
-                            <p>
-                                docker container run のオプションが、ymlでどう書くかを確認しましょう。
-                            </p>
-
-                            <table class="comparison-table">
-                                <thead>
-                                    <tr>
-                                        <th>runオプション</th>
-                                        <th>docker-compose.yml</th>
-                                        <th>説明</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><code>--name db</code></td>
-                                        <td><code>services:<br>  db:</code></td>
-                                        <td>サービス名がコンテナ名になる</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>-p 8080:80</code></td>
-                                        <td><code>ports:<br>  - "8080:80"</code></td>
-                                        <td>ポート公開</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>-v ./src:/var/www/html</code></td>
-                                        <td><code>volumes:<br>  - ./src:/var/www/html</code></td>
-                                        <td>ボリュームマウント</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>-e MYSQL_PASSWORD=secret</code></td>
-                                        <td><code>environment:<br>  MYSQL_PASSWORD: secret</code></td>
-                                        <td>環境変数</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>--network laravel-network</code></td>
-                                        <td>（自動作成される）</td>
-                                        <td>Composeが自動でネットワーク作成</td>
-                                    </tr>
-                                    <tr>
-                                        <td><code>-d</code></td>
-                                        <td><code>docker compose up -d</code></td>
-                                        <td>バックグラウンド実行</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            <div class="success-box">
-                                <h4>💡 ポイント</h4>
-                                <p>
-                                    <strong>ネットワークは自動で作成</strong>されます！<br>
-                                    docker network create は不要です。同じComposeファイル内のサービスは自動的に通信できます。
+                            <div class="warning-box">
+                                <h4>⚠️ 前のセクションで作成したファイルが必要</h4>
+                                <p>docker-compose.yml を使うには、以下のファイルが必要です：</p>
+                                <ul style="margin-top: 8px;">
+                                    <li><code>docker/mysql/my.cnf</code> - MySQL設定</li>
+                                    <li><code>docker/php/php.ini</code> - PHP設定</li>
+                                    <li><code>docker/php/Dockerfile</code> - PHPイメージ定義</li>
+                                    <li><code>docker/nginx/default.conf</code> - nginx設定</li>
+                                    <li><code>src/</code> - Laravelプロジェクト</li>
+                                </ul>
+                                <p style="margin-top: 8px; color: #94a3b8;">
+                                    前のセクション「複数コンテナを手動で起動」で作成済みです。
                                 </p>
                             </div>
                         </div>
@@ -363,6 +536,20 @@ services:
                     <div class="content-section">
                         <h3>🚀 起動してみよう</h3>
                         <div class="collapsible-content">
+                            <div class="info-box" style="margin-bottom: 20px;">
+                                <h4>📍 docker compose コマンドの実行場所</h4>
+                                <p>
+                                    <code>docker compose</code> 系のコマンドは全て <strong>docker-compose.yml があるフォルダ</strong>で実行します。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command">cd ~/docker-laravel</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    📌 <code>-f</code> オプションで別の場所からも実行できます。<br>
+                                    例: <code>docker compose -f ~/docker-laravel/docker-compose.yml ps</code>
+                                </p>
+                            </div>
+
                             <div class="hands-on-section">
                                 <h4><span class="step-number">2</span>全コンテナを起動</h4>
                                 <div class="command-box">
@@ -379,7 +566,17 @@ services:
                             </div>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">3</span>状態を確認</h4>
+                                <h4><span class="step-number">3</span>マイグレーションを実行</h4>
+                                <div class="command-box">
+                                    <div class="command">docker compose exec app php artisan migrate</div>
+                                </div>
+                                <p style="color: #94a3b8; margin-top: 12px;">
+                                    「Yes」を入力してマイグレーションを実行してください。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">4</span>状態を確認</h4>
                                 <div class="command-box">
                                     <div class="command">docker compose ps</div>
                                 </div>
@@ -387,10 +584,36 @@ services:
 docker-laravel-app-1   app       Up        9000/tcp
 docker-laravel-db-1    db        Up        3306/tcp
 docker-laravel-web-1   web       Up        0.0.0.0:8080->80/tcp</div>
+                                <div class="info-box" style="margin-top: 12px;">
+                                    <h4>🤔 docker container ls との違い</h4>
+                                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px;">
+                                        <tr style="background: rgba(15, 23, 42, 0.5);">
+                                            <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;"></th>
+                                            <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;">docker compose ps</th>
+                                            <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;">docker container ls</th>
+                                        </tr>
+                                        <tr>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">表示対象</td>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">このymlのコンテナだけ</td>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">全てのコンテナ</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">実行場所</td>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; color: #fbbf24;">docker-compose.ymlがある場所</td>
+                                            <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">どこでもOK</td>
+                                        </tr>
+                                    </table>
+                                    <p style="margin-top: 8px; color: #22c55e; font-size: 13px;">
+                                        💡 複数のプロジェクトを動かしていても、<strong>関連するコンテナだけ</strong>見れるので便利！
+                                    </p>
+                                    <p style="margin-top: 8px; color: #94a3b8; font-size: 13px;">
+                                        📌 <code>docker compose</code> 系のコマンドは全て <strong>docker-compose.ymlがあるフォルダで実行</strong>します
+                                    </p>
+                                </div>
                             </div>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">4</span>動作確認</h4>
+                                <h4><span class="step-number">5</span>動作確認</h4>
                                 <p style="margin-bottom: 12px;">
                                     ブラウザで <a href="http://localhost:8080" target="_blank" style="color: #22d3ee;">http://localhost:8080</a> にアクセス！
                                 </p>
@@ -401,11 +624,550 @@ docker-laravel-web-1   web       Up        0.0.0.0:8080->80/tcp</div>
                         </div>
                     </div>
 
+                    <!-- docker-compose.ymlを分解して学ぼう -->
+                    <div class="content-section">
+                        <h3>🔍 docker-compose.ymlを分解して学ぼう</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                動きましたね！では、<strong>docker-compose.ymlの中身</strong>を一つずつ理解していきましょう。
+                            </p>
+
+                            <!-- services とは -->
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>📦 services: とは</h4>
+                                <p>
+                                    <strong>起動するコンテナの一覧</strong>です。今回は3つのサービス（コンテナ）を定義しています。
+                                </p>
+                                <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+                                    <div style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; text-align: center; min-width: 100px;">
+                                        <div style="font-size: 24px;">🗄️</div>
+                                        <div style="color: #3b82f6; font-weight: bold;">db</div>
+                                        <div style="color: #94a3b8; font-size: 11px;">MySQL</div>
+                                    </div>
+                                    <div style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; border-radius: 8px; padding: 12px; text-align: center; min-width: 100px;">
+                                        <div style="font-size: 24px;">🐘</div>
+                                        <div style="color: #a855f7; font-weight: bold;">app</div>
+                                        <div style="color: #94a3b8; font-size: 11px;">PHP-FPM</div>
+                                    </div>
+                                    <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; border-radius: 8px; padding: 12px; text-align: center; min-width: 100px;">
+                                        <div style="font-size: 24px;">🌐</div>
+                                        <div style="color: #22c55e; font-weight: bold;">web</div>
+                                        <div style="color: #94a3b8; font-size: 11px;">nginx</div>
+                                    </div>
+                                </div>
+                                <div class="yml-code" style="margin-top: 12px;"><span class="key">services</span>:
+  <span class="key">db</span>:      <span class="comment"># 1つ目のサービス</span>
+    ...
+  <span class="key">app</span>:     <span class="comment"># 2つ目のサービス</span>
+    ...
+  <span class="key">web</span>:     <span class="comment"># 3つ目のサービス</span>
+    ...</div>
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <p style="color: #22d3ee; font-weight: bold; margin: 0 0 8px 0;">🤔 サービス名は --name と同じ？</p>
+                                    <p style="margin: 0 0 12px 0; font-size: 13px;">似ていますが少し違います。</p>
+                                    <table class="comparison-table" style="font-size: 13px;">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>サービス名（db, app, web）</th>
+                                                <th>--name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>実際のコンテナ名</td>
+                                                <td>フォルダ名-サービス名-番号<br><span style="color: #94a3b8;">例: docker-laravel-db-1</span></td>
+                                                <td>指定した名前そのまま</td>
+                                            </tr>
+                                            <tr>
+                                                <td>コンテナ間通信</td>
+                                                <td style="color: #22c55e;">サービス名でOK</td>
+                                                <td>コンテナ名を使う</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <p style="margin: 12px 0 0 0; color: #22c55e; font-size: 13px;">
+                                        💡 コンテナ間の通信では <code>db</code> や <code>app</code> など<strong>サービス名で接続できる</strong>ので便利！<br>
+                                        <span style="color: #94a3b8;">Docker Composeが自動でDNS解決してくれます。</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- image とは -->
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>🖼️ image: とは</h4>
+                                <p>
+                                    <strong>使用するDockerイメージ</strong>を指定します。<br>
+                                    Docker Hubから自動でダウンロードされます。
+                                </p>
+                                <div class="yml-code" style="margin-top: 12px;">  <span class="key">db</span>:
+    <span class="key">image</span>: <span class="value">mysql:8.0</span>  <span class="comment"># MySQLのバージョン8.0を使う</span>
+
+  <span class="key">web</span>:
+    <span class="key">image</span>: <span class="value">nginx:1.28-alpine</span>  <span class="comment"># nginx軽量版を使う</span></div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 手動起動での <code>docker container run mysql:8.0</code> と同じです
+                                </p>
+                            </div>
+
+                            <!-- environment とは -->
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>🔧 environment: とは</h4>
+                                <p>
+                                    <strong>環境変数</strong>を設定します。コンテナに渡す設定値です。
+                                </p>
+                                <div class="yml-code" style="margin-top: 12px;">  <span class="key">db</span>:
+    <span class="key">environment</span>:
+      <span class="key">MYSQL_ROOT_PASSWORD</span>: <span class="value">secret</span>   <span class="comment"># rootパスワード</span>
+      <span class="key">MYSQL_DATABASE</span>: <span class="value">laravel</span>        <span class="comment"># 作成するDB名</span>
+      <span class="key">MYSQL_USER</span>: <span class="value">laravel</span>            <span class="comment"># 作成するユーザー</span>
+      <span class="key">MYSQL_PASSWORD</span>: <span class="value">secret</span>         <span class="comment"># そのパスワード</span></div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 手動起動での <code>-e MYSQL_ROOT_PASSWORD=secret</code> と同じです
+                                </p>
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <p style="color: #fbbf24; font-size: 13px; margin: 0;">
+                                        📌 MySQLコンテナは起動時にこれらの環境変数を読んで、<br>
+                                        「DBを作る」「ユーザーを作る」などの初期設定を自動で行います
+                                    </p>
+                                </div>
+                                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <p style="color: #f87171; font-size: 13px; margin: 0;">
+                                        ⚠️ <strong>本番環境では直接書かない！</strong><br>
+                                        <span style="color: #94a3b8;">パスワードがGitに残ってしまいます。本番では <code>.env</code> ファイルを使うのが一般的です。<br>開発環境なら直接書いてOKです。</span>
+                                    </p>
+                                </div>
+
+                                <details style="margin-top: 16px;">
+                                    <summary style="cursor: pointer; color: #22d3ee; font-weight: bold;">📂 .env ファイルで環境変数を管理する（本番向け）</summary>
+                                    <div style="margin-top: 12px; padding: 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px;">
+                                        <p style="margin: 0 0 12px 0;">
+                                            Docker Composeは、docker-compose.ymlと同じディレクトリにある<strong>.envファイルを自動的に読み込み</strong>ます。
+                                        </p>
+                                        <div class="yml-code" style="margin-bottom: 12px;"><span class="comment"># .env ファイル</span>
+DB_DATABASE=laravel
+DB_USERNAME=laravel
+DB_PASSWORD=secret</div>
+                                        <div class="yml-code"><span class="comment"># docker-compose.yml の中で</span>
+<span class="key">environment</span>:
+  <span class="key">DB_DATABASE</span>: <span class="value">${DB_DATABASE}</span>    <span class="comment"># ← .envの値が展開される</span>
+  <span class="key">MYSQL_USER</span>: <span class="value">${DB_USERNAME}</span>     <span class="comment"># ← .envの値が展開される</span></div>
+                                        <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                            <strong>流れ:</strong><br>
+                                            1. <code>docker compose up</code> を実行<br>
+                                            2. Docker Composeが同ディレクトリの.envを自動読み込み<br>
+                                            3. <code>${変数名}</code>の部分が.envの値に置き換わる<br>
+                                            4. コンテナ内の環境変数として設定される
+                                        </p>
+                                        <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                            <p style="color: #fbbf24; font-size: 13px; margin: 0;">
+                                                📌 <strong>注意:</strong> .envファイル自体がコンテナ内に入るわけではありません。<br>
+                                                あくまでdocker-compose.ymlの変数展開に使われます。
+                                            </p>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <!-- volumes とは -->
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>📁 volumes: とは</h4>
+                                <p>
+                                    <strong>ファイルの共有設定</strong>です。ホストPCのフォルダをコンテナ内で使えるようにします。
+                                </p>
+                                <div class="yml-code" style="margin-top: 12px;">  <span class="key">app</span>:
+    <span class="key">volumes</span>:
+      - <span class="value">./src:/var/www/html</span>  <span class="comment"># ホストのsrc → コンテナの/var/www/html</span>
+
+  <span class="key">db</span>:
+    <span class="key">volumes</span>:
+      - <span class="value">mysql-data:/var/lib/mysql</span>  <span class="comment"># 名前付きボリューム（データ永続化）</span></div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 手動起動での <code>-v ./src:/var/www/html</code> と同じです
+                                </p>
+                                <div style="display: flex; gap: 16px; margin-top: 12px;">
+                                    <div style="flex: 1; background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 12px;">
+                                        <div style="color: #22d3ee; font-weight: bold; font-size: 13px;">./src:/var/www/html</div>
+                                        <div style="color: #94a3b8; font-size: 12px; margin-top: 4px;">バインドマウント<br>ソースコードを共有</div>
+                                    </div>
+                                    <div style="flex: 1; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; padding: 12px;">
+                                        <div style="color: #fbbf24; font-weight: bold; font-size: 13px;">mysql-data:/var/lib/mysql</div>
+                                        <div style="color: #94a3b8; font-size: 12px; margin-top: 4px;">名前付きボリューム<br>DBデータを永続化</div>
+                                    </div>
+                                </div>
+                                <details style="margin-top: 12px; background: rgba(15, 23, 42, 0.4); border-radius: 8px; padding: 12px;">
+                                    <summary style="color: #22d3ee; cursor: pointer; font-weight: bold;">📦 名前付きボリュームの宣言って？</summary>
+                                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(34, 211, 238, 0.2);">
+                                        <p style="color: #e2e8f0;">
+                                            名前付きボリューム（<code>mysql-data:</code>など）を使う場合、<br>
+                                            <strong>ファイルの末尾で宣言が必要</strong>です。
+                                        </p>
+                                        <div class="yml-code" style="margin-top: 12px;"><span class="key">services</span>:
+  <span class="key">db</span>:
+    <span class="key">volumes</span>:
+      - <span class="value">mysql-data:/var/lib/mysql</span>  <span class="comment"># ← 使う場所</span>
+
+<span class="key">volumes</span>:              <span class="comment"># ← ファイル末尾で宣言</span>
+  <span class="key">mysql-data</span>:          <span class="comment"># ← ボリューム名を書くだけ</span></div>
+                                        <p style="color: #94a3b8; font-size: 13px; margin-top: 12px;">
+                                            📌 宣言がないとエラーになります。バインドマウント（<code>./src:</code>など）は宣言不要です。
+                                        </p>
+
+                                        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(34, 211, 238, 0.2);">
+                                            <p style="color: #22d3ee; font-weight: bold; margin: 0 0 8px 0;">💾 どこに保存される？</p>
+                                            <p style="color: #94a3b8; font-size: 13px; margin: 0;">
+                                                Dockerが管理する専用の場所に保存されます。<br>
+                                                <span style="color: #64748b;">（Mac/Windowsでは Docker Desktop 内、Linux では <code>/var/lib/docker/volumes/</code>）</span>
+                                            </p>
+                                        </div>
+
+                                        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(34, 211, 238, 0.2);">
+                                            <p style="color: #22d3ee; font-weight: bold; margin: 0 0 8px 0;">🔍 確認方法</p>
+                                            <div class="command-box">
+                                                <div class="command">docker volume ls</div>
+                                            </div>
+                                            <div class="output" style="font-size: 12px;">DRIVER    VOLUME NAME
+local     docker-laravel_mysql-data</div>
+                                        </div>
+
+                                        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(34, 211, 238, 0.2);">
+                                            <p style="color: #22d3ee; font-weight: bold; margin: 0 0 8px 0;">🗑️ 削除方法</p>
+                                            <div class="command-box">
+                                                <div class="command"># Docker Compose で削除（コンテナと一緒に）</div>
+                                                <div class="command">docker compose down -v</div>
+                                                <div class="command" style="margin-top: 8px;"># 個別に削除</div>
+                                                <div class="command">docker volume rm ボリューム名</div>
+                                            </div>
+                                            <p style="color: #f87171; font-size: 13px; margin-top: 8px;">
+                                                ⚠️ 削除するとDBのデータも消えます！
+                                            </p>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <!-- ports とは -->
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>🚪 ports: とは</h4>
+                                <p>
+                                    <strong>ポートの公開設定</strong>です。外部からコンテナにアクセスできるようにします。
+                                </p>
+                                <div class="yml-code" style="margin-top: 12px;">  <span class="key">web</span>:
+    <span class="key">ports</span>:
+      - <span class="value">"8080:80"</span>  <span class="comment"># ホストの8080 → コンテナの80</span></div>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 手動起動での <code>-p 8080:80</code> と同じです
+                                </p>
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 16px;">
+                                        <div style="text-align: center;">
+                                            <div style="color: #22d3ee;">ブラウザ</div>
+                                            <div style="color: #94a3b8; font-size: 12px;">localhost:8080</div>
+                                        </div>
+                                        <div style="color: #22d3ee;">→</div>
+                                        <div style="text-align: center;">
+                                            <div style="color: #22c55e;">nginx</div>
+                                            <div style="color: #94a3b8; font-size: 12px;">:80</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <details style="margin-top: 16px;">
+                                    <summary style="cursor: pointer; color: #22d3ee; font-weight: bold;">🤔 DBはポート公開しないの？</summary>
+                                    <div style="margin-top: 12px; padding: 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px;">
+                                        <p style="margin: 0 0 12px 0;">
+                                            DBは<strong>外部に公開しない</strong>のが一般的です（セキュリティ上の理由）。<br>
+                                            コンテナ間（Docker ネットワーク内）でのみ通信できれば十分です。
+                                        </p>
+                                        <div class="yml-code" style="margin-bottom: 12px;"><span class="key">web</span>:
+  <span class="key">ports</span>:
+    - <span class="value">"8080:80"</span>   <span class="comment"># ← 外部からアクセスさせたい</span>
+
+<span class="key">db</span>:
+  <span class="comment"># ports なし       ← 外部には公開しない</span></div>
+
+                                        <p style="color: #22d3ee; font-weight: bold; margin: 16px 0 8px 0;">🖥️ 開発時にクライアントツールで接続したい場合</p>
+                                        <p style="margin: 0 0 12px 0; font-size: 13px;">
+                                            TablePlus、MySQL Workbench などで接続したい場合は、ポートを公開します。
+                                        </p>
+                                        <table class="comparison-table" style="font-size: 13px; margin-bottom: 12px;">
+                                            <tbody>
+                                                <tr>
+                                                    <td>ポート公開</td>
+                                                    <td><code>ports: "3306:3306"</code></td>
+                                                    <td>クライアントツールで接続</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>exec</td>
+                                                    <td><code>docker compose exec db mysql</code></td>
+                                                    <td>ターミナルで接続</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <p style="color: #22d3ee; font-weight: bold; margin: 16px 0 8px 0;">📁 開発と本番で設定を分ける方法</p>
+                                        <p style="margin: 0 0 12px 0; font-size: 13px;">
+                                            <code>docker-compose.override.yml</code> を使うのが一般的です。
+                                        </p>
+                                        <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; margin-bottom: 12px;">
+docker-laravel/<br>
+├── docker-compose.yml           <span style="color: #94a3b8;"># ベース設定</span><br>
+└── docker-compose.override.yml  <span style="color: #94a3b8;"># 開発用（自動で読み込まれる）</span>
+                                        </div>
+                                        <div class="yml-code" style="margin-bottom: 8px;"><span class="comment"># docker-compose.override.yml（開発用）</span>
+<span class="key">services</span>:
+  <span class="key">db</span>:
+    <span class="key">ports</span>:
+      - <span class="value">"3306:3306"</span>  <span class="comment"># ← 開発時だけ追加</span></div>
+                                        <p style="margin: 12px 0 0 0; color: #94a3b8; font-size: 13px;">
+                                            📌 <code>docker compose up</code> で<strong>自動的に両方がマージ</strong>されます。<br>
+                                            本番では override.yml を置かない or <code>.gitignore</code> に入れておけばOKです。
+                                        </p>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <!-- build とは -->
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>🔨 build: とは</h4>
+                                <p>
+                                    <strong>Dockerfileからイメージをビルド</strong>します。<br>
+                                    <code>image:</code> の代わりに使います。
+                                </p>
+                                <div class="yml-code" style="margin-top: 12px;">  <span class="key">app</span>:
+    <span class="key">build</span>:
+      <span class="key">context</span>: <span class="value">.</span>                        <span class="comment"># ビルドする場所（カレントディレクトリ）</span>
+      <span class="key">dockerfile</span>: <span class="value">docker/php/Dockerfile</span>  <span class="comment"># Dockerfileのパス</span></div>
+                                <table style="width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 13px;">
+                                    <tr>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; background: rgba(15, 23, 42, 0.5);"><code>image:</code></td>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">既存のイメージをそのまま使う</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; background: rgba(15, 23, 42, 0.5);"><code>build:</code></td>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">Dockerfileでカスタマイズしたイメージを作る</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- depends_on とは -->
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>⏱️ depends_on: とは</h4>
+                                <p>
+                                    <strong>起動順序</strong>を指定します。「このコンテナが先に起動してから、自分を起動して」という設定です。
+                                </p>
+                                <div class="yml-code" style="margin-top: 12px;">  <span class="key">app</span>:
+    <span class="key">depends_on</span>:
+      - <span class="value">db</span>  <span class="comment"># dbが起動してからappを起動</span>
+
+  <span class="key">web</span>:
+    <span class="key">depends_on</span>:
+      - <span class="value">app</span>  <span class="comment"># appが起動してからwebを起動</span></div>
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; padding: 16px; background: rgba(15, 23, 42, 0.6); border-radius: 8px;">
+                                    <div style="background: rgba(59, 130, 246, 0.2); border: 2px solid #3b82f6; border-radius: 8px; padding: 12px; text-align: center;">
+                                        <div style="color: #3b82f6; font-weight: bold;">① db</div>
+                                    </div>
+                                    <div style="color: #22d3ee; font-size: 20px;">→</div>
+                                    <div style="background: rgba(168, 85, 247, 0.2); border: 2px solid #a855f7; border-radius: 8px; padding: 12px; text-align: center;">
+                                        <div style="color: #a855f7; font-weight: bold;">② app</div>
+                                    </div>
+                                    <div style="color: #22d3ee; font-size: 20px;">→</div>
+                                    <div style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; border-radius: 8px; padding: 12px; text-align: center;">
+                                        <div style="color: #22c55e; font-weight: bold;">③ web</div>
+                                    </div>
+                                </div>
+                                <div class="warning-box" style="margin-top: 12px;">
+                                    <p style="margin: 0;">
+                                        ⚠️ depends_onは<strong>コンテナの起動順序</strong>を制御するだけです。<br>
+                                        「MySQLが接続可能になるまで待つ」わけではありません。
+                                    </p>
+                                </div>
+                                <details style="margin-top: 12px; background: rgba(15, 23, 42, 0.4); border-radius: 8px; padding: 12px;">
+                                    <summary style="color: #22d3ee; cursor: pointer; font-weight: bold;">🤔 depends_on がなくても動く？</summary>
+                                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(34, 211, 238, 0.2);">
+                                        <p style="color: #e2e8f0;"><strong>はい、動きます。</strong></p>
+                                        <table style="width: 100%; margin: 12px 0; border-collapse: collapse; font-size: 13px;">
+                                            <tr style="background: rgba(15, 23, 42, 0.5);">
+                                                <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;"></th>
+                                                <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;">depends_on なし</th>
+                                                <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;">depends_on あり</th>
+                                            </tr>
+                                            <tr>
+                                                <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">起動順序</td>
+                                                <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">同時に起動（順番は運次第）</td>
+                                                <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">指定した順番で起動</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">通常の開発</td>
+                                                <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">だいたい動く</td>
+                                                <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">だいたい動く</td>
+                                            </tr>
+                                        </table>
+                                        <p style="color: #94a3b8; font-size: 13px;">
+                                            📌 なぜ「だいたい動く」？ → コマンドを打ってからブラウザを開くまでに数秒かかりますよね。<br>
+                                            その間にDBも起動完了しているので、アクセス時には問題なく動くことが多いです。
+                                        </p>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <!-- ネットワークとコンテナ名 -->
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>🌐 ネットワークとコンテナ名は？</h4>
+                                <p>
+                                    docker-compose.ymlには <code>--network</code> や <code>--name</code> を書いていません。<br>
+                                    <strong>Docker Composeが自動で作成</strong>してくれます！
+                                </p>
+                                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 16px; margin-top: 12px;">
+                                    <div style="margin-bottom: 16px;">
+                                        <div style="color: #22d3ee; font-weight: bold; margin-bottom: 8px;">📡 ネットワーク名</div>
+                                        <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">フォルダ名_default</code>
+                                        <span style="color: #94a3b8; margin-left: 8px;">例: docker-laravel_default</span>
+                                        <div class="command-box" style="margin-top: 8px;">
+                                            <div class="command">docker network ls</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="color: #22d3ee; font-weight: bold; margin-bottom: 8px;">📦 コンテナ名</div>
+                                        <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">フォルダ名-サービス名-番号</code>
+                                        <div style="margin-top: 8px; font-size: 13px;">
+                                            <span style="color: #3b82f6;">docker-laravel-db-1</span>
+                                            <span style="color: #a855f7; margin-left: 12px;">docker-laravel-app-1</span>
+                                            <span style="color: #22c55e; margin-left: 12px;">docker-laravel-web-1</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                                    <p style="margin: 0; color: #22c55e; font-size: 13px;">
+                                        💡 <strong>コンテナ間の通信はサービス名でOK！</strong><br>
+                                        <span style="color: #94a3b8;">appコンテナからDBに接続するとき、ホスト名は <code>db</code> と書くだけ</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- restart とは -->
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>🔄 restart: とは（今回のサンプルには未使用）</h4>
+                                <p>
+                                    <strong>コンテナが落ちたときに自動で再起動するか</strong>の設定です。<br>
+                                    <span style="color: #94a3b8;">開発環境では不要ですが、本番環境では設定するのが一般的です。</span>
+                                </p>
+                                <div class="yml-code" style="margin-top: 12px;">  <span class="key">db</span>:
+    <span class="key">image</span>: <span class="value">mysql:8.0</span>
+    <span class="key">restart</span>: <span class="value">unless-stopped</span>
+
+  <span class="key">app</span>:
+    <span class="key">build</span>: <span class="value">./docker/php</span>
+    <span class="key">restart</span>: <span class="value">unless-stopped</span>
+
+  <span class="key">web</span>:
+    <span class="key">image</span>: <span class="value">nginx:alpine</span>
+    <span class="key">restart</span>: <span class="value">unless-stopped</span></div>
+                                <table style="width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 13px;">
+                                    <tr style="background: rgba(15, 23, 42, 0.5);">
+                                        <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;">値</th>
+                                        <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;">動作</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;"><code>no</code></td>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">再起動しない（デフォルト）</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;"><code>always</code></td>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">常に再起動</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; color: #22c55e;"><code>unless-stopped</code></td>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">手動停止以外は再起動 <span style="color: #22c55e;">← おすすめ</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;"><code>on-failure</code></td>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">エラー終了時のみ再起動</td>
+                                    </tr>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    💡 手動起動での <code>--restart unless-stopped</code> と同じです
+                                </p>
+                            </div>
+
+                            <!-- runオプションとの対応表 -->
+                            <div style="margin-top: 32px;">
+                                <h4 style="color: #22d3ee; margin-bottom: 16px;">🔄 docker container run との対応表</h4>
+                                <div style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(168, 85, 247, 0.2)); border: 2px solid rgba(34, 211, 238, 0.5); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                                    <p style="color: #e2e8f0; font-size: 15px; margin: 0; text-align: center;">
+                                        💡 <strong>docker-compose.yml は、docker container run のオプションを<br>YAML形式で書いているだけ！</strong>
+                                    </p>
+                                    <p style="color: #94a3b8; font-size: 13px; margin: 8px 0 0 0; text-align: center;">
+                                        難しく考えなくてOK。手動起動で使ったオプションをファイルに書いてるだけです。
+                                    </p>
+                                </div>
+                                <table class="comparison-table">
+                                    <thead>
+                                        <tr>
+                                            <th>手動起動（run）</th>
+                                            <th>docker-compose.yml</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>--name db</code></td>
+                                            <td><code>services:<br>  db:</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>mysql:8.0</code></td>
+                                            <td><code>image: mysql:8.0</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-e MYSQL_PASSWORD=secret</code></td>
+                                            <td><code>environment:<br>  MYSQL_PASSWORD: secret</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-v ./src:/var/www/html</code></td>
+                                            <td><code>volumes:<br>  - ./src:/var/www/html</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>-p 8080:80</code></td>
+                                            <td><code>ports:<br>  - "8080:80"</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>--network my-laravel-nw</code></td>
+                                            <td>（自動で作成される！）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>--restart unless-stopped</code></td>
+                                            <td><code>restart: unless-stopped</code><br><span style="color: #94a3b8; font-size: 12px;">※今回のサンプルでは未使用（本番向け）</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="success-box" style="margin-top: 20px;">
+                                <h4>💡 Docker Composeの便利なところ</h4>
+                                <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                                    <li><strong>ネットワークは自動作成</strong> - docker network create は不要！</li>
+                                    <li><strong>コンテナ名で通信できる</strong> - app から db に接続するとき、ホスト名は <code>db</code> でOK</li>
+                                    <li><strong>1コマンドで全部起動</strong> - docker compose up -d だけ！</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- よく使うコマンド -->
                     <div class="content-section">
                         <h3>🛠️ よく使うdocker composeコマンド</h3>
                         <div class="collapsible-content">
-                            <table class="comparison-table">
+
+                            <div class="info-box" style="margin-bottom: 24px;">
+                                <h4>💡 コマンド一覧を見るには</h4>
+                                <div class="command-box">
+                                    <div class="command">docker compose --help</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    使えるコマンド一覧が表示されます。困ったときはまずこれ！
+                                </p>
+                            </div>
+
+                            <table class="comparison-table" style="margin-bottom: 24px;">
                                 <thead>
                                     <tr>
                                         <th>コマンド</th>
@@ -430,10 +1192,6 @@ docker-laravel-web-1   web       Up        0.0.0.0:8080->80/tcp</div>
                                         <td>ログを表示</td>
                                     </tr>
                                     <tr>
-                                        <td><code>docker compose logs -f web</code></td>
-                                        <td>特定サービスのログをリアルタイム表示</td>
-                                    </tr>
-                                    <tr>
                                         <td><code>docker compose exec app bash</code></td>
                                         <td>コンテナ内でコマンド実行</td>
                                     </tr>
@@ -441,92 +1199,380 @@ docker-laravel-web-1   web       Up        0.0.0.0:8080->80/tcp</div>
                                         <td><code>docker compose restart</code></td>
                                         <td>全サービスを再起動</td>
                                     </tr>
-                                    <tr>
-                                        <td><code>docker compose down -v</code></td>
-                                        <td>ボリュームも含めて削除</td>
-                                    </tr>
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
 
-                    <!-- depends_on -->
-                    <div class="content-section">
-                        <h3>📋 depends_on: 起動順序の制御</h3>
-                        <div class="collapsible-content">
-                            <p>
-                                <code>depends_on</code>を使うと、コンテナの起動順序を制御できます。
+                            <p style="margin-bottom: 20px; color: #94a3b8;">
+                                それぞれ詳しく見ていきましょう。
                             </p>
 
-                            <div class="yml-code">  <span class="key">app</span>:
-    <span class="key">image</span>: <span class="value">php:8.3-fpm</span>
-    <span class="key">depends_on</span>:
-      - <span class="value">db</span>  <span class="comment"># dbが起動してからappを起動</span>
-
-  <span class="key">web</span>:
-    <span class="key">image</span>: <span class="value">nginx:1.28</span>
-    <span class="key">depends_on</span>:
-      - <span class="value">app</span>  <span class="comment"># appが起動してからwebを起動</span></div>
-
-                            <div class="info-box">
-                                <h4>📝 起動順序</h4>
-                                <p>上の設定だと、以下の順序で起動します：</p>
-                                <ol style="margin-top: 12px; padding-left: 20px;">
-                                    <li>1. db（MySQLコンテナ）</li>
-                                    <li>2. app（PHP-FPMコンテナ）</li>
-                                    <li>3. web（nginxコンテナ）</li>
-                                </ol>
-                            </div>
-
-                            <div class="warning-box">
-                                <h4>⚠️ 注意</h4>
-                                <p>
-                                    depends_onは<strong>コンテナの起動順序</strong>を制御するだけです。<br>
-                                    「MySQLが接続可能になるまで待つ」わけではありません。
-                                </p>
-                                <p style="margin-top: 8px; color: #94a3b8;">
-                                    アプリケーション側で接続リトライを実装するのがベストプラクティスです。
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- build -->
-                    <div class="content-section">
-                        <h3>🔨 build: Dockerfileからビルド</h3>
-                        <div class="collapsible-content">
-                            <p>
-                                既存のイメージではなく、<strong>自作のDockerfile</strong>からイメージをビルドすることもできます。
-                            </p>
-
-                            <div class="yml-code">  <span class="key">app</span>:
-    <span class="key">build</span>:
-      <span class="key">context</span>: <span class="value">.</span>
-      <span class="key">dockerfile</span>: <span class="value">docker/php/Dockerfile</span>
-    <span class="key">volumes</span>:
-      - <span class="value">./src:/var/www/html</span></div>
-
-                            <div class="info-box">
-                                <h4>📝 buildの設定</h4>
-                                <ul>
-                                    <li><code>context</code>: ビルドコンテキスト（Dockerfileがあるディレクトリ）</li>
-                                    <li><code>dockerfile</code>: Dockerfileのパス</li>
-                                </ul>
-                                <p style="margin-top: 12px; color: #94a3b8;">
-                                    imageの代わりにbuildを使うと、Dockerfileからイメージがビルドされます。
-                                </p>
-                            </div>
-
+                            <!-- up -->
                             <div class="hands-on-section">
-                                <h4>ビルドを実行</h4>
+                                <h4>📦 docker compose up - 起動</h4>
                                 <div class="command-box">
-                                    <div class="command"># イメージをビルドして起動</div>
-                                    <div class="command">docker compose up -d --build</div>
+                                    <div class="command">docker compose up -d</div>
                                 </div>
-                                <p style="color: #94a3b8; margin-top: 12px;">
-                                    <code>--build</code>オプションをつけると、毎回イメージを再ビルドします。
+                                <p style="margin-top: 12px;">
+                                    docker-compose.ymlに定義されたすべてのサービス（コンテナ）を起動します。
+                                </p>
+                                <table class="comparison-table" style="margin-top: 16px;">
+                                    <tbody>
+                                        <tr>
+                                            <td><code>-d</code></td>
+                                            <td>バックグラウンドで起動（detached mode）。これを付けないとターミナルがログで埋まります</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>--build</code></td>
+                                            <td>起動前にイメージを再ビルド。Dockerfileを変更した後に必要</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>web</code></td>
+                                            <td>サービス名を指定すると、そのサービスだけ起動</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># Dockerfileを変更した後</div>
+                                    <div class="command">docker compose up -d --build</div>
+                                    <div class="command" style="margin-top: 8px;"># appサービスだけ起動</div>
+                                    <div class="command">docker compose up -d app</div>
+                                </div>
+                            </div>
+
+                            <!-- down -->
+                            <div class="hands-on-section">
+                                <h4>🧹 docker compose down - 停止・削除</h4>
+                                <div class="command-box">
+                                    <div class="command">docker compose down</div>
+                                </div>
+                                <p style="margin-top: 12px;">
+                                    すべてのコンテナを停止し、コンテナとネットワークを削除します。
+                                </p>
+                                <table class="comparison-table" style="margin-top: 16px;">
+                                    <tbody>
+                                        <tr>
+                                            <td><code>down</code></td>
+                                            <td>コンテナとネットワークを削除（ボリュームは残る）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>down -v</code></td>
+                                            <td>ボリュームも削除（DBデータも消える！）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>down --rmi all</code></td>
+                                            <td>イメージも削除（完全クリーン）</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p style="margin-top: 12px; color: #f59e0b;">
+                                    ⚠️ <code>-v</code> を付けるとDBのデータも消えるので注意！
                                 </p>
                             </div>
+
+                            <!-- ps -->
+                            <div class="hands-on-section">
+                                <h4>📋 docker compose ps - 状態確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker compose ps</div>
+                                </div>
+                                <div class="output">NAME                   SERVICE   STATUS    PORTS
+docker-laravel-app-1   app       running   9000/tcp
+docker-laravel-db-1    db        running   3306/tcp
+docker-laravel-web-1   web       running   0.0.0.0:8080->80/tcp</div>
+                                <p style="margin-top: 12px;">
+                                    docker-compose.ymlで定義されたサービスの状態を表示します。
+                                </p>
+
+                                <div class="info-box" style="margin-top: 16px;">
+                                    <h4>📊 STATUS の種類</h4>
+                                    <table class="comparison-table" style="margin-top: 12px; font-size: 13px;">
+                                        <tbody>
+                                            <tr>
+                                                <td style="color: #22c55e;"><strong>running</strong></td>
+                                                <td>実行中（正常）</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #f87171;"><strong>exited</strong></td>
+                                                <td>停止した（エラーか正常終了）</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #fbbf24;"><strong>restarting</strong></td>
+                                                <td>再起動中</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #94a3b8;"><strong>created</strong></td>
+                                                <td>作成済みだが起動していない</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                        📌 全部 <strong>running</strong> になっていれば正常です。<strong>exited</strong> があればログを確認しましょう。
+                                    </p>
+                                </div>
+
+                                <div class="info-box" style="margin-top: 16px;">
+                                    <h4>💡 docker compose ps は running も exited も表示</h4>
+                                    <p>
+                                        <code>docker compose up</code> で起動したコンテナは、<strong>running も exited も</strong>表示されます。<br>
+                                        <span style="color: #94a3b8;">（<code>docker container ls</code> と違って <code>-a</code> は不要）</span>
+                                    </p>
+                                    <p style="margin-top: 8px; color: #94a3b8; font-size: 13px;">
+                                        📌 <code>-a</code> は <code>docker compose run</code> で作成した一時コンテナも含めて表示するオプションです。
+                                    </p>
+                                </div>
+
+                                <div class="info-box" style="margin-top: 16px;">
+                                    <h4>🔄 コマンドで STATUS が変わる</h4>
+                                    <p>
+                                        docker compose コマンドでコンテナの状態が変化します。
+                                    </p>
+                                    <div style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 16px; margin-top: 12px;">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 13px;">
+                                            <div style="text-align: center;">
+                                                <div style="color: #94a3b8;">（なし）</div>
+                                            </div>
+                                            <div style="color: #22d3ee;">→</div>
+                                            <div style="text-align: center;">
+                                                <code>up</code><br>
+                                                <div style="color: #22c55e; font-weight: bold;">running</div>
+                                            </div>
+                                            <div style="color: #22d3ee;">→</div>
+                                            <div style="text-align: center;">
+                                                <code>stop</code><br>
+                                                <div style="color: #f87171; font-weight: bold;">exited</div>
+                                            </div>
+                                            <div style="color: #22d3ee;">→</div>
+                                            <div style="text-align: center;">
+                                                <code>start</code><br>
+                                                <div style="color: #22c55e; font-weight: bold;">running</div>
+                                            </div>
+                                            <div style="color: #22d3ee;">→</div>
+                                            <div style="text-align: center;">
+                                                <code>down</code><br>
+                                                <div style="color: #94a3b8;">（削除）</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="command-box" style="margin-top: 12px;">
+                                        <div class="command"># 試してみよう</div>
+                                        <div class="command">docker compose ps        # running を確認</div>
+                                        <div class="command">docker compose stop</div>
+                                        <div class="command">docker compose ps        # exited に変わる</div>
+                                        <div class="command">docker compose start</div>
+                                        <div class="command">docker compose ps        # running に戻る</div>
+                                    </div>
+                                </div>
+
+                                <div class="info-box" style="margin-top: 16px;">
+                                    <h4>🤔 docker container ls との違い</h4>
+                                    <table class="comparison-table" style="margin-top: 12px;">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th><code>docker compose ps</code></th>
+                                                <th><code>docker container ls</code></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>表示対象</td>
+                                                <td><strong>このyml</strong>のコンテナだけ</td>
+                                                <td><strong>全て</strong>のコンテナ</td>
+                                            </tr>
+                                            <tr>
+                                                <td>実行場所</td>
+                                                <td>docker-compose.ymlがある場所</td>
+                                                <td>どこでもOK</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <p style="margin-top: 12px; color: #22c55e; font-size: 13px;">
+                                        💡 複数のプロジェクトを動かしていても、<strong>関連するコンテナだけ</strong>見れるので便利！
+                                    </p>
+                                    <p style="margin-top: 8px; color: #94a3b8; font-size: 13px;">
+                                        📌 <code>docker compose</code> 系のコマンドは全て docker-compose.yml があるフォルダで実行します。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- logs -->
+                            <div class="hands-on-section">
+                                <h4>📜 docker compose logs - ログ確認</h4>
+                                <div class="command-box">
+                                    <div class="command">docker compose logs</div>
+                                </div>
+                                <p style="margin-top: 12px;">
+                                    全サービスのログを表示します。エラーが起きたときに便利！
+                                </p>
+                                <table class="comparison-table" style="margin-top: 16px;">
+                                    <tbody>
+                                        <tr>
+                                            <td><code>logs</code></td>
+                                            <td>全サービスのログを表示</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>logs app</code></td>
+                                            <td>appサービスのログだけ表示</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>logs -f</code></td>
+                                            <td>リアルタイムでログを追跡（Ctrl+Cで終了）</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>logs --tail 100</code></td>
+                                            <td>最新100行だけ表示</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># appサービスのログをリアルタイムで追跡</div>
+                                    <div class="command">docker compose logs -f app</div>
+                                </div>
+
+                                <div class="info-box" style="margin-top: 16px;">
+                                    <h4>🤔 何が出るの？</h4>
+                                    <p>
+                                        各コンテナの<strong>標準出力（stdout）</strong>と<strong>標準エラー出力（stderr）</strong>が表示されます。<br>
+                                        <span style="color: #94a3b8;">※ 各ソフトウェアが stdout に出力する内容が表示されます</span>
+                                    </p>
+                                    <table class="comparison-table" style="margin-top: 12px; font-size: 13px;">
+                                        <tbody>
+                                            <tr>
+                                                <td><code>db</code></td>
+                                                <td>MySQL の起動ログ、エラーログ</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>app</code></td>
+                                                <td>PHP-FPM のログ、アクセスログ</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>web</code></td>
+                                                <td>nginx の起動ログ、アクセスログ</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                        📌 ブラウザでアクセスすると <code>GET /tasks</code> のようなログがリアルタイムで流れます。
+                                    </p>
+                                    <p style="margin-top: 8px; color: #fbbf24; font-size: 13px;">
+                                        ⚠️ ファイルに書かれるログ（Laravel の <code>storage/logs/</code> など）はここには出ません。<br>
+                                        <span style="color: #94a3b8;">→ <code>docker compose exec app cat storage/logs/laravel.log</code> で確認</span>
+                                    </p>
+                                </div>
+
+                                <div class="info-box" style="margin-top: 16px;">
+                                    <h4>💡 -d を付けないとログが出っぱなし</h4>
+                                    <p>
+                                        <code>docker compose up</code>（-d なし）で起動すると、ログが流れ続けます。
+                                    </p>
+                                    <table class="comparison-table" style="margin-top: 12px; font-size: 13px;">
+                                        <thead>
+                                            <tr>
+                                                <th>コマンド</th>
+                                                <th>動作</th>
+                                                <th>Ctrl+C</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><code>docker compose up</code></td>
+                                                <td>フォアグラウンド + ログ表示</td>
+                                                <td style="color: #f87171;"><strong>コンテナ停止</strong></td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>docker compose up -d</code><br>+ <code>logs -f</code></td>
+                                                <td>バックグラウンド + ログ表示</td>
+                                                <td style="color: #22c55e;">ログだけ終了<br>（コンテナは動く）</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                        📌 通常は <code>-d</code> を付けてバックグラウンドで起動します。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- exec -->
+                            <div class="hands-on-section">
+                                <h4>🖥️ docker compose exec - コンテナに入る</h4>
+                                <div class="command-box">
+                                    <div class="command">docker compose exec app bash</div>
+                                </div>
+                                <div class="output">root@a1b2c3d4e5f6:/var/www/html#</div>
+                                <p style="margin-top: 12px;">
+                                    <strong>起動中の</strong>コンテナの中に入ってコマンドを実行できます。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># appコンテナでphp artisanを実行</div>
+                                    <div class="command">docker compose exec app php artisan migrate</div>
+                                    <div class="command" style="margin-top: 8px;"># dbコンテナでMySQLに接続</div>
+                                    <div class="command">docker compose exec db mysql -u root -p</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    📌 <code>exit</code> で抜けてもコンテナは停止しません。
+                                </p>
+                                <div class="info-box" style="margin-top: 16px;">
+                                    <h4>💡 -it は不要</h4>
+                                    <p>
+                                        <code>docker container exec</code> では <code>-it</code> が必要でしたが、<br>
+                                        <code>docker compose exec</code> は<strong>自動で対話モード</strong>になります。
+                                    </p>
+                                    <table class="comparison-table" style="margin-top: 12px;">
+                                        <tbody>
+                                            <tr>
+                                                <td><code>docker container exec -it コンテナ名 bash</code></td>
+                                                <td><code>-it</code> 必要</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>docker compose exec app bash</code></td>
+                                                <td><code>-it</code> 不要（自動）</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- restart -->
+                            <div class="hands-on-section">
+                                <h4>🔄 docker compose restart - 再起動</h4>
+                                <div class="command-box">
+                                    <div class="command">docker compose restart</div>
+                                </div>
+                                <p style="margin-top: 12px;">
+                                    全サービスを再起動します（<code>stop</code> + <code>start</code>）。
+                                </p>
+                                <div class="command-box" style="margin-top: 12px;">
+                                    <div class="command"># 特定のサービスだけ再起動</div>
+                                    <div class="command">docker compose restart app</div>
+                                </div>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    📌 設定ファイル（nginx.confなど）を変更した場合は再起動が必要です。
+                                </p>
+
+                                <div class="info-box" style="margin-top: 16px;">
+                                    <h4>💡 stop / start / down の違い</h4>
+                                    <table class="comparison-table" style="margin-top: 12px; font-size: 13px;">
+                                        <tbody>
+                                            <tr>
+                                                <td><code>docker compose stop</code></td>
+                                                <td>停止（コンテナは残る）</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>docker compose start</code></td>
+                                                <td>停止中のコンテナを起動</td>
+                                            </tr>
+                                            <tr>
+                                                <td><code>docker compose down</code></td>
+                                                <td>停止 + 削除（コンテナがなくなる）</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                        📌 <code>down</code> でコンテナは削除され、次回 <code>up</code> で新しく作成されます。
+                                    </p>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -535,7 +1581,7 @@ docker-laravel-web-1   web       Up        0.0.0.0:8080->80/tcp</div>
                         <h3>🧹 停止と後片付け</h3>
                         <div class="collapsible-content">
                             <div class="hands-on-section">
-                                <h4><span class="step-number">5</span>全コンテナを停止・削除</h4>
+                                <h4><span class="step-number">6</span>全コンテナを停止・削除</h4>
                                 <div class="command-box">
                                     <div class="command">docker compose down</div>
                                 </div>
@@ -620,17 +1666,27 @@ docker-laravel-web-1   web       Up        0.0.0.0:8080->80/tcp</div>
                                 <ul>
                                     <li>docker-compose.ymlの書き方</li>
                                     <li>runオプションとymlの対応関係</li>
-                                    <li>docker compose up / down</li>
+                                    <li>docker compose up / down / ps / logs</li>
                                     <li>depends_on で起動順序を制御</li>
                                     <li>build でDockerfileからビルド</li>
                                 </ul>
                             </div>
 
                             <div class="info-box">
-                                <h4>🎯 次のステップ</h4>
+                                <h4>🎯 Dockerの本質を実践できました</h4>
                                 <p>
-                                    Docker Composeで複数コンテナを管理できるようになりました！<br>
-                                    次はネットワークとボリュームについて、より詳しく学んでいきましょう。
+                                    講座の最初に「<strong>環境をコードで管理する</strong>」がDockerの本質だとお伝えしました。
+                                </p>
+                                <p style="margin-top: 12px;">
+                                    Docker Composeを学んだことで、まさにそれを実践できるようになりました：
+                                </p>
+                                <ul style="margin-top: 8px;">
+                                    <li><strong>docker-compose.yml</strong> → 環境構成をコードで定義</li>
+                                    <li><strong>Dockerfile</strong> → コンテナの中身をコードで定義</li>
+                                    <li><strong>Gitで管理</strong> → チーム全員が同じ環境を再現</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #22c55e;">
+                                    🎉 これで「環境をコードで管理する」を実践できるエンジニアになりました！
                                 </p>
                             </div>
                         </div>

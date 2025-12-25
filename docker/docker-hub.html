@@ -189,13 +189,79 @@
                             </div>
 
                             <div class="info-box">
-                                <h4>📊 Docker Hubの規模</h4>
+                                <h4>📊 Docker Hubの規模（2024年時点）</h4>
                                 <ul>
-                                    <li>• <strong>1,800万以上</strong>のイメージ</li>
-                                    <li>• <strong>月間1,300億回以上</strong>のイメージpull</li>
+                                    <li>• <strong>約830万</strong>のイメージリポジトリ</li>
+                                    <li>• <strong>月間約100億回</strong>のイメージpull</li>
+                                    <li>• <strong>累計3,180億回以上</strong>のpull（2014年〜）</li>
                                     <li>• <strong>公式イメージ</strong>は厳選された高品質なイメージ</li>
-                                    <li>• 無料で利用可能（制限あり）</li>
                                 </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💰 無料プランと有料プランの違い</h4>
+                                <table style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid #22d3ee;">
+                                            <th style="text-align: left; padding: 8px;"></th>
+                                            <th style="text-align: left; padding: 8px;">無料（Personal）</th>
+                                            <th style="text-align: left; padding: 8px;">有料（Pro以上）</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">pull（ダウンロード）</td>
+                                            <td style="padding: 8px; color: #fbbf24;">100回/時間</td>
+                                            <td style="padding: 8px; color: #22c55e;">無制限</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">パブリックリポジトリ</td>
+                                            <td style="padding: 8px; color: #22c55e;">無制限</td>
+                                            <td style="padding: 8px; color: #22c55e;">無制限</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px;">プライベートリポジトリ</td>
+                                            <td style="padding: 8px; color: #fbbf24;">1つまで</td>
+                                            <td style="padding: 8px; color: #22c55e;">無制限</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    💡 <strong>パブリック</strong> = 誰でもpullできる / <strong>プライベート</strong> = 自分だけ
+                                </p>
+                                <p style="margin-top: 8px; color: #94a3b8; font-size: 12px;">
+                                    ※ 学習用途では無料プランで十分です
+                                </p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 企業利用の注意（Docker Desktop）</h4>
+                                <p style="margin-bottom: 12px;">
+                                    <strong>Docker Desktop</strong>は以下の条件に該当する企業では<strong>有料プラン必須</strong>です：
+                                </p>
+                                <ul>
+                                    <li>• 従業員 <strong>250人以上</strong></li>
+                                    <li>• または 年間売上 <strong>1,000万ドル（約15億円）以上</strong></li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    ※ 個人利用・小規模企業・教育機関・非商用OSSは無料<br>
+                                    ※ コマンドラインの<strong>Docker Engine</strong>は誰でも無料で利用可能
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🏢 他のコンテナレジストリ</h4>
+                                <p>Docker Hub以外にもコンテナレジストリはあります：</p>
+                                <ul style="margin-top: 8px;">
+                                    <li>• <strong>Amazon ECR</strong> - AWS用</li>
+                                    <li>• <strong>Azure Container Registry</strong> - Azure用</li>
+                                    <li>• <strong>Google Artifact Registry</strong> - GCP用</li>
+                                    <li>• <strong>GitHub Container Registry</strong> - GitHubと統合</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    公式イメージはDocker Hubにあるため、基本はDocker Hubを使います。<br>
+                                    企業では本番環境用に各クラウドのレジストリを使うことが多いです。
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -295,50 +361,123 @@
                             <div class="info-box">
                                 <h4>🔤 イメージ名の構成</h4>
                                 <div style="font-family: 'JetBrains Mono', monospace; font-size: 18px; text-align: center; margin: 20px 0; color: #22d3ee;">
-                                    [レジストリ/][ユーザー名/]イメージ名[:タグ]
+                                    レジストリ / ユーザー名 / イメージ名 : タグ
+                                </div>
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; text-align: center; color: #94a3b8;">
+                                    docker.io / library / nginx : 1.28
                                 </div>
                             </div>
 
                             <div class="example-box">
-                                <h4>具体例で理解する</h4>
+                                <h4>フル表記と省略形</h4>
+                                <p style="margin-bottom: 12px;">実は普段使っている <code>nginx</code> は省略形です：</p>
                                 <table style="width: 100%; margin-top: 16px;">
                                     <thead>
                                         <tr style="border-bottom: 2px solid #22d3ee;">
-                                            <th style="text-align: left; padding: 8px;">完全なイメージ名</th>
-                                            <th style="text-align: left; padding: 8px;">意味</th>
+                                            <th style="text-align: left; padding: 8px;">フル表記</th>
+                                            <th style="text-align: left; padding: 8px;">省略形</th>
+                                            <th style="text-align: left; padding: 8px;">説明</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><code>docker.io/library/nginx:latest</code></td>
                                             <td style="padding: 8px;"><code>nginx</code></td>
-                                            <td style="padding: 8px;">公式イメージ、最新版</td>
+                                            <td style="padding: 8px;">公式イメージ</td>
                                         </tr>
                                         <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;"><code>docker.io/library/nginx:1.28</code></td>
                                             <td style="padding: 8px;"><code>nginx:1.28</code></td>
-                                            <td style="padding: 8px;">公式イメージ、バージョン1.28</td>
+                                            <td style="padding: 8px;">公式 + バージョン指定</td>
                                         </tr>
                                         <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;"><code>nginx:alpine</code></td>
-                                            <td style="padding: 8px;">公式イメージ、Alpine Linux版（軽量）</td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;"><code>mysql:8.0</code></td>
-                                            <td style="padding: 8px;">MySQL公式、バージョン8.0</td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;"><code>ubuntu:22.04</code></td>
-                                            <td style="padding: 8px;">Ubuntu公式、22.04 LTS版</td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;"><code>docker.io/myuser/myapp:v1.0</code></td>
-                                            <td style="padding: 8px;">Docker Hub、ユーザー作成</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding: 8px;"><code>123456789.dkr.ecr.ap-northeast-1.amazonaws.com/myapp:v1</code></td>
-                                            <td style="padding: 8px;">Amazon ECR（AWS）</td>
+                                            <td style="padding: 8px;"><code>docker.io/myuser/myapp:v1</code></td>
+                                            <td style="padding: 8px;"><code>myuser/myapp:v1</code></td>
+                                            <td style="padding: 8px;">ユーザー作成イメージ</td>
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 省略ルール（Docker Hubの場合）</h4>
+                                <ul>
+                                    <li>• <code>docker.io</code> → 省略可能（Docker Hubがデフォルト）</li>
+                                    <li>• <code>library</code> → 公式イメージのみ省略可能</li>
+                                    <li>• <code>:latest</code> → 省略可能（タグなし = latest）</li>
+                                </ul>
+                            </div>
+
+                            <div class="explore-section">
+                                <h4>🔬 ハンズオン：フル表記で実行してみる</h4>
+                                <p style="margin-bottom: 12px;">
+                                    省略形だけでなく、フル表記でも動くことを確認してみましょう。
+                                </p>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">1</span>フル表記でコンテナを起動</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker container run -d --rm --name nginx-full -p 8080:80 docker.io/library/nginx:1.28</div>
+                                    </div>
+                                    <div class="output">Unable to find image 'docker.io/library/nginx:1.28' locally
+1.28: Pulling from library/nginx
+...
+abc123def456...</div>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">2</span>ブラウザで確認</h4>
+                                    <p>
+                                        <a href="http://localhost:8080" target="_blank" style="color: #22d3ee;">http://localhost:8080</a> にアクセス → Nginxの画面が表示されればOK！
+                                    </p>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">3</span>起動を確認</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker container ls</div>
+                                    </div>
+                                    <div class="output">CONTAINER ID   IMAGE        ...   PORTS                  NAMES
+abc123...      nginx:1.28   ...   0.0.0.0:8080->80/tcp   nginx-full</div>
+                                    <p style="color: #94a3b8; margin-top: 8px;">
+                                        フル表記で指定しても、IMAGEは <code>nginx:1.28</code> と表示されます。
+                                    </p>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">4</span>停止（--rmで自動削除）</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker container stop nginx-full</div>
+                                    </div>
+                                    <p style="color: #94a3b8; margin-top: 8px;">
+                                        <code>--rm</code> を付けて起動したので、停止と同時にコンテナが自動削除されます。
+                                    </p>
+                                </div>
+
+                                <div class="success-box">
+                                    <h4>💡 ポイント</h4>
+                                    <p>
+                                        <code>nginx:1.28</code> も <code>docker.io/library/nginx:1.28</code> も同じです。<br>
+                                        Dockerfileの <code>FROM</code> でもフル表記が使えます。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>⚠️ 他のレジストリは省略できない</h4>
+                                <table style="width: 100%; margin-top: 12px;">
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>ghcr.io/myuser/myapp:v1</code></td>
+                                        <td style="padding: 8px;">GitHub Container Registry</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;"><code>123456789.dkr.ecr.ap-northeast-1.amazonaws.com/myapp:v1</code></td>
+                                        <td style="padding: 8px;">Amazon ECR</td>
+                                    </tr>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    Docker Hub以外のレジストリはURLを省略できません。
+                                </p>
                             </div>
 
                             <div class="warning-box">
@@ -414,14 +553,147 @@
                                 </div>
                             </div>
 
+                            <div class="explore-section">
+                                <h4>🔬 ハンズオン：レイヤーの共有を体験する</h4>
+                                <p style="margin-bottom: 12px;">
+                                    レイヤーが共有される仕組みを実際に確認してみましょう。
+                                </p>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">1</span>nginx:1.27 をpull</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker image pull nginx:1.27</div>
+                                    </div>
+                                    <div class="output">1.27: Pulling from library/nginx
+a2abf6c4d29d: Pull complete      ← ベースOS
+a9edb18cadd1: Pull complete      ← 設定ファイル
+589b7251471a: Pull complete      ← nginx本体
+...</div>
+                                    <p style="color: #94a3b8; margin-top: 8px;">
+                                        すべてのレイヤーを新規ダウンロードします。
+                                    </p>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">2</span>nginx:1.28 をpull</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker image pull nginx:1.28</div>
+                                    </div>
+                                    <div class="output">1.28: Pulling from library/nginx
+a2abf6c4d29d: Already exists     ← ダウンロードしない！
+a9edb18cadd1: Already exists     ← ダウンロードしない！
+f3d8bc1c0c04: Pull complete      ← 変わった部分だけ
+...</div>
+                                    <p style="color: #22c55e; margin-top: 8px;">
+                                        <strong>Already exists</strong> = ローカルに同じレイヤーがあるのでスキップ！
+                                    </p>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">3</span>ディスク使用量を確認</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker image ls nginx</div>
+                                    </div>
+                                    <div class="output">REPOSITORY   TAG    IMAGE ID       SIZE
+nginx        1.28   abc123...      188MB
+nginx        1.27   def456...      188MB</div>
+                                    <p style="color: #94a3b8; margin-top: 8px;">
+                                        見た目は合計 376MB ですが...
+                                    </p>
+                                    <div class="command-box" style="margin-top: 12px;">
+                                        <div class="command">docker system df</div>
+                                    </div>
+                                    <div class="output">TYPE       TOTAL   ACTIVE   SIZE      RECLAIMABLE
+Images     2       0        195.2MB   195.2MB (100%)</div>
+                                    <p style="color: #22c55e; margin-top: 8px;">
+                                        <strong>実際は約195MBしか使っていない！</strong><br>
+                                        共通レイヤーは1つだけ保存され、両方のイメージが参照しています。
+                                    </p>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4>🧹 後片付け</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker image rm nginx:1.27 nginx:1.28</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🧩 なぜ共有できる？ - レイヤーはハッシュで識別</h4>
+                                <p style="margin-bottom: 16px;">
+                                    各レイヤーは<strong>ハッシュ値（SHA256）</strong>で識別されます。同じハッシュ = 同じ内容なので、1つだけ保存して共有できます。
+                                </p>
+
+                                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                    <!-- nginx:1.27 -->
+                                    <div style="flex: 1; min-width: 200px;">
+                                        <div style="text-align: center; color: #22d3ee; font-weight: bold; margin-bottom: 8px;">nginx:1.27</div>
+                                        <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 8px; padding: 12px;">
+                                            <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; border-radius: 4px; padding: 8px; margin-bottom: 6px; font-family: monospace; font-size: 12px;">
+                                                a2abf6c4... <span style="color: #22c55e;">共有</span>
+                                            </div>
+                                            <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; border-radius: 4px; padding: 8px; margin-bottom: 6px; font-family: monospace; font-size: 12px;">
+                                                a9edb18c... <span style="color: #22c55e;">共有</span>
+                                            </div>
+                                            <div style="background: rgba(100, 116, 139, 0.2); border: 1px solid #64748b; border-radius: 4px; padding: 8px; font-family: monospace; font-size: 12px;">
+                                                589b7251... <span style="color: #94a3b8;">1.27専用</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 共有レイヤー（中央） -->
+                                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 120px;">
+                                        <div style="color: #22c55e; font-size: 24px;">←</div>
+                                        <div style="background: rgba(34, 197, 94, 0.15); border: 2px solid #22c55e; border-radius: 8px; padding: 12px; text-align: center;">
+                                            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 4px;">ディスク上は</div>
+                                            <div style="font-weight: bold; color: #22c55e;">1つだけ保存</div>
+                                        </div>
+                                        <div style="color: #22c55e; font-size: 24px;">→</div>
+                                    </div>
+
+                                    <!-- nginx:1.28 -->
+                                    <div style="flex: 1; min-width: 200px;">
+                                        <div style="text-align: center; color: #22d3ee; font-weight: bold; margin-bottom: 8px;">nginx:1.28</div>
+                                        <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 8px; padding: 12px;">
+                                            <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; border-radius: 4px; padding: 8px; margin-bottom: 6px; font-family: monospace; font-size: 12px;">
+                                                a2abf6c4... <span style="color: #22c55e;">共有</span>
+                                            </div>
+                                            <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; border-radius: 4px; padding: 8px; margin-bottom: 6px; font-family: monospace; font-size: 12px;">
+                                                a9edb18c... <span style="color: #22c55e;">共有</span>
+                                            </div>
+                                            <div style="background: rgba(100, 116, 139, 0.2); border: 1px solid #64748b; border-radius: 4px; padding: 8px; font-family: monospace; font-size: 12px;">
+                                                f3d8bc1c... <span style="color: #94a3b8;">1.28専用</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="success-box">
-                                <h4>💡 レイヤーの仕組みの利点</h4>
-                                <ul>
-                                    <li>🔄 <strong>レイヤーの再利用</strong> - 同じベースOSを使うイメージは共有される</li>
-                                    <li>💾 <strong>差分管理</strong> - 変更があった部分だけダウンロード</li>
-                                    <li>⚡ <strong>高速化</strong> - キャッシュによりビルドが速い</li>
-                                    <li>📦 <strong>容量削減</strong> - 重複を避けてディスク使用量を削減</li>
-                                </ul>
+                                <h4>💡 レイヤー共有のまとめ</h4>
+                                <table style="width: 100%; margin-top: 12px;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid #22d3ee;">
+                                            <th style="text-align: left; padding: 8px;">場面</th>
+                                            <th style="text-align: left; padding: 8px;">何が起きる？</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">pullする時</td>
+                                            <td style="padding: 8px;">ローカルにあるレイヤーは <code>Already exists</code> でスキップ</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">ローカル保存</td>
+                                            <td style="padding: 8px;">共通レイヤーは1つだけ保存 → ディスク節約</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px;">buildする時</td>
+                                            <td style="padding: 8px;">変更がない行はキャッシュを使う → ビルドが速い</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
 
                             <div class="info-box">
@@ -430,7 +702,7 @@
 
                                 <div class="command-box" style="margin-top: 12px;">
                                     <div class="command"># イメージの履歴（レイヤー）を表示</div>
-                                    <div class="command">docker history nginx:latest</div>
+                                    <div class="command">docker image history nginx:latest</div>
                                 </div>
 
                                 <div class="output">IMAGE          CREATED       CREATED BY                                      SIZE
@@ -444,6 +716,132 @@
                                 <p style="margin-top: 12px; color: #94a3b8;">
                                     各レイヤーがどのコマンドで作られたか、サイズはどれくらいかが分かります。
                                 </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- イメージをpull/pushしてみよう -->
+                    <div class="content-section">
+                        <h3>🔄 イメージをpull/pushしてみよう</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                Docker Hubは「イメージの倉庫」です。実際に<strong>ダウンロード（pull）</strong>と<strong>アップロード（push）</strong>を体験してみましょう！
+                            </p>
+
+                            <div class="explore-section">
+                                <h4>⬇️ イメージをpullする</h4>
+                                <p style="margin-bottom: 12px;">
+                                    まずは公式イメージをダウンロードしてみます。
+                                </p>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">1</span>nginxイメージをpull</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker image pull nginx:1.28-alpine</div>
+                                    </div>
+                                    <div class="output">1.28-alpine: Pulling from library/nginx
+...
+Status: Downloaded newer image for nginx:1.28-alpine</div>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">2</span>ダウンロードしたイメージを確認</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker image ls nginx</div>
+                                    </div>
+                                    <div class="output">REPOSITORY   TAG           IMAGE ID       CREATED       SIZE
+nginx        1.28-alpine   abc123...      2 days ago    43.2MB</div>
+                                </div>
+                            </div>
+
+                            <div class="explore-section">
+                                <h4>⬆️ 自作イメージをpushする</h4>
+                                <p style="margin-bottom: 12px;">
+                                    自分で作ったイメージをDocker Hubにアップロードしてみましょう。
+                                </p>
+
+                                <div class="warning-box">
+                                    <h4>📝 事前準備</h4>
+                                    <p>Docker Hubのアカウントが必要です。まだの方は<a href="https://hub.docker.com/signup" target="_blank" style="color: #22d3ee;">こちら</a>から無料で作成できます。</p>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">3</span>Docker Hubにログイン</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker login</div>
+                                    </div>
+                                    <div class="output">Username: あなたのユーザー名
+Password: パスワード（入力しても表示されません）
+Login Succeeded</div>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">4</span>イメージに別名を付ける</h4>
+                                    <p style="color: #94a3b8; margin-bottom: 12px;">
+                                        pushするには<code>ユーザー名/イメージ名:タグ</code>の形式が必要です。<br>
+                                        <code>docker image tag</code>で既存イメージに別名（エイリアス）を付けます。
+                                    </p>
+                                    <div class="command-box">
+                                        <div class="command"># myuser を自分のDocker Hubユーザー名に置き換えてください</div>
+                                        <div class="command">docker image tag nginx:1.28-alpine myuser/my-nginx:v1</div>
+                                    </div>
+                                    <p style="color: #94a3b8; margin-top: 12px;">
+                                        これはコピーではなく、同じイメージに別名を付けるだけです。
+                                    </p>
+                                    <div class="info-box" style="margin-top: 12px;">
+                                        <h4>🤔 なぜ別名が必要？</h4>
+                                        <p>
+                                            <code>nginx</code> をそのままpushしたいところですが、できません。<br>
+                                            <code>nginx</code> = <code>library/nginx</code> は<strong>公式イメージの名前空間</strong>で、自分にはpush権限がないからです。
+                                        </p>
+                                        <p style="margin-top: 8px;">
+                                            だから <code>myuser/my-nginx</code> のように<strong>自分のユーザー名</strong>を付けた名前が必要です。
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">5</span>イメージをpush</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker image push myuser/my-nginx:v1</div>
+                                    </div>
+                                    <div class="output">The push refers to repository [docker.io/myuser/my-nginx]
+...
+v1: digest: sha256:abc123... size: 1234</div>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4><span class="step-number">6</span>Docker Hubで確認</h4>
+                                    <p>
+                                        ブラウザで <code>https://hub.docker.com/r/myuser/my-nginx</code> にアクセス！<br>
+                                        自分のイメージがDocker Hubに公開されています。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>💡 pull/pushのまとめ</h4>
+                                <table style="width: 100%; margin-top: 12px;">
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>docker image pull イメージ名</code></td>
+                                        <td style="padding: 8px;">Docker Hubからダウンロード</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>docker image push イメージ名</code></td>
+                                        <td style="padding: 8px;">Docker Hubにアップロード</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;"><code>docker image tag 元 新</code></td>
+                                        <td style="padding: 8px;">イメージに別名（タグ）を付ける</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4>🧹 後片付け</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image rm nginx:1.28-alpine myuser/my-nginx:v1</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -493,6 +891,43 @@
                                 </table>
                             </div>
 
+                            <div class="info-box">
+                                <h4>📋 各カテゴリの詳細</h4>
+
+                                <div style="margin-top: 16px;">
+                                    <p style="color: #22d3ee; font-weight: bold; margin-bottom: 8px;">✓ Docker Official Image</p>
+                                    <ul style="margin-bottom: 16px;">
+                                        <li><strong>メンテナンス</strong>：各プロジェクトのチーム（nginx→NGINX社、mysql→Oracle等）</li>
+                                        <li><strong>Docker社の役割</strong>：審査・認定、セキュリティスキャン、ガイドライン策定</li>
+                                        <li><strong>特徴</strong>：Dockerのベストプラクティスに準拠</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <p style="color: #22d3ee; font-weight: bold; margin-bottom: 8px;">✓ Verified Publisher</p>
+                                    <ul style="margin-bottom: 16px;">
+                                        <li><strong>条件</strong>：Docker Partner Programに参加している企業</li>
+                                        <li><strong>特徴</strong>：身元が確認された企業（Microsoft、Amazon、Oracle等）</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <p style="color: #fbbf24; font-weight: bold; margin-bottom: 8px;">Docker Sponsored OSS</p>
+                                    <ul style="margin-bottom: 16px;">
+                                        <li><strong>条件</strong>：Dockerが支援する人気オープンソースプロジェクト</li>
+                                        <li><strong>特徴</strong>：Docker Hubの特典を無料で利用可能</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <p style="color: #94a3b8; font-weight: bold; margin-bottom: 8px;">Community Images</p>
+                                    <ul>
+                                        <li><strong>条件</strong>：<strong>誰でも公開できる</strong>（アカウントがあれば）</li>
+                                        <li><strong>特徴</strong>：審査なし → 信頼度が低い</li>
+                                    </ul>
+                                </div>
+                            </div>
+
                             <div class="warning-box">
                                 <h4>⚠️ イメージ選びの注意点</h4>
                                 <ul>
@@ -532,10 +967,10 @@
                                     <h4><span class="step-number">1</span>Pythonイメージをダウンロード</h4>
                                     <div class="command-box">
                                         <div class="command"># slim版（おすすめ）</div>
-                                        <div class="command">docker image pull python:3.12-slim</div>
+                                        <div class="command">docker image pull python:3.13-slim</div>
                                     </div>
                                     <p style="color: #94a3b8; margin-top: 8px;">
-                                        ※ 通常版（1GB超）は大きすぎるのでスキップ
+                                        ※ 通常版（約1GB）は大きすぎるのでスキップ
                                     </p>
                                 </div>
 
@@ -545,12 +980,19 @@
                                         <div class="command">docker image ls python</div>
                                     </div>
                                     <div class="output">REPOSITORY   TAG           IMAGE ID       CREATED       SIZE
-python       3.12-slim     def456...      2 days ago    154MB</div>
+python       3.13-slim     def456...      2 days ago    150MB</div>
+                                </div>
+
+                                <div class="hands-on-section">
+                                    <h4>🧹 後片付け</h4>
+                                    <div class="command-box">
+                                        <div class="command">docker image rm python:3.13-slim</div>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="info-box">
-                                <h4>📝 Pythonイメージのサイズ比較（参考）</h4>
+                                <h4>📝 Pythonイメージのサイズ比較（2025年時点）</h4>
                                 <table style="width: 100%; margin-top: 16px;">
                                     <thead>
                                         <tr style="border-bottom: 2px solid #22d3ee;">
@@ -561,22 +1003,25 @@ python       3.12-slim     def456...      2 days ago    154MB</div>
                                     </thead>
                                     <tbody>
                                         <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;"><code>3.12</code></td>
+                                            <td style="padding: 8px;"><code>3.13</code></td>
                                             <td style="padding: 8px; color: #ef4444;">約1GB</td>
                                             <td style="padding: 8px;">通常版（重い）</td>
                                         </tr>
                                         <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;"><code>3.12-slim</code></td>
+                                            <td style="padding: 8px;"><code>3.13-slim</code></td>
                                             <td style="padding: 8px; color: #22c55e;">約150MB</td>
                                             <td style="padding: 8px;">軽量版（おすすめ）</td>
                                         </tr>
                                         <tr>
-                                            <td style="padding: 8px;"><code>3.12-alpine</code></td>
+                                            <td style="padding: 8px;"><code>3.13-alpine</code></td>
                                             <td style="padding: 8px; color: #22c55e;">約50MB</td>
-                                            <td style="padding: 8px;">超軽量版（一部ライブラリで問題あり）</td>
+                                            <td style="padding: 8px;">超軽量版（注意が必要）</td>
                                         </tr>
                                     </tbody>
                                 </table>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    ※ Python 3.14が最新ですが、安定性を考慮して3.13を推奨
+                                </p>
                             </div>
 
                             <div class="info-box">
@@ -591,17 +1036,17 @@ python       3.12-slim     def456...      2 days ago    154MB</div>
                                     </thead>
                                     <tbody>
                                         <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;"><code>3.12</code></td>
+                                            <td style="padding: 8px;"><code>3.13</code></td>
                                             <td style="padding: 8px;">Debian（フル版）</td>
                                             <td style="padding: 8px;">開発ツール、コンパイラ、多くのライブラリ</td>
                                         </tr>
                                         <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;"><code>3.12-slim</code></td>
+                                            <td style="padding: 8px;"><code>3.13-slim</code></td>
                                             <td style="padding: 8px;">Debian（最小構成）</td>
                                             <td style="padding: 8px;">Python実行に必要な最小限</td>
                                         </tr>
                                         <tr>
-                                            <td style="padding: 8px;"><code>3.12-alpine</code></td>
+                                            <td style="padding: 8px;"><code>3.13-alpine</code></td>
                                             <td style="padding: 8px;">Alpine Linux</td>
                                             <td style="padding: 8px;">超軽量OS + Python</td>
                                         </tr>
@@ -612,20 +1057,13 @@ python       3.12-slim     def456...      2 days ago    154MB</div>
                             <div class="warning-box">
                                 <h4>⚠️ 軽いほど良いわけではない</h4>
                                 <ul>
-                                    <li>• <strong>alpine</strong>は一部のPythonライブラリでビルドエラーが起きることがある</li>
+                                    <li>• <strong>alpine</strong>はmusl libcを使用 → 一部のPythonライブラリ（numpy, pandas等）でビルドエラーが起きることがある</li>
                                     <li>• <strong>slim</strong>は多くの場合で問題なく動く（おすすめ）</li>
-                                    <li>• <strong>通常版</strong>は開発時に便利（デバッグツールが揃っている）</li>
+                                    <li>• <strong>通常版</strong>はC拡張ライブラリのビルドが必要な時に便利</li>
                                 </ul>
                                 <p style="margin-top: 12px; color: #22c55e;">
                                     💡 迷ったら<strong>slim</strong>から始めるのがおすすめ！
                                 </p>
-                            </div>
-
-                            <div class="hands-on-section">
-                                <h4>🧹 後片付け</h4>
-                                <div class="command-box">
-                                    <div class="command">docker image rm python:3.12-slim</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -715,105 +1153,6 @@ CMD ["nginx", "-g", "daemon off;"]</code></pre>
                         </div>
                     </div>
 
-                    <!-- Docker Hubでイメージを探す -->
-                    <div class="content-section">
-                        <h3>🔎 実践：必要なイメージを探してみよう</h3>
-                        <div class="collapsible-content">
-                            <p>
-                                実際にDocker Hubで必要なイメージを探す練習をしてみましょう。
-                            </p>
-
-                            <div class="example-box">
-                                <h4>例：Python開発環境を探す場合</h4>
-
-                                <div class="hands-on-section">
-                                    <h4>1. Docker Hubで検索</h4>
-                                    <p>
-                                        <a href="https://hub.docker.com/search?q=python&type=image" target="_blank" style="color: #22d3ee;">
-                                            https://hub.docker.com/search?q=python
-                                        </a>
-                                    </p>
-                                </div>
-
-                                <div class="hands-on-section">
-                                    <h4>2. 公式イメージを確認</h4>
-                                    <p>「python」という公式イメージが見つかります。</p>
-                                    <div style="margin-top: 12px;">
-                                        <span style="color: #22c55e;">✓ Docker Official Image</span>
-                                        <span style="margin-left: 16px;">1B+ Downloads</span>
-                                    </div>
-                                </div>
-
-                                <div class="hands-on-section">
-                                    <h4>3. タグを選択</h4>
-                                    <div style="margin-top: 12px;">
-                                        <span class="tag-badge">3.12</span> ← 最新の安定版<br>
-                                        <span class="tag-badge">3.12-slim</span> ← 軽量版<br>
-                                        <span class="tag-badge">3.12-alpine</span> ← 超軽量版<br>
-                                        <span class="tag-badge">3.11</span> ← 一つ前のバージョン
-                                    </div>
-                                </div>
-
-                                <div class="hands-on-section">
-                                    <h4>4. コマンドで取得</h4>
-                                    <div class="command-box">
-                                        <div class="command">docker image pull python:3.12-slim</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="info-box">
-                                <h4>🎯 よく使われる公式イメージ</h4>
-                                <table style="width: 100%; margin-top: 16px;">
-                                    <thead>
-                                        <tr style="border-bottom: 2px solid #22d3ee;">
-                                            <th style="text-align: left; padding: 8px;">用途</th>
-                                            <th style="text-align: left; padding: 8px;">イメージ名</th>
-                                            <th style="text-align: left; padding: 8px;">おすすめタグ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;">Webサーバー</td>
-                                            <td style="padding: 8px;"><code>nginx</code></td>
-                                            <td style="padding: 8px;"><code>1.28-alpine</code></td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;">データベース</td>
-                                            <td style="padding: 8px;"><code>mysql</code></td>
-                                            <td style="padding: 8px;"><code>8.0</code></td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;">データベース</td>
-                                            <td style="padding: 8px;"><code>postgres</code></td>
-                                            <td style="padding: 8px;"><code>15-alpine</code></td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;">キャッシュ</td>
-                                            <td style="padding: 8px;"><code>redis</code></td>
-                                            <td style="padding: 8px;"><code>7-alpine</code></td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;">Node.js</td>
-                                            <td style="padding: 8px;"><code>node</code></td>
-                                            <td style="padding: 8px;"><code>20-alpine</code></td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
-                                            <td style="padding: 8px;">Python</td>
-                                            <td style="padding: 8px;"><code>python</code></td>
-                                            <td style="padding: 8px;"><code>3.12-slim</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding: 8px;">ベースOS</td>
-                                            <td style="padding: 8px;"><code>ubuntu</code></td>
-                                            <td style="padding: 8px;"><code>22.04</code></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- まとめ -->
                     <div class="content-section">
                         <h3>📝 このセクションのまとめ</h3>
@@ -848,7 +1187,7 @@ CMD ["nginx", "-g", "daemon off;"]</code></pre>
                                     Dockerfileとイメージの関係が分かったので、次は<strong>複数のコンテナを連携</strong>させる方法を学びます。
                                 </p>
                                 <p style="margin-top: 12px;">
-                                    <strong>Docker Compose</strong>を使って、Webサーバー + データベースなどを一括管理しましょう！
+                                    まずは<strong>手動で複数コンテナを起動</strong>して、その大変さを体験してみましょう！
                                 </p>
                             </div>
                         </div>

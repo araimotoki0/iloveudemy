@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ネットワーク - Docker入門講座</title>
-    <meta name="description" content="Dockerネットワークとコンテナ間通信を学ぶ">
+    <meta name="description" content="Dockerネットワークの本質をハンズオンで学ぶ">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,6 @@
     <link rel="stylesheet" href="css/docker-common.css">
     <style>
         body { overflow-x: hidden; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); background-attachment: fixed; }
-        .network-diagram { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 20px; margin: 16px 0; }
     </style>
 </head>
 <body class="text-white font-sans js-loading">
@@ -32,581 +31,333 @@
         <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
             <div class="max-w-5xl mx-auto">
                 <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
-                    <!-- Dockerネットワークの概要 -->
+
+                    <!-- 導入 -->
                     <div class="content-section">
-                        <h3>🌐 Dockerネットワークの概要</h3>
+                        <h3>🌐 Dockerネットワークとは</h3>
                         <div class="collapsible-content">
-                            <p class="text-lg mb-6">Dockerは独自のネットワーク機能を持ち、コンテナ間通信、外部通信、ネットワーク分離を実現します。</p>
+                            <p class="text-lg mb-6">
+                                Docker Composeで <code>db</code> と書くだけでデータベースに繋がりましたよね？<br>
+                                なぜ繋がるのか、その仕組みを理解しましょう。
+                            </p>
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                <div class="bg-slate-700/50 p-6 rounded-xl border border-cyan-500/30">
-                                    <div class="text-3xl mb-3">🔗</div>
-                                    <h4 class="text-lg mb-2">コンテナ間通信</h4>
-                                    <p class="text-sm text-gray-300">同じネットワーク内のコンテナ同士が通信できます</p>
-                                </div>
-
-                                <div class="bg-slate-700/50 p-6 rounded-xl border border-cyan-500/30">
-                                    <div class="text-3xl mb-3">🌍</div>
-                                    <h4 class="text-lg mb-2">外部アクセス</h4>
-                                    <p class="text-sm text-gray-300">コンテナからインターネットや他のホストへ接続</p>
-                                </div>
-
-                                <div class="bg-slate-700/50 p-6 rounded-xl border border-cyan-500/30">
-                                    <div class="text-3xl mb-3">🔒</div>
-                                    <h4 class="text-lg mb-2">ネットワーク分離</h4>
-                                    <p class="text-sm text-gray-300">ネットワークごとにコンテナを隔離</p>
+                            <div class="bg-slate-700/30 p-6 rounded-xl mb-6">
+                                <div class="text-xl font-bold text-center mb-4">覚えることは3つだけ</div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="bg-red-900/30 border border-red-500/30 p-4 rounded-lg text-center">
+                                        <div class="text-2xl mb-2">1</div>
+                                        <div class="font-bold text-red-300">コンテナは孤立</div>
+                                        <p class="text-sm text-gray-300 mt-2">localhost は使えない</p>
+                                    </div>
+                                    <div class="bg-green-900/30 border border-green-500/30 p-4 rounded-lg text-center">
+                                        <div class="text-2xl mb-2">2</div>
+                                        <div class="font-bold text-green-300">同じネットワーク</div>
+                                        <p class="text-sm text-gray-300 mt-2">= サービス名で通信OK</p>
+                                    </div>
+                                    <div class="bg-blue-900/30 border border-blue-500/30 p-4 rounded-lg text-center">
+                                        <div class="text-2xl mb-2">3</div>
+                                        <div class="font-bold text-blue-300">Docker Compose</div>
+                                        <p class="text-sm text-gray-300 mt-2">自動でやってくれる</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
-                                <div class="font-semibold text-blue-300 mb-3">🔍 Dockerネットワークの仕組み</div>
-                                <p class="text-sm mb-3">Dockerは仮想ブリッジネットワークを作成し、各コンテナに仮想ネットワークインターフェースを割り当てます。これにより：</p>
-                                <ul class="text-sm space-y-2">
-                                    <li>• コンテナごとに独立したIPアドレスを持つ</li>
-                                    <li>• コンテナ名でDNS解決ができる</li>
-                                    <li>• ネットワークごとに通信を制御できる</li>
-                                </ul>
-                            </div>
+                            <p class="text-gray-300">
+                                実際に手を動かして体験していきましょう。
+                            </p>
                         </div>
                     </div>
 
-                    <!-- ネットワークドライバー -->
+                    <!-- ハンズオン1: コンテナは孤立している -->
                     <div class="content-section">
-                        <h3>🚗 ネットワークドライバー</h3>
+                        <h3>❌ ハンズオン1: コンテナは繋がらない</h3>
                         <div class="collapsible-content">
-                            <p class="text-lg mb-6">Dockerには複数のネットワークドライバーがあり、用途に応じて使い分けます。</p>
+                            <p class="text-lg mb-6">
+                                同じPCで動いているコンテナ同士、繋がると思いますよね？<br>
+                                実は<strong>繋がりません</strong>。確認してみましょう。
+                            </p>
 
-                            <div class="space-y-6 mb-6">
-                                <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6">
-                                    <h4 class="text-xl mb-3">1. bridge（ブリッジ）- デフォルト</h4>
-                                    <p class="text-sm text-gray-300 mb-4">同一ホスト内のコンテナ間通信に使用。最も一般的なドライバーです。</p>
+                            <div class="bg-slate-700/30 p-6 rounded-xl mb-6">
+                                <div class="font-bold text-lg mb-4">Step 1: 2つのコンテナを起動</div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div>
-                                            <div class="text-cyan-400 text-sm font-semibold mb-2">特徴</div>
-                                            <ul class="text-sm space-y-1 text-gray-300">
-                                                <li>• デフォルトネットワーク</li>
-                                                <li>• 同一ホスト内で通信</li>
-                                                <li>• DNS名前解決が可能</li>
-                                                <li>• NAT経由で外部通信</li>
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <div class="text-cyan-400 text-sm font-semibold mb-2">用途</div>
-                                            <ul class="text-sm space-y-1 text-gray-300">
-                                                <li>• 一般的なアプリケーション</li>
-                                                <li>• 開発環境</li>
-                                                <li>• 単一ホストの本番環境</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-
-                                    <div class="command-box text-sm">
-                                        <div class="command">docker network create mynetwork</div>
-                                        <div class="text-sm text-gray-400 mt-2">ブリッジネットワークを作成（デフォルト）</div>
-                                    </div>
+                                <div class="command-box mb-4">
+                                    <div class="command"># コンテナA を起動</div>
+                                    <div class="command">docker run -d --name containerA alpine sleep 3600</div>
                                 </div>
 
-                                <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6">
-                                    <h4 class="text-xl mb-3">2. host（ホスト）</h4>
-                                    <p class="text-sm text-gray-300 mb-4">コンテナがホストのネットワークを直接使用。ポートマッピング不要です。</p>
+                                <div class="command-box mb-4">
+                                    <div class="command"># コンテナB を起動</div>
+                                    <div class="command">docker run -d --name containerB alpine sleep 3600</div>
+                                </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div>
-                                            <div class="text-cyan-400 text-sm font-semibold mb-2">特徴</div>
-                                            <ul class="text-sm space-y-1 text-gray-300">
-                                                <li>• ホストと同じIP</li>
-                                                <li>• ネットワーク分離なし</li>
-                                                <li>• 高速（NAT不要）</li>
-                                                <li>• ポート競合に注意</li>
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <div class="text-cyan-400 text-sm font-semibold mb-2">用途</div>
-                                            <ul class="text-sm space-y-1 text-gray-300">
-                                                <li>• パフォーマンス重視</li>
-                                                <li>• ネットワーク監視ツール</li>
-                                                <li>• システムサービス</li>
-                                            </ul>
-                                        </div>
-                                    </div>
+                                <p class="text-gray-300 text-sm">
+                                    2つのコンテナが同じPCで動いています。
+                                </p>
+                            </div>
 
-                                    <div class="command-box text-sm">
-                                        <div class="command">docker run --network host nginx</div>
-                                        <div class="text-sm text-gray-400 mt-2">ホストネットワークを使用</div>
+                            <div class="bg-slate-700/30 p-6 rounded-xl mb-6">
+                                <div class="font-bold text-lg mb-4">Step 2: 通信を試みる</div>
+
+                                <div class="command-box mb-4">
+                                    <div class="command"># containerA から containerB に ping してみる</div>
+                                    <div class="command">docker exec containerA ping -c 3 containerB</div>
+                                    <div class="output" style="color: #ef4444;">
+ping: bad address 'containerB'
                                     </div>
                                 </div>
 
-                                <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6">
-                                    <h4 class="text-xl mb-3">3. none（なし）</h4>
-                                    <p class="text-sm text-gray-300 mb-4">ネットワーク機能を無効化。完全に隔離された環境を作ります。</p>
+                                <div class="bg-red-900/30 border border-red-500/30 rounded-lg p-4">
+                                    <div class="font-bold text-red-300 mb-2">結果: 繋がらない！</div>
+                                    <p class="text-sm">
+                                        同じPCで動いているのに、コンテナ同士は通信できません。
+                                    </p>
+                                </div>
+                            </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div>
-                                            <div class="text-cyan-400 text-sm font-semibold mb-2">特徴</div>
-                                            <ul class="text-sm space-y-1 text-gray-300">
-                                                <li>• ネットワーク無効</li>
-                                                <li>• loopbackのみ利用可</li>
-                                                <li>• 完全隔離</li>
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <div class="text-cyan-400 text-sm font-semibold mb-2">用途</div>
-                                            <ul class="text-sm space-y-1 text-gray-300">
-                                                <li>• セキュリティテスト</li>
-                                                <li>• バッチ処理</li>
-                                                <li>• カスタムネットワーク設定</li>
-                                            </ul>
-                                        </div>
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-6 mb-6">
+                                <div class="font-bold text-yellow-300 mb-3">なぜ繋がらない？</div>
+                                <p class="mb-4">
+                                    各コンテナは<strong>独立したネットワーク空間</strong>を持っています。
+                                </p>
+                                <div class="flex items-center justify-center gap-8 my-4">
+                                    <div class="bg-slate-800 border-2 border-red-500/50 rounded-lg p-4 text-center">
+                                        <div class="font-bold text-white">containerA</div>
                                     </div>
-
-                                    <div class="command-box text-sm">
-                                        <div class="command">docker run --network none alpine</div>
-                                        <div class="text-sm text-gray-400 mt-2">ネットワークなしで起動</div>
+                                    <div class="text-red-400 text-2xl">✕</div>
+                                    <div class="bg-slate-800 border-2 border-red-500/50 rounded-lg p-4 text-center">
+                                        <div class="font-bold text-white">containerB</div>
                                     </div>
                                 </div>
-
-                                <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6">
-                                    <h4 class="text-xl mb-3">4. overlay（オーバーレイ）</h4>
-                                    <p class="text-sm text-gray-300 mb-4">複数のDockerホスト間でネットワークを構築。Docker Swarmで使用します。</p>
-
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div>
-                                            <div class="text-cyan-400 text-sm font-semibold mb-2">特徴</div>
-                                            <ul class="text-sm space-y-1 text-gray-300">
-                                                <li>• マルチホスト通信</li>
-                                                <li>• 暗号化対応</li>
-                                                <li>• Swarm/Kubernetesで使用</li>
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <div class="text-cyan-400 text-sm font-semibold mb-2">用途</div>
-                                            <ul class="text-sm space-y-1 text-gray-300">
-                                                <li>• クラスター環境</li>
-                                                <li>• 分散システム</li>
-                                                <li>• マイクロサービス</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div class="text-center text-red-400 text-sm">繋がっていない</div>
+                                <p class="mt-4 text-sm text-gray-300">
+                                    コンテナはデフォルトで<strong>孤立</strong>しています。<br>
+                                    同じPCで動いていても、ネットワークが別なので名前で見つけられません。
+                                </p>
                             </div>
 
-                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
-                                <div class="font-semibold text-yellow-300 mb-2">💡 選択ガイド</div>
-                                <ul class="text-sm space-y-1">
-                                    <li>• <strong>通常のアプリ</strong>: bridge（デフォルト）</li>
-                                    <li>• <strong>パフォーマンス重視</strong>: host</li>
-                                    <li>• <strong>完全隔離</strong>: none</li>
-                                    <li>• <strong>複数ホスト</strong>: overlay</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ネットワークの基本操作 -->
-                    <div class="content-section">
-                        <h3>🛠️ ネットワークの基本操作</h3>
-                        <div class="collapsible-content">
-
-                            <h4>docker network ls - ネットワーク一覧</h4>
-                            <div class="command-box">
-                                <div class="command">docker network ls</div>
-                                <div class="output">
-NETWORK ID     NAME      DRIVER    SCOPE<br>
-a1b2c3d4e5f6   bridge    bridge    local<br>
-f6e5d4c3b2a1   host      host      local<br>
-1a2b3c4d5e6f   none      none      local
-                                </div>
-                            </div>
-
-                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6 mt-4">
-                                <div class="font-semibold text-blue-300 mb-2">💡 デフォルトネットワーク</div>
-                                <p class="text-sm">Docker起動時に3つのデフォルトネットワーク（bridge、host、none）が自動作成されます。</p>
-                            </div>
-
-                            <h4>docker network create - ネットワーク作成</h4>
-                            <p class="mb-4">カスタムネットワークを作成します。</p>
-
-                            <div class="command-box mb-3">
-                                <div class="command">docker network create mynetwork</div>
-                                <div class="text-sm text-gray-400 mt-2">ブリッジネットワークを作成</div>
-                            </div>
-
-                            <div class="command-box mb-3">
-                                <div class="command">docker network create --driver bridge --subnet 172.20.0.0/16 mynetwork</div>
-                                <div class="text-sm text-gray-400 mt-2">サブネットを指定してネットワーク作成</div>
-                            </div>
-
-                            <div class="command-box mb-6">
-                                <div class="command">docker network create --driver bridge --gateway 172.20.0.1 --subnet 172.20.0.0/16 mynetwork</div>
-                                <div class="text-sm text-gray-400 mt-2">ゲートウェイも指定</div>
-                            </div>
-
-                            <h4>docker network inspect - ネットワーク詳細</h4>
-                            <div class="command-box">
-                                <div class="command">docker network inspect mynetwork</div>
-                                <div class="output text-xs">
-[<br>
-    {<br>
-        "Name": "mynetwork",<br>
-        "Driver": "bridge",<br>
-        "Subnet": "172.20.0.0/16",<br>
-        "Gateway": "172.20.0.1",<br>
-        "Containers": {<br>
-            "container_id": {<br>
-                "Name": "web",<br>
-                "IPv4Address": "172.20.0.2/16"<br>
-            }<br>
-        }<br>
-    }<br>
-]
-                                </div>
-                            </div>
-
-                            <h4>docker network rm - ネットワーク削除</h4>
-                            <div class="command-box mb-3">
-                                <div class="command">docker network rm mynetwork</div>
-                                <div class="text-sm text-gray-400 mt-2">ネットワークを削除</div>
-                            </div>
-
-                            <div class="command-box mb-6">
-                                <div class="command">docker network prune</div>
-                                <div class="text-sm text-gray-400 mt-2">未使用のネットワークを一括削除</div>
-                            </div>
-
-                            <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
-                                <div class="font-semibold text-red-300 mb-2">⚠️ 注意</div>
-                                <p class="text-sm">コンテナが接続中のネットワークは削除できません。先にコンテナを停止・削除するか、ネットワークから切断してください。</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- コンテナのネットワーク接続 -->
-                    <div class="content-section">
-                        <h3>🔗 コンテナのネットワーク接続</h3>
-                        <div class="collapsible-content">
-
-                            <h4>起動時にネットワークを指定</h4>
-                            <div class="command-box mb-3">
-                                <div class="command">docker run -d --name web --network mynetwork nginx</div>
-                                <div class="text-sm text-gray-400 mt-2">カスタムネットワークに接続して起動</div>
-                            </div>
-
-                            <div class="command-box mb-6">
-                                <div class="command">docker run -d --name db --network mynetwork --ip 172.20.0.10 mysql</div>
-                                <div class="text-sm text-gray-400 mt-2">IPアドレスを指定して起動</div>
-                            </div>
-
-                            <h4>docker network connect - 実行中のコンテナに接続</h4>
-                            <div class="command-box mb-3">
-                                <div class="command">docker network connect mynetwork web</div>
-                                <div class="text-sm text-gray-400 mt-2">既存のコンテナをネットワークに接続</div>
-                            </div>
-
-                            <div class="command-box mb-6">
-                                <div class="command">docker network connect --ip 172.20.0.20 mynetwork app</div>
-                                <div class="text-sm text-gray-400 mt-2">IPアドレスを指定して接続</div>
-                            </div>
-
-                            <h4>docker network disconnect - ネットワークから切断</h4>
-                            <div class="command-box mb-6">
-                                <div class="command">docker network disconnect mynetwork web</div>
-                                <div class="text-sm text-gray-400 mt-2">コンテナをネットワークから切断</div>
-                            </div>
-
-                            <h4>複数ネットワークへの接続</h4>
-                            <p class="mb-4">1つのコンテナを複数のネットワークに接続できます。</p>
-
-                            <div class="command-box mb-3">
-                                <div class="command">docker run -d --name app --network frontend nginx</div>
-                            </div>
-
-                            <div class="command-box mb-6">
-                                <div class="command">docker network connect backend app</div>
-                                <div class="text-sm text-gray-400 mt-2">appコンテナがfrontendとbackendの両方に接続</div>
-                            </div>
-
-                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-                                <div class="font-semibold text-blue-300 mb-2">💡 複数ネットワークの用途</div>
-                                <p class="text-sm">アプリケーションサーバーをフロントエンドネットワークとバックエンドネットワークの両方に接続することで、Webサーバーとデータベースの間に位置付けできます。</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- コンテナ間通信 -->
-                    <div class="content-section">
-                        <h3>💬 コンテナ間通信</h3>
-                        <div class="collapsible-content">
-
-                            <h4>DNS名前解決（カスタムネットワーク）</h4>
-                            <p class="mb-4">カスタムブリッジネットワークでは、コンテナ名で他のコンテナにアクセスできます。</p>
-
-                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
-                                <div class="font-semibold mb-3">例: WebサーバーからDBへの接続</div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker network create appnet</div>
-                                </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker run -d --name db --network appnet mysql</div>
-                                </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker run -d --name web --network appnet nginx</div>
-                                </div>
-                                <div class="command-box mb-0">
-                                    <div class="command">docker exec web ping db</div>
-                                    <div class="text-sm text-gray-400 mt-2">webコンテナからdbコンテナにping（コンテナ名で解決）</div>
-                                </div>
-                            </div>
-
-                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
-                                <div class="font-semibold text-blue-300 mb-2">🔍 仕組み</div>
-                                <p class="text-sm">Dockerは組み込みDNSサーバーを使用し、コンテナ名をIPアドレスに自動解決します。これにより、IPアドレスを気にせずコンテナ名だけで通信できます。</p>
-                            </div>
-
-                            <h4>デフォルトbridgeネットワークの制限</h4>
-                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
-                                <div class="font-semibold text-yellow-300 mb-2">⚠️ 注意</div>
-                                <p class="text-sm mb-2">デフォルトの「bridge」ネットワークでは、コンテナ名による名前解決ができません。</p>
-                                <ul class="text-sm space-y-1">
-                                    <li>• --linkオプション（非推奨）を使うか</li>
-                                    <li>• カスタムブリッジネットワークを作成する（推奨）</li>
-                                </ul>
-                            </div>
-
-                            <h4>エイリアス（別名）の設定</h4>
-                            <div class="command-box mb-6">
-                                <div class="command">docker run -d --name db --network appnet --network-alias database mysql</div>
-                                <div class="text-sm text-gray-400 mt-2">「db」と「database」の両方の名前でアクセス可能</div>
-                            </div>
-
-                            <h4>ポート公開とコンテナ間通信の違い</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <div class="bg-slate-700/50 p-5 rounded-xl border border-cyan-500/30">
-                                    <h4 class="text-lg mb-3">ポート公開（-p）</h4>
-                                    <p class="text-sm text-gray-300 mb-3">ホストからコンテナへのアクセス</p>
-                                    <div class="command-box text-sm mb-0">
-                                        <div class="command">docker run -p 8080:80 nginx</div>
-                                    </div>
-                                    <p class="text-xs text-gray-400 mt-2">ホストの8080番ポート → コンテナの80番</p>
-                                </div>
-
-                                <div class="bg-slate-700/50 p-5 rounded-xl border border-cyan-500/30">
-                                    <h4 class="text-lg mb-3">コンテナ間通信</h4>
-                                    <p class="text-sm text-gray-300 mb-3">コンテナ同士の直接通信</p>
-                                    <div class="command-box text-sm mb-0">
-                                        <div class="command">docker run --network mynet nginx</div>
-                                    </div>
-                                    <p class="text-xs text-gray-400 mt-2">同じネットワーク内で自由に通信</p>
+                            <div class="bg-slate-700/30 p-6 rounded-xl">
+                                <div class="font-bold text-lg mb-4">Step 3: 後片付け</div>
+                                <div class="command-box">
+                                    <div class="command">docker rm -f containerA containerB</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 実践例 -->
+                    <!-- ハンズオン2: ネットワークで繋げる -->
                     <div class="content-section">
-                        <h3>💻 実践例</h3>
+                        <h3>✅ ハンズオン2: ネットワークで繋げる</h3>
                         <div class="collapsible-content">
+                            <p class="text-lg mb-6">
+                                コンテナを繋げるには<strong>同じネットワーク</strong>に入れます。<br>
+                                すると、コンテナ名で通信できるようになります。
+                            </p>
 
-                            <h4>例1: Web + DB の2層構成</h4>
-                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
-                                <div class="font-semibold mb-3">ネットワーク構成</div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker network create webapp-net</div>
+                            <div class="bg-slate-700/30 p-6 rounded-xl mb-6">
+                                <div class="font-bold text-lg mb-4">Step 1: ネットワークを作成</div>
+
+                                <div class="command-box mb-4">
+                                    <div class="command">docker network create mynet</div>
+                                    <div class="output">
+a1b2c3d4e5f6...  ← ネットワークIDが表示される
+                                    </div>
                                 </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker run -d --name mysql --network webapp-net -e MYSQL_ROOT_PASSWORD=secret mysql:8</div>
-                                    <div class="text-sm text-gray-400 mt-2">MySQLデータベース</div>
-                                </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker run -d --name wordpress --network webapp-net -p 8080:80 -e WORDPRESS_DB_HOST=mysql wordpress</div>
-                                    <div class="text-sm text-gray-400 mt-2">WordPressアプリ（mysqlという名前でDB接続）</div>
-                                </div>
-                                <p class="text-sm text-gray-300 mt-3">→ http://localhost:8080 でWordPressにアクセス</p>
+
+                                <p class="text-gray-300 text-sm">
+                                    <code>mynet</code> という名前のネットワークができました。
+                                </p>
                             </div>
 
-                            <h4>例2: 3層アーキテクチャ（Frontend / Backend / Database）</h4>
-                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
-                                <div class="command-box mb-3">
-                                    <div class="command">docker network create frontend</div>
+                            <div class="bg-slate-700/30 p-6 rounded-xl mb-6">
+                                <div class="font-bold text-lg mb-4">Step 2: 同じネットワークでコンテナを起動</div>
+
+                                <div class="command-box mb-4">
+                                    <div class="command"># containerA を mynet に接続して起動</div>
+                                    <div class="command">docker run -d --name containerA --network mynet alpine sleep 3600</div>
                                 </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker network create backend</div>
+
+                                <div class="command-box mb-4">
+                                    <div class="command"># containerB も mynet に接続して起動</div>
+                                    <div class="command">docker run -d --name containerB --network mynet alpine sleep 3600</div>
                                 </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker run -d --name db --network backend postgres</div>
-                                    <div class="text-sm text-gray-400 mt-2">DB層（backendのみ）</div>
+
+                                <div class="bg-green-900/20 border-2 border-green-500/50 rounded-xl p-4 my-4">
+                                    <div class="text-center text-green-400 font-bold mb-4">mynet</div>
+                                    <div class="flex items-center justify-center gap-4">
+                                        <div class="bg-slate-800 border border-slate-600 rounded-lg p-3 text-center">
+                                            <div class="font-bold text-white">containerA</div>
+                                        </div>
+                                        <div class="text-green-400 text-xl">⟷</div>
+                                        <div class="bg-slate-800 border border-slate-600 rounded-lg p-3 text-center">
+                                            <div class="font-bold text-white">containerB</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker run -d --name api --network backend myapi</div>
-                                    <div class="text-sm text-gray-400 mt-2">API層（backendに接続）</div>
-                                </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker network connect frontend api</div>
-                                    <div class="text-sm text-gray-400 mt-2">API層をfrontendにも接続</div>
-                                </div>
-                                <div class="command-box mb-0">
-                                    <div class="command">docker run -d --name web --network frontend -p 80:80 nginx</div>
-                                    <div class="text-sm text-gray-400 mt-2">Web層（frontendのみ）</div>
-                                </div>
+                                <div class="text-center text-green-400 text-sm">同じネットワーク = 通信OK</div>
                             </div>
 
-                            <h4>例3: マイクロサービスの分離</h4>
-                            <div class="bg-slate-700/30 p-4 rounded-lg mb-6">
-                                <div class="font-semibold mb-3">サービスごとにネットワークを分離</div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker network create user-service-net</div>
-                                </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker network create order-service-net</div>
-                                </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker run -d --name user-db --network user-service-net postgres</div>
-                                </div>
-                                <div class="command-box mb-3">
-                                    <div class="command">docker run -d --name user-api --network user-service-net user-service</div>
-                                </div>
-                                <div class="command-box mb-0">
-                                    <div class="command">docker run -d --name order-api --network order-service-net order-service</div>
-                                </div>
-                                <p class="text-sm text-gray-300 mt-3">→ 各サービスが独立したネットワークで動作し、セキュリティが向上</p>
-                            </div>
-                        </div>
-                    </div>
+                            <div class="bg-slate-700/30 p-6 rounded-xl mb-6">
+                                <div class="font-bold text-lg mb-4">Step 3: 通信してみる</div>
 
-                    <!-- ベストプラクティス -->
-                    <div class="content-section">
-                        <h3>⭐ ベストプラクティス</h3>
-                        <div class="collapsible-content">
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                <div class="bg-green-900/20 border border-green-500/30 p-5 rounded-xl">
-                                    <h4 class="text-lg mb-3">✅ 推奨事項</h4>
-                                    <ul class="text-sm space-y-2 text-gray-300">
-                                        <li>• カスタムブリッジネットワークを使用</li>
-                                        <li>• 役割ごとにネットワークを分離</li>
-                                        <li>• コンテナ名でDNS解決を活用</li>
-                                        <li>• 必要最小限のポートのみ公開</li>
-                                        <li>• エイリアスで柔軟な命名</li>
-                                    </ul>
+                                <div class="command-box mb-4">
+                                    <div class="command"># containerA から containerB に ping</div>
+                                    <div class="command">docker exec containerA ping -c 3 containerB</div>
+                                    <div class="output" style="color: #22c55e;">
+PING containerB (172.18.0.3): 56 data bytes
+64 bytes from 172.18.0.3: seq=0 ttl=64 time=0.089 ms
+64 bytes from 172.18.0.3: seq=1 ttl=64 time=0.085 ms
+64 bytes from 172.18.0.3: seq=2 ttl=64 time=0.087 ms
+                                    </div>
                                 </div>
 
-                                <div class="bg-red-900/20 border border-red-500/30 p-5 rounded-xl">
-                                    <h4 class="text-lg mb-3">❌ 避けるべき事項</h4>
-                                    <ul class="text-sm space-y-2 text-gray-300">
-                                        <li>• デフォルトbridgeでの本番運用</li>
-                                        <li>• --linkオプションの使用（非推奨）</li>
-                                        <li>• すべてのポートを公開</li>
-                                        <li>• IPアドレスのハードコード</li>
-                                        <li>• 単一ネットワークにすべて接続</li>
-                                    </ul>
+                                <div class="bg-green-900/30 border border-green-500/30 rounded-lg p-4">
+                                    <div class="font-bold text-green-300 mb-2">結果: 繋がった！</div>
+                                    <p class="text-sm">
+                                        <code>containerB</code> という<strong>名前</strong>で通信できています。<br>
+                                        IPアドレス（172.18.0.3）を知らなくても大丈夫です。
+                                    </p>
                                 </div>
                             </div>
 
                             <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6 mb-6">
-                                <h4 class="text-lg mb-3">🔒 セキュリティのポイント</h4>
-                                <ul class="text-sm space-y-2">
-                                    <li>• <strong>ネットワーク分離</strong>: フロントエンド/バックエンドを分離</li>
-                                    <li>• <strong>最小権限</strong>: 必要なコンテナ間通信のみ許可</li>
-                                    <li>• <strong>ポート制限</strong>: 外部公開は最小限に</li>
-                                    <li>• <strong>暗号化</strong>: 機密通信はTLS/SSLを使用</li>
-                                </ul>
+                                <div class="font-bold text-blue-300 mb-3">なぜ名前で繋がる？</div>
+                                <p class="text-sm">
+                                    Dockerが内部で<strong>DNS（名前解決）</strong>を自動で行っています。<br>
+                                    <code>containerB</code> → <code>172.18.0.3</code> に自動変換してくれます。
+                                </p>
                             </div>
 
-                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-6">
-                                <h4 class="text-lg mb-3">💡 設計パターン</h4>
-                                <div class="space-y-3 text-sm">
-                                    <div>
-                                        <div class="text-cyan-400 font-semibold mb-1">2層構成</div>
-                                        <p class="text-gray-300">1つのネットワークでWeb + DB</p>
-                                    </div>
-                                    <div>
-                                        <div class="text-cyan-400 font-semibold mb-1">3層構成</div>
-                                        <p class="text-gray-300">frontend / backend ネットワークで分離</p>
-                                    </div>
-                                    <div>
-                                        <div class="text-cyan-400 font-semibold mb-1">マイクロサービス</div>
-                                        <p class="text-gray-300">サービスごとに独立したネットワーク</p>
-                                    </div>
+                            <div class="bg-slate-700/30 p-6 rounded-xl">
+                                <div class="font-bold text-lg mb-4">Step 4: 後片付け</div>
+                                <div class="command-box mb-4">
+                                    <div class="command">docker rm -f containerA containerB</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">docker network rm mynet</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 実践演習 -->
+                    <!-- 外は閉じてるけど中は自由 -->
                     <div class="content-section">
-                        <h3>✍️ 実践演習</h3>
+                        <h3>🔒 外は閉じてるけど中は自由</h3>
                         <div class="collapsible-content">
-                            <p class="text-lg mb-6">Dockerネットワークを実際に試してみましょう。</p>
+                            <p class="text-lg mb-6">
+                                ネットワークのもう一つの重要なポイント。<br>
+                                <strong>外部からのアクセス</strong>と<strong>コンテナ間通信</strong>は別物です。
+                            </p>
 
-                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
-                                <h4 class="text-xl mb-4">課題1: カスタムネットワークでのコンテナ間通信</h4>
-                                <div class="space-y-3 text-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-red-900/20 border border-red-500/30 p-6 rounded-xl">
+                                    <div class="text-xl font-bold mb-3">外部 → コンテナ</div>
+                                    <div class="text-red-300 font-bold mb-3">ports: が必要</div>
+                                    <div class="bg-slate-800/50 p-3 rounded font-mono text-sm mb-3">
+                                        ports:<br>
+                                        &nbsp;&nbsp;- "8080:80"
+                                    </div>
+                                    <p class="text-sm text-gray-300">
+                                        明示的にポートを開けないと<br>外からアクセスできない
+                                    </p>
+                                </div>
+
+                                <div class="bg-green-900/20 border border-green-500/30 p-6 rounded-xl">
+                                    <div class="text-xl font-bold mb-3">コンテナ → コンテナ</div>
+                                    <div class="text-green-300 font-bold mb-3">設定不要で自由</div>
+                                    <div class="bg-slate-800/50 p-3 rounded font-mono text-sm mb-3">
+                                        DB_HOST=db:3306
+                                    </div>
+                                    <p class="text-sm text-gray-300">
+                                        同じネットワーク内なら<br>どのポートでも通信OK
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-6">
+                                <div class="font-bold text-yellow-300 mb-3">だからDBのポートを開けなくていい</div>
+                                <div class="bg-slate-800/50 p-4 rounded font-mono text-sm">
+                                    <div class="text-gray-400"># docker-compose.yml</div>
+                                    <div>services:</div>
+                                    <div>&nbsp;&nbsp;db:</div>
+                                    <div>&nbsp;&nbsp;&nbsp;&nbsp;image: mysql:8.0</div>
+                                    <div class="text-gray-500">&nbsp;&nbsp;&nbsp;&nbsp;# ports: は書かない！</div>
+                                    <div>&nbsp;&nbsp;&nbsp;&nbsp;# → 外部からはアクセス不可（安全）</div>
+                                    <div>&nbsp;&nbsp;&nbsp;&nbsp;# → アプリからは db:3306 でアクセス可能</div>
+                                </div>
+                                <p class="text-sm text-gray-300 mt-4">
+                                    DBに外部からアクセスされたくないですよね。<br>
+                                    ポートを開けなければ、アプリだけがアクセスできます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Docker Compose なら自動 -->
+                    <div class="content-section">
+                        <h3>🐳 Docker Compose なら自動</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg mb-6">
+                                ここまで手動でネットワークを作りましたが、<br>
+                                <strong>Docker Compose を使えば自動</strong>です。
+                            </p>
+
+                            <div class="bg-slate-700/30 p-6 rounded-xl mb-6">
+                                <div class="font-bold text-lg mb-4">Docker Compose がやってくれること</div>
+
+                                <div class="bg-slate-800/50 p-4 rounded font-mono text-sm mb-4">
+                                    <div class="text-gray-400"># docker-compose.yml</div>
+                                    <div>services:</div>
+                                    <div>&nbsp;&nbsp;app:</div>
+                                    <div>&nbsp;&nbsp;&nbsp;&nbsp;build: .</div>
+                                    <div>&nbsp;&nbsp;db:</div>
+                                    <div>&nbsp;&nbsp;&nbsp;&nbsp;image: mysql:8.0</div>
+                                </div>
+
+                                <div class="space-y-3">
                                     <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">1.</span>
-                                        <span>「testnet」という名前のブリッジネットワークを作成</span>
+                                        <span class="text-green-400 mr-3">✓</span>
+                                        <span>自動でネットワークを作成（<code>プロジェクト名_default</code>）</span>
                                     </div>
                                     <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">2.</span>
-                                        <span>testnetに接続した2つのalpineコンテナを起動</span>
+                                        <span class="text-green-400 mr-3">✓</span>
+                                        <span>全サービスを同じネットワークに接続</span>
                                     </div>
                                     <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">3.</span>
-                                        <span>一方のコンテナからもう一方にpingして通信確認</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">4.</span>
-                                        <span>docker network inspectで接続状況を確認</span>
+                                        <span class="text-green-400 mr-3">✓</span>
+                                        <span>サービス名でDNS解決（<code>app</code> → <code>db</code> で通信可能）</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
-                                <h4 class="text-xl mb-4">課題2: Web + DB 構成の構築</h4>
-                                <div class="space-y-3 text-sm">
-                                    <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">1.</span>
-                                        <span>appnetという名前のネットワークを作成</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">2.</span>
-                                        <span>MySQLコンテナを「db」という名前でappnetに接続</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">3.</span>
-                                        <span>adminer（DB管理ツール）をappnetに接続し、ポート8080で公開</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">4.</span>
-                                        <span>ブラウザからadminerにアクセスし、「db」という名前でMySQLに接続</span>
-                                    </div>
+                            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-6 mb-6">
+                                <div class="font-bold text-green-300 mb-3">だから db と書くだけで繋がる</div>
+                                <div class="bg-slate-800/50 p-4 rounded font-mono text-sm">
+                                    <div class="text-gray-400"># .env や環境変数で</div>
+                                    <div>DB_HOST=db</div>
+                                    <div>DB_PORT=3306</div>
+                                    <div></div>
+                                    <div class="text-gray-400"># PHPからの接続</div>
+                                    <div>$pdo = new PDO('mysql:host=db;port=3306;...');</div>
                                 </div>
+                                <p class="text-sm text-gray-300 mt-4">
+                                    <code>localhost</code> ではなく <code>db</code>（サービス名）を使います。
+                                </p>
                             </div>
 
-                            <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-cyan-500/30 rounded-xl p-6 mb-6">
-                                <h4 class="text-xl mb-4">課題3: ネットワーク分離の確認</h4>
-                                <div class="space-y-3 text-sm">
-                                    <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">1.</span>
-                                        <span>2つのネットワーク（net1、net2）を作成</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">2.</span>
-                                        <span>net1にコンテナ、net2にコンテナを起動</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">3.</span>
-                                        <span>異なるネットワークのコンテナ間で通信できないことを確認</span>
-                                    </div>
-                                    <div class="flex items-start">
-                                        <span class="text-cyan-400 mr-3">4.</span>
-                                        <span>片方のコンテナをdocker network connectで両方に接続し、通信可能になることを確認</span>
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                                <div class="font-bold text-blue-300 mb-3">ネットワークを確認してみよう</div>
+                                <div class="command-box mb-4">
+                                    <div class="command"># docker compose up した後に実行</div>
+                                    <div class="command">docker network ls</div>
+                                    <div class="output">
+NETWORK ID     NAME                    DRIVER    SCOPE
+a1b2c3d4e5f6   bridge                  bridge    local
+f6e5d4c3b2a1   myproject_default       bridge    local  ← 自動作成された！
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
-                                <div class="font-semibold text-green-300 mb-2">✅ 習得目標</div>
-                                <p class="text-sm">カスタムネットワークの作成、コンテナ間通信、ネットワーク分離など、Dockerネットワークの基本を理解しましょう。</p>
+                                <p class="text-sm text-gray-300">
+                                    <code>プロジェクト名_default</code> というネットワークが自動で作られています。
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -615,67 +366,60 @@ f6e5d4c3b2a1   host      host      local<br>
                     <div class="content-section">
                         <h3>🎯 まとめ</h3>
                         <div class="collapsible-content">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                <div class="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-6 rounded-xl border border-cyan-500/30">
-                                    <h4 class="text-lg mb-4">4つのドライバー</h4>
-                                    <div class="space-y-3 text-sm">
+
+                            <div class="bg-slate-700/30 p-6 rounded-xl mb-6">
+                                <div class="text-xl font-bold text-center mb-6">Dockerネットワークの本質</div>
+
+                                <div class="space-y-6">
+                                    <div class="flex items-start">
+                                        <div class="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0">1</div>
                                         <div>
-                                            <div class="text-cyan-400 font-semibold mb-1">bridge</div>
-                                            <p class="text-gray-300">デフォルト、一般用途</p>
-                                        </div>
-                                        <div>
-                                            <div class="text-cyan-400 font-semibold mb-1">host</div>
-                                            <p class="text-gray-300">ホスト直接、高速</p>
-                                        </div>
-                                        <div>
-                                            <div class="text-cyan-400 font-semibold mb-1">none</div>
-                                            <p class="text-gray-300">ネットワーク無効</p>
-                                        </div>
-                                        <div>
-                                            <div class="text-cyan-400 font-semibold mb-1">overlay</div>
-                                            <p class="text-gray-300">マルチホスト</p>
+                                            <div class="font-bold text-lg">コンテナは孤立している</div>
+                                            <p class="text-gray-300">localhost は自分自身。他のコンテナには届かない。</p>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-6 rounded-xl border border-cyan-500/30">
-                                    <h4 class="text-lg mb-4">重要なコマンド</h4>
-                                    <div class="space-y-2 text-sm">
-                                        <div class="flex justify-between">
-                                            <span class="font-mono text-cyan-400">docker network create</span>
-                                            <span class="text-gray-400">作成</span>
+                                    <div class="flex items-start">
+                                        <div class="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0">2</div>
+                                        <div>
+                                            <div class="font-bold text-lg">同じネットワーク = サービス名で通信</div>
+                                            <p class="text-gray-300">ネットワークに入れると、名前で繋がる。IPアドレス不要。</p>
                                         </div>
-                                        <div class="flex justify-between">
-                                            <span class="font-mono text-cyan-400">docker network ls</span>
-                                            <span class="text-gray-400">一覧</span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="font-mono text-cyan-400">docker network inspect</span>
-                                            <span class="text-gray-400">詳細</span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="font-mono text-cyan-400">docker network connect</span>
-                                            <span class="text-gray-400">接続</span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="font-mono text-cyan-400">--network</span>
-                                            <span class="text-gray-400">指定</span>
+                                    </div>
+
+                                    <div class="flex items-start">
+                                        <div class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0">3</div>
+                                        <div>
+                                            <div class="font-bold text-lg">Docker Compose なら自動</div>
+                                            <p class="text-gray-300">ネットワーク作成・接続・DNS解決、全部やってくれる。</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
-                                <h4 class="text-lg mb-3">次のステップ</h4>
-                                <p class="mb-4">ネットワークをマスターしたら、次のトピックに進みましょう：</p>
-                                <ul class="space-y-2 text-sm">
-                                    <li>• <strong>Docker Compose</strong> - 複数コンテナの統合管理とネットワーク定義</li>
-                                    <li>• <strong>実践演習</strong> - 実際のアプリケーション構築</li>
-                                    <li>• <strong>本番運用</strong> - セキュリティ、監視、スケーリング</li>
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-6 mb-6">
+                                <div class="font-bold text-yellow-300 mb-3">よくある間違い（.env）</div>
+                                <div class="bg-slate-800/50 p-4 rounded font-mono text-sm">
+                                    <div class="text-red-400"># ❌ これは動かない</div>
+                                    <div class="text-red-400">DB_HOST=localhost</div>
+                                    <div class="mt-3"></div>
+                                    <div class="text-green-400"># ✅ サービス名を使う</div>
+                                    <div class="text-green-400">DB_HOST=db</div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>✅ 理解できたこと</h4>
+                                <ul>
+                                    <li>コンテナは独立したネットワーク空間を持つ</li>
+                                    <li>同じネットワークに入れるとサービス名で通信できる</li>
+                                    <li>Docker Compose はネットワークを自動管理する</li>
+                                    <li>外部には ports: で明示的に公開する</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </main>

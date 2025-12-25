@@ -199,6 +199,89 @@
                                     これが実際のWebアプリケーション開発でよく使われる構成です。
                                 </p>
                             </div>
+
+                            <div class="info-box">
+                                <h4>🔍 nginxの役割（受付係）</h4>
+                                <p>
+                                    nginxは<strong>受付係</strong>のような存在です。
+                                </p>
+                                <ul style="margin-top: 12px;">
+                                    <li>ブラウザからのリクエストをまず受け取る</li>
+                                    <li>静的ファイル（CSS, JS, 画像）→ 自分で直接返す</li>
+                                    <li>PHPの処理が必要 → PHP-FPMに「これお願い」と転送</li>
+                                </ul>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    PHPだけでもWebサーバーは動きますが、nginxを前に置くことで高速化・負荷分散ができます。<br>
+                                    ※ この「間に入って振り分ける」役割を<strong>リバースプロキシ</strong>と呼びます。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🐘 PHP-FPMとは？</h4>
+                                <p>
+                                    PHPのコードを実行する<strong>専門スタッフ</strong>のようなものです。
+                                </p>
+
+                                <p style="margin-top: 16px;"><strong>🍔 ハンバーガー屋さんで例えると...</strong></p>
+
+                                <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; margin-top: 12px;">
+                                    <p><strong>昔のやり方（CGI）</strong></p>
+                                    <p style="color: #94a3b8; margin-top: 8px;">
+                                        お客さんが来るたびに → 料理人を雇う → 料理を作る → 料理人を解雇<br>
+                                        → 次のお客さんが来たら → また料理人を雇う...
+                                    </p>
+                                    <p style="color: #ef4444; margin-top: 8px;">😰 毎回雇うの遅すぎ！</p>
+                                    <p style="color: #64748b; font-size: 13px; margin-top: 8px;">
+                                        ※ CGI = Common Gateway Interface（1990年代の技術）<br>
+                                        リクエストごとに <code>php index.php</code> を実行→終了→また実行...
+                                    </p>
+                                </div>
+
+                                <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; margin-top: 12px;">
+                                    <p><strong>今のやり方（PHP-FPM）</strong></p>
+                                    <p style="color: #94a3b8; margin-top: 8px;">
+                                        料理人を最初から何人か雇っておく → お客さんが来たらすぐ作れる<br>
+                                        → 作り終わったら次の注文を待つ → ずっと待機
+                                    </p>
+                                    <p style="color: #22d3ee; margin-top: 8px;">🚀 すぐ対応できて速い！</p>
+                                    <p style="color: #64748b; font-size: 13px; margin-top: 8px;">
+                                        ※ PHPプロセスが常に起動した状態でリクエストを待ち受ける
+                                    </p>
+                                </div>
+
+                                <p style="margin-top: 16px; color: #94a3b8;">
+                                    <strong>FPM = FastCGI Process Manager</strong><br>
+                                    「高速に処理するためのプロセス（料理人）を管理する仕組み」という意味です。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>🌐 他の言語にもあるの？</h4>
+                                <p>
+                                    はい！言語ごとに名前は違いますが、同じ役割のものがあります。
+                                </p>
+                                <table style="width: 100%; margin-top: 12px;">
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><strong>PHP</strong></td>
+                                        <td style="padding: 8px;">PHP-FPM</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><strong>Python</strong></td>
+                                        <td style="padding: 8px;">Gunicorn, uWSGI</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><strong>Ruby</strong></td>
+                                        <td style="padding: 8px;">Puma, Unicorn</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;"><strong>Node.js</strong></td>
+                                        <td style="padding: 8px;">自身がサーバーになる（別途不要）</td>
+                                    </tr>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    「nginx（受付） + アプリサーバー（料理人）」の構成は、どの言語でも共通のパターンです。
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -225,11 +308,11 @@
                             <div class="hands-on-section">
                                 <h4><span class="step-number">3</span>nginx設定ファイルを作成</h4>
                                 <p style="color: #94a3b8; margin-bottom: 12px;">
-                                    以下の内容で <code>docker/nginx/default.conf</code> を作成してください。
+                                    エディタで <code>docker/nginx/default.conf</code> を作成し、以下の内容を貼り付けてください。
                                 </p>
-                                <div class="command-box">
-                                    <div class="command">cat > docker/nginx/default.conf << 'EOF'
-server {
+                                <div class="code-block" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 16px; margin: 12px 0; overflow-x: auto;">
+                                    <div style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">docker/nginx/default.conf</div>
+<pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e2e8f0;">server {
     listen 80;
     server_name localhost;
     root /var/www/html/public;
@@ -245,12 +328,195 @@ server {
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
-}
-EOF</div>
+}</pre>
                                 </div>
-                                <p style="color: #94a3b8; margin-top: 12px;">
-                                    <strong>ポイント:</strong> <code>fastcgi_pass app:9000</code> で「app」というコンテナ名を指定しています。
-                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 設定の説明</h4>
+                                <p style="margin-top: 12px; color: #22d3ee;"><strong>基本設定</strong></p>
+                                <table style="width: 100%; margin-top: 8px;">
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px; white-space: nowrap;"><code>listen 80</code></td>
+                                        <td style="padding: 8px;">ポート80（HTTP）でリクエストを待ち受ける</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px; white-space: nowrap;"><code>server_name localhost</code></td>
+                                        <td style="padding: 8px;">このサーバーが応答するホスト名（開発環境なのでlocalhost）</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px; white-space: nowrap;"><code>root /var/www/html/public</code></td>
+                                        <td style="padding: 8px;">ドキュメントルート（Laravelはpublicフォルダが公開対象）</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px; white-space: nowrap;"><code>index index.php index.html</code></td>
+                                        <td style="padding: 8px;">ディレクトリにアクセスした時に探すファイル（優先順）</td>
+                                    </tr>
+                                </table>
+
+                                <p style="margin-top: 20px; color: #22d3ee;"><strong>リクエストの振り分け</strong></p>
+                                <table style="width: 100%; margin-top: 8px;">
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px; white-space: nowrap;"><code>location /</code></td>
+                                        <td style="padding: 8px;">すべてのリクエストに対するルール</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px; white-space: nowrap;"><code>location ~ \.php$</code></td>
+                                        <td style="padding: 8px;">.phpで終わるURLへのリクエストを処理（~は正規表現）</td>
+                                    </tr>
+                                </table>
+
+                                <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; margin-top: 16px;">
+                                    <p><strong>🔍 try_files の動き</strong></p>
+                                    <p style="color: #94a3b8; margin-top: 8px; font-size: 14px;">
+                                        <code>try_files $uri $uri/ /index.php?$query_string</code>
+                                    </p>
+                                    <p style="color: #94a3b8; margin-top: 12px;">
+                                        「このURLにアクセスが来たら、順番に試してみて」という意味です。
+                                    </p>
+
+                                    <p style="margin-top: 16px;"><strong>例: /users/123 にアクセスが来た場合</strong></p>
+                                    <table style="width: 100%; margin-top: 8px;">
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">①</td>
+                                            <td style="padding: 8px;"><code>$uri</code></td>
+                                            <td style="padding: 8px;">/users/123 というファイルがある？ → ❌ ない</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 8px;">②</td>
+                                            <td style="padding: 8px;"><code>$uri/</code></td>
+                                            <td style="padding: 8px;">/users/123/ というフォルダがある？ → ❌ ない</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px;">③</td>
+                                            <td style="padding: 8px;"><code>/index.php</code></td>
+                                            <td style="padding: 8px;">→ ✅ index.php に転送！Laravelが処理</td>
+                                        </tr>
+                                    </table>
+
+                                    <p style="margin-top: 16px;"><strong>例: /css/app.css にアクセスが来た場合</strong></p>
+                                    <table style="width: 100%; margin-top: 8px;">
+                                        <tr>
+                                            <td style="padding: 8px;">①</td>
+                                            <td style="padding: 8px;"><code>$uri</code></td>
+                                            <td style="padding: 8px;">/css/app.css というファイルがある？ → ✅ ある！そのまま返す</td>
+                                        </tr>
+                                    </table>
+
+                                    <p style="color: #94a3b8; margin-top: 16px; font-size: 13px;">
+                                        💡 CSSや画像など実ファイルはそのまま返し、<br>
+                                        /users/123 のようなURLはLaravelに任せる、という振り分けです。
+                                    </p>
+                                </div>
+
+                                <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3); padding: 16px; border-radius: 8px; margin-top: 16px;">
+                                    <p><strong>🔄 try_files → PHP-FPM への流れ</strong></p>
+                                    <p style="color: #94a3b8; margin-top: 12px;">
+                                        「try_filesでindex.phpに行ったら、その後どうなるの？」
+                                    </p>
+                                    <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+                                        <p>① /users/123 にアクセス</p>
+                                        <p style="color: #64748b;">↓</p>
+                                        <p>② location / がマッチ</p>
+                                        <p style="color: #64748b;">↓</p>
+                                        <p>③ try_files で /index.php に書き換え</p>
+                                        <p style="color: #64748b;">↓</p>
+                                        <p style="color: #22d3ee;">④ nginx が再度どのlocationか評価 ← ポイント！</p>
+                                        <p style="color: #64748b;">↓</p>
+                                        <p>⑤ location ~ \.php$ がマッチ</p>
+                                        <p style="color: #64748b;">↓</p>
+                                        <p>⑥ PHP-FPMに転送 → Laravelが処理</p>
+                                    </div>
+                                    <p style="color: #64748b; font-size: 13px; margin-top: 12px;">
+                                        try_filesで書き換わった後、nginxはもう一度locationを評価し直します。
+                                    </p>
+                                </div>
+
+                                <p style="margin-top: 20px; color: #22d3ee;"><strong>PHP-FPMへの転送設定</strong></p>
+
+                                <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; margin-top: 12px;">
+                                    <p><strong>① <code>location ~ \.php$</code></strong></p>
+                                    <p style="color: #94a3b8; margin-top: 8px;">
+                                        「URLが .php で終わるリクエストを処理」
+                                    </p>
+                                    <table style="width: 100%; margin-top: 8px;">
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 6px;"><code>location</code></td>
+                                            <td style="padding: 6px;">「このURLパターンの時は...」</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 6px;"><code>~</code></td>
+                                            <td style="padding: 6px;">正規表現を使う</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 6px;"><code>\.php$</code></td>
+                                            <td style="padding: 6px;">.php で終わる（$は「末尾」の意味）</td>
+                                        </tr>
+                                    </table>
+                                    <p style="color: #64748b; font-size: 13px; margin-top: 8px;">
+                                        例: /index.php ✅、/admin/login.php ✅、/style.css ❌
+                                    </p>
+                                </div>
+
+                                <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; margin-top: 12px;">
+                                    <p><strong>② <code>fastcgi_pass app:9000</code></strong></p>
+                                    <p style="color: #94a3b8; margin-top: 8px;">
+                                        「PHPの処理をappコンテナに投げて」
+                                    </p>
+                                    <table style="width: 100%; margin-top: 8px;">
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 6px;"><code>app</code></td>
+                                            <td style="padding: 6px;">コンテナ名（Dockerネットワークで名前解決）</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 6px;"><code>9000</code></td>
+                                            <td style="padding: 6px;">PHP-FPMが待ち受けているポート</td>
+                                        </tr>
+                                    </table>
+                                </div>
+
+                                <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; margin-top: 12px;">
+                                    <p><strong>③ <code>fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name</code></strong></p>
+                                    <p style="color: #94a3b8; margin-top: 8px;">
+                                        環境変数をセットしてPHP-FPMに渡す
+                                    </p>
+                                    <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+                                        <span style="color: #64748b;">fastcgi_param</span> <span style="color: #22d3ee;">SCRIPT_FILENAME</span> <span style="color: #a5f3fc;">$document_root$fastcgi_script_name</span><br>
+                                        <span style="color: #64748b;">　　　　　　　　↑ 変数名　　　　　　　↑ セットする値</span>
+                                    </div>
+                                    <table style="width: 100%; margin-top: 12px;">
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 6px;"><code>$document_root</code></td>
+                                            <td style="padding: 6px;">/var/www/html/public（rootで設定した値）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                            <td style="padding: 6px;"><code>$fastcgi_script_name</code></td>
+                                            <td style="padding: 6px;">/index.php（リクエストされたファイル）</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 6px;">合体すると</td>
+                                            <td style="padding: 6px;">/var/www/html/public/index.php</td>
+                                        </tr>
+                                    </table>
+                                    <p style="color: #64748b; font-size: 13px; margin-top: 8px;">
+                                        PHP側では $_SERVER['SCRIPT_FILENAME'] でアクセスできる
+                                    </p>
+                                </div>
+
+                                <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; margin-top: 12px;">
+                                    <p><strong>④ <code>include fastcgi_params</code></strong></p>
+                                    <p style="color: #94a3b8; margin-top: 8px;">
+                                        その他の情報もPHP-FPMに渡す：
+                                    </p>
+                                    <ul style="margin-top: 8px; color: #94a3b8;">
+                                        <li>REQUEST_METHOD（GET? POST?）</li>
+                                        <li>QUERY_STRING（?id=123 の部分）</li>
+                                        <li>REMOTE_ADDR（アクセス元のIP）など</li>
+                                    </ul>
+                                    <p style="color: #64748b; font-size: 13px; margin-top: 8px;">
+                                        PHPで $_GET, $_POST, $_SERVER が使えるのはこれのおかげ
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -266,7 +532,7 @@ EOF</div>
                             <div class="hands-on-section">
                                 <h4><span class="step-number">4</span>ネットワークを作成</h4>
                                 <div class="command-box">
-                                    <div class="command">docker network create laravel-network</div>
+                                    <div class="command">docker network create my-laravel-nw</div>
                                 </div>
                                 <div class="output">abc123def456...</div>
                             </div>
@@ -280,6 +546,11 @@ EOF</div>
                                     <li>nginx → <code>app:9000</code> でLaravelコンテナに接続</li>
                                     <li>Laravel → <code>db:3306</code> でMySQLコンテナに接続</li>
                                 </ul>
+                                <p style="margin-top: 12px; color: #94a3b8;">
+                                    コンテナのIPアドレスは再起動のたびに変わる可能性があります。<br>
+                                    IPアドレスではなくコンテナ名で指定すれば、IPが変わっても接続できます。<br>
+                                    ※ ネットワークの詳細は後のセクションで学びます。
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -293,18 +564,86 @@ EOF</div>
                             </p>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">5</span>MySQLコンテナを起動</h4>
+                                <h4><span class="step-number">5</span>MySQL設定ファイルを作成</h4>
+                                <p style="color: #94a3b8; margin-bottom: 12px;">
+                                    文字コードとタイムゾーンを設定します。エディタで <code>docker/mysql/my.cnf</code> を作成してください。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">mkdir -p docker/mysql</div>
+                                </div>
+                                <div class="code-block" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 16px; margin: 12px 0; overflow-x: auto;">
+                                    <div style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">docker/mysql/my.cnf</div>
+<pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e2e8f0;">[mysqld]
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+default-time-zone='Asia/Tokyo'
+
+[client]
+default-character-set=utf8mb4</pre>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 設定の説明</h4>
+                                <table style="width: 100%; margin-top: 12px;">
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>character-set-server</code></td>
+                                        <td style="padding: 8px;">文字コード（utf8mb4で絵文字も対応）</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>collation-server</code></td>
+                                        <td style="padding: 8px;">照合順序（文字の比較ルール）</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;"><code>default-time-zone</code></td>
+                                        <td style="padding: 8px;">タイムゾーン（日本時間）</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">6</span>MySQLコンテナを起動</h4>
                                 <div class="long-command">docker container run -d \
   --name db \
-  --network laravel-network \
+  --network my-laravel-nw \
   -e MYSQL_ROOT_PASSWORD=secret \
   -e MYSQL_DATABASE=laravel \
   -e MYSQL_USER=laravel \
   -e MYSQL_PASSWORD=secret \
   -v mysql-data:/var/lib/mysql \
+  -v $(pwd)/docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf \
   mysql:8.0</div>
                                 <p style="color: #94a3b8; margin-top: 12px;">
                                     <strong>長い...</strong> でもこれでやっと1つ目のコンテナが起動しました。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 なぜ mysql:8.0 を選んだ？</h4>
+                                <p>
+                                    MySQLは公式イメージのみ提供されており、slimやalpine版はありません。<br>
+                                    バージョン8.0は安定版で、Laravel等のフレームワークとの互換性が高いです。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📦 -v の2つの書き方</h4>
+                                <p>このコマンドでは <code>-v</code> を2回使っていますが、書き方が違います：</p>
+                                <table style="width: 100%; margin-top: 12px;">
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><strong>ボリューム</strong></td>
+                                        <td style="padding: 8px;"><code>mysql-data:/var/lib/mysql</code></td>
+                                        <td style="padding: 8px;">Dockerが管理する領域にデータを保存</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;"><strong>バインドマウント</strong></td>
+                                        <td style="padding: 8px;"><code>$(pwd)/docker/mysql/my.cnf:...</code></td>
+                                        <td style="padding: 8px;">ホストのファイルをコンテナにマウント</td>
+                                    </tr>
+                                </table>
+                                <p style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+                                    <strong>見分け方：</strong> <code>/</code> <code>./</code> <code>$(pwd)</code> で始まる → バインドマウント、名前だけ → ボリューム<br>
+                                    ※ 「runオプション」セクションでも少し説明しています。ボリュームの詳細は後のセクションで学びます。
                                 </p>
                             </div>
 
@@ -341,7 +680,7 @@ EOF</div>
                             </p>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">6</span>Laravelプロジェクトを作成</h4>
+                                <h4><span class="step-number">7</span>Laravelプロジェクトを作成</h4>
                                 <p style="color: #94a3b8; margin-bottom: 12px;">
                                     まずComposerでLaravelプロジェクトを作成します。
                                 </p>
@@ -355,11 +694,123 @@ EOF</div>
                                 </p>
                             </div>
 
+                            <div class="info-box">
+                                <h4>💡 なぜ先にLaravelを作成する？</h4>
+                                <p>
+                                    PHPコンテナ起動時に <code>-v $(pwd)/src:/var/www/html</code> でマウントするため、<br>
+                                    先に <code>src/</code> フォルダ（Laravelのコード）が存在している必要があります。
+                                </p>
+                                <p style="margin-top: 8px; color: #94a3b8; font-size: 13px;">
+                                    空のフォルダをマウントすると、コンテナ内も空になってしまいます。
+                                </p>
+                            </div>
+
                             <div class="hands-on-section">
-                                <h4><span class="step-number">7</span>PHP-FPMコンテナを起動</h4>
+                                <h4><span class="step-number">8</span>PHP設定ファイルを作成</h4>
+                                <p style="color: #94a3b8; margin-bottom: 12px;">
+                                    エディタで <code>docker/php/php.ini</code> を作成してください。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">mkdir -p docker/php</div>
+                                </div>
+                                <div class="code-block" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 16px; margin: 12px 0; overflow-x: auto;">
+                                    <div style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">docker/php/php.ini</div>
+<pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e2e8f0;">[PHP]
+; タイムゾーン
+date.timezone = Asia/Tokyo
+
+; メモリ制限
+memory_limit = 256M
+
+; ファイルアップロード
+upload_max_filesize = 32M
+post_max_size = 32M
+
+; エラー表示（開発環境用）
+display_errors = On
+error_reporting = E_ALL</pre>
+                                </div>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">9</span>PHP用のDockerfileを作成</h4>
+                                <p style="color: #94a3b8; margin-bottom: 12px;">
+                                    <code>php:8.4-fpm</code> イメージにはLaravelに必要な拡張が含まれていません。<br>
+                                    エディタで <code>docker/php/Dockerfile</code> を作成してください。
+                                </p>
+                                <div class="code-block" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 16px; margin: 12px 0; overflow-x: auto;">
+                                    <div style="color: #94a3b8; font-size: 12px; margin-bottom: 8px;">docker/php/Dockerfile</div>
+<pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e2e8f0;">FROM php:8.4-fpm
+
+# 必要なパッケージをインストール
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# PHP拡張をインストール
+RUN docker-php-ext-install \
+    pdo_mysql \
+    zip \
+    bcmath
+
+# php.ini をコピー
+COPY php.ini /usr/local/etc/php/conf.d/php.ini
+
+# 作業ディレクトリ
+WORKDIR /var/www/html</pre>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>📝 Dockerfileの説明</h4>
+                                <table style="width: 100%; margin-top: 12px;">
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>apt-get install</code></td>
+                                        <td style="padding: 8px;">PHP拡張に必要なライブラリをインストール</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>pdo_mysql</code></td>
+                                        <td style="padding: 8px;">MySQLに接続するための拡張</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>zip</code></td>
+                                        <td style="padding: 8px;">Composerやファイル操作に必要</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.3);">
+                                        <td style="padding: 8px;"><code>bcmath</code></td>
+                                        <td style="padding: 8px;">高精度の計算に使用（Laravelで推奨）</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;"><code>COPY php.ini</code></td>
+                                        <td style="padding: 8px;">設定ファイルをコンテナにコピー</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 なぜ php:8.4-fpm を選んだ？</h4>
+                                <p>
+                                    alpine版（<code>php:8.4-fpm-alpine</code>）もありますが、<code>apt-get</code> が使えません（alpineは <code>apk</code>）。<br>
+                                    拡張機能のインストールでエラーが起きやすく、学習段階では標準イメージがおすすめです。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">10</span>PHPイメージをビルド</h4>
+                                <div class="command-box">
+                                    <div class="command">docker image build -t my-php:8.4-fpm docker/php</div>
+                                </div>
+                                <p style="color: #94a3b8; margin-top: 12px;">
+                                    <strong>ポイント:</strong> <code>-t my-php:8.4-fpm</code> でイメージに名前を付けています。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">11</span>PHP-FPMコンテナを起動</h4>
                                 <div class="long-command">docker container run -d \
   --name app \
-  --network laravel-network \
+  --network my-laravel-nw \
   -v $(pwd)/src:/var/www/html \
   -e DB_CONNECTION=mysql \
   -e DB_HOST=db \
@@ -367,9 +818,22 @@ EOF</div>
   -e DB_DATABASE=laravel \
   -e DB_USERNAME=laravel \
   -e DB_PASSWORD=secret \
-  php:8.3-fpm</div>
+  my-php:8.4-fpm</div>
                                 <p style="color: #94a3b8; margin-top: 12px;">
                                     <strong>また長い...</strong> 2つ目のコンテナが起動しました。
+                                </p>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4><span class="step-number">12</span>データベースのマイグレーション</h4>
+                                <p style="color: #94a3b8; margin-bottom: 12px;">
+                                    Laravelが使用するテーブルを作成します。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">docker container exec app php artisan migrate</div>
+                                </div>
+                                <p style="color: #94a3b8; margin-top: 12px;">
+                                    「Yes」を入力してマイグレーションを実行してください。
                                 </p>
                             </div>
                         </div>
@@ -384,18 +848,92 @@ EOF</div>
                             </p>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">8</span>nginxコンテナを起動</h4>
+                                <h4><span class="step-number">13</span>nginxコンテナを起動</h4>
                                 <div class="long-command">docker container run -d \
   --name web \
-  --network laravel-network \
+  --network my-laravel-nw \
   -p 8080:80 \
   -v $(pwd)/src:/var/www/html \
   -v $(pwd)/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf \
-  nginx:1.28</div>
+  nginx:1.28-alpine</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 なぜnginxにもソースコードをマウント？</h4>
+                                <p>
+                                    appコンテナ（PHP-FPM）と同じ <code>-v $(pwd)/src:/var/www/html</code> がありますね。<br>
+                                    実は<strong>両方のコンテナに必要</strong>です。リクエストの種類によって処理が違うからです。
+                                </p>
+                                <table style="width: 100%; margin: 12px 0; border-collapse: collapse; font-size: 13px;">
+                                    <tr style="background: rgba(15, 23, 42, 0.5);">
+                                        <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;">リクエスト</th>
+                                        <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;">処理の流れ</th>
+                                        <th style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px; text-align: left;">必要なコンテナ</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">CSS/JS/画像</td>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">nginx → 直接ファイルを返す</td>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">nginx</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">PHPページ</td>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">nginx → PHP-FPM → 実行結果を返す</td>
+                                        <td style="border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px;">PHP-FPM</td>
+                                    </tr>
+                                </table>
+<!-- ホストPCのファイル構造 -->
+                                <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 16px; margin: 12px 0;">
+                                    <div style="color: #22d3ee; font-weight: bold; margin-bottom: 8px;">📁 ホストPC</div>
+                                    <div style="margin-left: 16px; font-size: 13px;">
+                                        <div style="color: #94a3b8;">└── src/public/</div>
+                                        <div style="margin-left: 24px;">
+                                            <span style="color: #a78bfa;">index.php</span>
+                                            <span style="color: #6b7280; margin-left: 8px;">← PHP-FPMが読んで実行</span>
+                                        </div>
+                                        <div style="margin-left: 24px;">
+                                            <span style="color: #fbbf24;">css/app.css</span>
+                                            <span style="color: #6b7280; margin-left: 8px;">← nginxが直接返す</span>
+                                        </div>
+                                        <div style="margin-left: 24px;">
+                                            <span style="color: #fbbf24;">js/app.js</span>
+                                            <span style="color: #6b7280; margin-left: 8px;">← nginxが直接返す</span>
+                                        </div>
+                                    </div>
+
+                                    <div style="text-align: center; color: #22d3ee; margin: 16px 0; font-size: 14px;">
+                                        ↓ 同じファイルを両方にマウント ↓
+                                    </div>
+
+                                    <!-- コンテナのボックス -->
+                                    <div style="display: flex; justify-content: center; gap: 24px;">
+                                        <div style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; border-radius: 8px; padding: 16px; text-align: center; min-width: 140px;">
+                                            <div style="color: #22c55e; font-weight: bold; font-size: 14px;">🌐 nginx</div>
+                                            <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">/var/www/html</div>
+                                            <div style="color: #fbbf24; font-size: 12px; margin-top: 8px;">静的ファイル配信</div>
+                                        </div>
+                                        <div style="background: rgba(168, 85, 247, 0.2); border: 2px solid #a855f7; border-radius: 8px; padding: 16px; text-align: center; min-width: 140px;">
+                                            <div style="color: #a855f7; font-weight: bold; font-size: 14px;">🐘 PHP-FPM</div>
+                                            <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">/var/www/html</div>
+                                            <div style="color: #a78bfa; font-size: 12px; margin-top: 8px;">PHP実行</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p style="color: #f87171;">
+                                    ⚠️ nginxにマウントがないと → CSS/JS/画像が全て404エラー<br>
+                                    ⚠️ PHP-FPMにマウントがないと → PHPファイルが見つからずエラー
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>💡 なぜ nginx:1.28-alpine を選んだ？</h4>
+                                <p>
+                                    nginxは設定ファイルを読み込むだけなので、alpine版でも問題なく動作します。<br>
+                                    イメージサイズが小さく（約40MB vs 190MB）、本番環境でもよく使われます。
+                                </p>
                             </div>
 
                             <div class="hands-on-section">
-                                <h4><span class="step-number">9</span>動作確認</h4>
+                                <h4><span class="step-number">14</span>動作確認</h4>
                                 <p style="margin-bottom: 12px;">
                                     ブラウザで <a href="http://localhost:8080" target="_blank" style="color: #22d3ee;">http://localhost:8080</a> にアクセス！
                                 </p>
@@ -403,6 +941,59 @@ EOF</div>
                                     <p>Laravelのウェルカムページが表示されれば成功です！</p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- AIコーディングアシスタント -->
+                    <div class="content-section">
+                        <h3>🤖 【発展】AIでDBを使った機能を作ってみよう</h3>
+                        <div class="collapsible-content">
+                            <p>
+                                せっかくMySQLが動いているので、DBを使った機能を作ってみませんか？<br>
+                                <strong>AIコーディングアシスタント</strong>を使えば、数分で実装できます。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>🛠️ 使えるツール</h4>
+                                <ul>
+                                    <li><strong>Claude Code</strong> - Anthropic製のCLIツール</li>
+                                    <li><strong>GitHub Copilot</strong> - GitHubのAIアシスタント</li>
+                                    <li><strong>Gemini CLI</strong> - GoogleのAIツール</li>
+                                    <li><strong>Cursor</strong> - AI搭載エディタ</li>
+                                </ul>
+                            </div>
+
+                            <div class="hands-on-section">
+                                <h4>💬 こんな風に依頼するだけ</h4>
+                                <div class="code-block" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px; padding: 16px; margin: 12px 0;">
+                                    <p style="color: #94a3b8; margin-bottom: 8px;">例: Claude Code への依頼</p>
+<pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e2e8f0;">Laravelで簡単なTodoアプリを作って。
+- タスクの一覧表示
+- タスクの追加
+- タスクの削除
+マイグレーション、モデル、コントローラー、ビューを作成して。</pre>
+                                </div>
+                                <p style="color: #94a3b8; margin-top: 12px;">
+                                    AIが自動でファイルを生成し、マイグレーションも実行してくれます。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>✨ AIが作ってくれるもの</h4>
+                                <ul>
+                                    <li><code>database/migrations/xxx_create_todos_table.php</code> - テーブル定義</li>
+                                    <li><code>app/Models/Todo.php</code> - モデル</li>
+                                    <li><code>app/Http/Controllers/TodoController.php</code> - コントローラー</li>
+                                    <li><code>resources/views/todos/index.blade.php</code> - 画面</li>
+                                    <li><code>routes/web.php</code> - ルーティング追加</li>
+                                </ul>
+                            </div>
+
+                            <p style="color: #94a3b8; margin-top: 16px;">
+                                📌 このセクションはオプションです。スキップしても問題ありません。<br>
+                                でも「Dockerで環境を作る → AIでアプリを作る」という流れを体験すると、<br>
+                                開発の便利さがより実感できますよ！
+                            </p>
                         </div>
                     </div>
 
@@ -417,7 +1008,7 @@ EOF</div>
                             <div class="problem-box">
                                 <h4>😱 問題1: コマンドが長すぎる</h4>
                                 <p>MySQLコンテナを起動するコマンドだけでこれだけ...</p>
-                                <div class="long-command">docker container run -d --name db --network laravel-network -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=laravel -e MYSQL_USER=laravel -e MYSQL_PASSWORD=secret -v mysql-data:/var/lib/mysql mysql:8.0</div>
+                                <div class="long-command">docker container run -d --name db --network my-laravel-nw -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=laravel -e MYSQL_USER=laravel -e MYSQL_PASSWORD=secret -v mysql-data:/var/lib/mysql mysql:8.0</div>
                                 <p style="margin-top: 12px;">覚えられますか？毎回打てますか？</p>
                             </div>
 
@@ -449,7 +1040,7 @@ EOF</div>
                                     <div class="command" style="margin-top: 8px;"># 削除（3回）</div>
                                     <div class="command">docker container rm web app db</div>
                                     <div class="command" style="margin-top: 8px;"># ネットワーク削除</div>
-                                    <div class="command">docker network rm laravel-network</div>
+                                    <div class="command">docker network rm my-laravel-nw</div>
                                 </div>
                             </div>
                         </div>
@@ -499,7 +1090,7 @@ EOF</div>
                                     <div class="command">docker container stop web app db</div>
                                     <div class="command">docker container rm web app db</div>
                                     <div class="command" style="margin-top: 8px;"># ネットワークを削除</div>
-                                    <div class="command">docker network rm laravel-network</div>
+                                    <div class="command">docker network rm my-laravel-nw</div>
                                     <div class="command" style="margin-top: 8px;"># ボリュームを削除</div>
                                     <div class="command">docker volume rm mysql-data</div>
                                 </div>
