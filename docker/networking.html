@@ -70,7 +70,7 @@
 
                     <!-- ハンズオン1: コンテナは孤立している -->
                     <div class="content-section">
-                        <h3>❌ ハンズオン1: コンテナは繋がらない</h3>
+                        <h3>❌ ハンズオン1: コンテナは孤立している</h3>
                         <div class="collapsible-content">
                             <p class="text-lg mb-6">
                                 同じPCで動いているコンテナ同士、繋がると思いますよね？<br>
@@ -82,12 +82,12 @@
 
                                 <div class="command-box mb-4">
                                     <div class="command"># コンテナA を起動</div>
-                                    <div class="command">docker run -d --name containerA alpine sleep 3600</div>
+                                    <div class="command">docker container run -d --name containerA alpine sleep 3600</div>
                                 </div>
 
                                 <div class="command-box mb-4">
                                     <div class="command"># コンテナB を起動</div>
-                                    <div class="command">docker run -d --name containerB alpine sleep 3600</div>
+                                    <div class="command">docker container run -d --name containerB alpine sleep 3600</div>
                                 </div>
 
                                 <p class="text-gray-300 text-sm">
@@ -100,7 +100,8 @@
 
                                 <div class="command-box mb-4">
                                     <div class="command"># containerA から containerB に ping してみる</div>
-                                    <div class="command">docker exec containerA ping -c 3 containerB</div>
+                                    <div class="command"># ping = 通信できるか確認するコマンド、-c 3 = 3回だけ実行</div>
+                                    <div class="command">docker container exec containerA ping -c 3 containerB</div>
                                     <div class="output" style="color: #ef4444;">
 ping: bad address 'containerB'
                                     </div>
@@ -138,7 +139,7 @@ ping: bad address 'containerB'
                             <div class="bg-slate-700/30 p-6 rounded-xl">
                                 <div class="font-bold text-lg mb-4">Step 3: 後片付け</div>
                                 <div class="command-box">
-                                    <div class="command">docker rm -f containerA containerB</div>
+                                    <div class="command">docker container rm -f containerA containerB</div>
                                 </div>
                             </div>
                         </div>
@@ -173,12 +174,12 @@ a1b2c3d4e5f6...  ← ネットワークIDが表示される
 
                                 <div class="command-box mb-4">
                                     <div class="command"># containerA を mynet に接続して起動</div>
-                                    <div class="command">docker run -d --name containerA --network mynet alpine sleep 3600</div>
+                                    <div class="command">docker container run -d --name containerA --network mynet alpine sleep 3600</div>
                                 </div>
 
                                 <div class="command-box mb-4">
                                     <div class="command"># containerB も mynet に接続して起動</div>
-                                    <div class="command">docker run -d --name containerB --network mynet alpine sleep 3600</div>
+                                    <div class="command">docker container run -d --name containerB --network mynet alpine sleep 3600</div>
                                 </div>
 
                                 <div class="bg-green-900/20 border-2 border-green-500/50 rounded-xl p-4 my-4">
@@ -201,7 +202,7 @@ a1b2c3d4e5f6...  ← ネットワークIDが表示される
 
                                 <div class="command-box mb-4">
                                     <div class="command"># containerA から containerB に ping</div>
-                                    <div class="command">docker exec containerA ping -c 3 containerB</div>
+                                    <div class="command">docker container exec containerA ping -c 3 containerB</div>
                                     <div class="output" style="color: #22c55e;">
 PING containerB (172.18.0.3): 56 data bytes
 64 bytes from 172.18.0.3: seq=0 ttl=64 time=0.089 ms
@@ -222,15 +223,15 @@ PING containerB (172.18.0.3): 56 data bytes
                             <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6 mb-6">
                                 <div class="font-bold text-blue-300 mb-3">なぜ名前で繋がる？</div>
                                 <p class="text-sm">
-                                    Dockerが内部で<strong>DNS（名前解決）</strong>を自動で行っています。<br>
-                                    <code>containerB</code> → <code>172.18.0.3</code> に自動変換してくれます。
+                                    Dockerが<strong>コンテナ名をIPアドレスに自動変換</strong>してくれます。<br>
+                                    <code>containerB</code> → <code>172.18.0.3</code>
                                 </p>
                             </div>
 
                             <div class="bg-slate-700/30 p-6 rounded-xl">
                                 <div class="font-bold text-lg mb-4">Step 4: 後片付け</div>
                                 <div class="command-box mb-4">
-                                    <div class="command">docker rm -f containerA containerB</div>
+                                    <div class="command">docker container rm -f containerA containerB</div>
                                 </div>
                                 <div class="command-box">
                                     <div class="command">docker network rm mynet</div>
@@ -265,7 +266,8 @@ PING containerB (172.18.0.3): 56 data bytes
                                     <div class="text-xl font-bold mb-3">コンテナ → コンテナ</div>
                                     <div class="text-green-300 font-bold mb-3">設定不要で自由</div>
                                     <div class="bg-slate-800/50 p-3 rounded font-mono text-sm mb-3">
-                                        DB_HOST=db:3306
+                                        DB_HOST=db<br>
+                                        DB_PORT=3306
                                     </div>
                                     <p class="text-sm text-gray-300">
                                         同じネットワーク内なら<br>どのポートでも通信OK

@@ -76,8 +76,18 @@
                                 <div class="font-bold text-lg mb-4">Step 1: コンテナ内にファイルを作成</div>
 
                                 <div class="command-box mb-4">
-                                    <div class="command"># alpine コンテナを起動してファイルを作成</div>
-                                    <div class="command">docker run --name test alpine sh -c "echo 'Hello Docker' > /data.txt && cat /data.txt"</div>
+                                    <div class="command"># コンテナを起動</div>
+                                    <div class="command">docker container run -d --name test alpine sleep 3600</div>
+                                </div>
+
+                                <div class="command-box mb-4">
+                                    <div class="command"># コンテナ内にファイルを作成</div>
+                                    <div class="command">docker container exec test sh -c "echo 'Hello Docker' > /data.txt"</div>
+                                </div>
+
+                                <div class="command-box mb-4">
+                                    <div class="command"># ファイルを確認</div>
+                                    <div class="command">docker container exec test cat /data.txt</div>
                                     <div class="output" style="color: #22c55e;">
 Hello Docker
                                     </div>
@@ -93,12 +103,17 @@ Hello Docker
 
                                 <div class="command-box mb-4">
                                     <div class="command"># コンテナを削除</div>
-                                    <div class="command">docker rm test</div>
+                                    <div class="command">docker container rm -f test</div>
                                 </div>
 
                                 <div class="command-box mb-4">
-                                    <div class="command"># 同じ名前で新しいコンテナを起動してファイルを確認</div>
-                                    <div class="command">docker run --name test alpine cat /data.txt</div>
+                                    <div class="command"># 新しいコンテナを起動</div>
+                                    <div class="command">docker container run -d --name test alpine sleep 3600</div>
+                                </div>
+
+                                <div class="command-box mb-4">
+                                    <div class="command"># ファイルを確認</div>
+                                    <div class="command">docker container exec test cat /data.txt</div>
                                     <div class="output" style="color: #ef4444;">
 cat: can't open '/data.txt': No such file or directory
                                     </div>
@@ -137,7 +152,7 @@ cat: can't open '/data.txt': No such file or directory
                             <div class="bg-slate-700/30 p-6 rounded-xl">
                                 <div class="font-bold text-lg mb-4">Step 3: 後片付け</div>
                                 <div class="command-box">
-                                    <div class="command">docker rm test</div>
+                                    <div class="command">docker container rm -f test</div>
                                 </div>
                             </div>
                         </div>
@@ -155,8 +170,18 @@ cat: can't open '/data.txt': No such file or directory
                                 <div class="font-bold text-lg mb-4">Step 1: ボリュームを使ってファイルを作成</div>
 
                                 <div class="command-box mb-4">
-                                    <div class="command"># mydata ボリュームを /data にマウントしてファイル作成</div>
-                                    <div class="command">docker run --name test -v mydata:/data alpine sh -c "echo 'Hello Docker' > /data/test.txt && cat /data/test.txt"</div>
+                                    <div class="command"># mydata ボリュームを /data にマウントして起動</div>
+                                    <div class="command">docker container run -d --name test -v mydata:/data alpine sleep 3600</div>
+                                </div>
+
+                                <div class="command-box mb-4">
+                                    <div class="command"># ボリューム内にファイルを作成</div>
+                                    <div class="command">docker container exec test sh -c "echo 'Hello Docker' > /data/test.txt"</div>
+                                </div>
+
+                                <div class="command-box mb-4">
+                                    <div class="command"># ファイルを確認</div>
+                                    <div class="command">docker container exec test cat /data/test.txt</div>
                                     <div class="output" style="color: #22c55e;">
 Hello Docker
                                     </div>
@@ -165,6 +190,24 @@ Hello Docker
                                 <p class="text-gray-300 text-sm">
                                     <code>-v mydata:/data</code> で名前付きボリューム「mydata」を <code>/data</code> にマウントしました。
                                 </p>
+
+                                <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mt-4">
+                                    <div class="font-bold text-blue-300 mb-2">💡 名前付きボリュームの書き方</div>
+                                    <div class="text-sm text-gray-300 space-y-2">
+                                        <p><strong>見分け方：</strong>パスで始まるか、名前だけか</p>
+                                        <div class="bg-slate-800/50 p-3 rounded font-mono text-xs">
+                                            <div class="text-cyan-400">mydata:/data</div>
+                                            <div class="text-gray-500">↑ 名前だけ = 名前付きボリューム</div>
+                                            <div class="mt-2 text-green-400">./src:/var/www/html</div>
+                                            <div class="text-gray-500">↑ ./ で始まる = バインドマウント</div>
+                                        </div>
+                                        <p class="mt-2"><strong>マウント単位：</strong></p>
+                                        <ul class="text-xs mt-1 space-y-1">
+                                            <li>• 名前付きボリューム → ディレクトリ単位のみ</li>
+                                            <li>• バインドマウント → ディレクトリもファイルもOK</li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="bg-slate-700/30 p-6 rounded-xl mb-6">
@@ -172,12 +215,17 @@ Hello Docker
 
                                 <div class="command-box mb-4">
                                     <div class="command"># コンテナを削除</div>
-                                    <div class="command">docker rm test</div>
+                                    <div class="command">docker container rm -f test</div>
                                 </div>
 
                                 <div class="command-box mb-4">
-                                    <div class="command"># 新しいコンテナで同じボリュームをマウントして確認</div>
-                                    <div class="command">docker run --name test -v mydata:/data alpine cat /data/test.txt</div>
+                                    <div class="command"># 新しいコンテナで同じボリュームをマウント</div>
+                                    <div class="command">docker container run -d --name test -v mydata:/data alpine sleep 3600</div>
+                                </div>
+
+                                <div class="command-box mb-4">
+                                    <div class="command"># ファイルを確認</div>
+                                    <div class="command">docker container exec test cat /data/test.txt</div>
                                     <div class="output" style="color: #22c55e;">
 Hello Docker
                                     </div>
@@ -214,14 +262,35 @@ Hello Docker
                                 </p>
                             </div>
 
-                            <div class="bg-slate-700/30 p-6 rounded-xl">
+                            <div class="bg-slate-700/30 p-6 rounded-xl mb-6">
                                 <div class="font-bold text-lg mb-4">Step 3: 後片付け</div>
                                 <div class="command-box mb-4">
-                                    <div class="command">docker rm test</div>
+                                    <div class="command">docker container rm -f test</div>
                                 </div>
                                 <div class="command-box">
                                     <div class="command"># ボリュームも削除する場合</div>
                                     <div class="command">docker volume rm mydata</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-6">
+                                <div class="font-bold text-yellow-300 mb-3">ボリュームはどこにある？</div>
+                                <div class="command-box mb-4">
+                                    <div class="command"># ボリューム一覧を確認</div>
+                                    <div class="command">docker volume ls</div>
+                                    <div class="output">
+DRIVER    VOLUME NAME
+local     mydata
+local     mysql-data
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-300 mb-4">
+                                    名前付きボリュームは <strong>Docker が管理する場所</strong>に保存されます。<br>
+                                    ホストから直接見ることはできません（見る必要もありません）。
+                                </p>
+                                <div class="bg-slate-800/50 p-3 rounded text-sm">
+                                    <span class="text-gray-400">保存場所:</span> <code>/var/lib/docker/volumes/mydata/_data</code><br>
+                                    <span class="text-gray-400">→</span> Docker に任せておけばOK
                                 </div>
                             </div>
                         </div>
@@ -255,7 +324,7 @@ Hello Docker
 
                                 <div class="command-box mb-4">
                                     <div class="command"># カレントディレクトリをnginxの公開フォルダにマウント</div>
-                                    <div class="command">docker run -d --name web -p 8080:80 -v $(pwd):/usr/share/nginx/html nginx</div>
+                                    <div class="command">docker container run -d --name web -p 8080:80 -v $(pwd):/usr/share/nginx/html nginx</div>
                                 </div>
 
                                 <p class="text-gray-300 text-sm mb-4">
@@ -303,10 +372,25 @@ Hello Docker
                                 </p>
                             </div>
 
+                            <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-6 mb-6">
+                                <div class="font-bold text-yellow-300 mb-3">双方向に同期される</div>
+                                <p class="text-sm text-gray-300 mb-3">
+                                    バインドマウントは<strong>双方向</strong>です。コンテナ内で作ったファイルもホストに反映されます。
+                                </p>
+                                <div class="bg-slate-800/50 p-3 rounded font-mono text-sm mb-3">
+                                    <div class="text-gray-400"># コンテナ内でファイルを作成</div>
+                                    <div>docker container exec web touch /usr/share/nginx/html/new-file.txt</div>
+                                    <div class="mt-2 text-gray-400"># → ホスト側にも new-file.txt が出現！</div>
+                                </div>
+                                <p class="text-sm text-gray-300">
+                                    Laravel の <code>composer install</code> で vendor/ が作られるのも同じ仕組みです。
+                                </p>
+                            </div>
+
                             <div class="bg-slate-700/30 p-6 rounded-xl">
                                 <div class="font-bold text-lg mb-4">Step 4: 後片付け</div>
                                 <div class="command-box mb-4">
-                                    <div class="command">docker rm -f web</div>
+                                    <div class="command">docker container rm -f web</div>
                                 </div>
                                 <div class="command-box">
                                     <div class="command">rm -rf ~/docker-test</div>
@@ -371,7 +455,7 @@ Hello Docker
                                 </div>
                             </div>
 
-                            <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-6">
+                            <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-6 mb-6">
                                 <div class="font-bold text-red-300 mb-3">注意: docker compose down -v</div>
                                 <div class="bg-slate-800/50 p-4 rounded font-mono text-sm mb-4">
                                     <div class="text-gray-400"># 通常の停止（ボリュームは残る）</div>
@@ -384,6 +468,30 @@ Hello Docker
                                     <code>-v</code> をつけると名前付きボリュームも削除されます。<br>
                                     DBのデータを消したくない場合は <code>-v</code> をつけないでください。
                                 </p>
+                            </div>
+
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                                <div class="font-bold text-blue-300 mb-3">なぜDBにバインドマウントを使わない？</div>
+                                <p class="text-sm text-gray-300 mb-3">
+                                    「ソースコードと同じように <code>./mysql-data:/var/lib/mysql</code> でいいのでは？」と思うかもしれませんが...
+                                </p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="bg-red-900/30 border border-red-500/30 p-3 rounded">
+                                        <div class="text-red-400 font-bold mb-2">❌ バインドマウント</div>
+                                        <ul class="text-xs text-gray-300 space-y-1">
+                                            <li>• <code>rm -rf</code> で間違って消すリスク</li>
+                                            <li>• Git に間違えてコミットするリスク</li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-green-900/30 border border-green-500/30 p-3 rounded">
+                                        <div class="text-green-400 font-bold mb-2">✅ 名前付きボリューム</div>
+                                        <ul class="text-xs text-gray-300 space-y-1">
+                                            <li>• Docker が安全に管理</li>
+                                            <li>• 間違って消すリスクが低い</li>
+                                            <li>• Git の管理対象外</li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -4,7 +4,6 @@ const dockerCourseConfig = {
     subtitle: 'コンテナ技術の基礎から実践まで',
     couponUrl: null, // クーポンURLが決まったら設定
     pages: [
-        { file: 'course-intro.html', title: 'コース紹介', icon: '📚' },
         { file: 'what-is-docker.html', title: 'Dockerとは', icon: '🐳' },
         { file: 'windows-setup.html', title: 'Windows環境構築', icon: '💻' },
         { file: 'mac-setup.html', title: 'Mac環境構築', icon: '🍎' },
