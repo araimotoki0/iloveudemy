@@ -42,7 +42,7 @@ function initSidebar() {
                     </svg>
                     <span>【第四弾】Laravel入門</span>
                 </a>
-                <a href="${rootPath}docker/introduction.html"
+                <a href="${rootPath}docker/what-is-docker.html"
                     class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/docker/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
                     <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
