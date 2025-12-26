@@ -2,7 +2,7 @@
 function initSidebar() {
     // 現在のパスから相対パスを計算
     const currentPath = window.location.pathname;
-    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/');
+    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/') || currentPath.includes('/miraichi-docker/');
     const rootPath = isInSubfolder ? '../' : './';
 
     // サイドバーHTML
@@ -86,6 +86,17 @@ function initSidebar() {
                     <div class="flex flex-col">
                         <span>データベース&バックエンド超入門</span>
                         <span class="text-xs text-gray-400 mt-0.5">2025年11月24日</span>
+                    </div>
+                </a>
+                <a href="${rootPath}miraichi-docker/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/miraichi-docker/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>Docker本質を理解</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2025年12月27日</span>
                     </div>
                 </a>
             </nav>

@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker 本質 - MIRAICHI特別講座</title>
+    <meta name="description" content="Dockerの本質を理解する - コンテナ技術、環境構築の革命、Infrastructure as Code">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        docker: {
+                            50: '#e6f7ff',
+                            100: '#b3e7ff',
+                            200: '#80d4ff',
+                            300: '#4dc1ff',
+                            400: '#1aafff',
+                            500: '#0099e6',
+                            600: '#0077b3',
+                            700: '#005580',
+                            800: '#00334d',
+                            900: '#00111a',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdfa 100%);
+            background-attachment: fixed;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        /* 背景アニメーション */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .floating-shape:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #0099e6, #00d4aa);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-shape:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            top: 60%;
+            right: 10%;
+            animation-delay: -5s;
+        }
+
+        .floating-shape:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            bottom: 20%;
+            left: 20%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(30px, -30px) rotate(5deg); }
+            50% { transform: translate(-20px, 20px) rotate(-5deg); }
+            75% { transform: translate(20px, 10px) rotate(3deg); }
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* カードスタイル */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* セクションスタイル */
+        .content-section {
+            margin-bottom: 48px;
+        }
+
+        .content-section h3 {
+            color: #0077b3;
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 800;
+            padding-bottom: 16px;
+            border-bottom: 3px solid #0099e6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 32px;
+            background: linear-gradient(180deg, #0099e6, #00d4aa);
+            border-radius: 4px;
+        }
+
+        .content-section h4 {
+            color: #6366f1;
+            margin: 28px 0 16px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            margin: 16px 0;
+            line-height: 1.9;
+            color: #475569;
+            font-size: 16px;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 16px 0;
+            padding-left: 28px;
+            color: #475569;
+        }
+
+        .content-section li {
+            margin: 10px 0;
+            line-height: 1.7;
+        }
+
+        .content-section strong {
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        /* ボックススタイル */
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7, #fef9c3);
+            border-left: 5px solid #f59e0b;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);
+        }
+
+        .warning-box h4 {
+            color: #b45309 !important;
+            margin-top: 0 !important;
+        }
+
+        .error-box {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border-left: 5px solid #ef4444;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
+        }
+
+        .error-box h4 {
+            color: #dc2626 !important;
+            margin-top: 0 !important;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+            border-left: 5px solid #3b82f6;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+        }
+
+        .info-box h4 {
+            color: #1d4ed8 !important;
+            margin-top: 0 !important;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5, #ccfbf1);
+            border-left: 5px solid #10b981;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);
+        }
+
+        .success-box h4 {
+            color: #059669 !important;
+            margin-top: 0 !important;
+        }
+
+        /* コマンドボックス */
+        .command-box {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 12px;
+            padding: 32px 20px 16px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            margin: 12px 0;
+            overflow-x: auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .command-box::before {
+            content: 'Terminal';
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            background: #64748b;
+            color: white;
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        .command {
+            color: #4ade80;
+        }
+
+        .command::before {
+            content: '$ ';
+            color: #94a3b8;
+        }
+
+        .output {
+            color: #e2e8f0;
+            white-space: pre-wrap;
+        }
+
+        .dockerfile-code, .yaml-code {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 12px;
+            padding: 36px 20px 20px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            margin: 16px 0;
+            overflow-x: auto;
+            color: #e2e8f0;
+            white-space: pre;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .dockerfile-code::before {
+            content: 'Dockerfile';
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            background: #0099e6;
+            color: white;
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        .yaml-code::before {
+            content: 'docker-compose.yml';
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            background: #8b5cf6;
+            color: white;
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        /* 比較カード */
+        .comparison-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .comparison-card.warning-card {
+            border-top: 4px solid #f59e0b;
+        }
+
+        .comparison-card.success-card {
+            border-top: 4px solid #10b981;
+        }
+
+        .comparison-card .icon {
+            font-size: 56px;
+            margin: 16px 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* ステップインジケーター */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .step-number.warning {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: white;
+        }
+
+        .step-number.success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+
+        /* プログレスバー */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 153, 230, 0.2);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0099e6, #00d4aa);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        /* スクロールトップボタン */
+        #scroll-to-top {
+            background: linear-gradient(135deg, #0099e6, #00d4aa);
+            box-shadow: 0 10px 30px rgba(0, 153, 230, 0.4);
+        }
+
+        #scroll-to-top:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(0, 153, 230, 0.5);
+        }
+
+        /* ヘッダーカード */
+        .header-card {
+            background: linear-gradient(135deg, #0099e6, #0077b3);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 40px rgba(0, 119, 179, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-card::before {
+            content: '🐳';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px;
+            opacity: 0.2;
+        }
+
+        /* ポータビリティグリッド */
+        .portability-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .portability-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .portability-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .portability-item .icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        /* 比較テーブル */
+        .pet-cattle-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .pet-cattle-card {
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .pet-cattle-card.pet {
+            background: linear-gradient(135deg, #fef3c7, #fef9c3);
+            border: 2px solid #f59e0b;
+        }
+
+        .pet-cattle-card.cattle {
+            background: linear-gradient(135deg, #d1fae5, #ccfbf1);
+            border: 2px solid #10b981;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .comparison-grid, .pet-cattle-grid, .portability-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content-section h3 {
+                font-size: 22px;
+            }
+
+            .header-card::before {
+                font-size: 50px;
+                right: 10px;
+            }
+        }
+
+        /* アニメーション用クラス */
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+    </style>
+</head>
+
+<body class="font-sans">
+    <!-- 背景アニメーション -->
+    <div class="bg-animation">
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+    </div>
+
+    <!-- プログレスバー -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-14 h-14 text-white rounded-full opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col main-content">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- タイトル -->
+                <h1 class="text-4xl md:text-5xl font-black mb-2 text-center fade-in-up">
+                    <span class="bg-gradient-to-r from-docker-600 via-docker-500 to-teal-500 bg-clip-text text-transparent">
+                        Docker 本質
+                    </span>
+                </h1>
+                <p class="text-xl md:text-2xl text-center text-gray-600 mb-8 font-medium">
+                    環境をコードで管理すること
+                </p>
+
+                <!-- コンテンツ -->
+                <div class="glass-card rounded-3xl p-8 md:p-12">
+                    <!-- セミナー情報 -->
+                    <div class="header-card fade-in-up stagger-1">
+                        <p class="text-xl font-bold mb-2">
+                            📅 開催日時：2025年12月27日
+                        </p>
+                        <p class="text-white/80 text-sm mb-3">
+                            🐳 Dockerの本質を理解して、環境構築の悩みから解放されよう
+                        </p>
+                        <p class="text-lg font-bold text-yellow-300">
+                            💡 XXX as Code を覚えていってね！これだけ！
+                        </p>
+                    </div>
+
+                    <!-- Dockerを学ぶメリット -->
+                    <div class="content-section">
+                        <h3>Dockerを学ぶメリット</h3>
+
+                        <div class="grid md:grid-cols-3 gap-6 my-6">
+                            <div class="comparison-card success-card">
+                                <div class="icon" style="text-align: center;">🧹</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 20px; font-weight: 800; color: #059669; margin-bottom: 8px;">環境が汚れない</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        プロジェクトごとに独立した環境。<br>
+                                        PCがぐちゃぐちゃにならない。
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comparison-card success-card">
+                                <div class="icon" style="text-align: center;">💼</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 20px; font-weight: 800; color: #059669; margin-bottom: 8px;">現場の基礎知識</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        今やほぼ全ての開発現場でDocker使用。<br>
+                                        知らないと話についていけない。
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comparison-card success-card">
+                                <div class="icon" style="text-align: center;">🐧</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 20px; font-weight: 800; color: #059669; margin-bottom: 8px;">Linux力が自然につく</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        Dockerを使うだけで<br>
+                                        Linuxとシェルコマンドが身につく。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 24px; padding: 24px; background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);">
+                            <p style="font-size: 18px; color: #94a3b8; margin: 0 0 8px 0;">
+                                エンジニアには必須。非エンジニアにはハードル高いが...
+                            </p>
+                            <p style="font-size: 28px; font-weight: 900; margin: 0; background: linear-gradient(90deg, #fbbf24, #f59e0b, #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                てか使えたら最強 💪
+                            </p>
+                        </div>
+
+                        <!-- 学習目安 -->
+                        <div style="margin-top: 24px; padding: 24px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #10b981; border-radius: 16px;">
+                            <h4 style="margin: 0 0 16px 0; color: #059669; font-size: 20px;">⏱️ 学習目安</h4>
+                            <div style="display: grid; gap: 12px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 14px;">20時間</span>
+                                    <span style="color: #065f46;">新井のUdemy講座（10時間動画 + ハンズオンで止めながら）</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 14px;">30時間</span>
+                                    <span style="color: #065f46;">Docker Composeでアプリを1つ作る</span>
+                                </div>
+                                <div style="margin-top: 8px; padding-top: 16px; border-top: 2px dashed #10b981; display: flex; align-items: center; gap: 12px;">
+                                    <span style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 6px 16px; border-radius: 20px; font-weight: 900; font-size: 18px;">合計 50時間</span>
+                                    <span style="color: #065f46; font-weight: 700;">である程度理解できる！</span>
+                                </div>
+                            </div>
+
+                            <!-- Linux未経験者向け -->
+                            <div style="margin-top: 20px; padding: 16px; background: rgba(251, 191, 36, 0.15); border: 2px dashed #f59e0b; border-radius: 12px;">
+                                <p style="margin: 0 0 12px 0; color: #b45309; font-weight: 700;">🐧 Linuxを触ったことない人は...</p>
+                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                    <span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 14px;">+20時間</span>
+                                    <span style="color: #92400e; font-size: 14px;">新井のUdemy講座【第二弾】ゼロからはじめるAWSウェブ開発<br>- EC2上でLinuxを学習しウェブアプリを作るための知識を習得</span>
+                                </div>
+                                <p style="margin: 12px 0 0 0; color: #b45309; font-size: 13px;">（動画10時間 + ハンズオン10時間）</p>
+                            </div>
+                        </div>
+
+                        <!-- 応援チケット特典 -->
+                        <div style="margin-top: 24px; padding: 24px; background: linear-gradient(135deg, #fdf4ff, #fae8ff); border: 2px solid #a855f7; border-radius: 16px; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -10px; right: -10px; font-size: 60px; opacity: 0.15;">🎁</div>
+                            <h4 style="margin: 0 0 16px 0; color: #7c3aed; font-size: 20px;">🎫 応援チケット（アーカイブ＋Udemyクーポン付）特典</h4>
+                            <p style="margin: 0; color: #6b21a8; line-height: 1.8;">
+                                2025年12月26日に完成したUdemyの<strong>Dockerコース ￥1,300クーポン</strong>と<br>
+                                <strong>Linuxのコース無料クーポン</strong> + <strong>このセミナーのアーカイブ</strong>が特典です。
+                            </p>
+                        </div>
+
+                        <!-- 超朗報 -->
+                        <div style="margin-top: 24px; padding: 24px; background: linear-gradient(135deg, #fef3c7, #fde68a); border: 3px solid #f59e0b; border-radius: 16px; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 12px; transform: rotate(5deg);">超朗報！</div>
+                            <h4 style="margin: 0 0 16px 0; color: #b45309; font-size: 22px;">🎉 2026年 Docker講座を何回か無料でやるよ！</h4>
+                            <p style="margin: 0 0 12px 0; color: #92400e; line-height: 1.8; font-size: 16px;">
+                                UdemyのDocker講座の<strong>最初のレクチャーをリアルタイムで教えます。</strong>
+                            </p>
+                            <div style="background: white; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                                <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.7;">
+                                    💡 <strong>理由：</strong>Udemyは興味を持つ前に離脱する人が多い...<br>
+                                    → 最初をみんなで学べば<strong>やる気UP！</strong>継続できる！<br>
+                                    → <strong>面白さに気づく。</strong>おもしろければもう成功したようなもの！🚀
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dockerとは何か -->
+                    <div class="content-section">
+                        <h3>Dockerとは何か</h3>
+
+                        <p>
+                            <strong>Docker（ドッカー）</strong>は、アプリケーションとその実行環境を<strong>「コンテナ」</strong>という単位でパッケージ化し、
+                            どこでも同じように動かせるようにするツールです。
+                        </p>
+
+                        <div class="success-box">
+                            <h4>💡 一言で言うと</h4>
+                            <p style="font-size: 20px; font-weight: 700; color: #0077b3; margin-bottom: 0;">
+                                「アプリと環境をセットにして、どこでも同じように動かせる箱」
+                            </p>
+                        </div>
+
+                        <h4>🎯 Dockerが解決する問題</h4>
+                        <p>プログラミングをしていると、こんな経験ありませんか？</p>
+
+                        <div class="warning-box">
+                            <h4>😫 よくある悩み</h4>
+                            <ul>
+                                <li><strong>「自分のPCでは動くのに、本番サーバーで動かない...」</strong></li>
+                                <li><strong>「新しいメンバーの環境構築に丸1日かかった...」</strong></li>
+                                <li><strong>「Pythonのバージョンがプロジェクトごとにバラバラ...」</strong></li>
+                                <li><strong>「開発環境が壊れて、再構築に数時間...」</strong></li>
+                            </ul>
+                        </div>
+
+                        <p>
+                            Dockerを使うと、これらの問題が<strong>すべて解決</strong>します。
+                            アプリケーションと、それを動かすために必要なすべて（OS、ライブラリ、設定ファイルなど）を
+                            <strong>1つのパッケージ</strong>にまとめられるからです。
+                        </p>
+
+                        <div class="success-box">
+                            <h4>✨ Dockerを使うと</h4>
+                            <ul>
+                                <li><strong>どこでも同じ環境</strong> - 開発・テスト・本番で完全に同じ環境</li>
+                                <li><strong>環境構築が秒で完了</strong> - コマンド1つで環境が立ち上がる</li>
+                                <li><strong>汚れない</strong> - ホストPCに影響を与えない</li>
+                                <li><strong>簡単に破棄・再作成</strong> - やり直しが簡単</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 実際の環境構築で比較 -->
+                    <div class="content-section" data-animate>
+                        <h3>実際の環境構築で比較してみよう</h3>
+
+                        <p>
+                            「Dockerが便利」と言われても、ピンとこないかもしれません。<br>
+                            実際に<strong>AWS EC2でUbuntuサーバーを立てて、Node.js + MongoDBの環境を構築する場合</strong>を比較してみましょう。
+                        </p>
+
+                        <h4>😓 従来の方法（Ubuntuサーバーに直接構築）</h4>
+                        <p>
+                            EC2インスタンスを作成し、AWSマネジメントコンソールからUbuntuに接続したとします。<br>
+                            ここから環境構築を始めると...
+                        </p>
+
+                        <div class="warning-box">
+                            <div class="step-indicator">
+                                <div class="step-number warning">1</div>
+                                <span class="font-bold text-amber-800">システムの更新とNode.jsのインストール</span>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">sudo apt update && sudo apt upgrade -y</div>
+                                <div class="command">curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -</div>
+                                <div class="command">sudo apt install -y nodejs</div>
+                            </div>
+                        </div>
+
+                        <div class="warning-box">
+                            <div class="step-indicator">
+                                <div class="step-number warning">2</div>
+                                <span class="font-bold text-amber-800">MongoDBのインストール</span>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg</div>
+                                <div class="command">echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list</div>
+                                <div class="command">sudo apt update</div>
+                                <div class="command">sudo apt install -y mongodb-org</div>
+                            </div>
+                        </div>
+
+                        <div class="warning-box">
+                            <div class="step-indicator">
+                                <div class="step-number warning">3</div>
+                                <span class="font-bold text-amber-800">MongoDBの起動</span>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">sudo systemctl start mongod</div>
+                                <div class="command">sudo systemctl enable mongod</div>
+                                <div class="command">sudo systemctl status mongod</div>
+                            </div>
+                        </div>
+
+                        <div class="warning-box">
+                            <div class="step-indicator">
+                                <div class="step-number warning">4</div>
+                                <span class="font-bold text-amber-800">アプリケーションコードの作成</span>
+                            </div>
+                            <div class="command-box">
+                                <div class="output">cat > package.json << 'EOF'
+{
+  "name": "myapp",
+  "version": "1.0.0",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongodb": "^6.3.0"
+  }
+}
+EOF</div>
+                            </div>
+                            <div class="command-box" style="margin-top: 16px;">
+                                <div class="output">cat > app.js << 'EOF'
+const express = require('express');
+const { MongoClient } = require('mongodb');
+
+const app = express();
+app.use(express.urlencoded({ extended: true }));
+
+const mongoHost = process.env.MONGO_HOST || 'localhost';
+const url = 'mongodb://' + mongoHost + ':27017';
+const client = new MongoClient(url);
+
+app.get('/', async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db('myapp');
+    const collection = db.collection('visitors');
+    const visitors = await collection.find().sort({ timestamp: -1 }).toArray();
+
+    let visitorList = visitors.map(v =>
+      '&lt;li&gt;' + v.name + '（' + v.timestamp.toLocaleString('ja-JP') + '）&lt;/li&gt;'
+    ).join('');
+
+    let html = '&lt;h1&gt;訪問者リスト&lt;/h1&gt;';
+    html += '&lt;form method="POST" action="/register"&gt;';
+    html += '&lt;input type="text" name="name" placeholder="名前を入力" required&gt;';
+    html += '&lt;button type="submit"&gt;登録&lt;/button&gt;';
+    html += '&lt;/form&gt;';
+    html += '&lt;h2&gt;入った人一覧（' + visitors.length + '人）&lt;/h2&gt;';
+    html += '&lt;ul&gt;' + (visitorList || '&lt;li&gt;まだ誰もいません&lt;/li&gt;') + '&lt;/ul&gt;';
+    res.send(html);
+  } catch (err) {
+    res.send('エラー: ' + err.message);
+  }
+});
+
+app.post('/register', async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db('myapp');
+    const collection = db.collection('visitors');
+    await collection.insertOne({
+      name: req.body.name,
+      timestamp: new Date()
+    });
+    res.redirect('/');
+  } catch (err) {
+    res.send('エラー: ' + err.message);
+  }
+});
+
+app.listen(3000, '0.0.0.0', () => {
+  console.log('Server running on port 3000');
+});
+EOF</div>
+                            </div>
+                        </div>
+
+                        <div class="warning-box">
+                            <div class="step-indicator">
+                                <div class="step-number warning">5</div>
+                                <span class="font-bold text-amber-800">パッケージのインストールと起動</span>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">npm install</div>
+                            </div>
+                            <div class="command-box" style="margin-top: 12px;">
+                                <div class="command">node app.js</div>
+                            </div>
+                        </div>
+
+                        <div class="warning-box">
+                            <div class="step-indicator">
+                                <div class="step-number warning">6</div>
+                                <span class="font-bold text-amber-800">セキュリティグループの設定</span>
+                            </div>
+                            <p style="color: #92400e;">
+                                AWSマネジメントコンソールでEC2のセキュリティグループを編集し、<br>
+                                <strong>ポート3000を開放</strong>する必要があります：
+                            </p>
+                            <ol style="margin-top: 12px; color: #92400e;">
+                                <li>EC2ダッシュボードでインスタンスを選択</li>
+                                <li>セキュリティグループタブをクリック</li>
+                                <li>インバウンドルールを編集</li>
+                                <li>カスタムTCP、ポート3000、ソース0.0.0.0/0を追加</li>
+                                <li>保存</li>
+                            </ol>
+                        </div>
+
+                        <div class="warning-box">
+                            <div class="step-indicator">
+                                <div class="step-number warning">7</div>
+                                <span class="font-bold text-amber-800">IPアドレスでアクセス確認</span>
+                            </div>
+                            <p style="color: #92400e;">
+                                ブラウザで<code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px;">http://&lt;EC2のパブリックIP&gt;:3000</code>にアクセスして動作確認<br>
+                                （例：<code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px;">http://54.123.45.67:3000</code>）
+                            </p>
+                        </div>
+
+                        <div class="error-box">
+                            <h4>😫 従来の方法の本当の問題</h4>
+                            <p style="margin-bottom: 16px; color: #991b1b;">
+                                問題は時間ではありません。<strong>本当の地獄はここから始まります。</strong>
+                            </p>
+                            <ul style="color: #991b1b;">
+                                <li><strong>🔥 依存関係の地獄</strong>: パッケージのバージョンが合わない、ライブラリが競合する...解決に<strong>数時間〜数日</strong>かかることも</li>
+                                <li><strong>😱 「僕の環境では動くのに...」</strong>: チームメンバーの環境で動かない。原因究明に<strong>半日〜1日</strong>消える</li>
+                                <li><strong>💀 本番環境で突然のエラー</strong>: 開発では問題なかったのに本番で動かない。デプロイ失敗で<strong>リリースが遅延</strong></li>
+                                <li><strong>🐛 環境の微妙な違い</strong>: Node.jsのバージョン、OSの違い...デバッグに<strong>何日も費やす</strong></li>
+                                <li><strong>🔧 トラブルシューティング地獄</strong>: エラーメッセージをググり、Stack Overflowを漁り、試行錯誤を繰り返す<strong>無限ループ</strong></li>
+                                <li><strong>🗑️ 環境の汚染</strong>: 古いプロジェクトのパッケージが残り、新しいプロジェクトに影響。クリーンアップしても完全には消えない</li>
+                            </ul>
+                            <p style="margin-top: 16px; color: #dc2626; font-weight: 700; font-size: 18px;">
+                                → 環境構築だけで<strong>数日〜1週間</strong>かかることも珍しくありません。これが現実です。
+                            </p>
+                        </div>
+
+                        <h4>✨ Dockerを使った方法</h4>
+                        <p>
+                            同じ環境を、Dockerで構築してみましょう。<br>
+                            まず、EC2のUbuntuに<strong>Dockerをインストール</strong>します。
+                        </p>
+
+                        <div class="success-box">
+                            <div class="step-indicator">
+                                <div class="step-number success">1</div>
+                                <span class="font-bold text-emerald-800">DockerとDocker Composeのインストール</span>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">curl -fsSL https://get.docker.com -o get-docker.sh</div>
+                                <div class="command">sudo sh get-docker.sh</div>
+                                <div class="command">sudo usermod -aG docker $USER</div>
+                            </div>
+                            <p style="margin-top: 12px; font-size: 14px; color: #065f46;">
+                                ※ 再ログインしてグループ変更を反映させます
+                            </p>
+                        </div>
+
+                        <div class="success-box">
+                            <div class="step-indicator">
+                                <div class="step-number success">2</div>
+                                <span class="font-bold text-emerald-800">プロジェクトファイルを作成</span>
+                            </div>
+                            <p style="color: #065f46;">必要なのは<strong>2つのファイルだけ</strong>です。</p>
+
+                            <p style="margin-top: 20px; margin-bottom: 8px; font-weight: 700; color: #065f46;">📄 Dockerfile</p>
+                            <div class="dockerfile-code">FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["node", "app.js"]</div>
+
+                            <p style="margin-top: 24px; margin-bottom: 8px; font-weight: 700; color: #065f46;">📄 docker-compose.yml</p>
+                            <div class="yaml-code">services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
+  db:
+    image: mongo:7.0
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:</div>
+                        </div>
+
+                        <div class="success-box">
+                            <div class="step-indicator">
+                                <div class="step-number success">3</div>
+                                <span class="font-bold text-emerald-800">起動はたったの1コマンド</span>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">docker compose up -d</div>
+                            </div>
+                            <p style="margin-top: 16px; color: #065f46; font-size: 18px; font-weight: 700;">
+                                🎉 ブラウザでアクセスして動作確認。<strong>完了！</strong>
+                            </p>
+                        </div>
+
+                        <div class="success-box">
+                            <h4>✅ Dockerのメリット</h4>
+                            <ul style="color: #065f46;">
+                                <li><strong>Dockerのインストールは一度だけ</strong>: 最初の1回だけで、その後は不要</li>
+                                <li><strong>アプリごとの環境構築が超簡単</strong>: ファイルを作ってコマンド1つで完了</li>
+                                <li><strong>ミスがない</strong>: ファイルに全て書いてあるので、タイプミスなし</li>
+                                <li><strong>100%再現可能</strong>: 誰がやっても、どこでやっても同じ環境</li>
+                                <li><strong>チーム共有が簡単</strong>: ファイルをGitで共有するだけ</li>
+                                <li><strong>クリーンアップが簡単</strong>: <code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px;">docker compose down -v</code>で完全削除</li>
+                                <li><strong>複数環境を同時に</strong>: プロジェクトごとに独立した環境を持てる</li>
+                            </ul>
+                        </div>
+
+                        <!-- 比較カード -->
+                        <div class="grid md:grid-cols-2 gap-6 my-8">
+                            <div class="comparison-card warning-card">
+                                <div style="text-align: center; font-weight: 700; color: #b45309; font-size: 18px;">従来の方法</div>
+                                <div class="icon" style="text-align: center;">😓</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 28px; font-weight: 800; color: #b45309; margin-bottom: 12px;">依存関係地獄</div>
+                                    <div style="font-size: 14px; color: #78716c;">何度もコマンド実行</div>
+                                    <div style="font-size: 14px; color: #78716c;">設定ミスのリスク</div>
+                                    <div style="font-size: 14px; color: #78716c;">環境の違いが発生</div>
+                                    <div style="font-size: 14px; color: #78716c;">トラブルに数日かかる</div>
+                                </div>
+                            </div>
+                            <div class="comparison-card success-card">
+                                <div style="text-align: center; font-weight: 700; color: #059669; font-size: 18px;">Dockerを使った方法</div>
+                                <div class="icon" style="text-align: center;">✨</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 28px; font-weight: 800; color: #059669; margin-bottom: 12px;">完璧に動く</div>
+                                    <div style="font-size: 14px; color: #78716c;">コマンド1つだけ</div>
+                                    <div style="font-size: 14px; color: #78716c;">ミスゼロ</div>
+                                    <div style="font-size: 14px; color: #78716c;">完全に同じ環境</div>
+                                    <div style="font-size: 14px; color: #78716c;">トラブルなし</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>📝 Dockerの本質：環境をコードで管理する</h4>
+                            <p style="margin-bottom: 16px; color: #1e40af;">
+                                Dockerの真の価値は、<strong>「環境をコードで管理できる」</strong>ことです。<br>
+                                これは現代のソフトウェア開発における重要なトレンド「X as Code」の一つです。
+                            </p>
+
+                            <h4 style="color: #4f46e5; margin: 20px 0 12px; font-size: 18px;">🏗️ Infrastructure as Code (IaC)</h4>
+                            <p style="color: #1e40af;">
+                                Terraformでインフラをコード化するように、<strong>Dockerで開発環境をコード化</strong>します。<br>
+                                Dockerfileは最も一般的なIaCの形式の一つで、チームが「バージョン管理可能、テスト可能、自動化可能なコード」を通じてインフラを管理できるようにします。
+                            </p>
+                            <ul style="margin-top: 12px; color: #1e40af;">
+                                <li><strong>Terraform</strong>: AWSやGCPのインフラをコードで定義</li>
+                                <li><strong>Docker</strong>: 開発環境やアプリケーション実行環境をコードで定義</li>
+                            </ul>
+
+                            <h4 style="color: #4f46e5; margin: 20px 0 12px; font-size: 18px;">📚 コードがドキュメント</h4>
+                            <p style="color: #1e40af;">
+                                従来は「環境構築手順書」というドキュメントを作成していました。<br>
+                                しかし、ドキュメントには大きな問題があります：
+                            </p>
+                            <ul style="margin-top: 12px; color: #1e40af;">
+                                <li>❌ <strong>すぐに古くなる</strong>: 環境が変わってもドキュメントは更新されない</li>
+                                <li>❌ <strong>曖昧</strong>: 「適切に設定してください」など、解釈が分かれる</li>
+                                <li>❌ <strong>間違いに気づけない</strong>: 手順書が間違っていても実行するまでわからない</li>
+                            </ul>
+                            <p style="margin-top: 16px; color: #1e40af;">
+                                一方、Dockerの設定ファイル（<code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px;">Dockerfile</code>、<code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px;">docker-compose.yml</code>）は：
+                            </p>
+                            <ul style="margin-top: 12px; color: #1e40af;">
+                                <li>✅ <strong>常に最新</strong>: 動いているコードが最新のドキュメント</li>
+                                <li>✅ <strong>明確</strong>: 曖昧さゼロ。書いてある通りに実行される</li>
+                                <li>✅ <strong>すぐに検証できる</strong>: 実行すれば動くかどうかすぐわかる</li>
+                            </ul>
+
+                            <h4 style="color: #4f46e5; margin: 20px 0 12px; font-size: 18px;">🔄 他の「X as Code」の例</h4>
+                            <p style="color: #1e40af;">
+                                現代の開発では、あらゆるものを「コード化」して管理します：
+                            </p>
+                            <ul style="margin-top: 12px; color: #1e40af;">
+                                <li><strong>CI/CD as Code</strong>: GitHub Actions、GitLab CIの<code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px;">.yml</code>ファイル</li>
+                                <li><strong>Configuration as Code</strong>: Ansible、Chef、Puppetでサーバー設定を管理</li>
+                                <li><strong>Database as Code</strong>: マイグレーションファイルでDB構造を管理（Rails、Laravel、Prismaなど）</li>
+                                <li><strong>Policy as Code</strong>: Open Policy Agent (OPA)でセキュリティポリシーを定義</li>
+                            </ul>
+
+                            <h4 style="color: #4f46e5; margin: 20px 0 12px; font-size: 18px;">🎯 なぜ「コード化」が重要なのか</h4>
+                            <ul style="margin-top: 12px; color: #1e40af;">
+                                <li><strong>📊 バージョン管理できる</strong>: Gitで変更履歴を追跡、いつでも過去に戻せる</li>
+                                <li><strong>👥 レビューできる</strong>: Pull Requestで環境の変更をレビュー可能</li>
+                                <li><strong>🤖 自動化できる</strong>: CI/CDで自動テスト・デプロイ</li>
+                                <li><strong>🔁 再現可能</strong>: 誰が実行しても、いつ実行しても同じ結果</li>
+                                <li><strong>🧪 テストできる</strong>: コードだから自動テストが書ける</li>
+                                <li><strong>🌍 共有できる</strong>: チーム全員が同じ環境で開発できる</li>
+                            </ul>
+
+                            <h4 style="color: #4f46e5; margin: 20px 0 12px; font-size: 18px;">🔒 Immutable Infrastructure（不変なインフラ）</h4>
+                            <p style="color: #1e40af;">
+                                Dockerのもう1つの重要な概念が<strong>「イミュータブル（不変）」</strong>です。
+                            </p>
+                            <p style="font-size: 13px; color: #6b7280; margin-top: 8px;">
+                                ※ 以下の「ペット vs 家畜」の比喩は、Randy Bias が2012年頃に提唱したクラウドインフラ（サーバー）の設計思想です。<br>
+                                Dockerのコンテナ管理も、この同じ思想を採用しています。<br>
+                                参考: <a href="http://cloudscaling.com/blog/cloud-computing/the-history-of-pets-vs-cattle/" target="_blank" style="color: #0077b3; text-decoration: underline;">The History of Pets vs Cattle</a>
+                            </p>
+
+                            <div class="pet-cattle-grid">
+                                <div class="pet-cattle-card pet">
+                                    <div style="font-weight: 700; color: #b45309; margin-bottom: 12px; font-size: 16px;">❌ 従来の方法（ペット型）</div>
+                                    <div style="font-size: 14px; color: #78350f; line-height: 1.7;">
+                                        サーバーを大切に育てる：<br>
+                                        「このサーバーのNode.jsを<br>v16からv18にアップデート」<br><br>
+                                        → 徐々に環境が変化<br>
+                                        → 誰かが勝手に設定変更<br>
+                                        → 環境が汚れていく
+                                    </div>
+                                </div>
+                                <div class="pet-cattle-card cattle">
+                                    <div style="font-weight: 700; color: #059669; margin-bottom: 12px; font-size: 16px;">✅ Docker（家畜型）</div>
+                                    <div style="font-size: 14px; color: #064e3b; line-height: 1.7;">
+                                        毎回ゼロから作り直す：<br>
+                                        「Node.js v18のコンテナを新規作成、<br>古いコンテナは削除」<br><br>
+                                        → 常にクリーンな環境<br>
+                                        → 予期しない変更ゼロ<br>
+                                        → ロールバックも簡単
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p style="margin-top: 16px; color: #1e40af;">
+                                <strong>メリット：</strong>
+                            </p>
+                            <ul style="margin-top: 8px; color: #1e40af;">
+                                <li>環境が絶対に汚れない</li>
+                                <li>「誰かが勝手に設定を変えた問題」が発生しない</li>
+                                <li>問題が起きたら古いバージョンに一瞬で戻せる</li>
+                                <li>全く同じ環境を何度でも再現できる</li>
+                            </ul>
+
+                            <h4 style="color: #4f46e5; margin: 20px 0 12px; font-size: 18px;">🌐 ポータビリティ（どこでも動く）</h4>
+                            <p style="color: #1e40af;">
+                                Dockerで作った環境は、<strong>どこでも全く同じように動きます</strong>。<br>
+                                これが「Write once, run anywhere（一度書けば、どこでも動く）」の思想です。
+                            </p>
+
+                            <div class="portability-grid">
+                                <div class="portability-item">
+                                    <div class="icon">💻</div>
+                                    <div style="font-weight: 700; color: #0077b3;">開発環境</div>
+                                    <div style="font-size: 13px; color: #6b7280;">Mac / Windows / Linux</div>
+                                </div>
+                                <div class="portability-item">
+                                    <div class="icon">🧪</div>
+                                    <div style="font-weight: 700; color: #0077b3;">ステージング</div>
+                                    <div style="font-size: 13px; color: #6b7280;">AWS / GCP / Azure</div>
+                                </div>
+                                <div class="portability-item">
+                                    <div class="icon">🚀</div>
+                                    <div style="font-weight: 700; color: #0077b3;">本番環境</div>
+                                    <div style="font-size: 13px; color: #6b7280;">どのクラウドでもOK</div>
+                                </div>
+                            </div>
+
+                            <div style="text-align: center; margin: 20px 0; font-size: 20px; color: #0077b3; font-weight: 700;">
+                                ↓ 全て同じDockerファイルで動く ↓
+                            </div>
+
+                            <p style="margin-top: 16px; color: #1e40af;">
+                                <strong>これで解決する問題：</strong>
+                            </p>
+                            <ul style="margin-top: 8px; color: #1e40af;">
+                                <li><strong>「僕の環境では動くのに...」問題</strong>: 全員が同じDocker環境を使うので発生しない</li>
+                                <li><strong>クラウドのロックイン回避</strong>: AWS固有の機能に依存せず、いつでも移行可能</li>
+                                <li><strong>ローカルと本番の差異</strong>: 開発環境も本番環境も完全に同じ</li>
+                                <li><strong>新メンバーの環境構築</strong>: 5分で全員が同じ環境で開発開始</li>
+                            </ul>
+
+                            <div style="margin-top: 24px; padding: 20px; background: linear-gradient(135deg, #dbeafe, #e0f2fe); border-left: 5px solid #0077b3; border-radius: 8px;">
+                                <p style="color: #1e40af; margin: 0;">
+                                    <strong style="font-size: 18px;">💡 まとめ：Dockerの3つの本質</strong><br><br>
+                                    1️⃣ <strong>環境をコードで管理</strong>: ドキュメント不要、常に最新<br>
+                                    2️⃣ <strong>イミュータブル</strong>: 環境が汚れない、予期しない変更ゼロ<br>
+                                    3️⃣ <strong>ポータビリティ</strong>: どこでも同じように動く<br><br>
+                                    Dockerは単なるツールではなく、<strong>現代的な開発思想の体現</strong>です。<br>
+                                    これから学習を進めていくと、この便利さを実際に体験できます。
+                                </p>
+                            </div>
+
+                            <p style="margin-top: 16px; font-size: 13px; color: #6b7280;">
+                                <strong>📚 参考資料：</strong><br>
+                                • <a href="https://docs.docker.com/get-started/docker-overview/" target="_blank" style="color: #0077b3; text-decoration: underline;">Docker公式: What is Docker?</a> - Dockerの概要とメリット<br>
+                                • <a href="https://docs.docker.jp/" target="_blank" style="color: #0077b3; text-decoration: underline;">Docker日本語ドキュメント</a> - Docker公式ドキュメントの日本語翻訳プロジェクト
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 新しい時代のプログラミング -->
+                    <div class="content-section">
+                        <h3>新しいスクールを立ち上げたい</h3>
+
+                        <div style="background: linear-gradient(135deg, #0f172a, #1e293b); border-radius: 20px; padding: 32px; color: white; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -50px; right: -50px; font-size: 200px; opacity: 0.05;">🤖</div>
+
+                            <h4 style="color: #fbbf24; margin: 0 0 20px 0; font-size: 24px;">💡 プログラマーにならないためのプログラミングスクール</h4>
+
+                            <p style="font-size: 18px; line-height: 1.8; color: #e2e8f0; margin-bottom: 24px;">
+                                生成AIの急速な進化により、<strong style="color: #fbbf24;">プログラミング未経験者でも自分に必要なツールやシステムを自ら作れる時代</strong>が到来している。
+                            </p>
+
+                            <div style="background: rgba(251, 191, 36, 0.1); border: 2px solid #fbbf24; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                                <p style="margin: 0 0 12px 0; color: #fbbf24; font-weight: 700; font-size: 16px;">🎯 現実を見てほしい</p>
+                                <ul style="margin: 0; padding-left: 20px; color: #e2e8f0; line-height: 1.8;">
+                                    <li>営業経験のない人が作る「AI営業エージェント」</li>
+                                    <li>現場を知らない人が作る「業務効率化SaaS」</li>
+                                </ul>
+                                <p style="margin: 12px 0 0 0; color: #f87171; font-weight: 700; font-size: 18px;">
+                                    → かゆいところに手が届かない 😫
+                                </p>
+                            </div>
+
+                            <!-- ドメイン知識 + プログラミング -->
+                            <div style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                                <p style="margin: 0 0 16px 0; color: #22d3ee; font-weight: 700; font-size: 18px;">✨ ドメイン知識 × プログラミング = 最強</p>
+                                <div style="display: grid; gap: 12px;">
+                                    <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px;">
+                                        <span style="color: #fbbf24; font-weight: 700;">📊 経理・財務</span>
+                                        <p style="margin: 8px 0 0 0; color: #e2e8f0; font-size: 14px;">PL/BSが読めて、Pythonで集計分析ツールを自分で作る</p>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px;">
+                                        <span style="color: #fbbf24; font-weight: 700;">⚖️ 法務</span>
+                                        <p style="margin: 8px 0 0 0; color: #e2e8f0; font-size: 14px;">法務に詳しく、顧客対応や法的分析ツールを自分で作る</p>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px;">
+                                        <span style="color: #fbbf24; font-weight: 700;">🏠 不動産営業</span>
+                                        <p style="margin: 8px 0 0 0; color: #e2e8f0; font-size: 14px;">現場を知り尽くした人が、本当に必要なツールを自分で作る</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- プログラマーの仕事の変化 -->
+                            <div style="background: rgba(139, 92, 246, 0.1); border: 2px solid #8b5cf6; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                                <p style="margin: 0 0 12px 0; color: #a78bfa; font-weight: 700; font-size: 16px;">🔄 プログラマーの仕事も変わった</p>
+                                <p style="margin: 0; color: #e2e8f0; line-height: 1.8;">
+                                    プログラマーはもはや<strong style="color: #f87171;">ほぼコードを書かない。</strong><br>
+                                    適切な構成を考え、適切な命令を出し、正しく動くか判断するのが主な仕事。<br><br>
+                                    経験がないとできないが、<strong style="color: #4ade80;">コードを書く作業はなくなり、</strong><br>
+                                    時間を取れて参入するハードルは<strong style="color: #4ade80;">確実に下がった。</strong>
+                                </p>
+                                <div style="margin-top: 16px; padding: 12px; background: rgba(251, 191, 36, 0.2); border-radius: 8px;">
+                                    <p style="margin: 0; color: #fbbf24; font-weight: 700;">
+                                        ⚡ 生産性が上がり、少人数でも回る時代<br>
+                                        <span style="color: #e2e8f0; font-weight: 400;">→ </span><strong style="color: #22d3ee;">フルスタックでの対応が求められるようになっている</strong>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- カリキュラム -->
+                            <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                                <p style="margin: 0 0 20px 0; color: #22d3ee; font-weight: 700; font-size: 20px;">📚 カリキュラム（4ヶ月）</p>
+                                <div style="display: grid; gap: 12px;">
+                                    <div style="display: flex; align-items: flex-start; gap: 16px;">
+                                        <div style="background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #1e293b; font-weight: 900; padding: 8px 14px; border-radius: 8px; font-size: 14px; white-space: nowrap;">1ヶ月目</div>
+                                        <div>
+                                            <p style="margin: 0; color: #e2e8f0; font-weight: 700;">Claude Code等、最先端CLIツールを使いこなす</p>
+                                            <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 13px;">その時最先端のツールを1つマスター</p>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: flex-start; gap: 16px;">
+                                        <div style="background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; font-weight: 900; padding: 8px 14px; border-radius: 8px; font-size: 14px; white-space: nowrap;">2ヶ月目</div>
+                                        <div>
+                                            <p style="margin: 0; color: #e2e8f0; font-weight: 700;">Pythonの基礎</p>
+                                            <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 13px;">プログラミングの基礎を身につける</p>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: flex-start; gap: 16px;">
+                                        <div style="background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: white; font-weight: 900; padding: 8px 14px; border-radius: 8px; font-size: 14px; white-space: nowrap;">3ヶ月目</div>
+                                        <div>
+                                            <p style="margin: 0; color: #e2e8f0; font-weight: 700;">実務で使えるツールを作成</p>
+                                            <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 13px;">講師が実務で作ったツールに近いものを作る</p>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: flex-start; gap: 16px;">
+                                        <div style="background: linear-gradient(135deg, #10b981, #34d399); color: white; font-weight: 900; padding: 8px 14px; border-radius: 8px; font-size: 14px; white-space: nowrap;">4ヶ月目</div>
+                                        <div>
+                                            <p style="margin: 0; color: #e2e8f0; font-weight: 700;">自分の業務で使うツールを作る</p>
+                                            <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 13px;">本当に必要なものを作る（できれば2つ以上）</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- サポート体制 -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                                <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid #fbbf24; border-radius: 12px; padding: 16px; text-align: center;">
+                                    <div style="font-size: 28px; margin-bottom: 8px;">💬</div>
+                                    <p style="margin: 0; color: #fbbf24; font-weight: 700;">Slackで交流</p>
+                                    <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 12px;">期限なしで交流は続ける</p>
+                                </div>
+                                <div style="background: rgba(34, 211, 238, 0.1); border: 1px solid #22d3ee; border-radius: 12px; padding: 16px; text-align: center;">
+                                    <div style="font-size: 28px; margin-bottom: 8px;">📖</div>
+                                    <p style="margin: 0; color: #22d3ee; font-weight: 700;">テキストはWeb上で</p>
+                                    <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 12px;">生徒限定（ログインあり）<br>期限なし・役立つツール出たら更新してSlackでお知らせ</p>
+                                </div>
+                            </div>
+
+                            <!-- 金額 -->
+                            <div style="background: linear-gradient(135deg, #dc2626, #ef4444); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 24px;">
+                                <p style="margin: 0 0 8px 0; color: rgba(255,255,255,0.8); font-size: 14px;">受講料</p>
+                                <p style="margin: 0; font-size: 36px; font-weight: 900; color: white;">
+                                    33万円<span style="font-size: 18px; font-weight: 400;">（税込）</span>
+                                </p>
+                            </div>
+
+                            <!-- アンケート -->
+                            <div style="background: linear-gradient(135deg, #1e40af, #3b82f6); border-radius: 16px; padding: 20px; text-align: center;">
+                                <p style="margin: 0 0 8px 0; font-size: 18px; font-weight: 700; color: white;">
+                                    📝 アンケートにご協力ください
+                                </p>
+                                <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.8);">
+                                    ニーズなければやめます
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // プログレスバー
+        window.addEventListener('scroll', function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress-bar').style.width = scrolled + '%';
+        });
+
+        // スクロールトップボタン
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        document.getElementById('scroll-to-top').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // パララックス効果（背景）
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const shapes = document.querySelectorAll('.floating-shape');
+
+            shapes.forEach((shape, index) => {
+                const speed = 0.05 * (index + 1);
+                shape.style.transform = `translateY(${scrolled * speed}px)`;
+            });
+        });
+
+        // カードホバーエフェクト
+        document.querySelectorAll('.comparison-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.querySelector('.icon').style.animationPlayState = 'running';
+            });
+        });
+
+        // 初期アニメーション
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in-up').forEach(el => {
+                    el.style.opacity = '1';
+                });
+            }, 100);
+        });
+    </script>
+
+    <!-- サイドバーコンポーネント -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>
