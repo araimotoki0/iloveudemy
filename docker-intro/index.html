@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker入門 - MIRAICHI特別講座</title>
+    <meta name="description" content="Docker入門 - イメージとコンテナの基礎を学ぶ">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        docker: {
+                            50: '#e6f7ff',
+                            100: '#b3e7ff',
+                            200: '#80d4ff',
+                            300: '#4dc1ff',
+                            400: '#1aafff',
+                            500: '#0099e6',
+                            600: '#0077b3',
+                            700: '#005580',
+                            800: '#00334d',
+                            900: '#00111a',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdfa 100%);
+            background-attachment: fixed;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        /* 背景アニメーション */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .floating-shape:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #0099e6, #00d4aa);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-shape:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            top: 60%;
+            right: 10%;
+            animation-delay: -5s;
+        }
+
+        .floating-shape:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            bottom: 20%;
+            left: 20%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(30px, -30px) rotate(5deg); }
+            50% { transform: translate(-20px, 20px) rotate(-5deg); }
+            75% { transform: translate(20px, 10px) rotate(3deg); }
+        }
+
+        /* 泳ぐ鯨 */
+        .swimming-whale {
+            position: fixed;
+            font-size: 60px;
+            opacity: 0.15;
+            z-index: 0;
+            animation: swim 30s linear infinite;
+            filter: drop-shadow(0 0 20px rgba(0, 153, 230, 0.3));
+        }
+
+        .swimming-whale:nth-child(4) {
+            top: 15%;
+            animation-duration: 25s;
+            font-size: 50px;
+        }
+
+        .swimming-whale:nth-child(5) {
+            top: 45%;
+            animation-duration: 35s;
+            animation-delay: -10s;
+            font-size: 70px;
+        }
+
+        .swimming-whale:nth-child(6) {
+            top: 75%;
+            animation-duration: 28s;
+            animation-delay: -20s;
+            font-size: 45px;
+        }
+
+        /* でっかい鯨 */
+        .big-whale {
+            position: fixed;
+            z-index: 0;
+            animation: swimBig linear infinite;
+            filter: drop-shadow(0 0 50px rgba(0, 153, 230, 0.4));
+        }
+
+        .big-whale:nth-child(7) {
+            font-size: 200px;
+            top: 20%;
+            opacity: 0.08;
+            animation-duration: 60s;
+        }
+
+        .big-whale:nth-child(8) {
+            font-size: 280px;
+            top: 50%;
+            opacity: 0.05;
+            animation-duration: 80s;
+            animation-delay: -30s;
+        }
+
+        .big-whale:nth-child(9) {
+            font-size: 150px;
+            top: 70%;
+            opacity: 0.1;
+            animation-duration: 50s;
+            animation-delay: -15s;
+        }
+
+        @keyframes swimBig {
+            0% {
+                left: -400px;
+                transform: translateY(0) scaleX(1) rotate(-2deg);
+            }
+            25% {
+                transform: translateY(-50px) scaleX(1) rotate(2deg);
+            }
+            50% {
+                left: calc(100% + 400px);
+                transform: translateY(0) scaleX(1) rotate(-2deg);
+            }
+            50.1% {
+                transform: scaleX(-1) rotate(2deg);
+            }
+            75% {
+                transform: translateY(50px) scaleX(-1) rotate(-2deg);
+            }
+            100% {
+                left: -400px;
+                transform: translateY(0) scaleX(-1) rotate(2deg);
+            }
+        }
+
+        @keyframes swim {
+            0% {
+                left: -100px;
+                transform: translateY(0) scaleX(1);
+            }
+            45% {
+                transform: translateY(-30px) scaleX(1);
+            }
+            50% {
+                left: calc(100% + 100px);
+                transform: translateY(0) scaleX(1);
+            }
+            50.1% {
+                transform: scaleX(-1);
+            }
+            95% {
+                transform: translateY(30px) scaleX(-1);
+            }
+            100% {
+                left: -100px;
+                transform: translateY(0) scaleX(-1);
+            }
+        }
+
+        /* 泡のアニメーション */
+        .bubble {
+            position: fixed;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(0, 153, 230, 0.2));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: rise 8s infinite ease-in;
+        }
+
+        @keyframes rise {
+            0% {
+                bottom: -50px;
+                opacity: 0;
+                transform: translateX(0) scale(0.5);
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                bottom: 100vh;
+                opacity: 0;
+                transform: translateX(100px) scale(1);
+            }
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* カードスタイル */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* セクションスタイル */
+        .content-section {
+            margin-bottom: 48px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .content-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .content-section h3 {
+            color: #0077b3;
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 800;
+            padding-bottom: 16px;
+            border-bottom: 3px solid #0099e6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 32px;
+            background: linear-gradient(180deg, #0099e6, #00d4aa);
+            border-radius: 4px;
+        }
+
+        .content-section h4 {
+            color: #6366f1;
+            margin: 28px 0 16px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            margin: 16px 0;
+            line-height: 1.9;
+            color: #475569;
+            font-size: 16px;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 16px 0;
+            padding-left: 28px;
+            color: #475569;
+        }
+
+        .content-section li {
+            margin: 10px 0;
+            line-height: 1.7;
+        }
+
+        .content-section strong {
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        /* ボックススタイル */
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7, #fef9c3);
+            border-left: 5px solid #f59e0b;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);
+        }
+
+        .warning-box h4 {
+            color: #b45309 !important;
+            margin-top: 0 !important;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+            border-left: 5px solid #3b82f6;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+        }
+
+        .info-box h4 {
+            color: #1d4ed8 !important;
+            margin-top: 0 !important;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5, #ccfbf1);
+            border-left: 5px solid #10b981;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);
+        }
+
+        .success-box h4 {
+            color: #059669 !important;
+            margin-top: 0 !important;
+        }
+
+        /* 比較カード */
+        .comparison-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .comparison-card.success-card {
+            border-top: 4px solid #10b981;
+        }
+
+        .comparison-card .icon {
+            font-size: 56px;
+            margin: 16px 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* プログレスバー */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 153, 230, 0.2);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0099e6, #00d4aa, #8b5cf6);
+            background-size: 200% 100%;
+            width: 0%;
+            transition: width 0.1s ease;
+            animation: gradientMove 3s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* スクロールトップボタン */
+        #scroll-to-top {
+            background: linear-gradient(135deg, #0099e6, #00d4aa);
+            box-shadow: 0 10px 30px rgba(0, 153, 230, 0.4);
+        }
+
+        #scroll-to-top:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(0, 153, 230, 0.5);
+        }
+
+        /* ヘッダーカード */
+        .header-card {
+            background: linear-gradient(135deg, #0099e6, #0077b3);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 40px rgba(0, 119, 179, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-card::before {
+            content: '🐳';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px;
+            opacity: 0.2;
+            animation: whaleFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes whaleFloat {
+            0%, 100% { transform: translateY(-50%) rotate(0deg); }
+            50% { transform: translateY(-60%) rotate(5deg); }
+        }
+
+        /* 開幕メッセージ */
+        .opening-message {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(245, 158, 11, 0.3);
+        }
+
+        .opening-message::before {
+            content: '☀️';
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            font-size: 150px;
+            opacity: 0.2;
+            animation: sunPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes sunPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.2; }
+            50% { transform: scale(1.1) rotate(10deg); opacity: 0.3; }
+        }
+
+        .opening-text {
+            font-size: 24px;
+            font-weight: 900;
+            color: #78350f;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
+        }
+
+        /* セミナー日程カード */
+        .schedule-card {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .schedule-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        .schedule-date {
+            background: linear-gradient(135deg, #0099e6, #00d4aa);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .schedule-content {
+            color: #e2e8f0;
+            font-size: 16px;
+        }
+
+        .schedule-day {
+            color: #fbbf24;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        /* タイピングアニメーション */
+        .typing-text {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid #0099e6;
+            animation: typing 3s steps(30) 1s forwards, blink 0.75s step-end infinite;
+            width: 0;
+        }
+
+        @keyframes typing {
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+
+        /* パルスアニメーション */
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 153, 230, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(0, 153, 230, 0.6), 0 0 60px rgba(0, 153, 230, 0.3); }
+        }
+
+        /* 学習ステップ */
+        .learning-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: all 0.5s ease;
+        }
+
+        .learning-step.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .learning-step:hover .step-icon {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .step-desc {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .content-section h3 {
+                font-size: 22px;
+            }
+
+            .header-card::before {
+                font-size: 50px;
+                right: 10px;
+            }
+
+            .opening-text {
+                font-size: 18px;
+            }
+
+            .opening-message::before {
+                font-size: 100px;
+            }
+
+            .swimming-whale {
+                font-size: 40px;
+            }
+        }
+
+        /* アニメーション用クラス */
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+
+        /* グラデーションテキストアニメーション */
+        .gradient-text-animate {
+            background: linear-gradient(90deg, #0099e6, #00d4aa, #8b5cf6, #0099e6);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientText 5s ease infinite;
+        }
+
+        @keyframes gradientText {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 3D回転カード */
+        .card-3d {
+            perspective: 1000px;
+        }
+
+        .card-3d-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .card-3d:hover .card-3d-inner {
+            transform: rotateY(5deg) rotateX(5deg);
+        }
+
+        /* キラキラエフェクト */
+        .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        /* コンテナアニメーション */
+        .container-icon {
+            display: inline-block;
+            animation: containerPop 0.5s ease;
+        }
+
+        @keyframes containerPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* 波紋エフェクト */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .ripple:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* カウントダウン風 */
+        .countdown-number {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #0099e6, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: countPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes countPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+
+<body class="font-sans">
+    <!-- 背景アニメーション -->
+    <div class="bg-animation">
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <!-- 泳ぐ鯨 -->
+        <div class="swimming-whale">🐳</div>
+        <div class="swimming-whale">🐳</div>
+        <div class="swimming-whale">🐳</div>
+        <!-- でっかい鯨 -->
+        <div class="big-whale">🐳</div>
+        <div class="big-whale">🐳</div>
+        <div class="big-whale">🐳</div>
+    </div>
+
+    <!-- 泡 -->
+    <div id="bubbles"></div>
+
+    <!-- プログレスバー -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-14 h-14 text-white rounded-full opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col main-content">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- タイトル -->
+                <h1 class="text-4xl md:text-5xl font-black mb-2 text-center fade-in-up">
+                    <span class="gradient-text-animate">
+                        Docker入門
+                    </span>
+                </h1>
+                <p class="text-xl md:text-2xl text-center text-gray-600 mb-8 font-medium fade-in-up stagger-1">
+                    イメージとコンテナの基礎を学ぶ
+                </p>
+
+                <!-- コンテンツ -->
+                <div class="glass-card rounded-3xl p-8 md:p-12">
+
+                    <!-- 開幕メッセージ -->
+                    <div class="opening-message fade-in-up stagger-2">
+                        <div class="opening-text">
+                            ☀️ 土曜日の朝っぱらから学習できるなんてすごいよ！
+                        </div>
+                        <p style="margin: 12px 0 0 0; color: #92400e; font-size: 16px;">
+                            休日の朝から自己投資している皆さん、本当に素晴らしい！<br>
+                            一緒にDockerの世界に飛び込もう！
+                        </p>
+                    </div>
+
+                    <!-- セミナー情報 -->
+                    <div class="header-card fade-in-up stagger-3">
+                        <p class="text-xl font-bold mb-2">
+                            MIRAICHI特別講座 - Docker入門（全3回）
+                        </p>
+                        <p class="text-white/80 text-sm mb-3">
+                            Docker Composeを理解するための基礎を3週にわたって学ぼう
+                        </p>
+                        <p class="text-lg font-bold text-yellow-300">
+                            ゴール：イメージとコンテナを理解して自学できるようになる！
+                        </p>
+                    </div>
+
+                    <!-- セミナー日程 -->
+                    <div class="schedule-card fade-in-up stagger-4">
+                        <h4 style="color: #fbbf24; margin: 0 0 16px 0; font-size: 20px; font-weight: 700;">📅 セミナー日程</h4>
+                        <div class="schedule-item">
+                            <div class="schedule-date">1/10</div>
+                            <div class="schedule-content">
+                                第1回：イメージ
+                                <span class="schedule-day">（土）</span>
+                            </div>
+                        </div>
+                        <div class="schedule-item">
+                            <div class="schedule-date">1/17</div>
+                            <div class="schedule-content">
+                                第2回：コンテナ
+                                <span class="schedule-day">（土）</span>
+                            </div>
+                        </div>
+                        <div class="schedule-item">
+                            <div class="schedule-date">1/24</div>
+                            <div class="schedule-content">
+                                第3回：Runコマンド
+                                <span class="schedule-day">（土）</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 今回の講座の目的 -->
+                    <div class="content-section" data-animate>
+                        <h3>今回の講座の目的</h3>
+
+                        <p>
+                            この講座では、<strong>Docker Composeを理解するための基礎</strong>を学びます。
+                        </p>
+
+                        <div class="info-box card-3d">
+                            <div class="card-3d-inner">
+                                <h4>🐳 Docker Composeとは？</h4>
+                                <p style="margin-bottom: 0; color: #1e40af;">
+                                    Docker Composeは、<strong>アプリケーション、Webサーバー、データベース</strong>などを<strong>1つのコマンド</strong>で「コンテナ」という単位で作ってくれるツールです。<br><br>
+                                    つまり、<strong style="font-size: 18px;">コマンド1つでWebアプリケーションの環境を丸ごと作れる</strong>んです。
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4>⚠️ でも、その前に...</h4>
+                            <p style="margin-bottom: 0; color: #92400e;">
+                                Docker Composeを理解するには、まず以下の基礎知識が必要です：
+                            </p>
+                            <ul style="color: #92400e; margin-top: 12px;">
+                                <li><strong>イメージ</strong> - コンテナの元になるもの</li>
+                                <li><strong>コンテナ</strong> - 実際に動く環境</li>
+                                <li><strong>Runコマンド</strong> - コンテナを起動する方法</li>
+                            </ul>
+                            <p style="margin-top: 16px; margin-bottom: 0; color: #b45309; font-weight: 700;">
+                                これらを理解するには、正直かなり時間がかかります...
+                            </p>
+                        </div>
+
+                        <div class="success-box pulse-glow">
+                            <h4>✨ この講座でやること</h4>
+                            <p style="margin-bottom: 0; color: #065f46;">
+                                3回のセミナーを通じて<strong>「イメージ」「コンテナ」「Runコマンド」</strong>の基礎を学習します。<br><br>
+                                これらを理解することで、<strong>自分で学習を進められるようになる</strong>ことが目標です。<br>
+                                つまり、<strong style="font-size: 18px;">自学できるようにサポートする</strong>のがこの講座の目的です！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 学習のステップ -->
+                    <div class="content-section" data-animate>
+                        <h3>Docker学習のステップ</h3>
+
+                        <p>
+                            Docker Composeを使いこなすまでの学習ステップを整理しました。
+                        </p>
+
+                        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); margin: 24px 0;">
+                            <div class="learning-step" data-step="1">
+                                <div class="step-icon" style="background: linear-gradient(135deg, #0099e6, #00d4aa); color: white;">1</div>
+                                <div class="step-content">
+                                    <div class="step-title" style="color: #0077b3;">イメージを理解する</div>
+                                    <div class="step-desc">コンテナの「設計図」となるイメージの概念を学ぶ</div>
+                                    <div style="margin-top: 4px; font-size: 12px; color: #0099e6; font-weight: 700;">📅 1/10 第1回</div>
+                                </div>
+                            </div>
+                            <div class="learning-step" data-step="2">
+                                <div class="step-icon" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: white;">2</div>
+                                <div class="step-content">
+                                    <div class="step-title" style="color: #7c3aed;">コンテナを理解する</div>
+                                    <div class="step-desc">イメージから作られる実行環境「コンテナ」を学ぶ</div>
+                                    <div style="margin-top: 4px; font-size: 12px; color: #8b5cf6; font-weight: 700;">📅 1/17 第2回</div>
+                                </div>
+                            </div>
+                            <div class="learning-step" data-step="3">
+                                <div class="step-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white;">3</div>
+                                <div class="step-content">
+                                    <div class="step-title" style="color: #b45309;">Runコマンドを学ぶ</div>
+                                    <div class="step-desc">コンテナを起動するためのコマンドとオプションを習得</div>
+                                    <div style="margin-top: 4px; font-size: 12px; color: #f59e0b; font-weight: 700;">📅 1/24 第3回</div>
+                                </div>
+                            </div>
+                            <div class="learning-step" style="margin-bottom: 0;" data-step="4">
+                                <div class="step-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">4</div>
+                                <div class="step-content">
+                                    <div class="step-title" style="color: #059669;">Docker Composeを使う</div>
+                                    <div class="step-desc">複数のコンテナを1つのコマンドで管理できるようになる</div>
+                                    <div style="margin-top: 4px; font-size: 12px; color: #10b981; font-weight: 700;">🎯 最終ゴール</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 24px; padding: 24px; background: linear-gradient(135deg, #0f172a, #1e293b); border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);">
+                            <p style="margin: 0 0 8px 0; color: #94a3b8; font-size: 14px;">3日間のセミナーで</p>
+                            <p style="margin: 0; font-size: 24px; font-weight: 900; color: white;">
+                                ステップ <span class="countdown-number">1</span> 〜 <span class="countdown-number">3</span> をマスター！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Dockerのメリット -->
+                    <div class="content-section" data-animate>
+                        <h3>Dockerを学ぶメリット</h3>
+
+                        <p>
+                            Dockerを使えるようになると、こんな良いことがあります。
+                        </p>
+
+                        <div class="grid md:grid-cols-3 gap-6 my-6">
+                            <div class="comparison-card success-card ripple">
+                                <div class="icon" style="text-align: center;">🚀</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 20px; font-weight: 800; color: #059669; margin-bottom: 8px;">一瞬で環境構築</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        Webアプリの構成を<br>
+                                        コマンド1つで立てられる
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comparison-card success-card ripple">
+                                <div class="icon" style="text-align: center;">🐧</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 20px; font-weight: 800; color: #059669; margin-bottom: 8px;">Linuxコマンドが身につく</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        Dockerを使うだけで<br>
+                                        自然とLinux操作を覚えられる
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comparison-card success-card ripple">
+                                <div class="icon" style="text-align: center;">🧠</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 20px; font-weight: 800; color: #059669; margin-bottom: 8px;">ソフトウェア構成の理解</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        アプリがどう動いているか<br>
+                                        構成の理解が深まる
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="success-box">
+                            <h4>🎓 学習の一助になれば</h4>
+                            <p style="margin-bottom: 0; color: #065f46;">
+                                Dockerはメリットがとてもたくさんあります。<br>
+                                このセミナーが、皆さんのDocker学習の<strong>きっかけ</strong>になれば嬉しいです。<br><br>
+                                基礎を理解すれば、あとは<strong>自分でどんどん学習を進められます</strong>！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section" data-animate>
+                        <h3>今日のまとめ</h3>
+
+                        <div style="background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; padding: 32px; color: white; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -30px; right: -30px; font-size: 120px; opacity: 0.05;">🐳</div>
+
+                            <div style="margin-bottom: 24px;">
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">🎯 目標</p>
+                                <p style="margin: 0; font-size: 20px; font-weight: 700; color: #4ade80;">
+                                    イメージとコンテナを理解して、自学できるようになる
+                                </p>
+                            </div>
+
+                            <div style="margin-bottom: 24px;">
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">📚 3回で学ぶこと</p>
+                                <ul style="margin: 0; padding-left: 20px; color: #e2e8f0;">
+                                    <li>第1回：イメージ</li>
+                                    <li>第2回：コンテナ</li>
+                                    <li>第3回：Runコマンド</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">🏆 最終的なゴール</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #fbbf24;">
+                                    Docker Composeを使いこなせるようになる！
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 32px;">
+                            <p style="font-size: 28px; margin: 0;">🐳</p>
+                            <p style="font-size: 16px; color: #64748b; margin: 8px 0 0 0;">一緒に頑張りましょう！</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 泡を生成
+        function createBubbles() {
+            const container = document.getElementById('bubbles');
+            for (let i = 0; i < 15; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.width = (Math.random() * 20 + 10) + 'px';
+                bubble.style.height = bubble.style.width;
+                bubble.style.animationDelay = Math.random() * 8 + 's';
+                bubble.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                container.appendChild(bubble);
+            }
+        }
+        createBubbles();
+
+        // プログレスバー
+        window.addEventListener('scroll', function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress-bar').style.width = scrolled + '%';
+        });
+
+        // スクロールトップボタン
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        document.getElementById('scroll-to-top').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // パララックス効果（背景）
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const shapes = document.querySelectorAll('.floating-shape');
+
+            shapes.forEach((shape, index) => {
+                const speed = 0.05 * (index + 1);
+                shape.style.transform = `translateY(${scrolled * speed}px)`;
+            });
+        });
+
+        // セクションのスクロールアニメーション
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+
+                    // 学習ステップのアニメーション
+                    const steps = entry.target.querySelectorAll('.learning-step');
+                    steps.forEach((step, index) => {
+                        setTimeout(() => {
+                            step.classList.add('animate');
+                        }, index * 150);
+                    });
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.content-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // カードホバーエフェクト
+        document.querySelectorAll('.comparison-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const icon = this.querySelector('.icon');
+                if (icon) {
+                    icon.style.animationPlayState = 'running';
+                }
+            });
+        });
+
+        // 初期アニメーション
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in-up').forEach(el => {
+                    el.style.opacity = '1';
+                });
+            }, 100);
+        });
+
+        // マウス追従エフェクト（軽め）
+        document.addEventListener('mousemove', function(e) {
+            const cards = document.querySelectorAll('.card-3d');
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = (y - centerY) / 20;
+                    const rotateY = (centerX - x) / 20;
+
+                    card.querySelector('.card-3d-inner').style.transform =
+                        `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                }
+            });
+        });
+
+        // スケジュールアイテムのホバーエフェクト
+        document.querySelectorAll('.schedule-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.background = 'rgba(0, 153, 230, 0.2)';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.background = 'rgba(255, 255, 255, 0.05)';
+            });
+        });
+    </script>
+
+    <!-- サイドバーコンポーネント -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>
