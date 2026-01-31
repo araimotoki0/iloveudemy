@@ -2,7 +2,7 @@
 function initSidebar() {
     // 現在のパスから相対パスを計算
     const currentPath = window.location.pathname;
-    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/') || currentPath.includes('/miraichi-docker/') || currentPath.includes('/docker-intro/');
+    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/') || currentPath.includes('/miraichi-docker/') || currentPath.includes('/docker-intro/') || currentPath.includes('/vibe-coding/');
     const rootPath = isInSubfolder ? '../' : './';
 
     // サイドバーHTML
@@ -108,6 +108,17 @@ function initSidebar() {
                     <div class="flex flex-col">
                         <span>Docker入門</span>
                         <span class="text-xs text-gray-400 mt-0.5">2026年1月10日</span>
+                    </div>
+                </a>
+                <a href="${rootPath}vibe-coding/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/vibe-coding/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>バイブコーディング入門</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2026年1月31日</span>
                     </div>
                 </a>
             </nav>

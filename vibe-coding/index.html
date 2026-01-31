@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バイブコーディング入門 - MIRAICHI特別講座</title>
+    <meta name="description" content="バイブコーディング入門 - Claude Codeを使ったAI駆動開発を学ぶ">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vibe: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #e0f2fe 100%);
+            background-attachment: fixed;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        /* 背景アニメーション */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .floating-shape:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-shape:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            top: 60%;
+            right: 10%;
+            animation-delay: -5s;
+        }
+
+        .floating-shape:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            bottom: 20%;
+            left: 20%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(30px, -30px) rotate(5deg); }
+            50% { transform: translate(-20px, 20px) rotate(-5deg); }
+            75% { transform: translate(20px, 10px) rotate(3deg); }
+        }
+
+        /* 飛ぶロボット */
+        .flying-robot {
+            position: fixed;
+            font-size: 50px;
+            opacity: 0.15;
+            z-index: 0;
+            animation: fly 25s linear infinite;
+            filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.3));
+        }
+
+        .flying-robot:nth-child(4) {
+            top: 15%;
+            animation-duration: 22s;
+            font-size: 40px;
+        }
+
+        .flying-robot:nth-child(5) {
+            top: 45%;
+            animation-duration: 30s;
+            animation-delay: -8s;
+            font-size: 55px;
+        }
+
+        .flying-robot:nth-child(6) {
+            top: 75%;
+            animation-duration: 26s;
+            animation-delay: -15s;
+            font-size: 35px;
+        }
+
+        @keyframes fly {
+            0% {
+                left: -80px;
+                transform: translateY(0) scaleX(1) rotate(-5deg);
+            }
+            25% {
+                transform: translateY(-40px) scaleX(1) rotate(5deg);
+            }
+            50% {
+                left: calc(100% + 80px);
+                transform: translateY(0) scaleX(1) rotate(-5deg);
+            }
+            50.1% {
+                transform: scaleX(-1) rotate(5deg);
+            }
+            75% {
+                transform: translateY(40px) scaleX(-1) rotate(-5deg);
+            }
+            100% {
+                left: -80px;
+                transform: translateY(0) scaleX(-1) rotate(5deg);
+            }
+        }
+
+        /* キラキラパーティクル */
+        .sparkle-particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: sparkleFloat 6s infinite ease-in-out;
+        }
+
+        @keyframes sparkleFloat {
+            0%, 100% {
+                opacity: 0;
+                transform: translateY(0) scale(0);
+            }
+            50% {
+                opacity: 0.8;
+                transform: translateY(-100px) scale(1);
+            }
+        }
+
+        /* メインコンテンツ */
+        .main-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* カードスタイル */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* セクションスタイル */
+        .content-section {
+            margin-bottom: 48px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .content-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .content-section h3 {
+            color: #1d4ed8;
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 800;
+            padding-bottom: 16px;
+            border-bottom: 3px solid #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 32px;
+            background: linear-gradient(180deg, #3b82f6, #06b6d4);
+            border-radius: 4px;
+        }
+
+        .content-section h4 {
+            color: #2563eb;
+            margin: 28px 0 16px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            margin: 16px 0;
+            line-height: 1.9;
+            color: #475569;
+            font-size: 16px;
+        }
+
+        .content-section ul,
+        .content-section ol {
+            margin: 16px 0;
+            padding-left: 28px;
+            color: #475569;
+        }
+
+        .content-section li {
+            margin: 10px 0;
+            line-height: 1.7;
+        }
+
+        .content-section strong {
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        /* ボックススタイル */
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7, #fef9c3);
+            border-left: 5px solid #f59e0b;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);
+        }
+
+        .warning-box h4 {
+            color: #b45309 !important;
+            margin-top: 0 !important;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+            border-left: 5px solid #3b82f6;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+        }
+
+        .info-box h4 {
+            color: #1d4ed8 !important;
+            margin-top: 0 !important;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5, #ccfbf1);
+            border-left: 5px solid #10b981;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);
+        }
+
+        .success-box h4 {
+            color: #059669 !important;
+            margin-top: 0 !important;
+        }
+
+        /* コードブロック */
+        .code-block {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 20px 0;
+            overflow-x: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .code-block code {
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+        .code-block .command {
+            color: #4ade80;
+        }
+
+        .code-block .prompt {
+            color: #60a5fa;
+        }
+
+        /* 比較カード */
+        .comparison-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .comparison-card.success-card {
+            border-top: 4px solid #3b82f6;
+        }
+
+        .comparison-card .icon {
+            font-size: 56px;
+            margin: 16px 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* プログレスバー */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.2);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4, #0ea5e9);
+            background-size: 200% 100%;
+            width: 0%;
+            transition: width 0.1s ease;
+            animation: gradientMove 3s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* スクロールトップボタン */
+        #scroll-to-top {
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        #scroll-to-top:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5);
+        }
+
+        /* ヘッダーカード */
+        .header-card {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 40px rgba(29, 78, 216, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-card::before {
+            content: '🤖';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px;
+            opacity: 0.2;
+            animation: robotFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes robotFloat {
+            0%, 100% { transform: translateY(-50%) rotate(0deg); }
+            50% { transform: translateY(-60%) rotate(5deg); }
+        }
+
+        /* 開幕メッセージ */
+        .opening-message {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(14, 165, 233, 0.3);
+        }
+
+        .opening-message::before {
+            content: '✨';
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            font-size: 150px;
+            opacity: 0.2;
+            animation: sparkPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes sparkPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.2; }
+            50% { transform: scale(1.1) rotate(10deg); opacity: 0.3; }
+        }
+
+        .opening-text {
+            font-size: 24px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 学習ステップ */
+        .learning-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: all 0.5s ease;
+        }
+
+        .learning-step.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .learning-step:hover .step-icon {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .step-desc {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* パルスアニメーション */
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6), 0 0 60px rgba(59, 130, 246, 0.3); }
+        }
+
+        /* 波紋エフェクト */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .ripple:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* グラデーションテキストアニメーション */
+        .gradient-text-animate {
+            background: linear-gradient(90deg, #3b82f6, #06b6d4, #0ea5e9, #3b82f6);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientText 5s ease infinite;
+        }
+
+        @keyframes gradientText {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* アニメーション用クラス */
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .content-section h3 {
+                font-size: 22px;
+            }
+
+            .header-card::before {
+                font-size: 50px;
+                right: 10px;
+            }
+
+            .opening-text {
+                font-size: 18px;
+            }
+
+            .opening-message::before {
+                font-size: 100px;
+            }
+
+            .flying-robot {
+                font-size: 30px;
+            }
+
+            .code-block code {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body class="font-sans">
+    <!-- 背景アニメーション -->
+    <div class="bg-animation">
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <!-- 飛ぶロボット -->
+        <div class="flying-robot">🤖</div>
+        <div class="flying-robot">🤖</div>
+        <div class="flying-robot">🤖</div>
+    </div>
+
+    <!-- キラキラパーティクル -->
+    <div id="sparkles"></div>
+
+    <!-- プログレスバー -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-14 h-14 text-white rounded-full opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col main-content">
+
+        <!-- メインコンテンツ -->
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- タイトル -->
+                <h1 class="text-4xl md:text-5xl font-black mb-2 text-center fade-in-up">
+                    <span class="gradient-text-animate">
+                        バイブコーディング入門
+                    </span>
+                </h1>
+                <p class="text-xl md:text-2xl text-center text-gray-600 mb-8 font-medium fade-in-up stagger-1">
+                    Claude Codeを使ったAI駆動開発を学ぶ
+                </p>
+
+                <!-- コンテンツ -->
+                <div class="glass-card rounded-3xl p-8 md:p-12">
+
+                    <!-- 開幕メッセージ -->
+                    <div class="opening-message fade-in-up stagger-2">
+                        <div class="opening-text">
+                            ✨ AIと一緒にコードを書く新しい時代へようこそ！
+                        </div>
+                        <p style="margin: 12px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">
+                            バイブコーディングとは、AIに「こんな感じで」と伝えながら<br>
+                            一緒にコードを作り上げていく新しい開発スタイルです。
+                        </p>
+                    </div>
+
+                    <!-- セミナー情報 -->
+                    <div class="header-card fade-in-up stagger-3">
+                        <p class="text-xl font-bold mb-2">
+                            バイブコーディング入門
+                        </p>
+                        <p class="text-white/80 text-sm mb-3">
+                            Claude Codeを使って、AIと対話しながらプログラミングする方法を学ぼう
+                        </p>
+                        <p class="text-lg font-bold text-yellow-300">
+                            ゴール：Claude Codeを使いこなして開発効率を爆上げする！
+                        </p>
+                    </div>
+
+                    <!-- バイブコーディングとは -->
+                    <div class="content-section" data-animate>
+                        <h3>バイブコーディングとは？</h3>
+
+                        <div class="info-box">
+                            <h4>🎵 Vibe = 雰囲気・感覚</h4>
+                            <p style="margin-bottom: 0; color: #1e40af;">
+                                バイブコーディングとは、<strong>細かい仕様を決めずに</strong>、AIに「こんな雰囲気で」「こういう感じで」と伝えながらコードを生成していく開発スタイルです。<br><br>
+                                従来の「1行1行自分で書く」スタイルから、<strong>「AIと対話しながら作る」</strong>スタイルへの大きな変革です。
+                            </p>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6 my-6">
+                            <div class="comparison-card">
+                                <div class="icon" style="text-align: center;">📝</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 18px; font-weight: 800; color: #64748b; margin-bottom: 8px;">従来のコーディング</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        1行1行、自分で考えて書く<br>
+                                        ドキュメントを調べながら進める<br>
+                                        エラーも自分で解決
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comparison-card success-card">
+                                <div class="icon" style="text-align: center;">🤖</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 18px; font-weight: 800; color: #1d4ed8; margin-bottom: 8px;">バイブコーディング</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        AIに「こうしたい」と伝える<br>
+                                        AIがコードを生成・修正<br>
+                                        対話しながら完成させる
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Claude Codeとは -->
+                    <div class="content-section" data-animate>
+                        <h3>Claude Codeとは？</h3>
+
+                        <p>
+                            Claude CodeはAnthropicが開発した<strong>ターミナルベースのAIコーディングアシスタント</strong>です。
+                        </p>
+
+                        <div class="info-box">
+                            <h4>💡 Claude Codeの特徴</h4>
+                            <ul style="color: #1e40af; margin-bottom: 0;">
+                                <li><strong>ターミナルで動作</strong> - コマンドラインから直接使える</li>
+                                <li><strong>ファイル操作が可能</strong> - コードの読み書き、編集ができる</li>
+                                <li><strong>コマンド実行</strong> - git、npm、テストなども実行可能</li>
+                                <li><strong>コンテキスト理解</strong> - プロジェクト全体を把握して提案</li>
+                            </ul>
+                        </div>
+
+                        <div class="success-box">
+                            <h4>🚀 できること</h4>
+                            <ul style="color: #065f46; margin-bottom: 0;">
+                                <li>新しい機能の実装</li>
+                                <li>バグの修正</li>
+                                <li>リファクタリング</li>
+                                <li>テストの作成</li>
+                                <li>ドキュメントの生成</li>
+                                <li>コードの説明・解説</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- インストール方法 -->
+                    <div class="content-section" data-animate>
+                        <h3>インストール方法</h3>
+
+                        <p>Claude Codeはワンコマンドで簡単にインストールできます。</p>
+
+                        <h4>Mac / Linux</h4>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># ターミナルで以下を実行</span><br>
+                                <span class="command">curl -fsSL https://claude.ai/install.sh | sh</span>
+                            </code>
+                        </div>
+
+                        <h4>Windows</h4>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># PowerShellで以下を実行</span><br>
+                                <span class="command">irm https://claude.ai/install.ps1 | iex</span>
+                            </code>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>💡 インストール確認</h4>
+                            <p style="margin-bottom: 0; color: #1e40af;">
+                                インストール後、ターミナルで <code style="background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">claude --version</code> を実行して確認しましょう。
+                            </p>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4>⚠️ 必要なもの</h4>
+                            <ul style="color: #92400e; margin-bottom: 0;">
+                                <li><strong>Anthropicアカウント</strong>（初回起動時にログインが必要）</li>
+                                <li>インターネット接続</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 基本的な使い方 -->
+                    <div class="content-section" data-animate>
+                        <h3>基本的な使い方</h3>
+
+                        <h4>1. Claude Codeを起動する</h4>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># プロジェクトのディレクトリで起動</span><br>
+                                <span class="command">cd your-project</span><br>
+                                <span class="command">claude</span>
+                            </code>
+                        </div>
+
+                        <h4>2. やりたいことを伝える</h4>
+                        <p>起動したら、自然な日本語で指示を出すだけ！</p>
+                        <div class="code-block">
+                            <code>
+                                <span class="prompt">></span> <span style="color: #fbbf24;">ログイン機能を追加して</span><br><br>
+                                <span class="prompt">></span> <span style="color: #fbbf24;">このエラーを直して</span><br><br>
+                                <span class="prompt">></span> <span style="color: #fbbf24;">このコードを説明して</span><br><br>
+                                <span class="prompt">></span> <span style="color: #fbbf24;">テストを書いて</span>
+                            </code>
+                        </div>
+
+                        <h4>3. 提案を確認して承認</h4>
+                        <p>Claudeがコードの変更を提案したら、内容を確認して承認（y）または拒否（n）します。</p>
+
+                        <div class="info-box">
+                            <h4>💡 ポイント</h4>
+                            <p style="margin-bottom: 0; color: #6b21a8;">
+                                Claudeは変更を勝手に適用しません。必ず確認を求めてくれるので、安心して使えます。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- CLAUDE.md -->
+                    <div class="content-section" data-animate>
+                        <h3>CLAUDE.md（最重要）</h3>
+
+                        <div class="warning-box" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 5px solid #f59e0b;">
+                            <h4>⭐ これが一番大事！</h4>
+                            <p style="margin-bottom: 0; color: #92400e;">
+                                プロジェクトのルートに <strong>CLAUDE.md</strong> ファイルを作成しておくと、Claude が毎回それを読み込んで、プロジェクト固有のルールや指示を理解してくれます。
+                            </p>
+                        </div>
+
+                        <p>
+                            CLAUDE.md には、プロジェクトの<strong>ルール</strong>や<strong>コーディング規約</strong>、<strong>使用技術</strong>などを書いておきます。
+                        </p>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># CLAUDE.md の例</span><br><br>
+                                <span style="color: #fbbf24;"># プロジェクト概要</span><br>
+                                <span style="color: #e2e8f0;">このプロジェクトはLaravelで作られたECサイトです。</span><br><br>
+                                <span style="color: #fbbf24;"># 技術スタック</span><br>
+                                <span style="color: #e2e8f0;">- Laravel 11</span><br>
+                                <span style="color: #e2e8f0;">- PHP 8.3</span><br>
+                                <span style="color: #e2e8f0;">- MySQL 8.0</span><br>
+                                <span style="color: #e2e8f0;">- Tailwind CSS</span><br><br>
+                                <span style="color: #fbbf24;"># コーディングルール</span><br>
+                                <span style="color: #e2e8f0;">- 日本語でコメントを書く</span><br>
+                                <span style="color: #e2e8f0;">- 変数名はキャメルケース</span><br>
+                                <span style="color: #e2e8f0;">- コントローラーは単一責任</span>
+                            </code>
+                        </div>
+
+                        <div class="success-box">
+                            <h4>💡 ポイント</h4>
+                            <p style="margin-bottom: 0; color: #065f46;">
+                                CLAUDE.md があると、毎回「このプロジェクトはLaravelで...」と説明しなくても、Claudeが自動で理解してくれます。<br>
+                                <strong>最初にこれを作っておくと、作業効率が格段に上がります！</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- よく使うコマンド -->
+                    <div class="content-section" data-animate>
+                        <h3>よく使うオプション</h3>
+
+                        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); margin: 24px 0;">
+                            <div class="learning-step" data-step="1">
+                                <div class="step-icon" style="background: linear-gradient(135deg, #3b82f6, #06b6d4); color: white;">🔄</div>
+                                <div class="step-content">
+                                    <div class="step-title" style="color: #1d4ed8;">claude -r（--resume）</div>
+                                    <div class="step-desc">前回のセッションを再開する<br>途中で中断した作業を続けたいときに便利</div>
+                                </div>
+                            </div>
+                            <div class="learning-step" data-step="2">
+                                <div class="step-icon" style="background: linear-gradient(135deg, #0ea5e9, #06b6d4); color: white;">💬</div>
+                                <div class="step-content">
+                                    <div class="step-title" style="color: #0284c7;">claude -c "指示"</div>
+                                    <div class="step-desc">起動と同時に指示を渡す<br>例: claude -c "このバグを直して"</div>
+                                </div>
+                            </div>
+                            <div class="learning-step" data-step="3">
+                                <div class="step-icon" style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: white;">📁</div>
+                                <div class="step-content">
+                                    <div class="step-title" style="color: #2563eb;">@ファイル名</div>
+                                    <div class="step-desc">特定のファイルを参照させる<br>例: @src/App.tsx この部分を修正して</div>
+                                </div>
+                            </div>
+                            <div class="learning-step" data-step="4">
+                                <div class="step-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">🤖</div>
+                                <div class="step-content">
+                                    <div class="step-title" style="color: #10b981;">/model</div>
+                                    <div class="step-desc">使用するモデルを切り替える<br>Sonnet、Opus などを選択できる</div>
+                                </div>
+                            </div>
+                            <div class="learning-step" data-step="5">
+                                <div class="step-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white;">🔑</div>
+                                <div class="step-content">
+                                    <div class="step-title" style="color: #b45309;">/login</div>
+                                    <div class="step-desc">Anthropicアカウントにログインする<br>初回起動時や再認証が必要なときに使う</div>
+                                </div>
+                            </div>
+                            <div class="learning-step" style="margin-bottom: 0;" data-step="6">
+                                <div class="step-icon" style="background: linear-gradient(135deg, #64748b, #475569); color: white;">🚪</div>
+                                <div class="step-content">
+                                    <div class="step-title" style="color: #64748b;">Ctrl+C</div>
+                                    <div class="step-desc">Claude Codeを終了する</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># 前回の続きから再開</span><br>
+                                <span class="command">claude -r</span><br><br>
+                                <span class="comment"># 起動と同時に指示を渡す</span><br>
+                                <span class="command">claude -c "ログイン機能を追加して"</span><br><br>
+                                <span class="comment"># 組み合わせも可能</span><br>
+                                <span class="command">claude -r -c "さっきの続きで、バリデーションも追加して"</span>
+                            </code>
+                        </div>
+                    </div>
+
+                    <!-- 効果的な使い方のコツ -->
+                    <div class="content-section" data-animate>
+                        <h3>効果的な使い方のコツ</h3>
+
+                        <div class="grid md:grid-cols-2 gap-6 my-6">
+                            <div class="comparison-card success-card ripple">
+                                <div class="icon" style="text-align: center;">🎯</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 18px; font-weight: 800; color: #1d4ed8; margin-bottom: 8px;">具体的に伝える</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        「いい感じにして」より<br>
+                                        「ボタンを青色にして」の方が◎
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comparison-card success-card ripple">
+                                <div class="icon" style="text-align: center;">📂</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 18px; font-weight: 800; color: #1d4ed8; margin-bottom: 8px;">ファイルを指定する</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        @でファイルを指定すると<br>
+                                        的確な修正ができる
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comparison-card success-card ripple">
+                                <div class="icon" style="text-align: center;">🔄</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 18px; font-weight: 800; color: #1d4ed8; margin-bottom: 8px;">小さく進める</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        一度に大きな変更より<br>
+                                        小さな変更を積み重ねる
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comparison-card success-card ripple">
+                                <div class="icon" style="text-align: center;">✅</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 18px; font-weight: 800; color: #1d4ed8; margin-bottom: 8px;">確認してから承認</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        変更内容を必ず確認<br>
+                                        理解してから承認する
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4>⚠️ 注意点</h4>
+                            <ul style="color: #92400e; margin-bottom: 0;">
+                                <li>AIの提案を鵜呑みにしない（必ず確認する）</li>
+                                <li>機密情報を含むファイルに注意する</li>
+                                <li>こまめにgit commitしておく</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section" data-animate>
+                        <h3>まとめ</h3>
+
+                        <div style="background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; padding: 32px; color: white; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -30px; right: -30px; font-size: 120px; opacity: 0.05;">🤖</div>
+
+                            <div style="margin-bottom: 24px;">
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">🎵 バイブコーディングとは</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #93c5fd;">
+                                    AIと対話しながらコードを作り上げる新しい開発スタイル
+                                </p>
+                            </div>
+
+                            <div style="margin-bottom: 24px;">
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">🤖 Claude Codeとは</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #93c5fd;">
+                                    ターミナルで動くAIコーディングアシスタント
+                                </p>
+                            </div>
+
+                            <div>
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">🚀 使い方</p>
+                                <ol style="margin: 0; padding-left: 20px; color: #e2e8f0;">
+                                    <li>claude コマンドで起動</li>
+                                    <li>やりたいことを日本語で伝える</li>
+                                    <li>提案を確認して承認/拒否</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="success-box pulse-glow" style="margin-top: 24px;">
+                            <h4>🎉 さあ、始めよう！</h4>
+                            <p style="margin-bottom: 0; color: #065f46;">
+                                バイブコーディングで開発効率を爆上げしましょう！<br>
+                                まずは簡単なタスクから試してみてください。<br><br>
+                                <strong>「AIと一緒にコードを書く」</strong>新しい体験を楽しんでください！
+                            </p>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 32px;">
+                            <p style="font-size: 28px; margin: 0;">🤖✨</p>
+                            <p style="font-size: 16px; color: #64748b; margin: 8px 0 0 0;">Let's Vibe Coding!</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // キラキラパーティクルを生成
+        function createSparkles() {
+            const container = document.getElementById('sparkles');
+            for (let i = 0; i < 20; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle-particle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.bottom = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 6 + 's';
+                sparkle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                container.appendChild(sparkle);
+            }
+        }
+        createSparkles();
+
+        // プログレスバー
+        window.addEventListener('scroll', function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress-bar').style.width = scrolled + '%';
+        });
+
+        // スクロールトップボタン
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        document.getElementById('scroll-to-top').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // パララックス効果（背景）
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const shapes = document.querySelectorAll('.floating-shape');
+
+            shapes.forEach((shape, index) => {
+                const speed = 0.05 * (index + 1);
+                shape.style.transform = `translateY(${scrolled * speed}px)`;
+            });
+        });
+
+        // セクションのスクロールアニメーション
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+
+                    // 学習ステップのアニメーション
+                    const steps = entry.target.querySelectorAll('.learning-step');
+                    steps.forEach((step, index) => {
+                        setTimeout(() => {
+                            step.classList.add('animate');
+                        }, index * 150);
+                    });
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.content-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // カードホバーエフェクト
+        document.querySelectorAll('.comparison-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const icon = this.querySelector('.icon');
+                if (icon) {
+                    icon.style.animationPlayState = 'running';
+                }
+            });
+        });
+
+        // 初期アニメーション
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in-up').forEach(el => {
+                    el.style.opacity = '1';
+                });
+            }, 100);
+        });
+    </script>
+
+    <!-- サイドバーコンポーネント -->
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>
