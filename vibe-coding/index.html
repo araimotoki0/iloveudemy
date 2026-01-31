@@ -814,7 +814,8 @@
                         </div>
 
                         <h4>3. 提案を確認して承認</h4>
-                        <p>Claudeがコードの変更を提案したら、内容を確認して承認（y）または拒否（n）します。</p>
+                        <p>Claudeがコードの変更を提案したら、内容を確認して選択肢から選びます：<br>
+                        <strong>1</strong>：承認して実行 / <strong>2</strong>：編集してから実行 / <strong>3</strong>：拒否</p>
 
                         <div class="info-box">
                             <h4>💡 ポイント</h4>
@@ -842,18 +843,23 @@
                         <div class="code-block">
                             <code>
                                 <span class="comment"># CLAUDE.md の例</span><br><br>
+                                <span style="color: #f87171; font-weight: bold;">always respond in Japanese</span><br><br>
                                 <span style="color: #fbbf24;"># プロジェクト概要</span><br>
                                 <span style="color: #e2e8f0;">このプロジェクトはLaravelで作られたECサイトです。</span><br><br>
                                 <span style="color: #fbbf24;"># 技術スタック</span><br>
                                 <span style="color: #e2e8f0;">- Laravel 11</span><br>
                                 <span style="color: #e2e8f0;">- PHP 8.3</span><br>
                                 <span style="color: #e2e8f0;">- MySQL 8.0</span><br>
-                                <span style="color: #e2e8f0;">- Tailwind CSS</span><br><br>
-                                <span style="color: #fbbf24;"># コーディングルール</span><br>
-                                <span style="color: #e2e8f0;">- 日本語でコメントを書く</span><br>
-                                <span style="color: #e2e8f0;">- 変数名はキャメルケース</span><br>
-                                <span style="color: #e2e8f0;">- コントローラーは単一責任</span>
+                                <span style="color: #e2e8f0;">- Tailwind CSS</span>
                             </code>
+                        </div>
+
+                        <div class="success-box" style="background: linear-gradient(135deg, #fef2f2, #fecaca); border-left: 5px solid #ef4444;">
+                            <h4>🚨 日本語設定が超重要！</h4>
+                            <p style="margin-bottom: 0; color: #991b1b;">
+                                <strong>always respond in Japanese</strong> を最初に書いておかないと、Claudeは英語で返答してきます。<br>
+                                日本語で作業したい場合は、<strong>これを一番最初に書いてください！</strong>
+                            </p>
                         </div>
 
                         <div class="success-box">
