@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参考文献・エビデンス - Claude Code各機能の設計理由</title>
+    <meta name="description" content="Claude Codeの各機能が「なぜ作られたのか」を公式ドキュメント・エビデンスURLとともに解説">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Noto Sans JP', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } } }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { overflow-x: hidden; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%); background-attachment: fixed; color: #1e293b; min-height: 100vh; }
+
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+        .floating-shape { position: absolute; border-radius: 50%; opacity: 0.08; animation: float 20s infinite ease-in-out; }
+        .floating-shape:nth-child(1) { width: 300px; height: 300px; background: linear-gradient(135deg, #2563eb, #1d4ed8); top: 10%; left: 10%; }
+        .floating-shape:nth-child(2) { width: 200px; height: 200px; background: linear-gradient(135deg, #1d4ed8, #1e40af); top: 60%; right: 10%; animation-delay: -5s; }
+        .floating-shape:nth-child(3) { width: 150px; height: 150px; background: linear-gradient(135deg, #3b82f6, #2563eb); bottom: 20%; left: 20%; animation-delay: -10s; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(30px, -30px); } 50% { transform: translate(-20px, 20px); } 75% { transform: translate(20px, 10px); } }
+
+        .sparkle-particle { position: fixed; width: 4px; height: 4px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; pointer-events: none; z-index: 0; animation: sparkleFloat 6s infinite ease-in-out; }
+        @keyframes sparkleFloat { 0%, 100% { opacity: 0; transform: translateY(0) scale(0); } 50% { opacity: 0.6; transform: translateY(-100px) scale(1); } }
+
+        .main-content { position: relative; z-index: 1; }
+        .glass-card { background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); }
+
+        .content-section { margin-bottom: 48px; opacity: 0; transform: translateY(50px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .content-section.visible { opacity: 1; transform: translateY(0); }
+        .content-section h3 { color: #1d4ed8; margin-bottom: 24px; font-size: 28px; font-weight: 800; padding-bottom: 16px; border-bottom: 3px solid #3b82f6; display: flex; align-items: center; gap: 12px; }
+        .content-section h3::before { content: ''; display: inline-block; width: 8px; height: 32px; background: linear-gradient(180deg, #3b82f6, #2563eb); border-radius: 4px; }
+        .content-section h4 { color: #2563eb; margin: 28px 0 16px; font-size: 20px; font-weight: 700; }
+        .content-section p { margin: 16px 0; line-height: 1.9; color: #475569; font-size: 16px; }
+        .content-section ul { margin: 16px 0; padding-left: 28px; color: #475569; }
+        .content-section li { margin: 10px 0; line-height: 1.7; }
+        .content-section strong { color: #1e293b; font-weight: 700; }
+        .content-section a { color: #2563eb; text-decoration: underline; transition: color 0.2s; }
+        .content-section a:hover { color: #1d4ed8; }
+
+        .progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(59, 130, 246, 0.2); z-index: 1000; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #60a5fa); width: 0%; transition: width 0.1s ease; }
+
+        #scroll-to-top { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4); }
+        #scroll-to-top:hover { transform: scale(1.1); }
+
+        .header-card { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 24px 32px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 10px 40px rgba(29, 78, 216, 0.3); position: relative; overflow: hidden; }
+        .header-card::before { content: '📚'; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 80px; opacity: 0.2; }
+
+        .gradient-text-animate { background: linear-gradient(90deg, #3b82f6, #2563eb, #60a5fa, #3b82f6); background-size: 300% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientText 5s ease infinite; }
+        @keyframes gradientText { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+        .fade-in-up { animation: fadeInUp 0.6s ease forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .stagger-1 { animation-delay: 0.1s; } .stagger-2 { animation-delay: 0.2s; } .stagger-3 { animation-delay: 0.3s; }
+
+        .page-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+        .page-nav a { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .page-nav a:hover { background: #3b82f6; color: white; }
+        .page-nav a.active { background: #3b82f6; color: white; }
+
+        /* 参考文献カード */
+        .ref-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin: 24px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #3b82f6;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .ref-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .ref-card .feature-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1d4ed8;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ref-card .why {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 12px 0;
+        }
+
+        .ref-card .why-title {
+            font-weight: 700;
+            color: #1d4ed8;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .ref-card .why p {
+            margin: 0;
+            color: #1e40af;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .ref-card .how {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 12px 0;
+        }
+
+        .ref-card .how-title {
+            font-weight: 700;
+            color: #059669;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .ref-card .how p {
+            margin: 0;
+            color: #065f46;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .ref-card .links {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .ref-card .links a {
+            display: inline-block;
+            background: #eff6ff;
+            color: #2563eb;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin: 4px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 1px solid #bfdbfe;
+        }
+
+        .ref-card .links a:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        .ref-card .links .official {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .content-section h3 { font-size: 22px; }
+            .ref-card .feature-name { font-size: 18px; }
+        }
+    </style>
+</head>
+
+<body class="font-sans">
+    <div class="bg-animation">
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+    </div>
+    <div id="sparkles"></div>
+    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+    <button id="scroll-to-top" class="fixed bottom-8 right-8 w-14 h-14 text-white rounded-full opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col main-content">
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <h1 class="text-4xl md:text-5xl font-black mb-2 text-center fade-in-up">
+                    <span class="gradient-text-animate">参考文献・エビデンス集</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-center text-gray-600 mb-8 font-medium fade-in-up stagger-1">
+                    各機能の公式ドキュメントと「なぜ作られたのか」
+                </p>
+
+                <div class="page-nav fade-in-up stagger-2">
+                    <a href="index.html">入門</a>
+                    <a href="sessions.html">セッション</a>
+                    <a href="history.html">歴史</a>
+                    <a href="features.html">全機能</a>
+                    <a href="agents.html">エージェント</a>
+                    <a href="skills.html">Skills</a>
+                    <a href="ai-tools.html">AI比較</a>
+                    <a href="references.html" class="active">参考文献</a>
+                    <a href="conclusion.html">結論</a>
+                </div>
+
+                <div class="glass-card rounded-3xl p-8 md:p-12">
+
+                    <div class="header-card fade-in-up stagger-3">
+                        <p class="text-xl font-bold mb-2">全機能の設計理由とエビデンス</p>
+                        <p class="text-white/80 text-sm">各機能が「なぜ必要だったのか」「どう使うと効果的か」を公式ソースとともに解説</p>
+                    </div>
+
+                    <!-- 公式ドキュメント -->
+                    <div class="content-section" data-animate>
+                        <h3>公式ドキュメント一覧</h3>
+
+                        <p>Claude Codeの情報源として最も信頼できるのは、以下の公式リソースです。</p>
+
+                        <div class="ref-card">
+                            <div class="feature-name">📖 主要な公式リソース</div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/overview" target="_blank" class="official">Claude Code 公式ドキュメント</a>
+                                <a href="https://github.com/anthropics/claude-code" target="_blank" class="official">GitHub リポジトリ</a>
+                                <a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md" target="_blank" class="official">CHANGELOG（全バージョン履歴）</a>
+                                <a href="https://github.com/anthropics/claude-code/releases" target="_blank">GitHub Releases</a>
+                                <a href="https://platform.claude.com/docs/en/release-notes/overview" target="_blank">Claude Platform リリースノート</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CLAUDE.md -->
+                    <div class="content-section" data-animate>
+                        <h3>各機能の設計理由</h3>
+
+                        <div class="ref-card">
+                            <div class="feature-name">📝 CLAUDE.md（メモリファイル）</div>
+                            <div class="why">
+                                <div class="why-title">なぜ作られた？</div>
+                                <p>
+                                    毎回セッションを開始するたびに「このプロジェクトはReactで...」「コーディング規約は...」と説明する無駄を排除するため。<strong>プロジェクトの知識をファイルとして永続化</strong>し、セッションを超えてClaudeに学習させる仕組みが必要だった。
+                                </p>
+                            </div>
+                            <div class="how">
+                                <div class="how-title">具体的なメリット</div>
+                                <p>
+                                    グローバル（~/.claude/CLAUDE.md）、プロジェクト（CLAUDE.md）、ディレクトリ（src/CLAUDE.md）の3階層で管理。チーム全員が同じルールで作業でき、新メンバーのオンボーディングも即座に完了。
+                                </p>
+                            </div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/memory" target="_blank" class="official">公式: Memory</a>
+                            </div>
+                        </div>
+
+                        <div class="ref-card">
+                            <div class="feature-name">🎯 Skills（スキル）</div>
+                            <div class="why">
+                                <div class="why-title">なぜ作られた？</div>
+                                <p>
+                                    開発チームは同じ作業パターンを繰り返す（PR作成、デプロイ、コードレビュー等）。これらをMarkdownで定義し、<strong>再利用可能なワークフロー</strong>としてパッケージ化する仕組みが求められた。当初は<code>.claude/commands/</code>として実装されたが、v2.1でSKILL.mdに統合・拡張された。
+                                </p>
+                            </div>
+                            <div class="how">
+                                <div class="how-title">具体的なメリット</div>
+                                <p>
+                                    <code>/deploy</code>一発でデプロイフロー全体を実行、<code>/review-pr</code>でチーム共通のレビュー基準を適用、<code>/fix-issue 123</code>でIssue番号を渡してバグ修正を開始。SDKやAPI不要、Markdownだけで定義可能。
+                                </p>
+                            </div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/slash-commands" target="_blank" class="official">公式: Skills & Commands</a>
+                                <a href="https://code.claude.com/docs/en/skills" target="_blank" class="official">公式: Extend with Skills</a>
+                                <a href="https://agentskills.io" target="_blank">Agent Skills 仕様</a>
+                            </div>
+                        </div>
+
+                        <div class="ref-card">
+                            <div class="feature-name">🪝 Hooks（フック）</div>
+                            <div class="why">
+                                <div class="why-title">なぜ作られた？</div>
+                                <p>
+                                    LLMは確率的であり「必ずフォーマッターを実行する」「必ず.envを除外する」という<strong>100%確実な動作は保証できない</strong>。Hooksは「LLMに頼らず決定論的に実行される」安全装置として設計された。CI/CDのフックやgit hooksと同じ発想。
+                                </p>
+                            </div>
+                            <div class="how">
+                                <div class="how-title">具体的なメリット</div>
+                                <p>
+                                    ファイル編集後に必ずPrettierを実行、.envの編集をブロック、危険なコマンドの検知とブロック、デスクトップ通知、監査ログの記録。prompt型やagent型のフックでは柔軟な判断も可能。
+                                </p>
+                            </div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/hooks-guide" target="_blank" class="official">公式: Hooks Guide</a>
+                                <a href="https://code.claude.com/docs/en/hooks" target="_blank" class="official">公式: Hooks Reference</a>
+                            </div>
+                        </div>
+
+                        <div class="ref-card">
+                            <div class="feature-name">🔌 MCP（Model Context Protocol）</div>
+                            <div class="why">
+                                <div class="why-title">なぜ作られた？</div>
+                                <p>
+                                    LLMが外部ツールと連携するためのインターフェースは各社バラバラだった。MCPは<strong>AIツール接続の標準プロトコル</strong>として設計され、一度サーバーを作れば、Claude Code、ChatGPT、VS Codeなど複数のクライアントで使える。2026年1月にはMCP AppsとしてインタラクティブなUI返却も可能に。
+                                </p>
+                            </div>
+                            <div class="how">
+                                <div class="how-title">具体的なメリット</div>
+                                <p>
+                                    GitHub APIの直接操作、Slackへの通知、データベースクエリ、Jiraチケット管理、Google Drive連携など、外部サービスとの統合を標準化。3,000以上のMCPサーバーが公開済み（2026年1月時点）。
+                                </p>
+                            </div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/mcp" target="_blank" class="official">公式: MCP</a>
+                                <a href="https://modelcontextprotocol.io" target="_blank">MCP公式サイト</a>
+                            </div>
+                        </div>
+
+                        <div class="ref-card">
+                            <div class="feature-name">🤖 サブエージェント & Agent Teams</div>
+                            <div class="why">
+                                <div class="why-title">なぜ作られた？</div>
+                                <p>
+                                    大規模な開発タスクでは、1つのコンテキストウィンドウでは限界がある。また、リサーチと実装を並列で行いたい需要があった。サブエージェントは<strong>コンテキストの分離と並列処理</strong>を実現し、Agent Teamsは<strong>複数エージェントの協調作業</strong>を可能にした。
+                                </p>
+                            </div>
+                            <div class="how">
+                                <div class="how-title">具体的なメリット</div>
+                                <p>
+                                    4つの調査タスクを同時実行して結果を統合、フロントエンドとバックエンドの同時開発、コードベース全体の並列分析。Worktree隔離でファイルコンフリクトを防止。
+                                </p>
+                            </div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/sub-agents" target="_blank" class="official">公式: Sub-agents</a>
+                                <a href="https://claudefa.st/blog/guide/agents/agent-teams" target="_blank">Agent Teams ガイド</a>
+                            </div>
+                        </div>
+
+                        <div class="ref-card">
+                            <div class="feature-name">🔐 権限システム</div>
+                            <div class="why">
+                                <div class="why-title">なぜ作られた？</div>
+                                <p>
+                                    AIが任意のファイルを書き換え、任意のコマンドを実行できるのは危険。しかし毎回「許可しますか？」と聞かれるのも生産性が低い。<strong>信頼できる操作は自動許可、危険な操作はブロック</strong>という粒度の細かい制御が必要だった。
+                                </p>
+                            </div>
+                            <div class="how">
+                                <div class="how-title">具体的なメリット</div>
+                                <p>
+                                    <code>Bash(git *)</code>でgitコマンドのみ自動許可、<code>Bash(rm -rf *)</code>を拒否リストに追加、MCP toolsの個別制御。プロジェクト設定をgitで共有し、チーム全体の安全性を担保。
+                                </p>
+                            </div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/permissions" target="_blank" class="official">公式: Permissions</a>
+                            </div>
+                        </div>
+
+                        <div class="ref-card">
+                            <div class="feature-name">💻 ヘッドレスモード / CI/CD</div>
+                            <div class="why">
+                                <div class="why-title">なぜ作られた？</div>
+                                <p>
+                                    対話型のCLIだけでは自動化パイプラインに組み込めない。PRの自動レビュー、Issue対応、テスト生成などを<strong>CI/CDワークフローの一部として実行</strong>するため、非対話モード（<code>-p</code>）が設計された。
+                                </p>
+                            </div>
+                            <div class="how">
+                                <div class="how-title">具体的なメリット</div>
+                                <p>
+                                    GitHub Actionsで自動PRレビュー、<code>git diff | claude -p</code>でセキュリティスキャン、ログファイルの異常検知をSlackに通知。JSON出力で他ツールとの連携も容易。
+                                </p>
+                            </div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/cli-reference" target="_blank" class="official">公式: CLI Reference</a>
+                                <a href="https://code.claude.com/docs/en/github-actions" target="_blank" class="official">公式: GitHub Actions</a>
+                                <a href="https://code.claude.com/docs/en/gitlab-ci-cd" target="_blank" class="official">公式: GitLab CI/CD</a>
+                            </div>
+                        </div>
+
+                        <div class="ref-card">
+                            <div class="feature-name">📦 Plugins（プラグイン）</div>
+                            <div class="why">
+                                <div class="why-title">なぜ作られた？</div>
+                                <p>
+                                    Skills、Hooks、Agentsなどの設定をプロジェクトごとに手動で設定するのは面倒。<strong>拡張機能をパッケージとして配布</strong>し、インストール一発で使えるようにするため。npmパッケージやVS Code拡張と同じ発想。
+                                </p>
+                            </div>
+                            <div class="how">
+                                <div class="how-title">具体的なメリット</div>
+                                <p>
+                                    <code>claude plugin install</code>一発でスキル、フック、エージェント定義を追加。特定のgit commitにピン留めしてバージョン管理も可能。カスタムnpmレジストリにも対応。
+                                </p>
+                            </div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/plugins" target="_blank" class="official">公式: Plugins</a>
+                                <a href="https://github.com/hesreallyhim/awesome-claude-code" target="_blank">awesome-claude-code（コミュニティ）</a>
+                            </div>
+                        </div>
+
+                        <div class="ref-card">
+                            <div class="feature-name">📱 Remote Control</div>
+                            <div class="why">
+                                <div class="why-title">なぜ作られた？</div>
+                                <p>
+                                    開発者はデスクの前だけで仕事をしていない。長時間のタスクを走らせてカフェに行きたい、電車の中でセッションを確認したい。<strong>ローカルで動くエージェントを任意のデバイスから操作</strong>できるリモートアクセスが求められた。
+                                </p>
+                            </div>
+                            <div class="how">
+                                <div class="how-title">具体的なメリット</div>
+                                <p>
+                                    ローカルPCでClaude Codeを実行しながらスマホからアクセス、Web版で開始したタスクをターミナルに<code>/teleport</code>で引き継ぎ、Desktopアプリでdiffをビジュアルレビュー。
+                                </p>
+                            </div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/remote-control" target="_blank" class="official">公式: Remote Control</a>
+                            </div>
+                        </div>
+
+                        <div class="ref-card">
+                            <div class="feature-name">🔄 セッション管理（-r / -c）</div>
+                            <div class="why">
+                                <div class="why-title">なぜ作られた？</div>
+                                <p>
+                                    コーディングセッションは1回で終わらない。昨日の続き、先週の調査、別ブランチでの作業...。<strong>過去のコンテキストを瞬時に復元</strong>し、無駄な再説明なしに作業を継続する仕組みが不可欠だった。
+                                </p>
+                            </div>
+                            <div class="how">
+                                <div class="how-title">具体的なメリット</div>
+                                <p>
+                                    <code>claude -c</code>で直前セッション即再開、<code>claude -r</code>で過去50件から選択、JSONLファイルに全会話が保存されておりjqやPythonで分析可能。<code>/rename</code>で名前つけ管理。
+                                </p>
+                            </div>
+                            <div class="links">
+                                <a href="https://code.claude.com/docs/en/interactive-mode" target="_blank" class="official">公式: Interactive Mode</a>
+                                <a href="https://kentgigger.com/posts/claude-code-conversation-history" target="_blank">Claude Code's hidden conversation history</a>
+                                <a href="https://github.com/anthropics/claude-code/issues/10063" target="_blank">GitHub Issue: --continue 動作の詳細</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 参考記事・ブログ -->
+                    <div class="content-section" data-animate>
+                        <h3>この記事の作成に使用したソース</h3>
+
+                        <p>各ページの情報は以下のソースから収集・検証しています。</p>
+
+                        <h4>公式ドキュメント</h4>
+                        <ul>
+                            <li><a href="https://code.claude.com/docs/en/overview" target="_blank">Claude Code Overview</a> - 公式機能概要</li>
+                            <li><a href="https://code.claude.com/docs/en/hooks-guide" target="_blank">Hooks Guide</a> - フック完全ガイド</li>
+                            <li><a href="https://code.claude.com/docs/en/slash-commands" target="_blank">Skills & Slash Commands</a> - スキル解説</li>
+                            <li><a href="https://code.claude.com/docs/en/sub-agents" target="_blank">Sub-agents</a> - サブエージェント解説</li>
+                            <li><a href="https://code.claude.com/docs/en/mcp" target="_blank">MCP</a> - Model Context Protocol</li>
+                        </ul>
+
+                        <h4>GitHub</h4>
+                        <ul>
+                            <li><a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md" target="_blank">CHANGELOG.md</a> - 全バージョン履歴（v0.2.21〜v2.1.62）</li>
+                            <li><a href="https://github.com/anthropics/claude-code/releases" target="_blank">Releases</a> - リリースノート</li>
+                            <li><a href="https://github.com/anthropics/claude-code/issues/10063" target="_blank">Issue #10063</a> - --continue の内部動作</li>
+                            <li><a href="https://github.com/anthropics/claude-code/issues/25032" target="_blank">Issue #25032</a> - sessions-index.jsonの仕組み</li>
+                        </ul>
+
+                        <h4>技術ブログ・解説記事</h4>
+                        <ul>
+                            <li><a href="https://alexop.dev/posts/understanding-claude-code-full-stack/" target="_blank">Understanding Claude Code's Full Stack</a> - MCP, Skills, Subagents, Hooks の包括解説</li>
+                            <li><a href="https://okhlopkov.com/claude-code-setup-mcp-hooks-skills-2026/" target="_blank">My Claude Code Setup 2026</a> - MCP, Hooks, Skills の実践的セットアップ</li>
+                            <li><a href="https://claudefa.st/blog/guide/changelog" target="_blank">Claude Code Changelog - Complete Version History</a> - 全バージョン時系列</li>
+                            <li><a href="https://claudefa.st/blog/guide/agents/agent-teams" target="_blank">Agent Teams Complete Guide</a> - Agent Teams 解説</li>
+                            <li><a href="https://kentgigger.com/posts/claude-code-conversation-history" target="_blank">Claude Code's hidden conversation history</a> - セッションファイルの内部構造</li>
+                            <li><a href="https://gist.github.com/gwpl/e0b78a711b4a6b2fc4b594c9b9fa2c4c" target="_blank">--continue after Directory mv</a> - セッション管理の内部メカニクス</li>
+                            <li><a href="https://www.scriptbyai.com/anthropic-claude-timeline/" target="_blank">Anthropic Claude Timeline</a> - Claude 1からOpus 4.6までの年表</li>
+                        </ul>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section" data-animate>
+                        <h3>まとめ</h3>
+                        <div style="background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; padding: 32px; color: white;">
+                            <p style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #93c5fd;">全ての機能には「理由」がある</p>
+                            <p style="margin: 0; color: #e2e8f0; line-height: 1.9;">
+                                Claude Codeの各機能は、実際の開発現場の課題を解決するために設計されています。<br>
+                                公式ドキュメントとGitHubの情報を追うことで、最新の機能と使い方を常に把握できます。<br>
+                                <strong>まずは公式ドキュメントをブックマークしましょう。</strong>
+                            </p>
+                        </div>
+                        <div style="text-align: center; margin-top: 32px;">
+                            <p style="font-size: 28px; margin: 0;">📚🔍✨</p>
+                            <p style="font-size: 16px; color: #64748b; margin: 8px 0 0 0;">Evidence-based learning!</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function createSparkles() { const c = document.getElementById('sparkles'); for (let i = 0; i < 15; i++) { const s = document.createElement('div'); s.className = 'sparkle-particle'; s.style.left = Math.random() * 100 + '%'; s.style.bottom = Math.random() * 100 + '%'; s.style.animationDelay = Math.random() * 6 + 's'; s.style.animationDuration = (Math.random() * 3 + 4) + 's'; c.appendChild(s); } } createSparkles();
+        window.addEventListener('scroll', function () { const w = document.body.scrollTop || document.documentElement.scrollTop; const h = document.documentElement.scrollHeight - document.documentElement.clientHeight; document.getElementById('progress-bar').style.width = (w / h) * 100 + '%'; });
+        window.addEventListener('scroll', function () { const b = document.getElementById('scroll-to-top'); if (window.pageYOffset > 300) { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; } else { b.style.opacity = '0'; b.style.pointerEvents = 'none'; } });
+        document.getElementById('scroll-to-top').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        const observer = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }); }, { threshold: 0.1 });
+        document.querySelectorAll('.content-section').forEach(s => observer.observe(s));
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(() => { document.querySelectorAll('.fade-in-up').forEach(el => { el.style.opacity = '1'; }); }, 100); });
+    </script>
+
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>

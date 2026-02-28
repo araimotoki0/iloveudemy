@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サブエージェントとAgent Teams - Claude Code並列処理ガイド</title>
+    <meta name="description" content="Claude Codeのサブエージェント、Agent Teams、並列処理の仕組みを徹底解説。まさに今この記事もエージェントで作られた！">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Noto Sans JP', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } } }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { overflow-x: hidden; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #e0f2fe 100%); background-attachment: fixed; color: #1e293b; min-height: 100vh; }
+
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+        .floating-shape { position: absolute; border-radius: 50%; opacity: 0.1; animation: float 20s infinite ease-in-out; }
+        .floating-shape:nth-child(1) { width: 300px; height: 300px; background: linear-gradient(135deg, #3b82f6, #06b6d4); top: 10%; left: 10%; }
+        .floating-shape:nth-child(2) { width: 200px; height: 200px; background: linear-gradient(135deg, #2563eb, #3b82f6); top: 60%; right: 10%; animation-delay: -5s; }
+        .floating-shape:nth-child(3) { width: 150px; height: 150px; background: linear-gradient(135deg, #0ea5e9, #06b6d4); bottom: 20%; left: 20%; animation-delay: -10s; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(30px, -30px); } 50% { transform: translate(-20px, 20px); } 75% { transform: translate(20px, 10px); } }
+
+        .flying-icon { position: fixed; font-size: 50px; opacity: 0.12; z-index: 0; animation: fly 25s linear infinite; }
+        .flying-icon:nth-child(4) { top: 15%; animation-duration: 22s; font-size: 40px; }
+        .flying-icon:nth-child(5) { top: 45%; animation-duration: 30s; animation-delay: -8s; font-size: 55px; }
+        .flying-icon:nth-child(6) { top: 75%; animation-duration: 26s; animation-delay: -15s; font-size: 35px; }
+        @keyframes fly { 0% { left: -80px; } 50% { left: calc(100% + 80px); } 50.1% { transform: scaleX(-1); } 100% { left: -80px; } }
+
+        .sparkle-particle { position: fixed; width: 4px; height: 4px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border-radius: 50%; pointer-events: none; z-index: 0; animation: sparkleFloat 6s infinite ease-in-out; }
+        @keyframes sparkleFloat { 0%, 100% { opacity: 0; transform: translateY(0) scale(0); } 50% { opacity: 0.8; transform: translateY(-100px) scale(1); } }
+
+        .main-content { position: relative; z-index: 1; }
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); }
+
+        .content-section { margin-bottom: 48px; opacity: 0; transform: translateY(50px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .content-section.visible { opacity: 1; transform: translateY(0); }
+        .content-section h3 { color: #1d4ed8; margin-bottom: 24px; font-size: 28px; font-weight: 800; padding-bottom: 16px; border-bottom: 3px solid #3b82f6; display: flex; align-items: center; gap: 12px; }
+        .content-section h3::before { content: ''; display: inline-block; width: 8px; height: 32px; background: linear-gradient(180deg, #3b82f6, #06b6d4); border-radius: 4px; }
+        .content-section h4 { color: #2563eb; margin: 28px 0 16px; font-size: 20px; font-weight: 700; }
+        .content-section p { margin: 16px 0; line-height: 1.9; color: #475569; font-size: 16px; }
+        .content-section ul { margin: 16px 0; padding-left: 28px; color: #475569; }
+        .content-section li { margin: 10px 0; line-height: 1.7; }
+        .content-section strong { color: #1e293b; font-weight: 700; }
+
+        .info-box { background: linear-gradient(135deg, #dbeafe, #e0f2fe); border-left: 5px solid #3b82f6; padding: 20px 24px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15); }
+        .info-box h4 { color: #1d4ed8 !important; margin-top: 0 !important; }
+        .warning-box { background: linear-gradient(135deg, #fef3c7, #fef9c3); border-left: 5px solid #f59e0b; padding: 20px 24px; border-radius: 12px; margin: 20px 0; }
+        .warning-box h4 { color: #b45309 !important; margin-top: 0 !important; }
+        .blue-box { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-left: 5px solid #3b82f6; padding: 20px 24px; border-radius: 12px; margin: 20px 0; }
+        .blue-box h4 { color: #1d4ed8 !important; margin-top: 0 !important; }
+        .highlight-box { background: linear-gradient(135deg, #fef2f2, #fecaca); border-left: 5px solid #ef4444; padding: 20px 24px; border-radius: 12px; margin: 20px 0; }
+        .highlight-box h4 { color: #991b1b !important; margin-top: 0 !important; }
+
+        .code-block { background: linear-gradient(135deg, #1e293b, #334155); border-radius: 12px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); }
+        .code-block code { color: #e2e8f0; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.8; }
+        .code-block .comment { color: #64748b; }
+        .code-block .command { color: #4ade80; }
+        .code-block .key { color: #fbbf24; }
+        .code-block .string { color: #34d399; }
+
+        .styled-table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        .styled-table thead { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .styled-table thead th { padding: 14px 20px; text-align: left; color: white; font-weight: 700; font-size: 14px; }
+        .styled-table tbody td { padding: 12px 20px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #475569; }
+        .styled-table tbody tr:nth-child(even) { background: rgba(59, 130, 246, 0.05); }
+        .styled-table code { background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #2563eb; }
+
+        .progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(59, 130, 246, 0.2); z-index: 1000; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4, #0ea5e9); width: 0%; transition: width 0.1s ease; }
+
+        #scroll-to-top { background: linear-gradient(135deg, #3b82f6, #06b6d4); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4); }
+        #scroll-to-top:hover { transform: scale(1.1); }
+
+        .header-card { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 24px 32px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 10px 40px rgba(29, 78, 216, 0.3); position: relative; overflow: hidden; }
+        .header-card::before { content: '🤖'; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 80px; opacity: 0.2; }
+
+        .gradient-text-animate { background: linear-gradient(90deg, #3b82f6, #06b6d4, #0ea5e9, #3b82f6); background-size: 300% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientText 5s ease infinite; }
+        @keyframes gradientText { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+        .fade-in-up { animation: fadeInUp 0.6s ease forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .stagger-1 { animation-delay: 0.1s; } .stagger-2 { animation-delay: 0.2s; } .stagger-3 { animation-delay: 0.3s; }
+
+        .page-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+        .page-nav a { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .page-nav a:hover { background: #3b82f6; color: white; }
+        .page-nav a.active { background: #3b82f6; color: white; }
+
+        /* エージェント図 */
+        .agent-diagram { background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; padding: 32px; margin: 24px 0; color: white; text-align: center; }
+        .agent-node { display: inline-block; background: linear-gradient(135deg, #3b82f6, #06b6d4); border-radius: 12px; padding: 12px 20px; margin: 8px; font-weight: 700; font-size: 14px; }
+        .agent-node.main { background: linear-gradient(135deg, #f59e0b, #d97706); font-size: 16px; }
+        .agent-node.sub { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .agent-arrow { color: #64748b; font-size: 20px; margin: 0 4px; }
+
+        @media (max-width: 768px) {
+            .content-section h3 { font-size: 22px; }
+            .header-card::before { font-size: 50px; right: 10px; }
+            .code-block code { font-size: 12px; }
+        }
+    </style>
+</head>
+
+<body class="font-sans">
+    <div class="bg-animation">
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="flying-icon">🤖</div>
+        <div class="flying-icon">🔄</div>
+        <div class="flying-icon">⚡</div>
+    </div>
+    <div id="sparkles"></div>
+    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+    <button id="scroll-to-top" class="fixed bottom-8 right-8 w-14 h-14 text-white rounded-full opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col main-content">
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <h1 class="text-4xl md:text-5xl font-black mb-2 text-center fade-in-up">
+                    <span class="gradient-text-animate">サブエージェントとAgent Teams</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-center text-gray-600 mb-8 font-medium fade-in-up stagger-1">
+                    AIが分身して並列に作業する仕組み
+                </p>
+
+                <div class="page-nav fade-in-up stagger-2">
+                    <a href="index.html">入門</a>
+                    <a href="sessions.html">セッション</a>
+                    <a href="history.html">歴史</a>
+                    <a href="features.html">全機能</a>
+                    <a href="agents.html" class="active">エージェント</a>
+                    <a href="skills.html">Skills</a>
+                    <a href="ai-tools.html">AI比較</a>
+                    <a href="references.html">参考文献</a>
+                    <a href="conclusion.html">結論</a>
+                </div>
+
+                <div class="glass-card rounded-3xl p-8 md:p-12">
+
+                    <div class="header-card fade-in-up stagger-3">
+                        <p class="text-xl font-bold mb-2">並列処理で開発速度を爆上げ</p>
+                        <p class="text-white/80 text-sm">この記事自体が、複数のサブエージェントを並列実行して作られました！</p>
+                    </div>
+
+                    <!-- この記事の裏側 -->
+                    <div class="content-section" data-animate>
+                        <h3>この記事はこうして作られた</h3>
+
+                        <div class="highlight-box">
+                            <h4>🔥 リアルタイム実例！</h4>
+                            <p style="margin-bottom: 0; color: #991b1b;">
+                                このサイトの複数ページは、<strong>まさにサブエージェントの並列実行</strong>で作成されました。<br>
+                                以下の4つのリサーチエージェントが<strong>同時に</strong>調査を行いました：
+                            </p>
+                        </div>
+
+                        <div class="agent-diagram">
+                            <div style="margin-bottom: 16px;">
+                                <div class="agent-node main">メインエージェント（指揮官）</div>
+                            </div>
+                            <div style="margin-bottom: 8px; color: #64748b;">↓ 4つの調査を同時に指示 ↓</div>
+                            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
+                                <div class="agent-node sub">セッション管理<br>調査エージェント</div>
+                                <div class="agent-node sub">Claude Code歴史<br>調査エージェント</div>
+                                <div class="agent-node sub">全機能リサーチ<br>エージェント</div>
+                                <div class="agent-node" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">サイト構造<br>調査エージェント</div>
+                            </div>
+                            <div style="margin-top: 16px; color: #64748b;">↓ 結果を統合 ↓</div>
+                            <div style="margin-top: 8px;">
+                                <div class="agent-node main">メインエージェントが6ページを作成</div>
+                            </div>
+                        </div>
+
+                        <p>
+                            メインエージェント（私）が4つのサブエージェントを<strong>バックグラウンドで並列起動</strong>し、それぞれが独立してWebで調査を実行。結果が返ってきた順に統合して、このページを含む複数ファイルを作成しました。
+                        </p>
+                    </div>
+
+                    <!-- サブエージェントとは -->
+                    <div class="content-section" data-animate>
+                        <h3>サブエージェントとは？</h3>
+
+                        <p>Claude Codeの<strong>Task tool</strong>を使うと、メインのエージェントが独立した子エージェント（サブエージェント）を起動できます。</p>
+
+                        <div class="info-box">
+                            <h4>💡 サブエージェントの特徴</h4>
+                            <ul style="color: #1d4ed8; margin-bottom: 0;">
+                                <li><strong>独立したコンテキスト</strong>：メインと別のコンテキストウィンドウを持つ</li>
+                                <li><strong>並列実行可能</strong>：複数のサブエージェントを同時に走らせられる</li>
+                                <li><strong>バックグラウンド実行</strong>：裏で作業しながらメインは別の作業を続行</li>
+                                <li><strong>結果の統合</strong>：完了時にメインエージェントに結果を返す</li>
+                            </ul>
+                        </div>
+
+                        <h4>組み込みエージェントタイプ</h4>
+                        <table class="styled-table">
+                            <thead><tr><th>タイプ</th><th>用途</th><th>利用可能ツール</th></tr></thead>
+                            <tbody>
+                                <tr><td><code>general-purpose</code></td><td>汎用的なタスク実行</td><td>全ツール</td></tr>
+                                <tr><td><code>Explore</code></td><td>コードベース探索・リサーチ</td><td>読み取り系のみ（編集不可）</td></tr>
+                                <tr><td><code>Plan</code></td><td>設計・計画の立案</td><td>読み取り系のみ（編集不可）</td></tr>
+                            </tbody>
+                        </table>
+
+                        <h4>カスタムエージェントの定義</h4>
+                        <p><code>.claude/agents/</code>にMarkdownファイルを置くことで、独自のエージェントを定義できます。</p>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># .claude/agents/security-reviewer.md</span><br>
+                                <span class="key">---</span><br>
+                                <span class="key">name</span>: <span class="string">security-reviewer</span><br>
+                                <span class="key">description</span>: <span class="string">セキュリティの観点からコードをレビューする</span><br>
+                                <span class="key">allowed-tools</span>: <span class="string">Read, Grep, Glob</span><br>
+                                <span class="key">model</span>: <span class="string">opus</span><br>
+                                <span class="key">---</span><br><br>
+                                <span style="color: #e2e8f0;">あなたはセキュリティの専門家です。</span><br>
+                                <span style="color: #e2e8f0;">以下の観点でコードをレビューしてください：</span><br>
+                                <span style="color: #e2e8f0;">- SQLインジェクション</span><br>
+                                <span style="color: #e2e8f0;">- XSS（クロスサイトスクリプティング）</span><br>
+                                <span style="color: #e2e8f0;">- 認証・認可の問題</span><br>
+                                <span style="color: #e2e8f0;">- 機密情報の漏洩</span>
+                            </code>
+                        </div>
+                    </div>
+
+                    <!-- サブエージェント vs Agent Teams -->
+                    <div class="content-section" data-animate>
+                        <h3>サブエージェント vs Agent Teams</h3>
+
+                        <p>Claude Codeには2つのマルチエージェントシステムがあります。</p>
+
+                        <table class="styled-table">
+                            <thead><tr><th>特徴</th><th>サブエージェント（Task tool）</th><th>Agent Teams</th></tr></thead>
+                            <tbody>
+                                <tr><td><strong>構造</strong></td><td>メイン → サブ（1対多）</td><td>リード + チームメイト（協調）</td></tr>
+                                <tr><td><strong>通信</strong></td><td>結果をメインに返すだけ</td><td>メンバー間で直接通信可能</td></tr>
+                                <tr><td><strong>適用場面</strong></td><td>調査、分析など独立タスク</td><td>共同開発、複雑な協調作業</td></tr>
+                                <tr><td><strong>コンテキスト</strong></td><td>各サブは独立、共有なし</td><td>発見を共有、協調可能</td></tr>
+                                <tr><td><strong>ワークツリー</strong></td><td>isolation: "worktree" で隔離可</td><td>チームメイトごとに隔離</td></tr>
+                                <tr><td><strong>安定性</strong></td><td>安定版</td><td>リサーチプレビュー</td></tr>
+                            </tbody>
+                        </table>
+
+                        <h4>Agent Teams の仕組み</h4>
+
+                        <div class="agent-diagram">
+                            <div style="margin-bottom: 16px;">
+                                <div class="agent-node main">チームリード（Team Lead）</div>
+                            </div>
+                            <div style="color: #64748b; margin: 8px 0;">タスク割り当て ↙ ↓ ↘ レビュー&フィードバック</div>
+                            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;">
+                                <div class="agent-node sub">
+                                    チームメイトA<br>
+                                    <span style="font-size: 12px; opacity: 0.8;">フロントエンド担当</span>
+                                </div>
+                                <div class="agent-node sub">
+                                    チームメイトB<br>
+                                    <span style="font-size: 12px; opacity: 0.8;">バックエンド担当</span>
+                                </div>
+                                <div class="agent-node sub">
+                                    チームメイトC<br>
+                                    <span style="font-size: 12px; opacity: 0.8;">テスト担当</span>
+                                </div>
+                            </div>
+                            <div style="color: #64748b; margin-top: 12px; font-size: 14px;">
+                                ← メンバー間で発見を共有 →<br>
+                                ← 互いにチャレンジ&レビュー →
+                            </div>
+                        </div>
+
+                        <div class="blue-box">
+                            <h4>💡 使い分けのコツ</h4>
+                            <ul style="color: #1d4ed8; margin-bottom: 0;">
+                                <li><strong>サブエージェント</strong>：「調べてきて」「このファイルを分析して」→ 結果を報告して終わり</li>
+                                <li><strong>Agent Teams</strong>：「フロントとバックを同時に開発して」→ 互いに調整しながら進める</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 実践的な使い方 -->
+                    <div class="content-section" data-animate>
+                        <h3>実践的な使い方</h3>
+
+                        <h4>1. 並列リサーチ</h4>
+                        <p>複数の調査を同時に走らせて、結果を統合する。</p>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># Claude Codeに指示する例</span><br>
+                                <span style="color: #fbbf24;">「以下の3つを並行して調べて：</span><br>
+                                <span style="color: #fbbf24;">1. 認証ライブラリの比較</span><br>
+                                <span style="color: #fbbf24;">2. 既存コードの認証部分の分析</span><br>
+                                <span style="color: #fbbf24;">3. テストカバレッジの現状確認」</span>
+                            </code>
+                        </div>
+
+                        <h4>2. バックグラウンド実行</h4>
+                        <p>長い処理を裏で実行しながら、別の作業を続行。</p>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># エージェントはバックグラウンドで動作</span><br>
+                                <span class="comment"># メインは別の質問に答えたり、別の作業が可能</span><br>
+                                <span class="comment"># 完了すると自動的に通知される</span><br><br>
+                                <span style="color: #fbbf24;">「テストスイートを全部実行して結果をまとめて（バックグラウンドで）」</span>
+                            </code>
+                        </div>
+
+                        <h4>3. Worktree隔離</h4>
+                        <p>エージェントごとに隔離されたgit worktreeで作業させる。</p>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># サブエージェントの定義で isolation: "worktree" を指定</span><br>
+                                <span class="comment"># 各エージェントが別々のブランチで安全に作業</span><br>
+                                <span class="comment"># マージコンフリクトのリスクなし</span>
+                            </code>
+                        </div>
+
+                        <h4>4. Planモードでの活用</h4>
+                        <p>エージェントに計画を立てさせてからレビュー。</p>
+                        <div class="code-block">
+                            <code>
+                                <span style="color: #fbbf24;">「この機能の実装計画を立てて」</span><br>
+                                <span class="comment"># → Planエージェントが計画を策定</span><br>
+                                <span class="comment"># → 計画を確認してから実装に進む</span><br>
+                                <span class="comment"># → Shift+Tab でプランモード切り替え</span>
+                            </code>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4>⚠️ 並列実行の注意点</h4>
+                            <ul style="color: #92400e; margin-bottom: 0;">
+                                <li>サブエージェントは独立したコンテキストで動くため、メインの会話を知らない</li>
+                                <li>同じファイルを複数エージェントが同時に編集するとコンフリクトの可能性</li>
+                                <li>トークン消費量は各エージェントごとにカウントされる</li>
+                                <li>Agent Teamsはリサーチプレビュー段階であり、安定性に注意</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section" data-animate>
+                        <h3>まとめ</h3>
+                        <div style="background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; padding: 32px; color: white;">
+                            <div style="margin-bottom: 24px;">
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">🤖 サブエージェント</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #93c5fd;">独立した子エージェントを並列起動。調査・分析に最適。</p>
+                            </div>
+                            <div style="margin-bottom: 24px;">
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">👥 Agent Teams</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #93c5fd;">チームで協調作業。互いに通信・レビュー可能。</p>
+                            </div>
+                            <div>
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">⚡ 並列処理</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #93c5fd;">バックグラウンド実行+Worktree隔離で安全に高速化。</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-top: 32px;">
+                            <p style="font-size: 28px; margin: 0;">🤖👥⚡</p>
+                            <p style="font-size: 16px; color: #64748b; margin: 8px 0 0 0;">Many agents, one mission!</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function createSparkles() { const c = document.getElementById('sparkles'); for (let i = 0; i < 20; i++) { const s = document.createElement('div'); s.className = 'sparkle-particle'; s.style.left = Math.random() * 100 + '%'; s.style.bottom = Math.random() * 100 + '%'; s.style.animationDelay = Math.random() * 6 + 's'; s.style.animationDuration = (Math.random() * 3 + 4) + 's'; c.appendChild(s); } } createSparkles();
+        window.addEventListener('scroll', function () { const w = document.body.scrollTop || document.documentElement.scrollTop; const h = document.documentElement.scrollHeight - document.documentElement.clientHeight; document.getElementById('progress-bar').style.width = (w / h) * 100 + '%'; });
+        window.addEventListener('scroll', function () { const b = document.getElementById('scroll-to-top'); if (window.pageYOffset > 300) { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; } else { b.style.opacity = '0'; b.style.pointerEvents = 'none'; } });
+        document.getElementById('scroll-to-top').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        const observer = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }); }, { threshold: 0.1 });
+        document.querySelectorAll('.content-section').forEach(s => observer.observe(s));
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(() => { document.querySelectorAll('.fade-in-up').forEach(el => { el.style.opacity = '1'; }); }, 100); });
+    </script>
+
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>

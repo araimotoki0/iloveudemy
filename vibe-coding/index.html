@@ -582,6 +582,12 @@
         .stagger-3 { animation-delay: 0.3s; }
         .stagger-4 { animation-delay: 0.4s; }
 
+        /* ページナビ */
+        .page-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+        .page-nav a { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .page-nav a:hover { background: #3b82f6; color: white; }
+        .page-nav a.active { background: #3b82f6; color: white; }
+
         /* レスポンシブ */
         @media (max-width: 768px) {
             .content-section h3 {
@@ -654,6 +660,19 @@
                 <p class="text-xl md:text-2xl text-center text-gray-600 mb-8 font-medium fade-in-up stagger-1">
                     Claude Codeを使ったAI駆動開発を学ぶ
                 </p>
+
+                <!-- ページナビ -->
+                <div class="page-nav fade-in-up stagger-2">
+                    <a href="index.html" class="active">入門</a>
+                    <a href="sessions.html">セッション</a>
+                    <a href="history.html">歴史</a>
+                    <a href="features.html">全機能</a>
+                    <a href="agents.html">エージェント</a>
+                    <a href="skills.html">Skills</a>
+                    <a href="ai-tools.html">AI比較</a>
+                    <a href="references.html">参考文献</a>
+                    <a href="conclusion.html">結論</a>
+                </div>
 
                 <!-- コンテンツ -->
                 <div class="glass-card rounded-3xl p-8 md:p-12">

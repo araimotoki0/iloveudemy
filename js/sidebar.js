@@ -118,7 +118,7 @@ function initSidebar() {
                     </svg>
                     <div class="flex flex-col">
                         <span>バイブコーディング入門</span>
-                        <span class="text-xs text-gray-400 mt-0.5">2026年1月31日</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2026年2月28日</span>
                     </div>
                 </a>
             </nav>

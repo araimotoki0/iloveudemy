@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIエージェント難易度マップ - ツール比較ガイド</title>
+    <meta name="description" content="GitHub Copilot, Cursor, ChatGPT, Manus, Devin, Claude Code, OpenClawを難易度順に比較。それぞれの特徴・使い方・選び方を解説">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { overflow-x: hidden; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #e0f2fe 100%); background-attachment: fixed; color: #1e293b; min-height: 100vh; }
+
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+        .floating-shape { position: absolute; border-radius: 50%; opacity: 0.1; animation: float 20s infinite ease-in-out; }
+        .floating-shape:nth-child(1) { width: 300px; height: 300px; background: linear-gradient(135deg, #3b82f6, #06b6d4); top: 10%; left: 10%; }
+        .floating-shape:nth-child(2) { width: 200px; height: 200px; background: linear-gradient(135deg, #2563eb, #3b82f6); top: 60%; right: 10%; animation-delay: -5s; }
+        .floating-shape:nth-child(3) { width: 150px; height: 150px; background: linear-gradient(135deg, #0ea5e9, #06b6d4); bottom: 20%; left: 20%; animation-delay: -10s; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(30px, -30px) rotate(5deg); } 50% { transform: translate(-20px, 20px) rotate(-5deg); } 75% { transform: translate(20px, 10px) rotate(3deg); } }
+
+        .flying-icon { position: fixed; font-size: 50px; opacity: 0.12; z-index: 0; animation: fly 25s linear infinite; }
+        .flying-icon:nth-child(4) { top: 15%; animation-duration: 22s; font-size: 40px; }
+        .flying-icon:nth-child(5) { top: 45%; animation-duration: 30s; animation-delay: -8s; font-size: 55px; }
+        .flying-icon:nth-child(6) { top: 75%; animation-duration: 26s; animation-delay: -15s; font-size: 35px; }
+        @keyframes fly { 0% { left: -80px; transform: translateY(0) scaleX(1) rotate(-5deg); } 25% { transform: translateY(-40px) scaleX(1) rotate(5deg); } 50% { left: calc(100% + 80px); transform: translateY(0) scaleX(1) rotate(-5deg); } 50.1% { transform: scaleX(-1) rotate(5deg); } 75% { transform: translateY(40px) scaleX(-1) rotate(-5deg); } 100% { left: -80px; transform: translateY(0) scaleX(-1) rotate(5deg); } }
+
+        .sparkle-particle { position: fixed; width: 4px; height: 4px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border-radius: 50%; pointer-events: none; z-index: 0; animation: sparkleFloat 6s infinite ease-in-out; }
+        @keyframes sparkleFloat { 0%, 100% { opacity: 0; transform: translateY(0) scale(0); } 50% { opacity: 0.8; transform: translateY(-100px) scale(1); } }
+
+        .main-content { position: relative; z-index: 1; }
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); }
+
+        .content-section { margin-bottom: 48px; opacity: 0; transform: translateY(50px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .content-section.visible { opacity: 1; transform: translateY(0); }
+        .content-section h3 { color: #1d4ed8; margin-bottom: 24px; font-size: 28px; font-weight: 800; padding-bottom: 16px; border-bottom: 3px solid #3b82f6; display: flex; align-items: center; gap: 12px; }
+        .content-section h3::before { content: ''; display: inline-block; width: 8px; height: 32px; background: linear-gradient(180deg, #3b82f6, #06b6d4); border-radius: 4px; }
+        .content-section h4 { color: #2563eb; margin: 28px 0 16px; font-size: 20px; font-weight: 700; }
+        .content-section p { margin: 16px 0; line-height: 1.9; color: #475569; font-size: 16px; }
+        .content-section ul, .content-section ol { margin: 16px 0; padding-left: 28px; color: #475569; }
+        .content-section li { margin: 10px 0; line-height: 1.7; }
+        .content-section strong { color: #1e293b; font-weight: 700; }
+
+        .info-box { background: linear-gradient(135deg, #dbeafe, #e0f2fe); border-left: 5px solid #3b82f6; padding: 20px 24px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15); }
+        .info-box h4 { color: #1d4ed8 !important; margin-top: 0 !important; }
+        .warning-box { background: linear-gradient(135deg, #fef3c7, #fef9c3); border-left: 5px solid #f59e0b; padding: 20px 24px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15); }
+        .warning-box h4 { color: #b45309 !important; margin-top: 0 !important; }
+        .success-box { background: linear-gradient(135deg, #d1fae5, #ccfbf1); border-left: 5px solid #10b981; padding: 20px 24px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15); }
+        .success-box h4 { color: #059669 !important; margin-top: 0 !important; }
+
+        .progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(59, 130, 246, 0.2); z-index: 1000; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4, #0ea5e9); background-size: 200% 100%; width: 0%; transition: width 0.1s ease; animation: gradientMove 3s ease infinite; }
+        @keyframes gradientMove { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+        #scroll-to-top { background: linear-gradient(135deg, #3b82f6, #06b6d4); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4); }
+        #scroll-to-top:hover { transform: scale(1.1); }
+
+        .header-card { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 24px 32px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 10px 40px rgba(29, 78, 216, 0.3); position: relative; overflow: hidden; }
+        .header-card::before { content: '🗺️'; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 80px; opacity: 0.2; animation: robotFloat 3s ease-in-out infinite; }
+        @keyframes robotFloat { 0%, 100% { transform: translateY(-50%) rotate(0deg); } 50% { transform: translateY(-60%) rotate(5deg); } }
+
+        .gradient-text-animate { background: linear-gradient(90deg, #3b82f6, #06b6d4, #0ea5e9, #3b82f6); background-size: 300% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientText 5s ease infinite; }
+        @keyframes gradientText { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+        .fade-in-up { animation: fadeInUp 0.6s ease forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .stagger-1 { animation-delay: 0.1s; } .stagger-2 { animation-delay: 0.2s; } .stagger-3 { animation-delay: 0.3s; }
+
+        .page-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+        .page-nav a { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .page-nav a:hover { background: #3b82f6; color: white; }
+        .page-nav a.active { background: #3b82f6; color: white; }
+
+        /* ツールカード */
+        .tool-card {
+            background: white;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .tool-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        /* タイムライン */
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2.5px solid white;
+            z-index: 2;
+            flex-shrink: 0;
+        }
+
+        .tool-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 1px 7px;
+            border-radius: 99px;
+        }
+
+        .tool-scope {
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 6px;
+            padding: 5px 10px;
+            margin-bottom: 8px;
+        }
+
+        .tool-attrs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3px 12px;
+            font-size: 11px;
+            color: #4b5563;
+        }
+
+        .tool-usage {
+            margin-top: 8px;
+            background: #f9fafb;
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-size: 11px;
+            color: #374151;
+            line-height: 1.5;
+        }
+
+        .guide-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 12px;
+            color: #4b5563;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 768px) {
+            .content-section h3 { font-size: 22px; }
+            .header-card::before { font-size: 50px; right: 10px; }
+            .tool-attrs { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body class="font-sans">
+    <div class="bg-animation">
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="flying-icon">🗺️</div>
+        <div class="flying-icon">🤖</div>
+        <div class="flying-icon">⚡</div>
+    </div>
+    <div id="sparkles"></div>
+
+    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+
+    <button id="scroll-to-top" class="fixed bottom-8 right-8 w-14 h-14 text-white rounded-full opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col main-content">
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <h1 class="text-4xl md:text-5xl font-black mb-2 text-center fade-in-up">
+                    <span class="gradient-text-animate">AIエージェント難易度マップ</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-center text-gray-600 mb-8 font-medium fade-in-up stagger-1">
+                    上が易しい &rarr; 下にいくほど難しいがAIの自由度も高い
+                </p>
+
+                <!-- ページナビ -->
+                <div class="page-nav fade-in-up stagger-2">
+                    <a href="index.html">入門</a>
+                    <a href="sessions.html">セッション</a>
+                    <a href="history.html">歴史</a>
+                    <a href="features.html">全機能</a>
+                    <a href="agents.html">エージェント</a>
+                    <a href="skills.html">Skills</a>
+                    <a href="ai-tools.html" class="active">AI比較</a>
+                    <a href="references.html">参考文献</a>
+                    <a href="conclusion.html">結論</a>
+                </div>
+
+                <div class="glass-card rounded-3xl p-8 md:p-12">
+
+                    <!-- ヘッダーカード -->
+                    <div class="header-card fade-in-up stagger-3">
+                        <p class="text-xl font-bold mb-2">AIエージェント難易度マップ</p>
+                        <p class="text-white/80 text-sm mb-3">
+                            GitHub Copilot から OpenClaw まで、主要AIツールを難易度順に比較
+                        </p>
+                        <p class="text-lg font-bold text-yellow-300">
+                            自分に合ったツールを見つけよう！
+                        </p>
+                    </div>
+
+                    <!-- 難易度マップ -->
+                    <div class="content-section" data-animate>
+                        <h3>難易度マップ</h3>
+
+                        <p style="font-size: 14px; color: #9ca3af; margin-bottom: 24px;">
+                            上が易しく、下にいくほど難しいがAIの自由度も高くなります。
+                        </p>
+
+                        <!-- ツール一覧 - タイムライン形式 -->
+                        <div style="display: flex; flex-direction: column; gap: 0;">
+
+                            <!-- 1. GitHub Copilot -->
+                            <div style="display: flex; gap: 0;">
+                                <div style="width: 52px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+                                    <div style="font-size: 9px; color: #22c55e; margin-bottom: 4px; font-weight: 600;">EASY</div>
+                                    <div class="timeline-dot" style="background: #22c55e; box-shadow: 0 0 0 2px #22c55e;"></div>
+                                    <div style="width: 2px; flex: 1; background: linear-gradient(to bottom, #22c55e, #22c55e);"></div>
+                                </div>
+                                <div class="tool-card" style="flex: 1; border-left: 3px solid #22c55e; margin-left: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <span style="font-size: 22px;">🐙</span>
+                                        <div style="flex: 1;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 14px; font-weight: 700;">GitHub Copilot</span>
+                                                <span class="tool-badge" style="color: #22c55e; background: #f0fdf4;">初級</span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #9ca3af; margin-top: 1px;">勝手に続きを書いてくれる</div>
+                                        </div>
+                                    </div>
+                                    <div class="tool-scope" style="color: #22c55e; background: #f0fdf4;">
+                                        コード補完特化 &rarr; 出力が最も予測しやすい、でも狭い
+                                    </div>
+                                    <div class="tool-attrs">
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">動く場所</span> IDE内（VS Code等）</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">誰向け</span> エンジニア</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">自律度</span> AIが次の行を予測・補完</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">リスク</span> ほぼなし</div>
+                                    </div>
+                                    <div class="tool-usage">
+                                        <span style="font-weight: 600; color: #6b7280;">💡 使い方：</span>コードを書いていると次の行を自動補完。Tabキーで採用するだけ。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. Cursor -->
+                            <div style="display: flex; gap: 0;">
+                                <div style="width: 52px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+                                    <div class="timeline-dot" style="background: #22c55e; box-shadow: 0 0 0 2px #22c55e;"></div>
+                                    <div style="width: 2px; flex: 1; background: linear-gradient(to bottom, #22c55e, #22c55e);"></div>
+                                </div>
+                                <div class="tool-card" style="flex: 1; border-left: 3px solid #22c55e; margin-left: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <span style="font-size: 22px;">⌨️</span>
+                                        <div style="flex: 1;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 14px; font-weight: 700;">Cursor</span>
+                                                <span class="tool-badge" style="color: #22c55e; background: #f0fdf4;">初級</span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #9ca3af; margin-top: 1px;">チャットしながらコードを直す</div>
+                                        </div>
+                                    </div>
+                                    <div class="tool-scope" style="color: #22c55e; background: #f0fdf4;">
+                                        コーディング特化 &rarr; 出力が予測しやすい、でも狭い
+                                    </div>
+                                    <div class="tool-attrs">
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">動く場所</span> IDE内（ローカル）</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">誰向け</span> エンジニア</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">自律度</span> 人間が主導、AIがチャットで補助</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">リスク</span> 低い</div>
+                                    </div>
+                                    <div class="tool-usage">
+                                        <span style="font-weight: 600; color: #6b7280;">💡 使い方：</span>サイドチャットで「この関数リファクタして」等を依頼。差分を確認して承認。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. ChatGPT / Claude.ai -->
+                            <div style="display: flex; gap: 0;">
+                                <div style="width: 52px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+                                    <div class="timeline-dot" style="background: #22c55e; box-shadow: 0 0 0 2px #22c55e;"></div>
+                                    <div style="width: 2px; flex: 1; background: linear-gradient(to bottom, #22c55e, #3b82f6);"></div>
+                                </div>
+                                <div class="tool-card" style="flex: 1; border-left: 3px solid #22c55e; margin-left: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <span style="font-size: 22px;">💬</span>
+                                        <div style="flex: 1;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 14px; font-weight: 700;">ChatGPT / Claude.ai</span>
+                                                <span class="tool-badge" style="color: #22c55e; background: #f0fdf4;">初級</span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #9ca3af; margin-top: 1px;">なんでも聞ける賢い相談相手</div>
+                                        </div>
+                                    </div>
+                                    <div class="tool-scope" style="color: #22c55e; background: #f0fdf4;">
+                                        汎用チャット &rarr; 出力が予測しやすい、幅広いが手動
+                                    </div>
+                                    <div class="tool-attrs">
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">動く場所</span> ブラウザ / アプリ</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">誰向け</span> 誰でも</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">自律度</span> 質問→回答の一問一答</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">リスク</span> ほぼなし</div>
+                                    </div>
+                                    <div class="tool-usage">
+                                        <span style="font-weight: 600; color: #6b7280;">💡 使い方：</span>ブラウザで質問・文章作成・翻訳・壁打ち。ファイルを添付して分析も。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4. Manus -->
+                            <div style="display: flex; gap: 0;">
+                                <div style="width: 52px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+                                    <div class="timeline-dot" style="background: #3b82f6; box-shadow: 0 0 0 2px #3b82f6;"></div>
+                                    <div style="width: 2px; flex: 1; background: linear-gradient(to bottom, #3b82f6, #8b5cf6);"></div>
+                                </div>
+                                <div class="tool-card" style="flex: 1; border-left: 3px solid #3b82f6; margin-left: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <span style="font-size: 22px;">🤖</span>
+                                        <div style="flex: 1;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 14px; font-weight: 700;">Manus</span>
+                                                <span class="tool-badge" style="color: #3b82f6; background: #eff6ff;">初〜中級</span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #9ca3af; margin-top: 1px;">指示だけ出せばクラウドで勝手に動く</div>
+                                        </div>
+                                    </div>
+                                    <div class="tool-scope" style="color: #3b82f6; background: #eff6ff;">
+                                        汎用エージェント &rarr; 結果は比較的安定、広い
+                                    </div>
+                                    <div class="tool-attrs">
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">動く場所</span> ブラウザから指示 &rarr; クラウドで実行</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">誰向け</span> 誰でも（非エンジニアOK）</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">自律度</span> AIが自律実行、並列タスクも可</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">リスク</span> 低い（自分のPCに触れない）</div>
+                                    </div>
+                                    <div class="tool-usage">
+                                        <span style="font-weight: 600; color: #6b7280;">💡 使い方：</span>ブラウザから「競合10社のリサーチまとめて」等を指示。クラウド上でAIがブラウザ操作・資料作成まで自律完了。自分のPCは自由に使える。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 5. Devin -->
+                            <div style="display: flex; gap: 0;">
+                                <div style="width: 52px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+                                    <div class="timeline-dot" style="background: #8b5cf6; box-shadow: 0 0 0 2px #8b5cf6;"></div>
+                                    <div style="width: 2px; flex: 1; background: linear-gradient(to bottom, #8b5cf6, #f59e0b);"></div>
+                                </div>
+                                <div class="tool-card" style="flex: 1; border-left: 3px solid #8b5cf6; margin-left: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <span style="font-size: 22px;">👨‍💻</span>
+                                        <div style="flex: 1;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 14px; font-weight: 700;">Devin</span>
+                                                <span class="tool-badge" style="color: #8b5cf6; background: #f5f3ff;">中級</span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #9ca3af; margin-top: 1px;">ジュニアエンジニアのAI版</div>
+                                        </div>
+                                    </div>
+                                    <div class="tool-scope" style="color: #8b5cf6; background: #f5f3ff;">
+                                        ソフトウェア開発エージェント &rarr; 自律型
+                                    </div>
+                                    <div class="tool-attrs">
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">動く場所</span> クラウド（専用環境）</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">誰向け</span> エンジニア・開発チーム</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">自律度</span> Issue &rarr; PR作成まで自律で完了</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">リスク</span> 低〜中（コードレビュー必須）</div>
+                                    </div>
+                                    <div class="tool-usage">
+                                        <span style="font-weight: 600; color: #6b7280;">💡 使い方：</span>GitHubのIssueを渡すとコード書いてPR作成。Slackで進捗報告してくれる。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 6. Claude Code -->
+                            <div style="display: flex; gap: 0;">
+                                <div style="width: 52px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+                                    <div class="timeline-dot" style="background: #f59e0b; box-shadow: 0 0 0 2px #f59e0b;"></div>
+                                    <div style="width: 2px; flex: 1; background: linear-gradient(to bottom, #f59e0b, #ef4444);"></div>
+                                </div>
+                                <div class="tool-card" style="flex: 1; border-left: 3px solid #f59e0b; margin-left: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <span style="font-size: 22px;">🔧</span>
+                                        <div style="flex: 1;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 14px; font-weight: 700;">Claude Code</span>
+                                                <span class="tool-badge" style="color: #f59e0b; background: #fffbeb;">中〜上級</span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #9ca3af; margin-top: 1px;">万能ナイフ、でも自分で研ぐ</div>
+                                        </div>
+                                    </div>
+                                    <div class="tool-scope" style="color: #f59e0b; background: #fffbeb;">
+                                        柔軟な設計 &rarr; 自由度が高い分、結果がブレやすい
+                                    </div>
+                                    <div class="tool-attrs">
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">動く場所</span> CLI（ローカルPC）</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">誰向け</span> エンジニア〜パワーユーザー</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">自律度</span> エージェント的に動けるが自前構築</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">リスク</span> 中（権限範囲次第）</div>
+                                    </div>
+                                    <div class="tool-usage">
+                                        <span style="font-weight: 600; color: #6b7280;">💡 使い方：</span>ターミナルから「このリポジトリのテスト全部書いて」等。ファイル操作・Git操作も可。
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 7. OpenClaw -->
+                            <div style="display: flex; gap: 0;">
+                                <div style="width: 52px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
+                                    <div class="timeline-dot" style="background: #ef4444; box-shadow: 0 0 0 2px #ef4444;"></div>
+                                    <div style="font-size: 9px; color: #ef4444; margin-top: 4px; font-weight: 600;">HARD</div>
+                                </div>
+                                <div class="tool-card" style="flex: 1; border-left: 3px solid #ef4444; margin-left: 8px; margin-bottom: 0;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <span style="font-size: 22px;">🦞</span>
+                                        <div style="flex: 1;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 14px; font-weight: 700;">OpenClaw</span>
+                                                <span class="tool-badge" style="color: #ef4444; background: #fef2f2;">上級</span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #9ca3af; margin-top: 1px;">PCごとAIに渡す。専用機必須。</div>
+                                        </div>
+                                    </div>
+                                    <div class="tool-scope" style="color: #ef4444; background: #fef2f2;">
+                                        PC丸ごと委任 &rarr; 最も自由だが結果の予測が難しい
+                                    </div>
+                                    <div class="tool-attrs">
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">動く場所</span> ローカルPC全体（専用機推奨）</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">誰向け</span> パワーユーザー・開発者</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">自律度</span> 24時間自律稼働、スキル自己獲得</div>
+                                        <div><span style="color: #9ca3af; min-width: 44px; display: inline-block;">リスク</span> 高い（全データ・全権限を開放）</div>
+                                    </div>
+                                    <div class="tool-usage">
+                                        <span style="font-weight: 600; color: #6b7280;">💡 使い方：</span>LINEやSlackから指示。メール管理、飛行機予約、コード修正、SNS運用など何でも自律実行。
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- どれを選ぶ？ -->
+                    <div class="content-section" data-animate>
+                        <h3>どれを選ぶ？</h3>
+
+                        <div class="guide-card">
+                            <div style="font-weight: 700; color: #1f2937; margin-bottom: 6px; font-size: 13px;">🗺️ 目的別ガイド</div>
+                            <div><span style="color: #22c55e;">●</span>　コードを書くだけ → <strong>Copilot / Cursor</strong></div>
+                            <div><span style="color: #22c55e;">●</span>　質問・文章作成・相談 → <strong>ChatGPT / Claude.ai</strong></div>
+                            <div><span style="color: #3b82f6;">●</span>　非エンジニアで長いタスクを丸投げ → <strong>Manus</strong></div>
+                            <div><span style="color: #8b5cf6;">●</span>　開発タスクを自律で回したい → <strong>Devin</strong></div>
+                            <div><span style="color: #f59e0b;">●</span>　自分で環境を組める＋柔軟に使いたい → <strong>Claude Code</strong></div>
+                            <div><span style="color: #ef4444;">●</span>　全部AIに任せる覚悟がある → <strong>OpenClaw</strong>（専用PC推奨）</div>
+                        </div>
+
+                        <div class="info-box" style="margin-top: 24px;">
+                            <h4>💡 この講座で学ぶのは...</h4>
+                            <p style="margin-bottom: 0; color: #1e40af;">
+                                この講座では <strong>Claude Code</strong> に焦点を当てています。<br>
+                                「万能ナイフ」の研ぎ方を学んで、あらゆる開発タスクを効率化しましょう！
+                            </p>
+                        </div>
+
+                        <p style="margin-top: 12px; font-size: 12px; color: #d1d5db; text-align: center;">
+                            ※ 2026年2月時点の情報をもとにした概念的な比較です
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function createSparkles() {
+            const container = document.getElementById('sparkles');
+            for (let i = 0; i < 20; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle-particle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.bottom = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 6 + 's';
+                sparkle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                container.appendChild(sparkle);
+            }
+        }
+        createSparkles();
+
+        window.addEventListener('scroll', function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress-bar').style.width = scrolled + '%';
+        });
+
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        document.getElementById('scroll-to-top').addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            document.querySelectorAll('.floating-shape').forEach((shape, index) => {
+                shape.style.transform = `translateY(${scrolled * 0.05 * (index + 1)}px)`;
+            });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.content-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in-up').forEach(el => {
+                    el.style.opacity = '1';
+                });
+            }, 100);
+        });
+    </script>
+
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>

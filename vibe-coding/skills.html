@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills活用ガイド - Claude Codeスキルの使い方</title>
+    <meta name="description" content="Claude Code Skillsの使い方を徹底解説。実際にこのページもスキルで作成！カスタムスキルの作り方まで">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { overflow-x: hidden; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #e0f2fe 100%); background-attachment: fixed; color: #1e293b; min-height: 100vh; }
+
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+        .floating-shape { position: absolute; border-radius: 50%; opacity: 0.1; animation: float 20s infinite ease-in-out; }
+        .floating-shape:nth-child(1) { width: 300px; height: 300px; background: linear-gradient(135deg, #3b82f6, #06b6d4); top: 10%; left: 10%; }
+        .floating-shape:nth-child(2) { width: 200px; height: 200px; background: linear-gradient(135deg, #2563eb, #3b82f6); top: 60%; right: 10%; animation-delay: -5s; }
+        .floating-shape:nth-child(3) { width: 150px; height: 150px; background: linear-gradient(135deg, #0ea5e9, #06b6d4); bottom: 20%; left: 20%; animation-delay: -10s; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(30px, -30px) rotate(5deg); } 50% { transform: translate(-20px, 20px) rotate(-5deg); } 75% { transform: translate(20px, 10px) rotate(3deg); } }
+
+        .flying-icon { position: fixed; font-size: 50px; opacity: 0.12; z-index: 0; animation: fly 25s linear infinite; }
+        .flying-icon:nth-child(4) { top: 15%; animation-duration: 22s; font-size: 40px; }
+        .flying-icon:nth-child(5) { top: 45%; animation-duration: 30s; animation-delay: -8s; font-size: 55px; }
+        .flying-icon:nth-child(6) { top: 75%; animation-duration: 26s; animation-delay: -15s; font-size: 35px; }
+        @keyframes fly { 0% { left: -80px; transform: translateY(0) scaleX(1) rotate(-5deg); } 25% { transform: translateY(-40px) scaleX(1) rotate(5deg); } 50% { left: calc(100% + 80px); transform: translateY(0) scaleX(1) rotate(-5deg); } 50.1% { transform: scaleX(-1) rotate(5deg); } 75% { transform: translateY(40px) scaleX(-1) rotate(-5deg); } 100% { left: -80px; transform: translateY(0) scaleX(-1) rotate(5deg); } }
+
+        .sparkle-particle { position: fixed; width: 4px; height: 4px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border-radius: 50%; pointer-events: none; z-index: 0; animation: sparkleFloat 6s infinite ease-in-out; }
+        @keyframes sparkleFloat { 0%, 100% { opacity: 0; transform: translateY(0) scale(0); } 50% { opacity: 0.8; transform: translateY(-100px) scale(1); } }
+
+        .main-content { position: relative; z-index: 1; }
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); }
+
+        .content-section { margin-bottom: 48px; opacity: 0; transform: translateY(50px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .content-section.visible { opacity: 1; transform: translateY(0); }
+        .content-section h3 { color: #1d4ed8; margin-bottom: 24px; font-size: 28px; font-weight: 800; padding-bottom: 16px; border-bottom: 3px solid #3b82f6; display: flex; align-items: center; gap: 12px; }
+        .content-section h3::before { content: ''; display: inline-block; width: 8px; height: 32px; background: linear-gradient(180deg, #3b82f6, #06b6d4); border-radius: 4px; }
+        .content-section h4 { color: #2563eb; margin: 28px 0 16px; font-size: 20px; font-weight: 700; }
+        .content-section p { margin: 16px 0; line-height: 1.9; color: #475569; font-size: 16px; }
+        .content-section ul, .content-section ol { margin: 16px 0; padding-left: 28px; color: #475569; }
+        .content-section li { margin: 10px 0; line-height: 1.7; }
+        .content-section strong { color: #1e293b; font-weight: 700; }
+
+        .info-box { background: linear-gradient(135deg, #dbeafe, #e0f2fe); border-left: 5px solid #3b82f6; padding: 20px 24px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15); }
+        .info-box h4 { color: #1d4ed8 !important; margin-top: 0 !important; }
+        .warning-box { background: linear-gradient(135deg, #fef3c7, #fef9c3); border-left: 5px solid #f59e0b; padding: 20px 24px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15); }
+        .warning-box h4 { color: #b45309 !important; margin-top: 0 !important; }
+        .success-box { background: linear-gradient(135deg, #d1fae5, #ccfbf1); border-left: 5px solid #10b981; padding: 20px 24px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15); }
+        .success-box h4 { color: #059669 !important; margin-top: 0 !important; }
+
+        .code-block { background: linear-gradient(135deg, #1e293b, #334155); border-radius: 12px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); }
+        .code-block code { color: #e2e8f0; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.8; }
+        .code-block .comment { color: #64748b; }
+        .code-block .command { color: #4ade80; }
+        .code-block .key { color: #fbbf24; }
+        .code-block .value { color: #a78bfa; }
+        .code-block .string { color: #34d399; }
+
+        .styled-table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        .styled-table thead { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .styled-table thead th { padding: 14px 20px; text-align: left; color: white; font-weight: 700; font-size: 14px; }
+        .styled-table tbody td { padding: 12px 20px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #475569; }
+        .styled-table tbody tr:nth-child(even) { background: rgba(59, 130, 246, 0.05); }
+        .styled-table tbody tr:hover { background: rgba(59, 130, 246, 0.1); }
+        .styled-table code { background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #2563eb; }
+
+        .progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(59, 130, 246, 0.2); z-index: 1000; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4, #0ea5e9); background-size: 200% 100%; width: 0%; transition: width 0.1s ease; animation: gradientMove 3s ease infinite; }
+        @keyframes gradientMove { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+        #scroll-to-top { background: linear-gradient(135deg, #3b82f6, #06b6d4); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4); }
+        #scroll-to-top:hover { transform: scale(1.1); }
+
+        .header-card { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 24px 32px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 10px 40px rgba(29, 78, 216, 0.3); position: relative; overflow: hidden; }
+        .header-card::before { content: '🛠️'; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 80px; opacity: 0.2; animation: robotFloat 3s ease-in-out infinite; }
+        @keyframes robotFloat { 0%, 100% { transform: translateY(-50%) rotate(0deg); } 50% { transform: translateY(-60%) rotate(5deg); } }
+
+        .gradient-text-animate { background: linear-gradient(90deg, #3b82f6, #06b6d4, #0ea5e9, #3b82f6); background-size: 300% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientText 5s ease infinite; }
+        @keyframes gradientText { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+        .fade-in-up { animation: fadeInUp 0.6s ease forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .stagger-1 { animation-delay: 0.1s; } .stagger-2 { animation-delay: 0.2s; } .stagger-3 { animation-delay: 0.3s; }
+
+        .page-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+        .page-nav a { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .page-nav a:hover { background: #3b82f6; color: white; }
+        .page-nav a.active { background: #3b82f6; color: white; }
+
+        .skill-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: transform 0.3s ease, box-shadow 0.3s ease; border-top: 4px solid #3b82f6; }
+        .skill-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.15); }
+        .skill-card .icon { font-size: 40px; margin-bottom: 12px; }
+        .skill-card .title { font-size: 18px; font-weight: 800; color: #1e293b; margin-bottom: 8px; }
+        .skill-card .desc { font-size: 14px; color: #475569; line-height: 1.7; }
+
+        .dir-tree { background: linear-gradient(135deg, #1e293b, #334155); border-radius: 12px; padding: 24px 28px; margin: 20px 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 2; color: #e2e8f0; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); }
+        .dir-tree .folder { color: #fbbf24; }
+        .dir-tree .file { color: #34d399; }
+        .dir-tree .desc { color: #64748b; font-size: 12px; }
+
+        .meta-box { background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #fbbf24; border-radius: 16px; padding: 28px; margin: 24px 0; text-align: center; }
+
+        @media (max-width: 768px) {
+            .content-section h3 { font-size: 22px; }
+            .header-card::before { font-size: 50px; right: 10px; }
+            .code-block code { font-size: 12px; }
+        }
+    </style>
+</head>
+
+<body class="font-sans">
+    <div class="bg-animation">
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="flying-icon">🛠️</div>
+        <div class="flying-icon">⚡</div>
+        <div class="flying-icon">🤖</div>
+    </div>
+    <div id="sparkles"></div>
+
+    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+
+    <button id="scroll-to-top" class="fixed bottom-8 right-8 w-14 h-14 text-white rounded-full opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col main-content">
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <h1 class="text-4xl md:text-5xl font-black mb-2 text-center fade-in-up">
+                    <span class="gradient-text-animate">Skills活用ガイド</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-center text-gray-600 mb-8 font-medium fade-in-up stagger-1">
+                    Claude Codeスキルで開発ワークフローを自動化
+                </p>
+
+                <!-- ページナビ -->
+                <div class="page-nav fade-in-up stagger-2">
+                    <a href="index.html">入門</a>
+                    <a href="sessions.html">セッション</a>
+                    <a href="history.html">歴史</a>
+                    <a href="features.html">全機能</a>
+                    <a href="agents.html">エージェント</a>
+                    <a href="skills.html" class="active">Skills</a>
+                    <a href="ai-tools.html">AI比較</a>
+                    <a href="references.html">参考文献</a>
+                    <a href="conclusion.html">結論</a>
+                </div>
+
+                <div class="glass-card rounded-3xl p-8 md:p-12">
+
+                    <!-- ヘッダーカード -->
+                    <div class="header-card fade-in-up stagger-3">
+                        <p class="text-xl font-bold mb-2">Skills活用ガイド</p>
+                        <p class="text-white/80 text-sm mb-3">
+                            Claude Code Skillsとは何か、どう使うのか、そしてこのページも実際にスキルで作った実例
+                        </p>
+                        <p class="text-lg font-bold text-yellow-300">
+                            このページ自体が /new-page スキルで作られました！
+                        </p>
+                    </div>
+
+                    <!-- メタボックス -->
+                    <div class="meta-box fade-in-up stagger-3">
+                        <p style="font-size: 40px; margin: 0 0 12px 0;">🛠️</p>
+                        <p style="font-size: 18px; font-weight: 900; color: #92400e; margin: 0 0 8px 0;">
+                            このページは Claude Code の /new-page スキルで作成されました
+                        </p>
+                        <p style="font-size: 14px; color: #a16207; margin: 0;">
+                            スキルの実用例として、まさに「自分自身がスキルの成果物」です
+                        </p>
+                    </div>
+
+                    <!-- Skillsとは -->
+                    <div class="content-section" data-animate>
+                        <h3>Skillsとは？</h3>
+
+                        <div class="info-box">
+                            <h4>⚡ ワンコマンドで定型作業を自動化</h4>
+                            <p style="margin-bottom: 0; color: #1e40af;">
+                                Skillsとは、<strong>よく使う作業をテンプレート化</strong>して、<code style="background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">/スキル名</code> で呼び出せるようにする機能です。<br><br>
+                                毎回同じプロンプトを打つ必要がなくなり、チーム全体で統一された品質の作業ができるようになります。
+                            </p>
+                        </div>
+
+                        <p>
+                            例えばこのサイトでは、新しいページを追加するたびに「index.htmlと同じデザインで、背景アニメーションも入れて、サイドバーにリンクも追加して...」と毎回指示するのは面倒です。
+                            Skillsを使えば、<strong><code style="background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">/new-page blue ページタイトル</code> と打つだけ</strong>で、統一デザインのページが自動生成されます。
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-6 my-6">
+                            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                                <div style="font-size: 40px; text-align: center; margin-bottom: 12px;">😓</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 18px; font-weight: 800; color: #64748b; margin-bottom: 8px;">Skills なし</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        毎回長いプロンプトを入力<br>
+                                        デザインにバラつきが出る<br>
+                                        サイドバー更新を忘れがち
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-top: 4px solid #3b82f6;">
+                                <div style="font-size: 40px; text-align: center; margin-bottom: 12px;">⚡</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 18px; font-weight: 800; color: #1d4ed8; margin-bottom: 8px;">Skills あり</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        <code>/new-page</code> だけで完了<br>
+                                        毎回同じ品質・体裁を保証<br>
+                                        リンク追加まで全自動
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 使い方：/new-page -->
+                    <div class="content-section" data-animate>
+                        <h3>/new-page スキルの使い方</h3>
+
+                        <p>このサイトで実際に使っているスキルを紹介します。Claude Codeのプロンプトで以下のように入力するだけです。</p>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># 新しいページを作成</span><br>
+                                <span class="prompt" style="color: #60a5fa;">></span> <span class="command">/new-page blue Skills活用ガイド</span>
+                            </code>
+                        </div>
+
+                        <p>これだけで、スキルが自動的に以下を実行します：</p>
+
+                        <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin: 20px 0;">
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                                    <span style="background: linear-gradient(135deg, #3b82f6, #06b6d4); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;">1</span>
+                                    <div><strong>index.html を読んで</strong>デザインパターンを把握</div>
+                                </div>
+                                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                                    <span style="background: linear-gradient(135deg, #3b82f6, #06b6d4); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;">2</span>
+                                    <div>指定カラーに合わせて<strong>CSS全体を調整</strong></div>
+                                </div>
+                                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                                    <span style="background: linear-gradient(135deg, #3b82f6, #06b6d4); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;">3</span>
+                                    <div>背景アニメーション、パーティクル、プログレスバー等を<strong>自動セット</strong></div>
+                                </div>
+                                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                                    <span style="background: linear-gradient(135deg, #3b82f6, #06b6d4); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;">4</span>
+                                    <div><strong>sidebar.js にリンクを追加</strong>、他ページのナビにもリンク追加</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4>引数の説明</h4>
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>引数</th>
+                                    <th>説明</th>
+                                    <th>例</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>第1引数</strong></td>
+                                    <td>テーマカラー</td>
+                                    <td><code>blue</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>第2引数以降</strong></td>
+                                    <td>ページタイトル</td>
+                                    <td><code>Skills活用ガイド</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="success-box">
+                            <h4>💡 実際の活用例</h4>
+                            <p style="margin-bottom: 0; color: #065f46;">
+                                このページ自体が <strong>/new-page blue Skills活用ガイド</strong> で作成されました。<br>
+                                スキルがindex.htmlのデザインパターンを読み取り、同じ体裁のページを自動生成しています。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- カスタムスキルの作り方 -->
+                    <div class="content-section" data-animate>
+                        <h3>カスタムスキルの作り方</h3>
+
+                        <p>自分だけのスキルを作るのは簡単です。プロジェクトの <code style="background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">.claude/skills/</code> ディレクトリに <code style="background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">SKILL.md</code> を配置するだけです。</p>
+
+                        <h4>ディレクトリ構造</h4>
+                        <div class="dir-tree">
+                            <span class="folder">project/</span><br>
+                            <span style="color: #64748b;">  |-- </span><span class="folder">.claude/</span><br>
+                            <span style="color: #64748b;">  |   |-- </span><span class="folder">skills/</span><br>
+                            <span style="color: #64748b;">  |   |   |-- </span><span class="folder">new-page/</span><br>
+                            <span style="color: #64748b;">  |   |       |-- </span><span class="file">SKILL.md</span> <span class="desc">  &lt;- スキル定義ファイル</span><br>
+                        </div>
+
+                        <h4>SKILL.md の書き方</h4>
+                        <p>SKILL.mdにはフロントマターとスキルの手順を書きます。</p>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment">---</span><br>
+                                <span class="key">name:</span> <span class="value">my-skill</span><br>
+                                <span class="key">description:</span> <span class="value">このスキルの説明文</span><br>
+                                <span class="key">argument-hint:</span> <span class="value">[引数1] [引数2]</span><br>
+                                <span class="key">allowed-tools:</span> <span class="value">Read, Write, Edit, Bash</span><br>
+                                <span class="comment">---</span><br><br>
+                                <span style="color: #e2e8f0;">ここにスキルの手順を自然言語で書きます。</span><br><br>
+                                <span style="color: #e2e8f0;">## 手順</span><br>
+                                <span style="color: #e2e8f0;">1. まず○○を確認する</span><br>
+                                <span style="color: #e2e8f0;">2. ○○に基づいて処理する</span><br>
+                                <span style="color: #e2e8f0;">3. 結果を出力する</span>
+                            </code>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>💡 フロントマターの項目</h4>
+                            <table class="styled-table" style="margin-top: 12px;">
+                                <thead>
+                                    <tr>
+                                        <th>項目</th>
+                                        <th>説明</th>
+                                        <th>例</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>name</code></td>
+                                        <td>スキルの呼び出し名</td>
+                                        <td><code>new-page</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>description</code></td>
+                                        <td>スキルの説明（/skills一覧に表示）</td>
+                                        <td>既存デザインに合わせた新ページ作成</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>argument-hint</code></td>
+                                        <td>引数のヒント（任意）</td>
+                                        <td><code>[カラー] [タイトル]</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>allowed-tools</code></td>
+                                        <td>使用を許可するツール</td>
+                                        <td><code>Read, Write, Bash</code></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4>⚠️ allowed-tools について</h4>
+                            <p style="margin-bottom: 0; color: #92400e;">
+                                <code style="background: #fef3c7; padding: 2px 6px; border-radius: 4px;">allowed-tools</code> を指定しないと、スキル実行時にツール使用の許可を毎回求められます。
+                                よく使うスキルには必要なツールを明示的に設定しましょう。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 実例: /new-page スキルの定義 -->
+                    <div class="content-section" data-animate>
+                        <h3>実例：/new-page スキルの定義</h3>
+
+                        <p>このページを作った <code style="background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">/new-page</code> スキルの実際の定義を見てみましょう。</p>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment">---</span><br>
+                                <span class="key">name:</span> <span class="value">new-page</span><br>
+                                <span class="key">description:</span> <span class="value">このサイトの既存デザインに合わせた新しいHTMLページを作成する</span><br>
+                                <span class="key">argument-hint:</span> <span class="value">[テーマカラー] [ページタイトル]</span><br>
+                                <span class="key">allowed-tools:</span> <span class="value">Read, Write, Edit, Glob, Grep</span><br>
+                                <span class="comment">---</span><br><br>
+                                <span style="color: #e2e8f0;">既存ページと同じデザインで新しいHTMLページを作成してください。</span><br><br>
+                                <span style="color: #e2e8f0;">## 手順</span><br>
+                                <span style="color: #e2e8f0;">1. まず既存の index.html を読んでデザインパターンを把握する</span><br>
+                                <span style="color: #e2e8f0;">2. 指定されたテーマカラーに合わせてCSSを調整</span><br>
+                                <span style="color: #e2e8f0;">3. 以下を必ず含める：</span><br>
+                                <span style="color: #e2e8f0;">   - Tailwind CDN + Google Fonts</span><br>
+                                <span style="color: #e2e8f0;">   - 背景アニメーション、パーティクル</span><br>
+                                <span style="color: #e2e8f0;">   - プログレスバー、スクロールトップボタン</span><br>
+                                <span style="color: #e2e8f0;">   - .glass-card でコンテンツを囲む</span><br>
+                                <span style="color: #e2e8f0;">   - sidebar.js と footer.js の読み込み</span><br>
+                                <span style="color: #e2e8f0;">4. sidebar.js にも新ページのリンクを追加</span>
+                            </code>
+                        </div>
+
+                        <div class="success-box">
+                            <h4>🎯 ポイント</h4>
+                            <p style="margin-bottom: 0; color: #065f46;">
+                                スキルの手順は<strong>自然言語</strong>で書きます。プログラミング言語ではなく、日本語で「何をしてほしいか」を書くだけ。
+                                Claude Codeがその指示を理解して、適切なツールを使い分けて実行してくれます。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 自動トリガー -->
+                    <div class="content-section" data-animate>
+                        <h3>自動でスキルを発動させる（TRIGGER）</h3>
+
+                        <p>
+                            通常、スキルは <code style="background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">/スキル名</code> で手動呼び出しします。
+                            しかし、<strong>特定の条件でスキルを自動発動</strong>させることもできます。
+                        </p>
+
+                        <div class="info-box">
+                            <h4>🔄 TRIGGER とは</h4>
+                            <p style="margin-bottom: 0; color: #1e40af;">
+                                <code style="background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">description</code> フィールドに
+                                <strong>TRIGGER when:</strong> と <strong>DO NOT TRIGGER when:</strong> を書くと、
+                                Claude Codeが条件に合致したとき<strong>自動的にスキルを実行</strong>してくれます。
+                            </p>
+                        </div>
+
+                        <h4>書き方</h4>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment">---</span><br>
+                                <span class="key">name:</span> <span class="value">html-checker</span><br>
+                                <span class="key">description:</span> <span class="value">HTMLのアクセシビリティをチェック。<span style="color: #fbbf24;">TRIGGER when:</span> HTMLファイルを作成・編集したとき。<span style="color: #fbbf24;">DO NOT TRIGGER when:</span> HTMLに関係ない作業のとき。</span><br>
+                                <span class="comment">---</span><br><br>
+                                <span style="color: #e2e8f0;">HTMLファイルをチェックして...</span>
+                            </code>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6 my-6">
+                            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                                <div style="font-size: 40px; text-align: center; margin-bottom: 12px;">👆</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 18px; font-weight: 800; color: #64748b; margin-bottom: 8px;">手動スキル（通常）</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        <code>/new-page</code> のように<br>
+                                        ユーザーが明示的に呼び出す<br>
+                                        タイミングを自分で決められる
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-top: 4px solid #3b82f6;">
+                                <div style="font-size: 40px; text-align: center; margin-bottom: 12px;">🔄</div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 18px; font-weight: 800; color: #1d4ed8; margin-bottom: 8px;">自動トリガースキル</div>
+                                    <div style="font-size: 14px; color: #475569; line-height: 1.7;">
+                                        条件に合致したら<br>
+                                        Claude Codeが<strong>勝手に実行</strong><br>
+                                        呼び出し忘れがなくなる
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4>TRIGGERの活用例</h4>
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>スキル</th>
+                                    <th>TRIGGER when</th>
+                                    <th>DO NOT TRIGGER when</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>html-checker</strong></td>
+                                    <td>HTMLファイルを作成・編集したとき</td>
+                                    <td>HTMLに関係ない作業のとき</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>test-runner</strong></td>
+                                    <td>コードを実装・修正したとき</td>
+                                    <td>ドキュメントやREADMEの編集のとき</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>lint-fixer</strong></td>
+                                    <td>JSやTSファイルを編集したとき</td>
+                                    <td>設定ファイルのみの変更のとき</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="warning-box">
+                            <h4>⚠️ TRIGGER の注意点</h4>
+                            <p style="margin-bottom: 0; color: #92400e;">
+                                <strong>DO NOT TRIGGER when:</strong> を必ずセットで書きましょう。<br>
+                                これがないと、関係ない作業でもスキルが発動してしまい、作業の邪魔になることがあります。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section" data-animate>
+                        <h3>まとめ</h3>
+
+                        <div style="background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; padding: 32px; color: white; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -30px; right: -30px; font-size: 120px; opacity: 0.05;">🛠️</div>
+
+                            <div style="margin-bottom: 24px;">
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">⚡ Skillsとは</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #93c5fd;">
+                                    定型作業をテンプレート化し、/コマンドで呼び出せる機能
+                                </p>
+                            </div>
+
+                            <div style="margin-bottom: 24px;">
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">📁 作り方</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #93c5fd;">
+                                    .claude/skills/スキル名/SKILL.md にMarkdownで手順を書くだけ
+                                </p>
+                            </div>
+
+                            <div>
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">🚀 効果</p>
+                                <ol style="margin: 0; padding-left: 20px; color: #e2e8f0;">
+                                    <li>毎回のプロンプト入力が不要</li>
+                                    <li>チーム全体で品質を統一</li>
+                                    <li>ノウハウをコードとして共有</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="meta-box" style="margin-top: 24px;">
+                            <p style="font-size: 28px; margin: 0 0 12px 0;">🛠️ + 🤖 = ⚡</p>
+                            <p style="font-size: 18px; font-weight: 900; color: #92400e; margin: 0 0 8px 0;">
+                                Skillsはバイブコーディングの効率を飛躍的に高めるツール
+                            </p>
+                            <p style="font-size: 14px; color: #a16207; margin: 0;">
+                                まずは /new-page でページ作成から試してみよう！
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function createSparkles() {
+            const container = document.getElementById('sparkles');
+            for (let i = 0; i < 20; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle-particle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.bottom = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 6 + 's';
+                sparkle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                container.appendChild(sparkle);
+            }
+        }
+        createSparkles();
+
+        window.addEventListener('scroll', function() {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress-bar').style.width = scrolled + '%';
+        });
+
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        document.getElementById('scroll-to-top').addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            document.querySelectorAll('.floating-shape').forEach((shape, index) => {
+                shape.style.transform = `translateY(${scrolled * 0.05 * (index + 1)}px)`;
+            });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.content-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in-up').forEach(el => {
+                    el.style.opacity = '1';
+                });
+            }, 100);
+        });
+    </script>
+
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>

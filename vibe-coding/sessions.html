@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>セッション管理の仕組み - Claude Code詳解</title>
+    <meta name="description" content="Claude Codeのセッション管理、--resume、--continue、JSONLファイルの仕組みを徹底解説">
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💾</text></svg>">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vibe: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #e0f2fe 100%);
+            background-attachment: fixed;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        /* 背景アニメーション */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .floating-shape:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-shape:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            top: 60%;
+            right: 10%;
+            animation-delay: -5s;
+        }
+
+        .floating-shape:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            bottom: 20%;
+            left: 20%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(30px, -30px) rotate(5deg); }
+            50% { transform: translate(-20px, 20px) rotate(-5deg); }
+            75% { transform: translate(20px, 10px) rotate(3deg); }
+        }
+
+        /* 飛ぶアイコン */
+        .flying-icon {
+            position: fixed;
+            font-size: 50px;
+            opacity: 0.12;
+            z-index: 0;
+            animation: fly 25s linear infinite;
+            filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.3));
+        }
+
+        .flying-icon:nth-child(4) {
+            top: 15%;
+            animation-duration: 22s;
+            font-size: 40px;
+        }
+
+        .flying-icon:nth-child(5) {
+            top: 45%;
+            animation-duration: 30s;
+            animation-delay: -8s;
+            font-size: 55px;
+        }
+
+        .flying-icon:nth-child(6) {
+            top: 75%;
+            animation-duration: 26s;
+            animation-delay: -15s;
+            font-size: 35px;
+        }
+
+        @keyframes fly {
+            0% { left: -80px; transform: translateY(0) scaleX(1) rotate(-5deg); }
+            25% { transform: translateY(-40px) scaleX(1) rotate(5deg); }
+            50% { left: calc(100% + 80px); transform: translateY(0) scaleX(1) rotate(-5deg); }
+            50.1% { transform: scaleX(-1) rotate(5deg); }
+            75% { transform: translateY(40px) scaleX(-1) rotate(-5deg); }
+            100% { left: -80px; transform: translateY(0) scaleX(-1) rotate(5deg); }
+        }
+
+        /* キラキラパーティクル */
+        .sparkle-particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: sparkleFloat 6s infinite ease-in-out;
+        }
+
+        @keyframes sparkleFloat {
+            0%, 100% { opacity: 0; transform: translateY(0) scale(0); }
+            50% { opacity: 0.8; transform: translateY(-100px) scale(1); }
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* カードスタイル */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* セクションスタイル */
+        .content-section {
+            margin-bottom: 48px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .content-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .content-section h3 {
+            color: #1d4ed8;
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 800;
+            padding-bottom: 16px;
+            border-bottom: 3px solid #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 32px;
+            background: linear-gradient(180deg, #3b82f6, #06b6d4);
+            border-radius: 4px;
+        }
+
+        .content-section h4 {
+            color: #2563eb;
+            margin: 28px 0 16px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            margin: 16px 0;
+            line-height: 1.9;
+            color: #475569;
+            font-size: 16px;
+        }
+
+        .content-section ul, .content-section ol {
+            margin: 16px 0;
+            padding-left: 28px;
+            color: #475569;
+        }
+
+        .content-section li {
+            margin: 10px 0;
+            line-height: 1.7;
+        }
+
+        .content-section strong {
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        /* ボックススタイル */
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7, #fef9c3);
+            border-left: 5px solid #f59e0b;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);
+        }
+
+        .warning-box h4 { color: #b45309 !important; margin-top: 0 !important; }
+
+        .info-box {
+            background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+            border-left: 5px solid #3b82f6;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+        }
+
+        .info-box h4 { color: #1d4ed8 !important; margin-top: 0 !important; }
+
+        .success-box {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-left: 5px solid #3b82f6;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+        }
+
+        .success-box h4 { color: #1d4ed8 !important; margin-top: 0 !important; }
+
+        /* コードブロック */
+        .code-block {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 20px 0;
+            overflow-x: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .code-block code {
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .code-block .comment { color: #64748b; }
+        .code-block .command { color: #4ade80; }
+        .code-block .prompt { color: #60a5fa; }
+        .code-block .key { color: #fbbf24; }
+        .code-block .value { color: #a78bfa; }
+        .code-block .string { color: #34d399; }
+
+        /* ディレクトリツリー */
+        .dir-tree {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin: 20px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 2;
+            color: #e2e8f0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .dir-tree .folder { color: #fbbf24; }
+        .dir-tree .file { color: #34d399; }
+        .dir-tree .desc { color: #64748b; font-size: 12px; }
+
+        /* テーブル */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .styled-table thead {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .styled-table thead th {
+            padding: 14px 20px;
+            text-align: left;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .styled-table tbody td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .styled-table tbody tr:nth-child(even) {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .styled-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .styled-table code {
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #2563eb;
+        }
+
+        /* プログレスバー */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.2);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4, #0ea5e9);
+            background-size: 200% 100%;
+            width: 0%;
+            transition: width 0.1s ease;
+            animation: gradientMove 3s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* スクロールトップボタン */
+        #scroll-to-top {
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        #scroll-to-top:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5);
+        }
+
+        /* ヘッダーカード */
+        .header-card {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 40px rgba(29, 78, 216, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-card::before {
+            content: '💾';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px;
+            opacity: 0.2;
+            animation: robotFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes robotFloat {
+            0%, 100% { transform: translateY(-50%) rotate(0deg); }
+            50% { transform: translateY(-60%) rotate(5deg); }
+        }
+
+        /* グラデーションテキスト */
+        .gradient-text-animate {
+            background: linear-gradient(90deg, #3b82f6, #06b6d4, #0ea5e9, #3b82f6);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientText 5s ease infinite;
+        }
+
+        @keyframes gradientText {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .fade-in-up { animation: fadeInUp 0.6s ease forwards; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+
+        /* フロー図 */
+        .flow-diagram {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            margin: 24px 0;
+        }
+
+        .flow-step {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 140px;
+            transition: transform 0.3s ease;
+        }
+
+        .flow-step:hover {
+            transform: translateY(-5px);
+        }
+
+        .flow-step .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .flow-step .label {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1e293b;
+        }
+
+        .flow-step .desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .flow-arrow {
+            font-size: 24px;
+            color: #3b82f6;
+        }
+
+        /* ページ内ナビ */
+        .page-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .page-nav a {
+            background: rgba(59, 130, 246, 0.1);
+            color: #1d4ed8;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .page-nav a:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .page-nav a.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .content-section h3 { font-size: 22px; }
+            .header-card::before { font-size: 50px; right: 10px; }
+            .code-block code { font-size: 12px; }
+            .dir-tree { font-size: 12px; padding: 16px 20px; }
+            .flow-diagram { flex-direction: column; }
+            .flow-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+
+<body class="font-sans">
+    <!-- 背景アニメーション -->
+    <div class="bg-animation">
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="floating-shape"></div>
+        <div class="flying-icon">💾</div>
+        <div class="flying-icon">📁</div>
+        <div class="flying-icon">🔄</div>
+    </div>
+
+    <div id="sparkles"></div>
+
+    <!-- プログレスバー -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- 上に戻るボタン -->
+    <button id="scroll-to-top"
+        class="fixed bottom-8 right-8 w-14 h-14 text-white rounded-full opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <div class="min-h-screen flex flex-col main-content">
+        <main class="flex-grow py-16 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <!-- タイトル -->
+                <h1 class="text-4xl md:text-5xl font-black mb-2 text-center fade-in-up">
+                    <span class="gradient-text-animate">セッション管理の仕組み</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-center text-gray-600 mb-8 font-medium fade-in-up stagger-1">
+                    Claude Codeの会話履歴はどこに保存される？
+                </p>
+
+                <!-- ページ内ナビ -->
+                <div class="page-nav fade-in-up stagger-2">
+                    <a href="index.html">入門</a>
+                    <a href="sessions.html" class="active">セッション</a>
+                    <a href="history.html">歴史</a>
+                    <a href="features.html">全機能</a>
+                    <a href="agents.html">エージェント</a>
+                    <a href="skills.html">Skills</a>
+                    <a href="ai-tools.html">AI比較</a>
+                    <a href="references.html">参考文献</a>
+                    <a href="conclusion.html">結論</a>
+                </div>
+
+                <div class="glass-card rounded-3xl p-8 md:p-12">
+
+                    <!-- 導入 -->
+                    <div class="header-card fade-in-up stagger-3">
+                        <p class="text-xl font-bold mb-2">セッション管理の全貌</p>
+                        <p class="text-white/80 text-sm mb-3">
+                            Claude Codeとの会話はすべてローカルのJSONLファイルに保存されています。<br>
+                            この仕組みを理解すれば、過去の会話を効率的に活用できます。
+                        </p>
+                        <p class="text-lg font-bold text-yellow-300">
+                            セッションファイルは宝の山！過去の知見を再活用しよう
+                        </p>
+                    </div>
+
+                    <!-- セッションとは -->
+                    <div class="content-section" data-animate>
+                        <h3>セッションとは？</h3>
+
+                        <p>
+                            Claude Codeで <code style="background: #dbeafe; padding: 2px 8px; border-radius: 4px;">claude</code> コマンドを実行するたびに、<strong>新しいセッション</strong>が作成されます。セッションとは、1回の対話のまとまりです。
+                        </p>
+
+                        <div class="info-box">
+                            <h4>💡 セッション = 1つの会話の塊</h4>
+                            <p style="margin-bottom: 0; color: #1d4ed8;">
+                                LINEのチャット履歴のようなものです。<br>
+                                あなたとClaudeのやりとりが<strong>すべて</strong>記録されています。<br>
+                                ファイルの読み書き、コマンド実行、検索結果...全部です！
+                            </p>
+                        </div>
+
+                        <div class="flow-diagram">
+                            <div class="flow-step">
+                                <div class="icon">💬</div>
+                                <div class="label">claude 起動</div>
+                                <div class="desc">新しいセッション開始</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="icon">🤖</div>
+                                <div class="label">対話</div>
+                                <div class="desc">やりとりを記録</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="icon">💾</div>
+                                <div class="label">保存</div>
+                                <div class="desc">JSONLファイルに書き込み</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="icon">🔄</div>
+                                <div class="label">再開可能</div>
+                                <div class="desc">いつでも再開できる</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ファイルの保存場所 -->
+                    <div class="content-section" data-animate>
+                        <h3>セッションファイルの保存場所</h3>
+
+                        <p>
+                            すべてのセッションデータは <strong>~/.claude/</strong> ディレクトリ配下に保存されています。
+                        </p>
+
+                        <div class="dir-tree">
+                            <span class="folder">~/.claude/</span><br>
+                            ├── <span class="file">CLAUDE.md</span> <span class="desc">← グローバル指示ファイル</span><br>
+                            ├── <span class="file">settings.json</span> <span class="desc">← グローバル設定</span><br>
+                            ├── <span class="file">credentials.json</span> <span class="desc">← 認証情報</span><br>
+                            ├── <span class="folder">projects/</span> <span class="desc">← プロジェクト別データ</span><br>
+                            │   ├── <span class="folder">-Users-you-myproject/</span> <span class="desc">← パスをハッシュ化</span><br>
+                            │   │   ├── <span class="file">sessions-index.json</span> <span class="desc">← セッション一覧</span><br>
+                            │   │   ├── <span class="file">a1b2c3d4-e5f6-...jsonl</span> <span class="desc">← セッション本体</span><br>
+                            │   │   ├── <span class="file">f7g8h9i0-j1k2-...jsonl</span> <span class="desc">← 別のセッション</span><br>
+                            │   │   └── <span class="file">CLAUDE.md</span> <span class="desc">← プロジェクト別メモリ</span><br>
+                            │   └── <span class="folder">-Users-you-another-project/</span><br>
+                            │       └── ...<br>
+                            └── <span class="folder">skills/</span> <span class="desc">← カスタムスキル</span>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4>⚠️ プロジェクトディレクトリの命名規則</h4>
+                            <p style="margin-bottom: 0; color: #92400e;">
+                                プロジェクトのパスのスラッシュ（/）がハイフン（-）に変換されます。<br>
+                                例：<code>/Users/motoki/myproject</code> → <code>-Users-motoki-myproject</code><br>
+                                この仕組みにより、プロジェクトごとにセッションが分離されています。
+                            </p>
+                        </div>
+
+                        <h4>sessions-index.json の中身</h4>
+                        <p>セッションの一覧情報を管理するインデックスファイルです。<code>--resume</code> で表示されるセッション一覧の元データになっています。</p>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment">// sessions-index.json の構造（イメージ）</span><br>
+                                {<br>
+                                &nbsp;&nbsp;<span class="key">"sessions"</span>: [<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"sessionId"</span>: <span class="string">"a1b2c3d4-e5f6-7890-abcd-ef1234567890"</span>,<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"summary"</span>: <span class="string">"ログイン機能の実装"</span>,<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"messageCount"</span>: <span class="value">24</span>,<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"created"</span>: <span class="string">"2026-02-28T10:00:00Z"</span>,<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"modified"</span>: <span class="string">"2026-02-28T11:30:00Z"</span>,<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"gitBranch"</span>: <span class="string">"feature/login"</span>,<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"firstPrompt"</span>: <span class="string">"ログイン機能を追加して"</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                                &nbsp;&nbsp;]<br>
+                                }
+                            </code>
+                        </div>
+                    </div>
+
+                    <!-- JSONLフォーマット -->
+                    <div class="content-section" data-animate>
+                        <h3>JSONLファイルの中身</h3>
+
+                        <p>
+                            各セッションは <strong>JSONL（JSON Lines）</strong> 形式で保存されます。1行が1つのメッセージ/イベントを表し、<strong>追記のみ（append-only）</strong>で書き込まれます。
+                        </p>
+
+                        <div class="info-box">
+                            <h4>📝 JSONL = 1行1JSON</h4>
+                            <p style="margin-bottom: 0; color: #1d4ed8;">
+                                通常のJSONと違い、JSONLは<strong>1行ごとに独立したJSONオブジェクト</strong>が並びます。<br>
+                                これにより、セッション中のやりとりをリアルタイムで追記できます。
+                            </p>
+                        </div>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment">// セッションファイル（.jsonl）の各行のイメージ</span><br><br>
+                                <span class="comment">// ユーザーのメッセージ</span><br>
+                                {<span class="key">"type"</span>:<span class="string">"human"</span>, <span class="key">"message"</span>:{<span class="key">"role"</span>:<span class="string">"user"</span>, <span class="key">"content"</span>:<span class="string">"ログイン機能を追加して"</span>}, <span class="key">"timestamp"</span>:<span class="string">"2026-02-28T10:00:00Z"</span>}<br><br>
+                                <span class="comment">// Claudeの応答</span><br>
+                                {<span class="key">"type"</span>:<span class="string">"assistant"</span>, <span class="key">"message"</span>:{<span class="key">"role"</span>:<span class="string">"assistant"</span>, <span class="key">"content"</span>:<span class="string">"ログイン機能を実装します..."</span>}, <span class="key">"timestamp"</span>:<span class="string">"2026-02-28T10:00:05Z"</span>}<br><br>
+                                <span class="comment">// ツールの使用（ファイル読み込みなど）</span><br>
+                                {<span class="key">"type"</span>:<span class="string">"tool_use"</span>, <span class="key">"tool_name"</span>:<span class="string">"Read"</span>, <span class="key">"tool_input"</span>:{<span class="key">"file_path"</span>:<span class="string">"/src/auth/login.ts"</span>}, <span class="key">"timestamp"</span>:<span class="string">"2026-02-28T10:00:06Z"</span>}
+                            </code>
+                        </div>
+
+                        <p>
+                            各レコードには共通のフィールドがあります：
+                        </p>
+
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>フィールド</th>
+                                    <th>説明</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>type</code></td><td>メッセージの種類（human, assistant, tool_use, tool_result など）</td></tr>
+                                <tr><td><code>uuid</code></td><td>このレコード固有のID</td></tr>
+                                <tr><td><code>parentUuid</code></td><td>親メッセージのID（会話の流れを追跡）</td></tr>
+                                <tr><td><code>timestamp</code></td><td>タイムスタンプ</td></tr>
+                                <tr><td><code>sessionId</code></td><td>所属するセッションのID</td></tr>
+                                <tr><td><code>cwd</code></td><td>コマンド実行時の作業ディレクトリ</td></tr>
+                                <tr><td><code>message</code></td><td>メッセージ本体（role + content）</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- --resume と --continue -->
+                    <div class="content-section" data-animate>
+                        <h3>--resume と --continue の違い</h3>
+
+                        <p>
+                            過去のセッションを再開するための2つのオプションがあります。似ていますが、<strong>使い方が全く違います</strong>。
+                        </p>
+
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>特徴</th>
+                                    <th><code>--resume (-r)</code></th>
+                                    <th><code>--continue (-c)</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>目的</strong></td>
+                                    <td>任意の過去セッションを再開</td>
+                                    <td>直前のセッションを即座に続行</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>セッション選択</strong></td>
+                                    <td>一覧から選択 or IDで指定</td>
+                                    <td>自動で最新セッションを選択</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ユースケース</strong></td>
+                                    <td>数日前のセッションに戻りたい</td>
+                                    <td>直前の作業をすぐ継続したい</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>引数</strong></td>
+                                    <td>オプションでセッションIDを渡せる</td>
+                                    <td>引数不要</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>内部動作</strong></td>
+                                    <td>sessions-index.json から一覧表示</td>
+                                    <td>history.jsonl から最新を特定</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>claude --resume (-r) の使い方</h4>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># セッション一覧から選んで再開</span><br>
+                                <span class="command">claude --resume</span><br>
+                                <span class="command">claude -r</span><br><br>
+                                <span class="comment"># 特定のセッションIDを指定して再開</span><br>
+                                <span class="command">claude --resume a1b2c3d4-e5f6-7890-abcd-ef1234567890</span>
+                            </code>
+                        </div>
+
+                        <p>
+                            <code>--resume</code> をID指定なしで実行すると、<strong>直近50件のセッション一覧</strong>が表示されます。セッションの要約やメッセージ数が表示されるので、目的のセッションを見つけやすいです。
+                        </p>
+
+                        <h4>claude --continue (-c) の使い方</h4>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># 直前のセッションをすぐ再開</span><br>
+                                <span class="command">claude --continue</span><br>
+                                <span class="command">claude -c</span><br><br>
+                                <span class="comment"># 再開と同時に指示も渡せる</span><br>
+                                <span class="command">claude -c "さっきの続きで、バリデーションも追加して"</span><br><br>
+                                <span class="comment"># --resume と --continue の組み合わせ</span><br>
+                                <span class="command">claude -r -c "前回のセッションの続き"</span>
+                            </code>
+                        </div>
+
+                        <div class="success-box">
+                            <h4>🚀 便利な使い分け</h4>
+                            <ul style="color: #1d4ed8; margin-bottom: 0;">
+                                <li><strong>-c</strong>：「さっきの続き！」→ 最速で直前セッション再開</li>
+                                <li><strong>-r</strong>：「あの時のやつ」→ 過去のセッションを探して再開</li>
+                                <li><strong>-r -c "指示"</strong>：再開と同時に新しい指示も</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- コンテキスト圧縮 -->
+                    <div class="content-section" data-animate>
+                        <h3>コンテキストウィンドウと圧縮</h3>
+
+                        <p>
+                            Claude Codeのセッションが長くなると、<strong>コンテキストウィンドウ</strong>（Claudeが一度に認識できる情報量）の上限に近づきます。そのとき、<strong>自動圧縮</strong>が発動します。
+                        </p>
+
+                        <div class="info-box">
+                            <h4>💡 コンテキストウィンドウとは？</h4>
+                            <p style="margin-bottom: 0; color: #1d4ed8;">
+                                Claudeが「今覚えている」情報の量です。<br>
+                                Claude Opus 4.6は最大<strong>1Mトークン（約100万トークン）</strong>のコンテキストウィンドウを持ちます。<br>
+                                それでも長い作業をしていると上限に達することがあります。
+                            </p>
+                        </div>
+
+                        <h4>自動圧縮の仕組み</h4>
+                        <ul>
+                            <li>コンテキストの約95%に達すると<strong>自動的に圧縮</strong>が発動</li>
+                            <li>古いメッセージのやりとりが<strong>要約テキスト</strong>に置き換えられる</li>
+                            <li>重要な情報（ファイルパス、決定事項、コード変更）は<strong>保持</strong>される</li>
+                            <li>圧縮後も作業は途切れずに続行可能</li>
+                        </ul>
+
+                        <h4>/compact コマンド</h4>
+                        <p>手動でコンテキストを圧縮することもできます。</p>
+
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># 手動で圧縮</span><br>
+                                <span class="prompt">></span> <span style="color: #fbbf24;">/compact</span><br><br>
+                                <span class="comment"># カスタム指示を添えて圧縮</span><br>
+                                <span class="prompt">></span> <span style="color: #fbbf24;">/compact フロントエンドの変更に焦点を当てて</span>
+                            </code>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4>⚠️ 圧縮で失われる情報もある</h4>
+                            <p style="margin-bottom: 0; color: #92400e;">
+                                圧縮は要約であるため、細かいニュアンスや文脈が失われることがあります。<br>
+                                重要な決定事項や規約は <strong>CLAUDE.md</strong> に記録しておくのがベストです。<br>
+                                Hooksの <code>SessionStart</code> + <code>compact</code> マッチャーを使えば、圧縮後に自動でコンテキストを再注入することも可能です。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- セッションの活用法 -->
+                    <div class="content-section" data-animate>
+                        <h3>セッションの実践的な活用法</h3>
+
+                        <h4>1. 名前をつけてセッションを管理する</h4>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># セッションに名前をつける</span><br>
+                                <span class="prompt">></span> <span style="color: #fbbf24;">/rename ログイン機能の実装</span><br><br>
+                                <span class="comment"># --resume で名前つきセッションが表示される</span><br>
+                                <span class="command">claude -r</span>
+                            </code>
+                        </div>
+
+                        <h4>2. セッション履歴を外部ツールで閲覧する</h4>
+                        <p>JSONLファイルは標準的なテキストフォーマットなので、様々なツールで読めます。</p>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># セッションファイルを直接確認</span><br>
+                                <span class="command">ls ~/.claude/projects/-Users-you-your-project/</span><br><br>
+                                <span class="comment"># 特定のセッションの内容を見る（jqで整形）</span><br>
+                                <span class="command">cat ~/.claude/projects/-path-to-project/session-id.jsonl | jq .</span><br><br>
+                                <span class="comment"># ユーザーメッセージだけ抽出</span><br>
+                                <span class="command">cat session.jsonl | jq 'select(.type == "human") | .message.content'</span>
+                            </code>
+                        </div>
+
+                        <h4>3. /cost でコストを確認</h4>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># 現在のセッションのトークン使用量・コストを確認</span><br>
+                                <span class="prompt">></span> <span style="color: #fbbf24;">/cost</span>
+                            </code>
+                        </div>
+
+                        <h4>4. /clear でリセット</h4>
+                        <p>セッションの会話コンテキストをクリアして新鮮な状態から始められます。</p>
+                        <div class="code-block">
+                            <code>
+                                <span class="comment"># 会話コンテキストをクリア（セッション自体は残る）</span><br>
+                                <span class="prompt">></span> <span style="color: #fbbf24;">/clear</span>
+                            </code>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>💡 セッション管理のベストプラクティス</h4>
+                            <ul style="color: #1d4ed8; margin-bottom: 0;">
+                                <li>タスクごとにセッションを分ける（1セッション = 1タスク）</li>
+                                <li>重要なセッションには <code>/rename</code> で名前をつける</li>
+                                <li>長時間作業する前に <code>/compact</code> でコンテキストを整理</li>
+                                <li>セッション横断で覚えておきたいことは <strong>CLAUDE.md</strong> に記録</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- CLIオプション一覧 -->
+                    <div class="content-section" data-animate>
+                        <h3>セッション関連のCLIオプション一覧</h3>
+
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>オプション</th>
+                                    <th>短縮</th>
+                                    <th>説明</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>--resume [id]</code></td>
+                                    <td><code>-r</code></td>
+                                    <td>過去のセッションを再開（ID省略で一覧表示）</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--continue</code></td>
+                                    <td><code>-c</code></td>
+                                    <td>直前のセッションを即座に続行</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--print</code></td>
+                                    <td><code>-p</code></td>
+                                    <td>非対話モード（1回の応答のみ）</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--output-format</code></td>
+                                    <td></td>
+                                    <td>出力形式（text / json / stream-json）</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--model</code></td>
+                                    <td></td>
+                                    <td>使用するモデルを指定</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--worktree</code></td>
+                                    <td><code>-w</code></td>
+                                    <td>隔離されたgit worktreeで起動</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--verbose</code></td>
+                                    <td></td>
+                                    <td>詳細な出力を表示</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--debug</code></td>
+                                    <td></td>
+                                    <td>デバッグ情報の表示</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>セッション内スラッシュコマンド</h4>
+
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>コマンド</th>
+                                    <th>説明</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>/clear</code></td><td>会話コンテキストをクリア</td></tr>
+                                <tr><td><code>/compact [指示]</code></td><td>コンテキストを圧縮・要約</td></tr>
+                                <tr><td><code>/cost</code></td><td>トークン使用量とコストを表示</td></tr>
+                                <tr><td><code>/rename [名前]</code></td><td>セッションに名前をつける</td></tr>
+                                <tr><td><code>/memory</code></td><td>CLAUDE.mdメモリファイルを編集</td></tr>
+                                <tr><td><code>/context</code></td><td>現在のコンテキスト使用量を表示</td></tr>
+                                <tr><td><code>/model</code></td><td>使用モデルを切り替え</td></tr>
+                                <tr><td><code>/resume</code></td><td>セッション内から過去セッションを選択して切り替え</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section" data-animate>
+                        <h3>まとめ</h3>
+
+                        <div style="background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; padding: 32px; color: white; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -30px; right: -30px; font-size: 120px; opacity: 0.05;">💾</div>
+
+                            <div style="margin-bottom: 24px;">
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">💾 保存場所</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #93c5fd;">
+                                    ~/.claude/projects/ 配下にJSONL形式で保存
+                                </p>
+                            </div>
+
+                            <div style="margin-bottom: 24px;">
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">🔄 再開方法</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #93c5fd;">
+                                    -c で直前を即再開、-r で過去セッションを選択
+                                </p>
+                            </div>
+
+                            <div>
+                                <p style="color: #94a3b8; margin: 0 0 8px 0; font-size: 14px;">📦 圧縮</p>
+                                <p style="margin: 0; font-size: 18px; font-weight: 700; color: #93c5fd;">
+                                    /compact で手動圧縮、上限近くで自動圧縮
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 32px;">
+                            <p style="font-size: 28px; margin: 0;">💾📁🔄</p>
+                            <p style="font-size: 16px; color: #64748b; margin: 8px 0 0 0;">Your sessions, always saved!</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function createSparkles() {
+            const container = document.getElementById('sparkles');
+            for (let i = 0; i < 20; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle-particle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.bottom = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 6 + 's';
+                sparkle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                container.appendChild(sparkle);
+            }
+        }
+        createSparkles();
+
+        window.addEventListener('scroll', function () {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress-bar').style.width = scrolled + '%';
+        });
+
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (scrolled > 300) {
+                scrollToTopBtn.style.opacity = '1';
+                scrollToTopBtn.style.pointerEvents = 'auto';
+            } else {
+                scrollToTopBtn.style.opacity = '0';
+                scrollToTopBtn.style.pointerEvents = 'none';
+            }
+        });
+
+        document.getElementById('scroll-to-top').addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.content-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in-up').forEach(el => {
+                    el.style.opacity = '1';
+                });
+            }, 100);
+        });
+    </script>
+
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>
