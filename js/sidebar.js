@@ -2,7 +2,7 @@
 function initSidebar() {
     // 現在のパスから相対パスを計算
     const currentPath = window.location.pathname;
-    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/') || currentPath.includes('/miraichi-docker/') || currentPath.includes('/docker-intro/') || currentPath.includes('/vibe-coding/');
+    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/') || currentPath.includes('/miraichi-docker/') || currentPath.includes('/docker-intro/') || currentPath.includes('/vibe-coding/') || currentPath.includes('/udemy-special/');
     const rootPath = isInSubfolder ? '../' : './';
 
     // サイドバーHTML
@@ -119,6 +119,20 @@ function initSidebar() {
                     <div class="flex flex-col">
                         <span>バイブコーディング入門</span>
                         <span class="text-xs text-gray-400 mt-0.5">2026年2月28日</span>
+                    </div>
+                </a>
+                <div class="pt-4 pb-2">
+                    <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">Udemy特別講座</p>
+                </div>
+                <a href="${rootPath}udemy-special/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/udemy-special/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>生成AI時代のフルスタックエンジニア</span>
+                        <span class="text-xs text-gray-400 mt-0.5">動画構成案</span>
                     </div>
                 </a>
             </nav>
