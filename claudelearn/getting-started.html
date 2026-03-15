@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基本操作ガイド - Claude Code メカニズム</title>
+    <meta name="description" content="Claude Codeの基本操作を網羅的に解説。起動方法、スラッシュコマンド、キーボードショートカット、セッション管理まで。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#e8734a',500:'#e36437',600:'#c2410c',700:'#9a3412',800:'#7c2d12',900:'#431407' },
+                    },
+                    fontFamily: { sans:['Noto Sans JP','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                    animation: { 'pulse-slow':'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%); background-attachment: fixed; }
+        .content-section { margin-bottom: 32px; }
+        .content-section h3 { color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease; background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52; }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .visual-diagram { background: rgba(26, 26, 46, 0.7); border: 1px solid #3a3a52; border-radius: 12px; padding: 28px; margin: 24px 0; }
+        .command-box { background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline { background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+        .info-box, .warning-box, .success-box, .error-box { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+        .loop-step { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 18px; }
+        .loop-step-number { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #3a3a52; color: white; font-weight: 800; font-size: 14px; margin-right: 12px; flex-shrink: 0; }
+        .loop-arrow { display: flex; align-items: center; justify-content: center; color: #3a3a52; font-size: 22px; padding: 4px 0; }
+        .component-card { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px; }
+        .code-block { background: rgba(0, 0, 0, 0.35); border: 1px solid #3a3a52; border-radius: 8px; padding: 18px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto; }
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+        .code-block .highlight { color: #e8734a; font-weight: 600; }
+        header h1 span { background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; -webkit-text-fill-color: unset !important; color: #e8734a !important; }
+        .ref-link { display: inline-flex; align-items: center; gap: 4px; color: #a0a0b8; font-size: 12px; text-decoration: none; border: 1px solid #3a3a52; border-radius: 4px; padding: 2px 8px; transition: all 0.2s; margin-left: 8px; }
+        .ref-link:hover { color: #e8734a; border-color: rgba(232, 115, 74, 0.4); }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- セクション1: 起動と基本 -->
+                    <div class="content-section">
+                        <h3>起動と基本
+                            <span style="display: flex; gap: 4px; align-items: center;">
+                                <a href="https://code.claude.com/docs/ja/overview" target="_blank" class="ref-link">Overview</a>
+                                <a href="https://code.claude.com/docs/ja/cli-reference" target="_blank" class="ref-link">CLI Docs</a>
+                            </span>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeを使い始めるために必要なインストール方法、起動コマンド、認証の仕組みを解説します。
+                            </p>
+
+                            <h4>インストール方法</h4>
+                            <p class="text-gray-300 mb-4">環境に合わせて、以下のいずれかの方法でインストールできます。</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">ネイティブインストール（推奨）</div>
+                                    <p class="text-gray-400 text-sm mb-2">公式インストーラーを使用する最も簡単な方法です。自動アップデートに対応しています。</p>
+                                    <div class="command-box" style="margin: 8px 0 0;">
+                                        <div class="command">curl -fsSL https://claude.ai/install.sh | sh</div>
+                                    </div>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">Homebrew（macOS）</div>
+                                    <p class="text-gray-400 text-sm mb-2">macOSのパッケージマネージャーHomebrewを使用する方法です。</p>
+                                    <div class="command-box" style="margin: 8px 0 0;">
+                                        <div class="command">brew install claude-code</div>
+                                    </div>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">WinGet（Windows）</div>
+                                    <p class="text-gray-400 text-sm mb-2">Windows用のパッケージマネージャーWinGetで導入できます。</p>
+                                    <div class="command-box" style="margin: 8px 0 0;">
+                                        <div class="command">winget install Anthropic.ClaudeCode</div>
+                                    </div>
+                                </div>
+                                <div class="component-card" style="border-color: rgba(239, 68, 68, 0.3); opacity: 0.7;">
+                                    <div class="font-bold text-white mb-2">npm（非推奨）</div>
+                                    <p class="text-gray-400 text-sm mb-2">npmでのインストールは非推奨です。ネイティブインストーラーはより高速で、依存関係が不要で、自動更新に対応しています。</p>
+                                    <div class="command-box" style="margin: 8px 0 0;">
+                                        <div class="command" style="text-decoration: line-through; opacity: 0.5;">npm install -g @anthropic-ai/claude-code</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>起動方法</h4>
+                            <p class="text-gray-300 mb-4">Claude Codeには3つの主要な起動パターンがあります。用途に応じて使い分けましょう。</p>
+
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">1</span>
+                                        <div>
+                                            <div class="font-bold text-white">インタラクティブモード</div>
+                                            <div class="text-gray-400 mt-1 text-sm">対話的にClaude Codeを使用する標準的な起動方法。ターミナルでセッションが開始されます。</div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command">claude</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">2</span>
+                                        <div>
+                                            <div class="font-bold text-white">初期プロンプト付き起動</div>
+                                            <div class="text-gray-400 mt-1 text-sm">起動と同時にプロンプトを送信します。セッションは維持されるため、続けて対話できます。</div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command">claude "このプロジェクトの構成を教えて"</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">3</span>
+                                        <div>
+                                            <div class="font-bold text-white">パイプモード（非対話）</div>
+                                            <div class="text-gray-400 mt-1 text-sm"><code class="code-inline">-p</code>（print）フラグで起動。対話セッションを開かず、結果をstdoutに出力して即座に終了します。シェルスクリプトの中でClaudeを呼んだり、他のコマンドとパイプで繋げるときに使います。</div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command">claude -p "package.jsonの依存関係を一覧にして"</div>
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command">cat error.log | claude -p "このエラーの原因を要約して"</div>
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command">claude -p "mainとの差分をレビューして" --output-format json > review.json</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>セッションの継続・再開</h4>
+                            <p class="text-gray-300 mb-4">前回のセッションを引き継いで作業を続けることができます。</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">claude -c</code>（continue）</div>
+                                    <p class="text-gray-400 text-sm">直前のセッションを自動的に継続します。作業を中断して再開したい場合に便利です。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">claude -r</code>（resume）</div>
+                                    <p class="text-gray-400 text-sm">過去のセッション一覧からピッカーで選択して再開します。複数のセッションを管理している場合に使います。</p>
+                                </div>
+                            </div>
+
+                            <h4>アップデートと認証</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">claude update</code></div>
+                                    <p class="text-gray-400 text-sm">Claude Codeを最新バージョンに更新します。新機能やバグ修正が頻繁にリリースされるため、定期的な更新を推奨します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">claude auth login</code></div>
+                                    <p class="text-gray-400 text-sm">Anthropicアカウントまたはサードパーティプロバイダーでログインします。初回起動時に自動で案内されます。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">claude auth logout</code> / <code class="code-inline">claude auth status</code></div>
+                                    <p class="text-gray-400 text-sm">ログアウト、または現在の認証状態を確認します。複数アカウントの切り替え時に利用します。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2: インタラクティブモードの操作 -->
+                    <div class="content-section">
+                        <h3>インタラクティブモードの操作
+                            <a href="https://code.claude.com/docs/ja/interactive-mode" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                インタラクティブモードではキーボードショートカットや特殊入力で効率的に操作できます。全ての操作を覚える必要はありませんが、主要なものを知っておくと生産性が大幅に向上します。
+                            </p>
+
+                            <h4>一般的なコントロール</h4>
+                            <p class="text-gray-300 mb-4">セッション全体の制御に使うショートカットです。</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+C</code></div>
+                                    <p class="text-gray-400 text-sm">現在のレスポンス生成を中断します。長い応答を止めたい場合や、方向性を変えたい場合に使います。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+D</code></div>
+                                    <p class="text-gray-400 text-sm">セッションを終了してターミナルに戻ります。<code class="code-inline">/exit</code> と同じ動作です。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+R</code></div>
+                                    <p class="text-gray-400 text-sm">プロンプト履歴を検索します。過去に入力したコマンドを再利用できます。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+V</code></div>
+                                    <p class="text-gray-400 text-sm">クリップボードから画像を貼り付けます。スクリーンショットをそのままClaude Codeに渡せます。</p>
+                                </div>
+                            </div>
+
+                            <h4>テキスト編集</h4>
+                            <div class="info-box">
+                                <p class="text-gray-300">Claude Codeの入力欄では、普段のターミナルと同じreadlineキーバインドがそのまま使えます。特別に覚える必要はありません。</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+A</code></div>
+                                    <p class="text-gray-400 text-sm">カーソルを行頭に移動します。長いプロンプトの先頭に戻りたいときに。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+E</code></div>
+                                    <p class="text-gray-400 text-sm">カーソルを行末に移動します。末尾に追記したいときに。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+W</code></div>
+                                    <p class="text-gray-400 text-sm">カーソルの手前の1単語を削除します。書き直しが速くなります。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+U</code></div>
+                                    <p class="text-gray-400 text-sm">カーソルから行頭までを一括削除します。入力をやり直したいときに。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+K</code></div>
+                                    <p class="text-gray-400 text-sm">カーソルから行末までを一括削除します。後半だけ書き直したいときに。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+H</code></div>
+                                    <p class="text-gray-400 text-sm">カーソルの手前の1文字を削除します。Backspaceと同じ動作です。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+F</code></div>
+                                    <p class="text-gray-400 text-sm">カーソルを1文字右に移動します。右矢印キーと同じです。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+B</code></div>
+                                    <p class="text-gray-400 text-sm">カーソルを1文字左に移動します。左矢印キーと同じです。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+P</code> / <code class="code-inline">Ctrl+N</code></div>
+                                    <p class="text-gray-400 text-sm">入力履歴を前後に移動します。上下矢印キーと同じです。過去のプロンプトを再利用できます。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+T</code></div>
+                                    <p class="text-gray-400 text-sm">カーソル前後の2文字を入れ替えます。タイプミスの修正に便利です。</p>
+                                </div>
+                            </div>
+
+                            <h4>複数行入力</h4>
+                            <p class="text-gray-300 mb-4">プロンプトに改行を含めたい場合のキー操作です。環境によって使えるキーが異なります。</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">\</code> + Enter</div>
+                                    <p class="text-gray-400 text-sm">バックスラッシュの後にEnterで改行を挿入します。最も確実な方法です。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Option+Enter</code>（macOS）</div>
+                                    <p class="text-gray-400 text-sm">macOS環境での改行入力です。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Shift+Enter</code></div>
+                                    <p class="text-gray-400 text-sm">一部のターミナルで改行として機能します。</p>
+                                </div>
+                            </div>
+
+                            <h4>クイックコマンド</h4>
+                            <p class="text-gray-300 mb-4">特殊な接頭辞を使って素早く操作できます。</p>
+
+                            <div class="grid grid-cols-1 gap-3">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">/</span>
+                                        <div>
+                                            <div class="font-bold text-white">スラッシュコマンド</div>
+                                            <div class="text-gray-400 mt-1 text-sm"><code class="code-inline">/</code> で始めるとコマンド一覧が表示されます。設定変更、セッション管理、各種操作に対応します。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">!</span>
+                                        <div>
+                                            <div class="font-bold text-white">Bashモード</div>
+                                            <div class="text-gray-400 mt-1 text-sm"><code class="code-inline">!</code> で始めるとシェルコマンドを直接実行します。例：<code class="code-inline">! git status</code> でgitの状態を確認。Claudeを介さず即座に実行されます。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">@</span>
+                                        <div>
+                                            <div class="font-bold text-white">ファイルメンション</div>
+                                            <div class="text-gray-400 mt-1 text-sm"><code class="code-inline">@</code> でファイルやディレクトリを参照します。例：<code class="code-inline">@src/index.ts を修正して</code>。タブ補完も使えます。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>その他の重要なショートカット</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Shift+Tab</code></div>
+                                    <p class="text-gray-400 text-sm">パーミッションモードを順番に切り替えます（default → acceptEdits → plan → dontAsk）。現在のモードがステータスバーに表示されます。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション3: スラッシュコマンド完全一覧 -->
+                    <div class="content-section">
+                        <h3>スラッシュコマンド完全一覧
+                            <span style="display: flex; gap: 4px; align-items: center;">
+                                <a href="https://code.claude.com/docs/ja/commands" target="_blank" class="ref-link">Commands</a>
+                                <a href="https://code.claude.com/docs/ja/skills" target="_blank" class="ref-link">Skills</a>
+                            </span>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeには多数のスラッシュコマンドが用意されています。カテゴリ別に整理して紹介します。<code class="code-inline">/</code> を入力するとオートコンプリートが表示されます。
+                            </p>
+
+                            <!-- セッション管理 -->
+                            <h4>セッション管理</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/clear</code></div>
+                                    <p class="text-gray-400 text-sm">会話履歴を完全にクリアして新しいセッションを開始します。エイリアス：<code class="code-inline">/reset</code>、<code class="code-inline">/new</code></p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/resume</code></div>
+                                    <p class="text-gray-400 text-sm">過去のセッションをピッカーから選んで再開します。エイリアス：<code class="code-inline">/continue</code></p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/fork</code></div>
+                                    <p class="text-gray-400 text-sm">現在のセッションを分岐（フォーク）して新しいセッションを作成します。現在の会話を維持しつつ別の方向性を試せます。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/rename</code></div>
+                                    <p class="text-gray-400 text-sm">現在のセッションに名前を付けます。後からセッションを見つけやすくなります。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/compact</code></div>
+                                    <p class="text-gray-400 text-sm">会話を要約して短縮します。コンテキストウィンドウの消費を抑えたい場合に使います。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/exit</code></div>
+                                    <p class="text-gray-400 text-sm">セッションを終了します。エイリアス：<code class="code-inline">/quit</code></p>
+                                </div>
+                            </div>
+
+                            <!-- 情報表示 -->
+                            <h4>情報表示</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/help</code></div>
+                                    <p class="text-gray-400 text-sm">コマンドのヘルプを表示します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/cost</code></div>
+                                    <p class="text-gray-400 text-sm">現在のセッションのトークン使用量とコストを表示します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/usage</code></div>
+                                    <p class="text-gray-400 text-sm">全体の使用状況やクォータ残量を確認します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/status</code></div>
+                                    <p class="text-gray-400 text-sm">現在のセッション状態（モデル、モード、ツールなど）を表示します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/context</code></div>
+                                    <p class="text-gray-400 text-sm">現在のコンテキストウィンドウの使用状況を可視化します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/diff</code></div>
+                                    <p class="text-gray-400 text-sm">セッション中に行われた全てのファイル変更をdiff形式で表示します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/export</code></div>
+                                    <p class="text-gray-400 text-sm">会話をMarkdownファイルにエクスポートします。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/copy</code></div>
+                                    <p class="text-gray-400 text-sm">直前のレスポンスをクリップボードにコピーします。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/stats</code></div>
+                                    <p class="text-gray-400 text-sm">セッションの統計情報を表示します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/release-notes</code></div>
+                                    <p class="text-gray-400 text-sm">最新のリリースノートを表示します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/insights</code></div>
+                                    <p class="text-gray-400 text-sm">使用パターンに関するインサイトを表示します。</p>
+                                </div>
+                            </div>
+
+                            <!-- 設定・環境 -->
+                            <h4>設定・環境</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/config</code></div>
+                                    <p class="text-gray-400 text-sm">設定ファイルを開きます。エイリアス：<code class="code-inline">/settings</code></p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/model</code></div>
+                                    <p class="text-gray-400 text-sm">使用モデルを変更します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/effort</code></div>
+                                    <p class="text-gray-400 text-sm">推論の努力レベルを設定します（low / medium / high / max）。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/fast</code></div>
+                                    <p class="text-gray-400 text-sm">高速モードに切り替えます。レスポンス速度を優先します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/permissions</code></div>
+                                    <p class="text-gray-400 text-sm">パーミッション設定を表示・変更します。エイリアス：<code class="code-inline">/allowed-tools</code></p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/memory</code></div>
+                                    <p class="text-gray-400 text-sm">CLAUDE.mdメモリファイルを編集します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/hooks</code></div>
+                                    <p class="text-gray-400 text-sm">フック設定を管理します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/mcp</code></div>
+                                    <p class="text-gray-400 text-sm">MCPサーバーの設定を管理します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/theme</code></div>
+                                    <p class="text-gray-400 text-sm">テーマを切り替えます。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/color</code></div>
+                                    <p class="text-gray-400 text-sm">カラー設定を変更します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/terminal-setup</code></div>
+                                    <p class="text-gray-400 text-sm">ターミナルの初期設定を行います。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/keybindings</code></div>
+                                    <p class="text-gray-400 text-sm">キーバインドの設定を変更します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/statusline</code></div>
+                                    <p class="text-gray-400 text-sm">ステータスラインの表示設定を変更します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/sandbox</code></div>
+                                    <p class="text-gray-400 text-sm">サンドボックスモードの設定を変更します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/ide</code></div>
+                                    <p class="text-gray-400 text-sm">IDE連携の設定を行います。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/plugin</code></div>
+                                    <p class="text-gray-400 text-sm">プラグインの管理を行います。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/reload-plugins</code></div>
+                                    <p class="text-gray-400 text-sm">プラグインをリロードします。</p>
+                                </div>
+                            </div>
+
+                            <!-- アクション -->
+                            <h4>アクション</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/init</code></div>
+                                    <p class="text-gray-400 text-sm">プロジェクトのCLAUDE.mdを初期化します。プロジェクトの構造を自動分析して初期設定を生成します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/plan</code></div>
+                                    <p class="text-gray-400 text-sm">Planモードに切り替えます。読み取り専用の分析モードで実装計画を立てます。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/agents</code></div>
+                                    <p class="text-gray-400 text-sm">サブエージェントの管理・確認を行います。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/skills</code></div>
+                                    <p class="text-gray-400 text-sm">利用可能なスキルの一覧を表示します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/tasks</code></div>
+                                    <p class="text-gray-400 text-sm">バックグラウンドタスクの管理を行います。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/pr-comments</code></div>
+                                    <p class="text-gray-400 text-sm">PRのコメントを取得・対応します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/security-review</code></div>
+                                    <p class="text-gray-400 text-sm">コードのセキュリティレビューを実行します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/doctor</code></div>
+                                    <p class="text-gray-400 text-sm">Claude Codeの環境を診断し、問題を検出します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/feedback</code></div>
+                                    <p class="text-gray-400 text-sm">フィードバックやバグ報告を送信します。エイリアス：<code class="code-inline">/bug</code></p>
+                                </div>
+                            </div>
+
+                            <!-- 外部連携 -->
+                            <h4>外部連携</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/desktop</code></div>
+                                    <p class="text-gray-400 text-sm">デスクトップアプリとの連携を設定します。エイリアス：<code class="code-inline">/app</code></p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/mobile</code></div>
+                                    <p class="text-gray-400 text-sm">モバイルアプリとの連携を設定します。エイリアス：<code class="code-inline">/ios</code>、<code class="code-inline">/android</code></p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/remote-control</code></div>
+                                    <p class="text-gray-400 text-sm">リモートコントロール機能を設定します。エイリアス：<code class="code-inline">/rc</code></p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/remote-env</code></div>
+                                    <p class="text-gray-400 text-sm">リモート環境の設定を行います。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/install-github-app</code></div>
+                                    <p class="text-gray-400 text-sm">GitHub Appをインストールします。CI/CDやPR連携に利用します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/install-slack-app</code></div>
+                                    <p class="text-gray-400 text-sm">Slack Appをインストールします。通知やSlackからの操作に利用します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/chrome</code></div>
+                                    <p class="text-gray-400 text-sm">Chrome拡張機能との連携を設定します。</p>
+                                </div>
+                            </div>
+
+                            <!-- 認証 -->
+                            <h4>認証</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/login</code></div>
+                                    <p class="text-gray-400 text-sm">アカウントにログインします。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/logout</code></div>
+                                    <p class="text-gray-400 text-sm">ログアウトします。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/privacy-settings</code></div>
+                                    <p class="text-gray-400 text-sm">プライバシー設定を変更します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/upgrade</code></div>
+                                    <p class="text-gray-400 text-sm">プランのアップグレードを行います。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/extra-usage</code></div>
+                                    <p class="text-gray-400 text-sm">追加使用量の設定を行います。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/passes</code></div>
+                                    <p class="text-gray-400 text-sm">パスの管理を行います。</p>
+                                </div>
+                            </div>
+
+                            <!-- スキル（バンドル済み） -->
+                            <h4>スキル（バンドル済み）</h4>
+                            <p class="text-gray-300 mb-4">Claude Codeに組み込まれた特殊なスキルコマンドです。特定の作業パターンを効率化します。</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/simplify</code></div>
+                                    <p class="text-gray-400 text-sm">コードを簡潔にリファクタリングするスキルです。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/batch</code></div>
+                                    <p class="text-gray-400 text-sm">複数のファイルに対して一括操作を行うスキルです。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/debug</code></div>
+                                    <p class="text-gray-400 text-sm">デバッグを支援するスキルです。エラーの原因究明を効率化します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/loop</code></div>
+                                    <p class="text-gray-400 text-sm">反復的なタスクを自動化するスキルです。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/claude-api</code></div>
+                                    <p class="text-gray-400 text-sm">Claude APIを直接呼び出すスキルです。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/btw</code></div>
+                                    <p class="text-gray-400 text-sm">メインの作業を中断せずにサイドクエスチョンを投げるスキルです。「ところで...」的な質問に最適です。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション4: セッション管理 -->
+                    <div class="content-section">
+                        <h3>セッション管理
+                            <span style="display: flex; gap: 4px; align-items: center;">
+                                <a href="https://code.claude.com/docs/ja/interactive-mode" target="_blank" class="ref-link">Interactive</a>
+                                <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank" class="ref-link">Workflows</a>
+                            </span>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeのセッション管理機能を使いこなすことで、作業の継続性を保ち、効率的に開発を進められます。
+                            </p>
+
+                            <h4>セッションの命名</h4>
+                            <p class="text-gray-300 mb-4">セッションに名前を付けることで、後から簡単に見つけて再開できます。</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1">起動時に命名</div>
+                                    <div class="command-box" style="margin: 8px 0 0;">
+                                        <div class="command">claude -n "認証機能の実装"</div>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mt-2">起動と同時にセッション名を設定します。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1">セッション中に命名</div>
+                                    <div class="command-box" style="margin: 8px 0 0;">
+                                        <div class="command" style="display: block;"><span style="color: #a0a0b8;">$</span> /rename バグ修正-issue-42</div>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mt-2">セッション中に名前を付けたり変更したりします。</p>
+                                </div>
+                            </div>
+
+                            <h4>セッションの再開方法</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">1</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">claude --continue</code>（<code class="code-inline">claude -c</code>）</div>
+                                            <div class="text-gray-400 mt-1 text-sm">直前のセッションを自動的に継続します。最も手軽な方法です。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">2</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">claude --resume</code>（<code class="code-inline">claude -r</code>）</div>
+                                            <div class="text-gray-400 mt-1 text-sm">セッションピッカーが表示され、過去のセッション一覧から選択できます。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">3</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">claude --from-pr 123</code></div>
+                                            <div class="text-gray-400 mt-1 text-sm">特定のPR番号に関連するセッションを再開します。PR駆動の開発フローで便利です。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>セッションピッカーのショートカット</h4>
+                            <p class="text-gray-300 mb-4"><code class="code-inline">claude -r</code> で表示されるセッションピッカーでは、以下のキーで操作できます。</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Up/Down</code></div>
+                                    <p class="text-gray-400 text-sm">セッション選択の移動</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Enter</code></div>
+                                    <p class="text-gray-400 text-sm">選択したセッションを再開</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">P</code></div>
+                                    <p class="text-gray-400 text-sm">セッションのプレビュー</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">R</code></div>
+                                    <p class="text-gray-400 text-sm">セッション名の変更</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/</code></div>
+                                    <p class="text-gray-400 text-sm">セッション名を検索</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">A</code></div>
+                                    <p class="text-gray-400 text-sm">全プロジェクトのセッション表示</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">B</code></div>
+                                    <p class="text-gray-400 text-sm">ブランチでフィルタ</p>
+                                </div>
+                            </div>
+
+                            <h4>会話の管理コマンド</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2"><code class="code-inline">/clear</code> vs <code class="code-inline">/compact</code> vs <code class="code-inline">/rewind</code></div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div class="info-box" style="margin: 0;">
+                                            <h4 style="font-size: 14px;"><code class="code-inline">/clear</code></h4>
+                                            <p class="text-gray-400 text-sm">会話履歴を完全に消去して新規セッションを開始。コンテキストをリセットしたい場合に使用します。</p>
+                                        </div>
+                                        <div class="info-box" style="margin: 0;">
+                                            <h4 style="font-size: 14px;"><code class="code-inline">/compact</code></h4>
+                                            <p class="text-gray-400 text-sm">会話をAIが要約して短縮。コンテキストウィンドウを節約しつつ、文脈を維持したい場合に使用します。</p>
+                                        </div>
+                                        <div class="info-box" style="margin: 0;">
+                                            <h4 style="font-size: 14px;"><code class="code-inline">/rewind</code></h4>
+                                            <p class="text-gray-400 text-sm">直前のやりとりを取り消します。意図しない変更を元に戻したい場合に使用します。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4><code class="code-inline">/btw</code> でサイドクエスチョン</h4>
+                            <div class="info-box">
+                                <p class="text-gray-300"><code class="code-inline">/btw</code> コマンドを使うと、現在の作業コンテキストを保ったまま「ちょっとした質問」を挟めます。
+                                    メインのタスクの流れを中断せずに、関連する疑問を解決できます。例えば、実装中に「ところでこの関数のベストプラクティスは？」といった質問をする場合に最適です。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション5: ファイル参照と入力 -->
+                    <div class="content-section">
+                        <h3>ファイル参照と入力
+                            <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeにコンテキストを効率的に渡す方法を解説します。適切なコンテキストを与えることが、質の高い出力を得る鍵です。
+                            </p>
+
+                            <h4>@メンション（ファイル・ディレクトリ参照）</h4>
+                            <p class="text-gray-300 mb-4"><code class="code-inline">@</code> を入力するとファイルやディレクトリを参照できます。タブ補完にも対応しています。</p>
+
+                            <div class="grid grid-cols-1 gap-3">
+                                <div class="command-box">
+                                    <div class="command">@src/index.ts のエラーハンドリングを改善して</div>
+                                    <div class="output">特定のファイルを指定してタスクを依頼</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">@src/components/ 配下のコンポーネントを分析して</div>
+                                    <div class="output">ディレクトリを指定して複数ファイルを対象にする</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h4>MCPリソースの参照</h4>
+                                <p class="text-gray-300"><code class="code-inline">@</code> はMCPサーバーが提供するリソースも参照できます。例えば、MCPで接続したデータベースやAPIのスキーマ情報などを直接参照可能です。</p>
+                            </div>
+
+                            <h4>画像入力</h4>
+                            <p class="text-gray-300 mb-4">Claude Codeはマルチモーダル対応で、画像を直接入力できます。</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1">ドラッグ&ドロップ</div>
+                                    <p class="text-gray-400 text-sm">ターミナルに画像ファイルをドラッグ&ドロップします。スクリーンショットやUIモックアップの分析に便利です。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">Ctrl+V</code> でペースト</div>
+                                    <p class="text-gray-400 text-sm">クリップボードにコピーした画像を貼り付けます。スクリーンショットをそのまま渡せます。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1">ファイルパス指定</div>
+                                    <p class="text-gray-400 text-sm">画像ファイルのパスをプロンプトに含めます。<code class="code-inline">@screenshot.png</code> のように指定します。</p>
+                                </div>
+                            </div>
+
+                            <h4>Bashモード（!プレフィックス）</h4>
+                            <p class="text-gray-300 mb-4"><code class="code-inline">!</code> で始めると、Claudeを経由せずにシェルコマンドを直接実行します。</p>
+
+                            <div class="command-box">
+                                <div class="command" style="display: block;"><span style="color: #a0a0b8;">!</span> git log --oneline -5</div>
+                                <div class="output">直近5件のコミットログが即座に表示される</div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>使い分けのポイント</h4>
+                                <p class="text-gray-300">単純なコマンド実行は <code class="code-inline">!</code> で直接実行した方が高速です。Claudeに依頼すると、ツール呼び出しのオーバーヘッドが発生します。一方、「このログを分析して問題を見つけて」のように判断が必要な場合はClaudeに任せましょう。</p>
+                            </div>
+
+                            <h4>パイプ入力</h4>
+                            <p class="text-gray-300 mb-4">標準入力からデータをClaude Codeに渡すことができます。他のコマンドの出力をそのまま分析に使えます。</p>
+
+                            <div class="command-box">
+                                <div class="command">cat error.log | claude -p "このエラーの原因を特定して"</div>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">git diff HEAD~3 | claude -p "この変更のレビューをして"</div>
+                            </div>
+
+                            <h4>タブ補完とプロンプトサジェスチョン</h4>
+                            <div class="info-box">
+                                <p class="text-gray-300">入力中にTabキーを押すと、ファイルパスやコマンドの補完候補が表示されます。また、セッション開始時にはプロジェクトに基づいたプロンプト候補が提案されることがあります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション6: パーミッションモード -->
+                    <div class="content-section">
+                        <h3>パーミッションモード
+                            <a href="https://code.claude.com/docs/ja/permissions" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeはあなたのローカルマシンでツールを実行します。パーミッションシステムにより、どの操作に承認が必要かを制御できます。
+                            </p>
+
+                            <h4>パーミッションの基本</h4>
+                            <p class="text-gray-300 mb-4">操作は大きく3つのカテゴリに分かれ、それぞれ承認の要否が異なります。</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2" style="color: #4ade80;">読み取り専用</div>
+                                    <p class="text-gray-400 text-sm">ファイルの読み取り、Grep、Glob検索など。承認不要で自動実行されます。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2" style="color: #facc15;">Bash実行</div>
+                                    <p class="text-gray-400 text-sm">シェルコマンドの実行。デフォルトでは毎回承認が必要です。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2" style="color: #f87171;">ファイル変更</div>
+                                    <p class="text-gray-400 text-sm">ファイルの編集・作成・削除。デフォルトでは毎回承認が必要です。</p>
+                                </div>
+                            </div>
+
+                            <h4>パーミッションモード一覧</h4>
+                            <p class="text-gray-300 mb-4"><code class="code-inline">Shift+Tab</code> で順番に切り替えられます。</p>
+
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">D</span>
+                                        <div>
+                                            <div class="font-bold text-white">default</div>
+                                            <div class="text-gray-400 mt-1 text-sm">標準モード。読み取りは自動、Bash実行とファイル変更は都度承認が必要です。最も安全なモードで、初心者に推奨されます。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">E</span>
+                                        <div>
+                                            <div class="font-bold text-white">acceptEdits</div>
+                                            <div class="text-gray-400 mt-1 text-sm">ファイル編集を自動承認します。Bash実行のみ承認が必要。コード修正を連続で行う作業に適しています。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">P</span>
+                                        <div>
+                                            <div class="font-bold text-white">plan</div>
+                                            <div class="text-gray-400 mt-1 text-sm">読み取り専用モード。ファイルの変更やコマンド実行は一切行いません。コードの分析や実装計画の立案に最適です。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">A</span>
+                                        <div>
+                                            <div class="font-bold text-white">dontAsk</div>
+                                            <div class="text-gray-400 mt-1 text-sm">全ての操作を自動承認します。承認プロンプトが一切表示されません。信頼できるタスクを効率的に実行する場合に使いますが、注意が必要です。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">!</span>
+                                        <div>
+                                            <div class="font-bold text-white">bypassPermissions</div>
+                                            <div class="text-gray-400 mt-1 text-sm">サンドボックスも含む全ての制限を無効化します。CLIフラグ <code class="code-inline">--dangerously-skip-permissions</code> で有効にします。CI/CD環境など特殊な用途向けです。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4><code class="code-inline">/permissions</code> コマンド</h4>
+                            <div class="info-box">
+                                <p class="text-gray-300"><code class="code-inline">/permissions</code> を実行すると、現在許可されているツールの一覧と設定を確認できます。ここからルールの追加・削除も行えます。</p>
+                            </div>
+
+                            <h4>パーミッションルールの構文</h4>
+                            <p class="text-gray-300 mb-4">設定ファイルでツールごとに詳細なルールを定義できます。</p>
+
+                            <div class="code-block">
+                                <div class="comment">// settings.json のパーミッション設定例</div>
+                                <div class="mt-2">{</div>
+                                <div class="ml-4"><span class="keyword">"permissions"</span>: {</div>
+                                <div class="ml-8"><span class="keyword">"allow"</span>: [</div>
+                                <div class="ml-12"><span class="string">"Read"</span>,                          <span class="comment">// Readツール全体を許可</span></div>
+                                <div class="ml-12"><span class="string">"Bash(git *)"</span>,                    <span class="comment">// gitコマンドのみ許可</span></div>
+                                <div class="ml-12"><span class="string">"Bash(npm test)"</span>,                 <span class="comment">// 特定コマンドを許可</span></div>
+                                <div class="ml-12"><span class="string">"Edit(src/**)"</span>,                   <span class="comment">// srcディレクトリ内の編集を許可</span></div>
+                                <div class="ml-12"><span class="string">"WebFetch(https://docs.example.com/*)"</span>, <span class="comment">// 特定ドメインのみ許可</span></div>
+                                <div class="ml-12"><span class="string">"mcp__serverName__toolName"</span>       <span class="comment">// MCP特定ツールを許可</span></div>
+                                <div class="ml-8">],</div>
+                                <div class="ml-8"><span class="keyword">"deny"</span>: [</div>
+                                <div class="ml-12"><span class="string">"Bash(rm -rf *)"</span>                  <span class="comment">// 危険なコマンドを拒否</span></div>
+                                <div class="ml-8">]</div>
+                                <div class="ml-4">}</div>
+                                <div>}</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>ルール記法のパターン</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li><code class="code-inline">Tool</code> -- ツール全体を対象</li>
+                                    <li><code class="code-inline">Tool(specifier)</code> -- 特定の引数パターンを対象</li>
+                                    <li><code class="code-inline">*</code> -- ワイルドカード（任意の文字列にマッチ）</li>
+                                    <li><code class="code-inline">Agent</code> -- サブエージェントの起動を対象</li>
+                                </ul>
+                            </div>
+
+                            <h4>設定の優先順位</h4>
+                            <p class="text-gray-300 mb-4">パーミッション設定は複数の場所で定義でき、以下の優先順位で適用されます（上が最優先）。</p>
+
+                            <div class="visual-diagram">
+                                <div style="max-width: 400px; margin: 0 auto;">
+                                    <div class="loop-step" style="border-color: #e8734a;">
+                                        <div style="text-align: center;">
+                                            <div class="font-bold text-white">Managed（組織管理）</div>
+                                            <div class="text-gray-500 text-xs">最も優先度が高い</div>
+                                        </div>
+                                    </div>
+                                    <div class="loop-arrow">&#8595;</div>
+                                    <div class="loop-step">
+                                        <div style="text-align: center;">
+                                            <div class="font-bold text-white">CLI フラグ</div>
+                                            <div class="text-gray-500 text-xs">起動時の引数</div>
+                                        </div>
+                                    </div>
+                                    <div class="loop-arrow">&#8595;</div>
+                                    <div class="loop-step">
+                                        <div style="text-align: center;">
+                                            <div class="font-bold text-white">Local（.claude/settings.local.json）</div>
+                                            <div class="text-gray-500 text-xs">gitignoreされる個人設定</div>
+                                        </div>
+                                    </div>
+                                    <div class="loop-arrow">&#8595;</div>
+                                    <div class="loop-step">
+                                        <div style="text-align: center;">
+                                            <div class="font-bold text-white">Project（.claude/settings.json）</div>
+                                            <div class="text-gray-500 text-xs">リポジトリにコミットされるチーム共有設定</div>
+                                        </div>
+                                    </div>
+                                    <div class="loop-arrow">&#8595;</div>
+                                    <div class="loop-step">
+                                        <div style="text-align: center;">
+                                            <div class="font-bold text-white">User（~/.claude/settings.json）</div>
+                                            <div class="text-gray-500 text-xs">全プロジェクト共通の個人設定</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション7: Plan Mode -->
+                    <div class="content-section">
+                        <h3>Plan Mode
+                            <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Plan Modeは読み取り専用の分析モードです。コードを変更せずに調査・分析・計画立案を行います。実装前に「まず考える」フェーズを設けることで、手戻りを大幅に減らせます。
+                            </p>
+
+                            <h4>Plan Modeとは</h4>
+                            <div class="info-box">
+                                <p class="text-gray-300">Plan Modeでは、Claude Codeはファイルの読み取りとコード検索のみ行い、一切のファイル変更やコマンド実行を行いません。コードベースを安全に探索し、実装計画を立てるためのモードです。</p>
+                            </div>
+
+                            <h4>いつ使うべきか</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">マルチステップの実装</div>
+                                    <p class="text-gray-400 text-sm">大きな機能追加やリファクタリングの前に、影響範囲を調査し、実装ステップを整理する場合。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">コード探索</div>
+                                    <p class="text-gray-400 text-sm">新しいコードベースを理解したい場合。アーキテクチャや依存関係を把握できます。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">インタラクティブな設計</div>
+                                    <p class="text-gray-400 text-sm">Claudeと対話しながら設計を練る場合。安全に議論を進められます。</p>
+                                </div>
+                            </div>
+
+                            <h4>有効化の方法</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">1</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">Shift+Tab</code> で切り替え</div>
+                                            <div class="text-gray-400 mt-1 text-sm">セッション中にパーミッションモードを順番に切り替えて「plan」を選択します。最も手軽な方法です。</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">2</span>
+                                        <div>
+                                            <div class="font-bold text-white">CLIフラグで指定</div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command">claude --permission-mode plan</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">3</span>
+                                        <div>
+                                            <div class="font-bold text-white">パイプモードで使用</div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command">claude -p --permission-mode plan "このコードの改善点を分析して"</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <h4>推奨ワークフロー（4フェーズ）</h4>
+                            <div class="visual-diagram">
+                                <div style="max-width: 560px; margin: 0 auto;">
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="loop-step-number">1</span>
+                                            <div>
+                                                <div class="font-bold text-white">Explore（探索）</div>
+                                                <div class="text-gray-400 mt-1 text-sm">Plan Modeでコードベースを探索。関連ファイル、依存関係、既存の実装パターンを把握します。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="loop-arrow">&#8595;</div>
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="loop-step-number">2</span>
+                                            <div>
+                                                <div class="font-bold text-white">Plan（計画）</div>
+                                                <div class="text-gray-400 mt-1 text-sm">探索結果をもとに、具体的な実装ステップを立案。変更対象のファイル、変更内容、テスト方針を明確にします。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="loop-arrow">&#8595;</div>
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="loop-step-number">3</span>
+                                            <div>
+                                                <div class="font-bold text-white">Implement（実装）</div>
+                                                <div class="text-gray-400 mt-1 text-sm">Shift+TabでdefaultまたはacceptEditsモードに切り替え、計画に沿って実装を進めます。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="loop-arrow">&#8595;</div>
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="loop-step-number">4</span>
+                                            <div>
+                                                <div class="font-bold text-white">Commit（コミット）</div>
+                                                <div class="text-gray-400 mt-1 text-sm">変更をレビューし、コミットメッセージを生成してコミットします。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>デフォルトに設定する</h4>
+                            <div class="code-block">
+                                <div class="comment">// settings.json でPlan Modeをデフォルトにする</div>
+                                <div class="mt-2">{</div>
+                                <div class="ml-4"><span class="keyword">"permissions"</span>: {</div>
+                                <div class="ml-8"><span class="keyword">"default_mode"</span>: <span class="string">"plan"</span></div>
+                                <div class="ml-4">}</div>
+                                <div>}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション8: モデル設定 -->
+                    <div class="content-section">
+                        <h3>モデル設定
+                            <span style="display: flex; gap: 4px; align-items: center;">
+                                <a href="https://code.claude.com/docs/ja/model-config" target="_blank" class="ref-link">Model Config</a>
+                                <a href="https://code.claude.com/docs/ja/fast-mode" target="_blank" class="ref-link">Fast Mode</a>
+                            </span>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeでは使用するモデルや推論パラメータを柔軟に設定できます。タスクの複雑さや速度要件に応じて最適な設定を選びましょう。
+                            </p>
+
+                            <h4>モデルの選択</h4>
+                            <p class="text-gray-300 mb-4">以下の3つの方法でモデルを変更できます。</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">/model</code></div>
+                                    <p class="text-gray-400 text-sm">セッション中にスラッシュコマンドで変更。ピッカーが表示されます。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1"><code class="code-inline">--model</code> フラグ</div>
+                                    <p class="text-gray-400 text-sm">起動時にモデルを指定します。<br><code class="code-inline">claude --model opus</code></p>
+                                </div>
+                            </div>
+
+                            <h4>利用可能なモデル</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2" style="color: #e8734a;">Opus</div>
+                                    <p class="text-gray-400 text-sm">最も高性能なモデル。複雑なアーキテクチャ設計、大規模リファクタリング、難しいバグの調査に最適です。レスポンスは遅めですが、品質は最高です。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2" style="color: #60a5fa;">Sonnet</div>
+                                    <p class="text-gray-400 text-sm">バランスの取れたデフォルトモデル。日常的なコーディング、コードレビュー、テスト作成など幅広い用途に対応します。速度と品質のバランスが優れています。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2" style="color: #4ade80;">Haiku</div>
+                                    <p class="text-gray-400 text-sm">最も高速なモデル。簡単な質問、コードの説明、小さな修正など、速度が重要な場面で使います。コスト効率も最も良いです。</p>
+                                </div>
+                            </div>
+
+                            <h4>Effortレベル（推論の深さ）</h4>
+                            <p class="text-gray-300 mb-4">モデルがどの程度深く「考える」かを制御します。</p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1">low</div>
+                                    <p class="text-gray-400 text-sm">素早い回答。単純な質問向け。</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1">medium</div>
+                                    <p class="text-gray-400 text-sm">標準的な推論。一般的なタスク向け。</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1">high</div>
+                                    <p class="text-gray-400 text-sm">深い推論。複雑な問題向け。デフォルト。</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white mb-1">max</div>
+                                    <p class="text-gray-400 text-sm">最大限の推論。最も難しい問題向け。</p>
+                                </div>
+                            </div>
+
+                            <div class="command-box mt-4">
+                                <div class="command">claude --effort max</div>
+                                <div class="output">最大の推論深度で起動。またはセッション中に /effort max で変更。</div>
+                            </div>
+
+                            <h4>拡張思考（Extended Thinking）</h4>
+                            <div class="info-box">
+                                <p class="text-gray-300">拡張思考はデフォルトで有効になっています。有効にすると、モデルが回答を生成する前に「内部で考える」プロセスが追加され、複雑な問題での回答品質が向上します。</p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>"ultrathink" キーワード</h4>
+                                <p class="text-gray-300">プロンプトに「ultrathink」というキーワードを含めると、拡張思考の深さが最大化されます。特に難解な問題や多段階の推論が必要な場合に試してみてください。</p>
+                            </div>
+
+                            <h4>高速モード（Fast Mode）</h4>
+                            <div class="info-box">
+                                <p class="text-gray-300"><code class="code-inline">/fast</code> コマンドで高速モードに切り替えると、レスポンス速度を優先した設定になります。簡単な質問や素早い操作が必要な場面で活用してください。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション9: まとめと次のステップ -->
+                    <div class="content-section">
+                        <h3>まとめと次のステップ</h3>
+                        <div class="collapsible-content">
+                            <div class="info-box">
+                                <h4>このページで学んだこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li>Claude Codeのインストールと起動方法（インタラクティブ / プロンプト付き / パイプモード）</li>
+                                    <li>キーボードショートカットによる効率的な操作（Ctrl+C, Shift+Tab など）</li>
+                                    <li>スラッシュコマンドの全カテゴリ（セッション管理、情報表示、設定、アクション、外部連携、認証、スキル）</li>
+                                    <li>セッション管理のベストプラクティス（命名、再開、ピッカー操作）</li>
+                                    <li>ファイル参照と入力方法（@メンション、画像入力、パイプ、Bashモード）</li>
+                                    <li>パーミッションモードの仕組みと設定（5つのモード、ルール構文、優先順位）</li>
+                                    <li>Plan Modeの4フェーズワークフロー（Explore → Plan → Implement → Commit）</li>
+                                    <li>モデル選択とEffortレベルの使い分け（Opus / Sonnet / Haiku、low〜max）</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>復習チェック</h4>
+                                <p class="mb-2 text-gray-300">次に進む前に、以下を確認してみましょう：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1 text-gray-300">
+                                    <li><code class="code-inline">claude</code>、<code class="code-inline">claude "query"</code>、<code class="code-inline">claude -p "query"</code> の違いを説明できる</li>
+                                    <li><code class="code-inline">Shift+Tab</code> で切り替わるパーミッションモードを列挙できる</li>
+                                    <li>Plan Modeの4フェーズワークフローを説明できる</li>
+                                    <li><code class="code-inline">/compact</code> と <code class="code-inline">/clear</code> の違いを理解している</li>
+                                    <li>タスクの複雑さに応じたモデル選択ができる</li>
+                                    <li><code class="code-inline">@</code>、<code class="code-inline">!</code>、<code class="code-inline">/</code> の各接頭辞の役割を理解している</li>
+                                </ul>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>次のステップ</h4>
+                                <p class="text-gray-300">基本操作を理解したら、次はClaude Codeのカスタマイズ方法（CLAUDE.md、設定ファイル、フック、MCP連携）を学びましょう。自分の開発スタイルに合わせてClaude Codeを最適化することで、さらに生産性を高められます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+</html>

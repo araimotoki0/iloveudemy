@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>実践活用 - Claude Code メカニズム</title>
+    <meta name="description" content="Claude Codeのベストプラクティス、サブエージェント、並列実行、コスト管理など実践的な活用法を網羅的に解説。">
+
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#e8734a',
+                            500: '#e36437',
+                            600: '#c2410c',
+                            700: '#9a3412',
+                            800: '#7c2d12',
+                            900: '#431407',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%);
+            background-attachment: fixed;
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        .content-section h3 {
+            color: #e8734a;
+            margin-bottom: 16px;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            background: rgba(232, 115, 74, 0.06);
+            border: 1px solid #3a3a52;
+        }
+
+        .content-section h3:hover {
+            background: rgba(232, 115, 74, 0.1);
+            border-color: rgba(232, 115, 74, 0.35);
+        }
+
+        .content-section h3::after {
+            content: '\25BC';
+            font-size: 14px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+            color: #a0a0b8;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .content-section .collapsible-content {
+            display: block !important;
+        }
+
+        .content-section .collapsible-content.collapsed {
+            display: none !important;
+        }
+
+        .content-section h4 {
+            color: #e8e8f0;
+            margin: 24px 0 12px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .info-box h4:first-child,
+        .warning-box h4:first-child,
+        .success-box h4:first-child,
+        .error-box h4:first-child {
+            margin-top: 0;
+        }
+
+        .visual-diagram {
+            background: rgba(26, 26, 46, 0.7);
+            border: 1px solid #3a3a52;
+            border-radius: 12px;
+            padding: 28px;
+            margin: 24px 0;
+        }
+
+        .command-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a52;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .command {
+            color: #ffffff;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .command::before {
+            content: '$';
+            color: #a0a0b8;
+        }
+
+        .output {
+            color: #a0a0b8;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #3a3a52;
+        }
+
+        .code-inline {
+            background: rgba(255, 255, 255, 0.08);
+            color: #d0d0e0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88em;
+        }
+
+        .info-box,
+        .warning-box,
+        .success-box,
+        .error-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid #3a3a52;
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+
+        .info-box {
+            border-left-color: #60a5fa;
+        }
+
+        .warning-box {
+            border-left-color: #fbbf24;
+        }
+
+        .success-box {
+            border-left-color: #34d399;
+        }
+
+        .error-box {
+            border-left-color: #f87171;
+        }
+
+        .loop-step {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #3a3a52;
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .loop-step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3a3a52;
+            color: white;
+            font-weight: 800;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .loop-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3a3a52;
+            font-size: 22px;
+            padding: 4px 0;
+        }
+
+        .component-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #3a3a52;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid #3a3a52;
+            border-radius: 8px;
+            padding: 18px;
+            margin: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            overflow-x: auto;
+        }
+
+        .code-block .comment {
+            color: #6b6b80;
+        }
+
+        .code-block .keyword {
+            color: #d0d0e0;
+        }
+
+        .code-block .string {
+            color: #a0a0b8;
+        }
+
+        .code-block .variable {
+            color: #ffffff;
+        }
+
+        .code-block .highlight {
+            color: #e8734a;
+            font-weight: 600;
+        }
+
+        header h1 span {
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            -webkit-text-fill-color: unset !important;
+            color: #e8734a !important;
+        }
+
+        .ref-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #a0a0b8;
+            font-size: 12px;
+            text-decoration: none;
+            border: 1px solid #3a3a52;
+            border-radius: 4px;
+            padding: 2px 8px;
+            transition: all 0.2s;
+            margin-left: 8px;
+        }
+
+        .ref-link:hover {
+            color: #e8734a;
+            border-color: rgba(232, 115, 74, 0.4);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .comparison-table th {
+            background: rgba(232, 115, 74, 0.1);
+            color: #e8734a;
+            padding: 10px 14px;
+            text-align: left;
+            border: 1px solid #3a3a52;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 10px 14px;
+            border: 1px solid #3a3a52;
+            color: #d0d0e0;
+            vertical-align: top;
+        }
+
+        .comparison-table tr:nth-child(even) td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .doc-link-card {
+            display: block;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #3a3a52;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 6px 0;
+            text-decoration: none;
+            transition: all 0.2s;
+            color: #d0d0e0;
+        }
+
+        .doc-link-card:hover {
+            border-color: rgba(232, 115, 74, 0.4);
+            background: rgba(232, 115, 74, 0.05);
+        }
+
+        .doc-link-card .doc-title {
+            color: #e8734a;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .doc-link-card .doc-desc {
+            color: #a0a0b8;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .flow-step {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #3a3a52;
+            border-radius: 8px;
+            padding: 14px 18px;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0a0b8;
+            font-size: 20px;
+            padding: 6px 0;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- ===== セクション1: ベストプラクティス ===== -->
+                    <div class="content-section">
+                        <h3>ベストプラクティス ー 最も重要な原則
+                            <a href="https://code.claude.com/docs/ja/best-practices" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeを効果的に使うために、最も重要な原則があります。
+                                それは<strong class="text-white">コンテキストウィンドウは有限であり、埋まるほどパフォーマンスが低下する</strong>ということです。
+                                この制約を前提に、以下の5つの原則を実践してください。
+                            </p>
+
+                            <div class="warning-box">
+                                <h4>核心的な制約</h4>
+                                <p class="text-gray-300">
+                                    コンテキストウィンドウはすぐに埋まります。埋まるにつれてLLMの性能は劣化し、
+                                    指示の見落としや品質の低下が発生します。以下の5原則はすべて、この制約を前提にしたものです。
+                                </p>
+                            </div>
+
+                            <!-- 原則1 -->
+                            <div class="loop-step mt-6">
+                                <div class="flex items-start">
+                                    <span class="loop-step-number">1</span>
+                                    <div class="flex-1">
+                                        <h4 class="mt-0" style="margin-top: 0;">検証手段を与える</h4>
+                                        <p class="text-gray-300 mb-4">
+                                            Claudeに自分の作業を検証する方法を必ず提供してください。
+                                            テスト、スクリーンショット、期待される出力などがあれば、
+                                            Claudeは自律的にイテレーションして正解にたどり着けます。
+                                        </p>
+
+                                        <table class="comparison-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>改善前（曖昧）</th>
+                                                    <th>改善後（検証可能）</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><code class="code-inline">implement a function that validates email</code></td>
+                                                    <td><code class="code-inline">write validateEmail. test cases: user@example.com=true, invalid=false, @bad.com=false. run tests after</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><code class="code-inline">make the dashboard look better</code></td>
+                                                    <td><code class="code-inline">[スクリーンショットを貼り付け] implement this design. take a screenshot after and compare</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><code class="code-inline">the build is failing</code></td>
+                                                    <td><code class="code-inline">the build fails with this error: [エラー貼付]. Fix it, verify the build passes. Address root cause, not symptoms.</code></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <div class="info-box">
+                                            <h4>検証がもたらす効果</h4>
+                                            <p class="text-gray-300">
+                                                検証手段があると、Claudeはエージェントループの中で自ら「テスト実行 → 失敗確認 → 修正 → 再テスト」を繰り返せます。
+                                                検証がなければ、Claudeは「たぶん正しい」コードを返すだけで終わります。
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-arrow">|</div>
+
+                            <!-- 原則2 -->
+                            <div class="loop-step">
+                                <div class="flex items-start">
+                                    <span class="loop-step-number">2</span>
+                                    <div class="flex-1">
+                                        <h4 class="mt-0" style="margin-top: 0;">先に探索、次に計画、そしてコーディング</h4>
+                                        <p class="text-gray-300 mb-4">
+                                            複雑なタスクは、いきなりコーディングに入らず段階的に進めましょう。
+                                        </p>
+
+                                        <div class="visual-diagram">
+                                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                                <div class="flow-step">
+                                                    <div class="text-sm font-bold text-primary-400">Phase 1</div>
+                                                    <div class="text-gray-300 text-sm mt-1">探索<br><span class="text-xs text-gray-500">Plan Mode</span></div>
+                                                </div>
+                                                <div class="flow-step">
+                                                    <div class="text-sm font-bold text-primary-400">Phase 2</div>
+                                                    <div class="text-gray-300 text-sm mt-1">計画<br><span class="text-xs text-gray-500">Plan Mode</span></div>
+                                                </div>
+                                                <div class="flow-step">
+                                                    <div class="text-sm font-bold text-primary-400">Phase 3</div>
+                                                    <div class="text-gray-300 text-sm mt-1">実装<br><span class="text-xs text-gray-500">Normal Mode</span></div>
+                                                </div>
+                                                <div class="flow-step">
+                                                    <div class="text-sm font-bold text-primary-400">Phase 4</div>
+                                                    <div class="text-gray-300 text-sm mt-1">コミット<br><span class="text-xs text-gray-500">Normal Mode</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <p class="text-gray-300 text-sm">
+                                            <strong class="text-white">計画をスキップできる場合：</strong>スコープが明確で小さい修正（タイポ修正、既知のバグフィックスなど）
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-arrow">|</div>
+
+                            <!-- 原則3 -->
+                            <div class="loop-step">
+                                <div class="flex items-start">
+                                    <span class="loop-step-number">3</span>
+                                    <div class="flex-1">
+                                        <h4 class="mt-0" style="margin-top: 0;">具体的なコンテキストを提供する</h4>
+                                        <p class="text-gray-300 mb-4">
+                                            曖昧なプロンプトは探索範囲を広げ、コンテキストを無駄に消費します。
+                                            具体的に指示すればするほど、効率的かつ正確になります。
+                                        </p>
+
+                                        <table class="comparison-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>改善前</th>
+                                                    <th>改善後</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><code class="code-inline">add tests for foo.py</code></td>
+                                                    <td><code class="code-inline">write test for foo.py covering edge case where user is logged out. avoid mocks.</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><code class="code-inline">why does ExecutionFactory have weird api?</code></td>
+                                                    <td><code class="code-inline">look through ExecutionFactory's git history and summarize how its api came to be</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><code class="code-inline">add a calendar widget</code></td>
+                                                    <td><code class="code-inline">look at how existing widgets are implemented. HotDogWidget.php is a good example. follow that pattern to add CalendarWidget.</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><code class="code-inline">fix the login bug</code></td>
+                                                    <td><code class="code-inline">users report login fails after session timeout. check auth flow in src/auth/ and session management in src/session/</code></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-arrow">|</div>
+
+                            <!-- 原則4 -->
+                            <div class="loop-step">
+                                <div class="flex items-start">
+                                    <span class="loop-step-number">4</span>
+                                    <div class="flex-1">
+                                        <h4 class="mt-0" style="margin-top: 0;">リッチなコンテンツを提供する</h4>
+                                        <p class="text-gray-300 mb-4">
+                                            Claude Codeはテキストだけでなく、様々な形式のコンテンツを理解できます。
+                                            積極的に活用しましょう。
+                                        </p>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div class="component-card">
+                                                <div class="text-white font-bold text-sm mb-2">@ファイル参照</div>
+                                                <p class="text-gray-400 text-sm"><code class="code-inline">@src/auth/login.ts</code> でファイル内容を直接渡す</p>
+                                            </div>
+                                            <div class="component-card">
+                                                <div class="text-white font-bold text-sm mb-2">画像の貼り付け</div>
+                                                <p class="text-gray-400 text-sm">スクリーンショットやデザインモックをそのままペースト</p>
+                                            </div>
+                                            <div class="component-card">
+                                                <div class="text-white font-bold text-sm mb-2">URLの提供</div>
+                                                <p class="text-gray-400 text-sm">APIドキュメントやIssueのURLを渡してClaudeにフェッチさせる</p>
+                                            </div>
+                                            <div class="component-card">
+                                                <div class="text-white font-bold text-sm mb-2">パイプでデータを渡す</div>
+                                                <p class="text-gray-400 text-sm"><code class="code-inline">cat logs.txt | claude -p "分析して"</code></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-arrow">|</div>
+
+                            <!-- 原則5 -->
+                            <div class="loop-step">
+                                <div class="flex items-start">
+                                    <span class="loop-step-number">5</span>
+                                    <div class="flex-1">
+                                        <h4 class="mt-0" style="margin-top: 0;">セッションを積極的に管理する</h4>
+                                        <p class="text-gray-300 mb-4">
+                                            コンテキストウィンドウは有限です。積極的にセッションを管理して、常にクリーンな状態を保ちましょう。
+                                        </p>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div class="component-card">
+                                                <div class="text-white font-bold text-sm mb-2">Esc</div>
+                                                <p class="text-gray-400 text-sm">現在の応答を停止</p>
+                                            </div>
+                                            <div class="component-card">
+                                                <div class="text-white font-bold text-sm mb-2">Esc + Esc</div>
+                                                <p class="text-gray-400 text-sm">最後のターンを巻き戻し（Undo）</p>
+                                            </div>
+                                            <div class="component-card">
+                                                <div class="text-white font-bold text-sm mb-2">"undo that"</div>
+                                                <p class="text-gray-400 text-sm">変更を元に戻すようClaudeに指示</p>
+                                            </div>
+                                            <div class="component-card">
+                                                <div class="text-white font-bold text-sm mb-2">/clear</div>
+                                                <p class="text-gray-400 text-sm">タスク間でコンテキストをリセット</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="warning-box mt-4">
+                                            <h4>2回以上修正したら /clear</h4>
+                                            <p class="text-gray-300">
+                                                同じ問題で2回以上Claudeを修正している場合、コンテキストが汚れています。
+                                                <code class="code-inline">/clear</code> してプロンプトを書き直す方が、修正を重ねるより速くて正確です。
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- ===== セクション2: サブエージェント ===== -->
+                    <div class="content-section">
+                        <h3>サブエージェント
+                            <a href="https://code.claude.com/docs/ja/sub-agents" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                サブエージェントは、メインのClaudeセッションとは独立した<strong class="text-white">別のエージェント</strong>です。
+                                独自のコンテキストウィンドウ、ツール、システムプロンプトを持ちます。
+                            </p>
+
+                            <h4>なぜサブエージェントを使うのか？</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">コンテキスト隔離</div>
+                                    <p class="text-gray-400 text-sm">大量のファイルを探索しても、メインのコンテキストを汚さない。サブエージェントが要約だけを返す。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">並列処理</div>
+                                    <p class="text-gray-400 text-sm">複数のサブエージェントが同時に異なるタスクを実行できる。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">専門化</div>
+                                    <p class="text-gray-400 text-sm">セキュリティレビュー、テスト生成など、特定の役割に特化した設定ができる。</p>
+                                </div>
+                            </div>
+
+                            <h4>カスタムサブエージェントの作成</h4>
+                            <p class="text-gray-300 mb-4">
+                                <code class="code-inline">.claude/agents/</code> ディレクトリにMarkdownファイルを作成します。
+                                フロントマターでエージェントの設定を定義できます。
+                            </p>
+
+                            <div class="code-block">
+                                <span class="comment"># .claude/agents/security-reviewer.md</span><br>
+                                <br>
+                                <span class="keyword">---</span><br>
+                                <span class="highlight">name</span>: <span class="string">Security Reviewer</span><br>
+                                <span class="highlight">description</span>: <span class="string">セキュリティの観点からコードをレビューする</span><br>
+                                <span class="highlight">tools</span>: <span class="string">[Read, Grep, Glob]</span><br>
+                                <span class="highlight">model</span>: <span class="string">claude-sonnet-4-20250514</span><br>
+                                <span class="highlight">isolation</span>: <span class="string">worktree</span><br>
+                                <span class="keyword">---</span><br>
+                                <br>
+                                <span class="variable">あなたはセキュリティレビューの専門家です。</span><br>
+                                <span class="variable">以下の観点でコードをレビューしてください：</span><br>
+                                <span class="variable">- SQLインジェクション</span><br>
+                                <span class="variable">- XSS脆弱性</span><br>
+                                <span class="variable">- 認証・認可の問題</span><br>
+                                <span class="variable">- 機密情報の露出</span>
+                            </div>
+
+                            <h4>フロントマターの主要フィールド</h4>
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>フィールド</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code class="code-inline">name</code></td>
+                                        <td>エージェントの表示名</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="code-inline">description</code></td>
+                                        <td>Claudeが自動委譲する際の判断材料になる説明文</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="code-inline">tools</code></td>
+                                        <td>使用可能なツールのリスト</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="code-inline">model</code></td>
+                                        <td>使用するモデル（sonnet / opus など）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="code-inline">allowed-tools</code></td>
+                                        <td>許可するツールの細かい指定</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="code-inline">isolation</code></td>
+                                        <td><code class="code-inline">worktree</code> で独立したGit worktreeで作業</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="code-inline">skills</code></td>
+                                        <td>エージェントが持つスキル定義</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="code-inline">auto-memory</code></td>
+                                        <td>自動メモリ機能の有効化</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>ビルトインエージェントタイプ</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">Explore</div>
+                                    <p class="text-gray-400 text-sm">読み取り専用。コードベースの調査・分析に使用。ファイルの変更はできない。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">Plan</div>
+                                    <p class="text-gray-400 text-sm">アーキテクチャの設計・計画に特化。実装方針を立てる。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">汎用エージェント</div>
+                                    <p class="text-gray-400 text-sm">すべてのツールにアクセスできる一般的なサブエージェント。</p>
+                                </div>
+                            </div>
+
+                            <h4>サブエージェントの使い方</h4>
+                            <p class="text-gray-300 mb-2">Claudeは <code class="code-inline">description</code> フィールドに基づいて自動的にサブエージェントに委譲します。明示的に指示することもできます。</p>
+                            <div class="command-box">
+                                <div class="command">use a subagent to review this code for security issues</div>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">/agents</div>
+                                <div class="output">利用可能なエージェント一覧を表示し、管理できます</div>
+                            </div>
+
+                            <h4>Worktree隔離</h4>
+                            <div class="info-box">
+                                <h4>isolation: worktree とは</h4>
+                                <p class="text-gray-300">
+                                    <code class="code-inline">isolation: worktree</code> を設定すると、サブエージェントはGit worktreeで独立したディレクトリで作業します。
+                                    メインの作業ディレクトリとファイルの競合が発生しないため、安全に並列作業ができます。
+                                </p>
+                            </div>
+
+                            <h4>コンテキスト分離のメリット</h4>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="flow-step">
+                                        <div class="text-sm font-bold text-primary-400 mb-2">サブエージェントなし</div>
+                                        <div class="text-gray-300 text-xs">50ファイル読む → メインコンテキスト肥大化 → パフォーマンス低下</div>
+                                    </div>
+                                    <div class="flow-step">
+                                        <div class="text-sm font-bold text-primary-400 mb-2">サブエージェントあり</div>
+                                        <div class="text-gray-300 text-xs">サブが50ファイル探索 → 要約3行を返す → メインコンテキストはクリーン</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== セクション3: 並列実行とスケーリング ===== -->
+                    <div class="content-section">
+                        <h3>並列実行とスケーリング
+                            <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank" class="ref-link">Docs</a>
+                            <a href="https://code.claude.com/docs/ja/agent-teams" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeは単一セッションだけでなく、複数のセッションやエージェントを並列に動かすことで
+                                大規模なタスクに対応できます。
+                            </p>
+
+                            <h4>Git Worktrees</h4>
+                            <p class="text-gray-300 mb-4">
+                                ワークツリーを使うと、同じリポジトリの異なるブランチを同時に操作できます。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">claude --worktree feature-auth</div>
+                                <div class="output">新しいworktreeとブランチ feature-auth を作成し、そこでClaudeを起動</div>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">claude -w</div>
+                                <div class="output">自動的にworktreeを作成（短縮形）</div>
+                            </div>
+                            <p class="text-gray-300 text-sm mt-2 mb-6">
+                                ワークツリーは <code class="code-inline">.claude/worktrees/&lt;name&gt;/</code> に作成され、
+                                新しいブランチが自動的に切られます。変更がなければ自動クリーンアップされ、
+                                変更がある場合はプロンプトが表示されます。
+                            </p>
+
+                            <h4>複数セッションの活用</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">デスクトップアプリ</div>
+                                    <p class="text-gray-400 text-sm">複数のローカルセッションを視覚的に管理できる。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">Web版（claude.ai/code）</div>
+                                    <p class="text-gray-400 text-sm">クラウドVM上で実行。長時間タスクやリモート作業に最適。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">エージェントチーム</div>
+                                    <p class="text-gray-400 text-sm">複数のエージェントが自動的に協調して作業する。</p>
+                                </div>
+                            </div>
+
+                            <h4>Writer/Reviewerパターン</h4>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div class="flow-step">
+                                        <div class="text-sm font-bold text-primary-400">セッションA（Writer）</div>
+                                        <div class="text-gray-300 text-xs mt-1">コードを書く・機能を実装する</div>
+                                    </div>
+                                    <div class="flow-step">
+                                        <div class="text-sm text-gray-500 mt-2">コミット&amp;プッシュ</div>
+                                    </div>
+                                    <div class="flow-step">
+                                        <div class="text-sm font-bold text-primary-400">セッションB（Reviewer）</div>
+                                        <div class="text-gray-300 text-xs mt-1">クリーンなコンテキストでレビュー</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>Fan-outパターン</h4>
+                            <p class="text-gray-300 mb-4">
+                                タスクリストを生成し、ファイルごとに個別のClaudeセッションをループで実行するパターンです。
+                            </p>
+                            <div class="code-block">
+                                <span class="comment"># タスクリストを生成</span><br>
+                                <span class="variable">claude</span> <span class="keyword">-p</span> <span class="string">"list all files needing migration"</span> <span class="keyword">&gt;</span> <span class="string">tasks.txt</span><br>
+                                <br>
+                                <span class="comment"># 各ファイルに対して並列実行</span><br>
+                                <span class="keyword">while</span> <span class="variable">IFS=</span> <span class="keyword">read</span> <span class="variable">-r file</span>; <span class="keyword">do</span><br>
+                                &nbsp;&nbsp;<span class="variable">claude</span> <span class="keyword">-p</span> <span class="string">"migrate $file to new API"</span> \<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight">--allowedTools</span> <span class="string">"Read,Edit,Write"</span> &amp;<br>
+                                <span class="keyword">done</span> &lt; <span class="string">tasks.txt</span><br>
+                                <span class="keyword">wait</span>
+                            </div>
+
+                            <h4>非インタラクティブモード（Print Mode）</h4>
+                            <p class="text-gray-300 mb-4">
+                                <code class="code-inline">claude -p</code> でスクリプトやCI/CDパイプラインから使えます。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">claude -p "この関数を説明して" --output-format json</div>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">cat error.log | claude -p "このエラーの原因を分析して" > analysis.txt</div>
+                            </div>
+
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>出力形式</th>
+                                        <th>用途</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code class="code-inline">--output-format text</code></td>
+                                        <td>プレーンテキスト出力（デフォルト）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="code-inline">--output-format json</code></td>
+                                        <td>JSON構造化出力。スクリプトでパースしやすい</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="code-inline">--output-format stream-json</code></td>
+                                        <td>JSONストリーミング。リアルタイム処理向け</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ===== セクション4: コンテキストウィンドウ管理 ===== -->
+                    <div class="content-section">
+                        <h3>コンテキストウィンドウ管理
+                            <a href="https://code.claude.com/docs/ja/best-practices" target="_blank" class="ref-link">Docs</a>
+                            <a href="https://code.claude.com/docs/ja/costs" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                コンテキストウィンドウは、会話全体、読み取ったファイル、コマンド出力のすべてを保持する空間です。
+                                この空間が埋まるにつれてLLMの性能が低下するため、積極的な管理が不可欠です。
+                            </p>
+
+                            <h4>管理戦略</h4>
+                            <div class="grid grid-cols-1 gap-4 mb-6">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">1</span>
+                                        <div class="flex-1">
+                                            <div class="text-white font-bold">/clear ー タスク間のリセット</div>
+                                            <p class="text-gray-400 text-sm mt-1">
+                                                無関係なタスクに移る前に <code class="code-inline">/clear</code> でコンテキストをリセット。
+                                                最もシンプルで効果的な管理方法です。
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-arrow">|</div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">2</span>
+                                        <div class="flex-1">
+                                            <div class="text-white font-bold">/compact ー 会話の要約圧縮</div>
+                                            <p class="text-gray-400 text-sm mt-1">
+                                                現在の会話を要約して圧縮します。フォーカス指示も可能：
+                                            </p>
+                                            <div class="command-box">
+                                                <div class="command">/compact Focus on API changes</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-arrow">|</div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">3</span>
+                                        <div class="flex-1">
+                                            <div class="text-white font-bold">Esc+Esc → ここから要約（部分圧縮）</div>
+                                            <p class="text-gray-400 text-sm mt-1">
+                                                Escを2回押して巻き戻し、「ここから要約して」と指示。
+                                                会話の一部だけを圧縮できます。
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-arrow">|</div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">4</span>
+                                        <div class="flex-1">
+                                            <div class="text-white font-bold">/btw ー サイドクエスチョン</div>
+                                            <p class="text-gray-400 text-sm mt-1">
+                                                一時的な質問に使用。エフェメラル（一時的）で、メインのコンテキストを消費しません。
+                                            </p>
+                                            <div class="command-box">
+                                                <div class="command">/btw TypeScriptでenumを使うべきか、union typeを使うべきか？</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-arrow">|</div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">5</span>
+                                        <div class="flex-1">
+                                            <div class="text-white font-bold">サブエージェントで調査を委譲</div>
+                                            <p class="text-gray-400 text-sm mt-1">
+                                                大量のファイルを読む調査タスクはサブエージェントに委譲。
+                                                メインのコンテキストには要約だけが返ります。
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>CLAUDE.mdでの圧縮指示</h4>
+                            <div class="code-block">
+                                <span class="comment"># CLAUDE.md に追加</span><br>
+                                <br>
+                                <span class="variable">When compacting, always preserve:</span><br>
+                                <span class="variable">- List of modified files</span><br>
+                                <span class="variable">- Current task status</span><br>
+                                <span class="variable">- Key architectural decisions made</span>
+                            </div>
+
+                            <h4>自動圧縮（Auto-compaction）</h4>
+                            <div class="info-box">
+                                <h4>自動的にトリガーされる圧縮</h4>
+                                <p class="text-gray-300">
+                                    コンテキストウィンドウが限界に近づくと、Claude Codeは自動的に会話を要約・圧縮します。
+                                    重要なコード変更や決定事項は保持されますが、意図的に管理する方が品質は高くなります。
+                                </p>
+                            </div>
+
+                            <h4>コンテキスト使用状況の確認</h4>
+                            <div class="command-box">
+                                <div class="command">/context</div>
+                                <div class="output">コンテキストウィンドウの使用量を視覚的に表示</div>
+                            </div>
+                            <p class="text-gray-300 text-sm">
+                                カスタムステータスラインを設定して、常にコンテキスト使用量を表示させることも可能です。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- ===== セクション5: コスト管理 ===== -->
+                    <div class="content-section">
+                        <h3>コスト管理
+                            <a href="https://code.claude.com/docs/ja/costs" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeはエージェントループの特性上、通常のチャットよりも多くのトークンを消費します。
+                                コストを意識した使い方が重要です。
+                            </p>
+
+                            <h4>なぜClaude Codeはトークンを多く使うのか</h4>
+                            <div class="warning-box">
+                                <h4>エージェントループの構造的コスト</h4>
+                                <p class="text-gray-300">
+                                    エージェントループでは、各イテレーションごとに<strong class="text-white">会話履歴全体</strong>がAPIに送信されます。
+                                    ループが10回回れば、初期メッセージも10回送信されることになります。
+                                    これがClaude Codeのトークン消費が多い根本的な理由です。
+                                </p>
+                            </div>
+
+                            <h4>コスト確認コマンド</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                <div class="command-box">
+                                    <div class="command">/cost</div>
+                                    <div class="output">現在のセッションのトークン使用量とコスト</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">/usage</div>
+                                    <div class="output">プランの使用制限と残りの利用可能量</div>
+                                </div>
+                            </div>
+
+                            <h4>コスト削減戦略</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                <div class="loop-step">
+                                    <div class="text-white font-bold text-sm">/clear を頻繁に使う</div>
+                                    <p class="text-gray-400 text-sm mt-1">コンテキストをリセットすることで、次のイテレーションで送信されるトークン数を削減。</p>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="text-white font-bold text-sm">サブエージェントを活用</div>
+                                    <p class="text-gray-400 text-sm mt-1">調査をサブエージェントに委譲し、メインコンテキストの肥大化を防止。</p>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="text-white font-bold text-sm">プロンプトのスコープを絞る</div>
+                                    <p class="text-gray-400 text-sm mt-1">広範な指示ではなく、具体的なファイルやタスクを指定。</p>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="text-white font-bold text-sm">/compact を事前に使う</div>
+                                    <p class="text-gray-400 text-sm mt-1">コンテキストが大きくなる前に積極的に圧縮。</p>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="text-white font-bold text-sm">適切なモデルを選択</div>
+                                    <p class="text-gray-400 text-sm mt-1">簡単なタスクにはSonnet、複雑なタスクにはOpusを使い分ける。</p>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="text-white font-bold text-sm">Effortレベルを調整</div>
+                                    <p class="text-gray-400 text-sm mt-1">単純なタスクには <code class="code-inline">low</code> / <code class="code-inline">medium</code> を使用。</p>
+                                </div>
+                            </div>
+
+                            <h4>予算制限（Print Mode）</h4>
+                            <div class="command-box">
+                                <div class="command">claude -p "大規模なリファクタリングをして" --max-budget-usd 5.00</div>
+                                <div class="output">5ドルに達した時点で自動停止</div>
+                            </div>
+
+                            <h4>サブスクリプションプラン</h4>
+                            <div class="info-box">
+                                <h4>プランの選択</h4>
+                                <p class="text-gray-300">
+                                    Claude Codeは <strong class="text-white">Pro</strong>、<strong class="text-white">Max</strong> プランで利用可能です。
+                                    Maxプランはより多くの使用量が含まれ、ヘビーユーザー向けです。
+                                    APIキーを使用する場合は従量課金になります。
+                                    <code class="code-inline">/usage</code> コマンドで現在のプランの使用状況を確認してください。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== セクション6: よくあるワークフロー ===== -->
+                    <div class="content-section">
+                        <h3>よくあるワークフロー
+                            <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeでよく使われるワークフローと、効果的なプロンプト例を紹介します。
+                            </p>
+
+                            <h4>コードベース理解</h4>
+                            <div class="component-card mb-4">
+                                <div class="command-box" style="margin-top: 0;">
+                                    <div class="command">give me an overview of this codebase</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">explain the main architecture patterns used here</div>
+                                </div>
+                                <div class="command-box" style="margin-bottom: 0;">
+                                    <div class="command">find files that handle user authentication</div>
+                                </div>
+                            </div>
+
+                            <h4>バグ修正</h4>
+                            <div class="component-card mb-4">
+                                <div class="command-box" style="margin-top: 0;">
+                                    <div class="command">I'm seeing an error when I run npm test: [エラーメッセージを貼付]</div>
+                                </div>
+                                <div class="command-box" style="margin-bottom: 0;">
+                                    <div class="command">fix this error, then run the tests to verify the fix works</div>
+                                </div>
+                                <p class="text-gray-400 text-sm mt-3">
+                                    エラーメッセージを必ず貼り付け、修正後の検証手段（テスト実行）を指示するのがポイントです。
+                                </p>
+                            </div>
+
+                            <h4>リファクタリング</h4>
+                            <div class="component-card mb-4">
+                                <div class="command-box" style="margin-top: 0;">
+                                    <div class="command">find deprecated API usage in src/</div>
+                                </div>
+                                <div class="command-box" style="margin-bottom: 0;">
+                                    <div class="command">refactor utils.js to use ES2024 features while maintaining same behavior. run tests after.</div>
+                                </div>
+                            </div>
+
+                            <h4>テスト</h4>
+                            <div class="component-card mb-4">
+                                <div class="command-box" style="margin-top: 0;">
+                                    <div class="command">find functions not covered by tests in src/services/</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">add tests for edge conditions in UserService</div>
+                                </div>
+                                <div class="command-box" style="margin-bottom: 0;">
+                                    <div class="command">run the new tests and fix any failures</div>
+                                </div>
+                            </div>
+
+                            <h4>PR作成</h4>
+                            <div class="component-card mb-4">
+                                <div class="command-box" style="margin-top: 0;">
+                                    <div class="command">commit my changes with a descriptive message</div>
+                                </div>
+                                <div class="command-box" style="margin-bottom: 0;">
+                                    <div class="command">create a pr</div>
+                                </div>
+                                <p class="text-gray-400 text-sm mt-3">
+                                    Claude Codeはgitの差分を分析し、適切なコミットメッセージやPR説明文を自動生成します。
+                                </p>
+                            </div>
+
+                            <h4>ドキュメント</h4>
+                            <div class="component-card mb-4">
+                                <div class="command-box" style="margin-top: 0;">
+                                    <div class="command">find functions without JSDoc comments in src/</div>
+                                </div>
+                                <div class="command-box" style="margin-bottom: 0;">
+                                    <div class="command">add JSDoc comments to undocumented functions in src/utils/</div>
+                                </div>
+                            </div>
+
+                            <h4>Claudeにインタビューさせる</h4>
+                            <div class="component-card mb-4">
+                                <div class="command-box" style="margin-top: 0;">
+                                    <div class="command">I want to build a task management app. Interview me about requirements using AskUserQuestion tool before writing any code.</div>
+                                </div>
+                                <p class="text-gray-400 text-sm mt-3">
+                                    Claudeに要件を聞き出させることで、より正確な実装が可能になります。
+                                    <code class="code-inline">AskUserQuestion</code> ツールを明示的に指定すると、
+                                    Claudeが対話形式で要件を掘り下げます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== セクション7: トラブルシューティング ===== -->
+                    <div class="content-section">
+                        <h3>トラブルシューティング
+                            <a href="https://code.claude.com/docs/ja/troubleshooting" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeの使用中によく発生する問題パターンと、その対処法を解説します。
+                            </p>
+
+                            <h4>よくある失敗パターン</h4>
+
+                            <div class="warning-box mb-4">
+                                <h4>1. キッチンシンクセッション</h4>
+                                <p class="text-gray-300 mb-2">
+                                    <strong>症状：</strong>無関係なタスクを同じセッションで次々と実行し、コンテキストが膨張。
+                                </p>
+                                <p class="text-gray-300">
+                                    <strong>対策：</strong>タスクが変わるたびに <code class="code-inline">/clear</code> を実行。
+                                    「認証のバグ修正」と「UIの改善」は別セッションで行う。
+                                </p>
+                            </div>
+
+                            <div class="warning-box mb-4">
+                                <h4>2. 繰り返し修正</h4>
+                                <p class="text-gray-300 mb-2">
+                                    <strong>症状：</strong>同じ問題に対して何度もClaudeを修正している。
+                                </p>
+                                <p class="text-gray-300">
+                                    <strong>対策：</strong><code class="code-inline">/clear</code> してプロンプトを最初から書き直す。
+                                    修正の積み重ねよりも、良いプロンプトの方が効果的。
+                                </p>
+                            </div>
+
+                            <div class="warning-box mb-4">
+                                <h4>3. CLAUDE.mdの肥大化</h4>
+                                <p class="text-gray-300 mb-2">
+                                    <strong>症状：</strong>CLAUDE.mdが長くなりすぎて、Claudeがルールを無視し始める。
+                                </p>
+                                <p class="text-gray-300">
+                                    <strong>対策：</strong>定期的にCLAUDE.mdを見直し、不要なルールを削除。
+                                    本当に重要なルールだけを残す。サブディレクトリの <code class="code-inline">CLAUDE.md</code> を活用してスコープを絞る。
+                                </p>
+                            </div>
+
+                            <div class="warning-box mb-4">
+                                <h4>4. 信頼して検証しないギャップ</h4>
+                                <p class="text-gray-300 mb-2">
+                                    <strong>症状：</strong>Claudeの出力をそのまま受け入れて、後から問題が見つかる。
+                                </p>
+                                <p class="text-gray-300">
+                                    <strong>対策：</strong>プロンプトに必ず検証ステップを含める。テスト実行、ビルド確認、スクリーンショット比較など。
+                                </p>
+                            </div>
+
+                            <div class="warning-box mb-4">
+                                <h4>5. 無限探索</h4>
+                                <p class="text-gray-300 mb-2">
+                                    <strong>症状：</strong>Claudeが際限なくファイルを読み続け、コンテキストが埋まる。
+                                </p>
+                                <p class="text-gray-300">
+                                    <strong>対策：</strong>探索範囲を具体的に指定するか、サブエージェントに委譲する。
+                                    「<code class="code-inline">src/auth/</code> の中だけ調べて」のようにスコープを絞る。
+                                </p>
+                            </div>
+
+                            <h4>デバッグツール</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="command-box">
+                                    <div class="command">/doctor</div>
+                                    <div class="output">インストール状態と環境設定の診断</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">/debug</div>
+                                    <div class="output">セッションのデバッグログを表示</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">claude --debug</div>
+                                    <div class="output">カテゴリフィルタリング付きデバッグ出力</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">claude --verbose</div>
+                                    <div class="output">詳細な出力モード</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">/context</div>
+                                    <div class="output">コンテキスト使用量の可視化</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== セクション8: IDE統合とマルチプラットフォーム ===== -->
+                    <div class="content-section">
+                        <h3>IDE統合とマルチプラットフォーム
+                            <a href="https://code.claude.com/docs/ja/vs-code" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeはターミナルだけでなく、様々なIDEやプラットフォームで利用できます。
+                            </p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">VS Code</div>
+                                    <p class="text-gray-400 text-sm">
+                                        拡張機能で統合。インラインdiff表示、@メンション、プランレビュー機能。
+                                        エディタから直接Claude Codeを操作できます。
+                                    </p>
+                                    <a href="https://code.claude.com/docs/ja/vs-code" target="_blank" class="ref-link mt-2">詳細</a>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">JetBrains</div>
+                                    <p class="text-gray-400 text-sm">
+                                        IntelliJ IDEA、PyCharm、WebStorm等に対応したプラグイン。
+                                        JetBrainsのIDEから直接利用可能。
+                                    </p>
+                                    <a href="https://code.claude.com/docs/ja/jetbrains" target="_blank" class="ref-link mt-2">詳細</a>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">デスクトップアプリ</div>
+                                    <p class="text-gray-400 text-sm">
+                                        スタンドアロンアプリ。ビジュアルdiffレビュー、複数セッション管理。
+                                        ターミナルに不慣れなユーザーにも使いやすい。
+                                    </p>
+                                    <a href="https://code.claude.com/docs/ja/desktop" target="_blank" class="ref-link mt-2">詳細</a>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">Web版（claude.ai/code）</div>
+                                    <p class="text-gray-400 text-sm">
+                                        ブラウザベース。ローカルセットアップ不要。クラウドVM上で実行されるため、
+                                        長時間タスクにも対応。
+                                    </p>
+                                    <a href="https://code.claude.com/docs/ja/claude-code-on-the-web" target="_blank" class="ref-link mt-2">詳細</a>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">Chrome拡張機能</div>
+                                    <p class="text-gray-400 text-sm">
+                                        ブラウザの自動操作やテストに使用。Webアプリケーションの
+                                        E2Eテストなどに活用できます。
+                                    </p>
+                                    <a href="https://code.claude.com/docs/ja/chrome-extension" target="_blank" class="ref-link mt-2">詳細</a>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">リモートコントロール</div>
+                                    <p class="text-gray-400 text-sm">
+                                        ローカルで実行中のClaudeセッションを、スマートフォンや
+                                        別のデバイスから操作・監視できます。
+                                    </p>
+                                    <a href="https://code.claude.com/docs/ja/remote-control" target="_blank" class="ref-link mt-2">詳細</a>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">Slack統合</div>
+                                    <p class="text-gray-400 text-sm">
+                                        Slackで <code class="code-inline">@Claude</code> をメンションして、
+                                        バグ報告からPR作成まで自動化。チーム連携に最適。
+                                    </p>
+                                    <a href="https://code.claude.com/docs/ja/slack" target="_blank" class="ref-link mt-2">詳細</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== セクション9: 公式ドキュメント一覧 ===== -->
+                    <div class="content-section">
+                        <h3>公式ドキュメント一覧（全ページリファレンス）</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Code公式ドキュメントの全ページを、カテゴリ別に整理しました。
+                                各リンクから公式ドキュメントに直接アクセスできます。
+                            </p>
+
+                            <!-- はじめに -->
+                            <h4>はじめに</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                <a href="https://code.claude.com/docs/ja/overview" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">概要 (Overview)</div>
+                                    <div class="doc-desc">Claude Codeの全体像と主な特徴</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/quickstart" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">クイックスタート (Quickstart)</div>
+                                    <div class="doc-desc">最短でClaude Codeを始める手順</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/setup" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">セットアップ (Setup)</div>
+                                    <div class="doc-desc">詳細なインストールと初期設定</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/authentication" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">認証 (Authentication)</div>
+                                    <div class="doc-desc">APIキー、OAuth、認証方法の設定</div>
+                                </a>
+                            </div>
+
+                            <!-- 基本操作 -->
+                            <h4>基本操作</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                <a href="https://code.claude.com/docs/ja/interactive-mode" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">対話モード (Interactive Mode)</div>
+                                    <div class="doc-desc">インタラクティブセッションの使い方</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/commands" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">コマンド (Commands)</div>
+                                    <div class="doc-desc">スラッシュコマンド一覧と使い方</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/cli-reference" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">CLIリファレンス (CLI Reference)</div>
+                                    <div class="doc-desc">コマンドラインオプションの完全リファレンス</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">一般的なワークフロー (Common Workflows)</div>
+                                    <div class="doc-desc">よく使われる作業パターンの解説</div>
+                                </a>
+                            </div>
+
+                            <!-- カスタマイズ -->
+                            <h4>カスタマイズ</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                <a href="https://code.claude.com/docs/ja/memory" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">メモリ / CLAUDE.md (Memory)</div>
+                                    <div class="doc-desc">プロジェクトルールとメモリシステム</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/skills" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">スキル (Skills)</div>
+                                    <div class="doc-desc">カスタムスキルの定義と管理</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/hooks" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">Hooks ガイド (Hooks)</div>
+                                    <div class="doc-desc">ライフサイクルフックの概要と設定方法</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/hooks-reference" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">Hooks リファレンス (Hooks Reference)</div>
+                                    <div class="doc-desc">Hooksの詳細なAPIリファレンス</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/settings" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">設定 (Settings)</div>
+                                    <div class="doc-desc">グローバル・プロジェクト設定の管理</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/permissions" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">パーミッション (Permissions)</div>
+                                    <div class="doc-desc">ツール実行の許可制御</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/keybindings" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">キーバインド (Keybindings)</div>
+                                    <div class="doc-desc">キーボードショートカットのカスタマイズ</div>
+                                </a>
+                            </div>
+
+                            <!-- モデル・パフォーマンス -->
+                            <h4>モデル・パフォーマンス</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                <a href="https://code.claude.com/docs/ja/model-configuration" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">モデル設定 (Model Configuration)</div>
+                                    <div class="doc-desc">使用モデルの選択と切り替え</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/fast-mode" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">高速モード (Fast Mode)</div>
+                                    <div class="doc-desc">Sonnetモデルでの高速実行</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/costs" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">コスト (Costs)</div>
+                                    <div class="doc-desc">トークン使用量とコスト管理</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/monitoring" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">モニタリング (Monitoring)</div>
+                                    <div class="doc-desc">パフォーマンスと使用状況の監視</div>
+                                </a>
+                            </div>
+
+                            <!-- 拡張 -->
+                            <h4>拡張</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                <a href="https://code.claude.com/docs/ja/mcp" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">MCP (Model Context Protocol)</div>
+                                    <div class="doc-desc">外部ツール・サービスとの接続</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/sub-agents" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">サブエージェント (Sub-agents)</div>
+                                    <div class="doc-desc">独立したエージェントの作成と管理</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/agent-teams" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">エージェントチーム (Agent Teams)</div>
+                                    <div class="doc-desc">複数エージェントの協調作業</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/plugins-create" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">プラグイン作成 (Plugins - Create)</div>
+                                    <div class="doc-desc">カスタムプラグインの開発方法</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/plugins-reference" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">プラグインリファレンス (Plugins - Reference)</div>
+                                    <div class="doc-desc">プラグインAPIの詳細仕様</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/plugins-discover" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">プラグイン検索 (Plugins - Discover)</div>
+                                    <div class="doc-desc">利用可能なプラグインの探し方</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/plugins-marketplaces" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">プラグインマーケット (Plugins - Marketplaces)</div>
+                                    <div class="doc-desc">プラグインの配布と公開</div>
+                                </a>
+                            </div>
+
+                            <!-- IDE・プラットフォーム -->
+                            <h4>IDE・プラットフォーム</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                <a href="https://code.claude.com/docs/ja/vs-code" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">VS Code</div>
+                                    <div class="doc-desc">VS Code拡張機能の使い方</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/jetbrains" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">JetBrains</div>
+                                    <div class="doc-desc">JetBrains IDEプラグイン</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/desktop" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">デスクトップアプリ (Desktop)</div>
+                                    <div class="doc-desc">スタンドアロンデスクトップアプリ</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/desktop-quickstart" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">デスクトップ クイックスタート (Desktop Quickstart)</div>
+                                    <div class="doc-desc">デスクトップアプリの導入手順</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/claude-code-on-the-web" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">Web版 (Claude Code on the Web)</div>
+                                    <div class="doc-desc">ブラウザベースのClaude Code</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/chrome-extension" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">Chrome拡張機能 (Chrome Extension)</div>
+                                    <div class="doc-desc">ブラウザ自動操作とテスト</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/remote-control" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">リモートコントロール (Remote Control)</div>
+                                    <div class="doc-desc">別デバイスからのセッション操作</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/slack" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">Slack統合 (Slack)</div>
+                                    <div class="doc-desc">SlackからのClaude Code操作</div>
+                                </a>
+                            </div>
+
+                            <!-- CI/CD -->
+                            <h4>CI/CD</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                <a href="https://code.claude.com/docs/ja/github-actions" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">GitHub Actions</div>
+                                    <div class="doc-desc">GitHub Actionsでの自動化</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/gitlab-ci-cd" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">GitLab CI/CD</div>
+                                    <div class="doc-desc">GitLab CI/CDパイプラインとの統合</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/code-review" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">コードレビュー (Code Review)</div>
+                                    <div class="doc-desc">自動コードレビューの設定</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/headless" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">ヘッドレス (Headless)</div>
+                                    <div class="doc-desc">UIなしでの自動実行</div>
+                                </a>
+                            </div>
+
+                            <!-- セキュリティ・管理 -->
+                            <h4>セキュリティ・管理</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                <a href="https://code.claude.com/docs/ja/security" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">セキュリティ (Security)</div>
+                                    <div class="doc-desc">セキュリティモデルと対策</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/sandboxing" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">サンドボックス (Sandboxing)</div>
+                                    <div class="doc-desc">実行環境の隔離と制限</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/data-usage" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">データ使用 (Data Usage)</div>
+                                    <div class="doc-desc">データの取り扱いポリシー</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/legal" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">法的事項 (Legal)</div>
+                                    <div class="doc-desc">利用規約と法的情報</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/zero-data-retention" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">ゼロデータ保持 (Zero Data Retention)</div>
+                                    <div class="doc-desc">データを保持しない設定</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/network-configuration" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">ネットワーク設定 (Network Config)</div>
+                                    <div class="doc-desc">プロキシ、ファイアウォール設定</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/server-managed-settings" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">サーバー管理設定 (Server Managed Settings)</div>
+                                    <div class="doc-desc">管理者によるリモート設定</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/llm-gateway" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">LLMゲートウェイ (LLM Gateway)</div>
+                                    <div class="doc-desc">LLMリクエストのルーティングと管理</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/terminal-configuration" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">ターミナル設定 (Terminal Config)</div>
+                                    <div class="doc-desc">ターミナル環境のカスタマイズ</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/statusline" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">ステータスライン (Statusline)</div>
+                                    <div class="doc-desc">ステータスバーのカスタマイズ</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/env-vars" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">環境変数 (Env Vars)</div>
+                                    <div class="doc-desc">利用可能な環境変数一覧</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/checkpointing" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">チェックポイント (Checkpointing)</div>
+                                    <div class="doc-desc">作業状態の保存と復元</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/scheduled-tasks" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">スケジュールタスク (Scheduled Tasks)</div>
+                                    <div class="doc-desc">定期実行タスクの設定</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/devcontainer" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">DevContainer</div>
+                                    <div class="doc-desc">開発コンテナでの実行</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/output-styles" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">出力スタイル (Output Styles)</div>
+                                    <div class="doc-desc">出力形式のカスタマイズ</div>
+                                </a>
+                            </div>
+
+                            <!-- クラウドプロバイダ -->
+                            <h4>クラウドプロバイダ</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                <a href="https://code.claude.com/docs/ja/bedrock" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">Amazon Bedrock</div>
+                                    <div class="doc-desc">AWS Bedrock経由でのClaude利用</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/vertex-ai" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">Google Vertex AI</div>
+                                    <div class="doc-desc">Google Cloud経由でのClaude利用</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/microsoft-foundry" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">Microsoft Foundry</div>
+                                    <div class="doc-desc">Azure経由でのClaude利用</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/third-party-integrations" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">サードパーティ統合 (Third-party Integrations)</div>
+                                    <div class="doc-desc">その他のプロバイダとの連携</div>
+                                </a>
+                            </div>
+
+                            <!-- その他 -->
+                            <h4>その他</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                <a href="https://code.claude.com/docs/ja/best-practices" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">ベストプラクティス (Best Practices)</div>
+                                    <div class="doc-desc">効果的な使い方のガイドライン</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/how-claude-code-works" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">仕組み (How Claude Code Works)</div>
+                                    <div class="doc-desc">Claude Codeの内部アーキテクチャ</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/analytics" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">分析 (Analytics)</div>
+                                    <div class="doc-desc">使用統計と分析データ</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/troubleshooting" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">トラブルシューティング (Troubleshooting)</div>
+                                    <div class="doc-desc">問題の診断と解決方法</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/changelog" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">変更履歴 (Changelog)</div>
+                                    <div class="doc-desc">バージョンごとの変更内容</div>
+                                </a>
+                                <a href="https://code.claude.com/docs/ja/features-overview" target="_blank" class="doc-link-card">
+                                    <div class="doc-title">機能一覧 (Features Overview)</div>
+                                    <div class="doc-desc">全機能のサマリー</div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== セクション10: まとめ ===== -->
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                ここまでの講座で、Claude Codeの内部メカニズムから実践的な活用法まで、
+                                包括的に学んできました。最後に、全体を振り返りましょう。
+                            </p>
+
+                            <h4>学んだ主要トピック</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">エージェントループ</div>
+                                    <p class="text-gray-400 text-sm">Claude Codeの核心 ー ユーザー入力 → LLM推論 → ツール実行 → 結果返却の繰り返し</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">ツールシステム</div>
+                                    <p class="text-gray-400 text-sm">JSONスキーマで定義されたツールをLLMが選択・呼び出す仕組み</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">システムプロンプト</div>
+                                    <p class="text-gray-400 text-sm">Claudeの行動を制御する最上位の指示。CLAUDE.mdによるカスタマイズ</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">コンテキストウィンドウ</div>
+                                    <p class="text-gray-400 text-sm">有限のメモリ空間。管理しなければパフォーマンスが劣化する</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">拡張ポイント</div>
+                                    <p class="text-gray-400 text-sm">MCP、Hooks、サブエージェント、プラグインによる機能拡張</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold text-sm mb-2">実践活用</div>
+                                    <p class="text-gray-400 text-sm">ベストプラクティス、コスト管理、並列実行、トラブルシューティング</p>
+                                </div>
+                            </div>
+
+                            <h4>最終チェックリスト</h4>
+                            <div class="info-box">
+                                <p class="text-gray-300" style="line-height: 2.2;">
+                                    以下の項目を確認して、講座の内容を振り返ってください。<br>
+                                    <br>
+                                    <strong class="text-white">基礎理解</strong><br>
+                                    - エージェントループの4ステップ（入力 → 推論 → ツール実行 → 結果返却）を説明できる<br>
+                                    - ツールがJSONスキーマで定義される仕組みを理解している<br>
+                                    - システムプロンプトの構成（不変部分 + CLAUDE.md + 動的情報）を把握している<br>
+                                    - コンテキストウィンドウの制約と、それが性能に与える影響を理解している<br>
+                                    <br>
+                                    <strong class="text-white">実践スキル</strong><br>
+                                    - CLAUDE.mdを適切に設定できる<br>
+                                    - 検証手段を含むプロンプトを書ける<br>
+                                    - /clear、/compact、/btw を使い分けられる<br>
+                                    - サブエージェントの概念と作成方法を知っている<br>
+                                    - コスト意識を持って Claude Code を使える<br>
+                                    <br>
+                                    <strong class="text-white">応用力</strong><br>
+                                    - 並列実行パターン（worktree、fan-out）を活用できる<br>
+                                    - トラブルシューティングの方法を知っている<br>
+                                    - MCPサーバーを設定してツールを拡張できる<br>
+                                    - Hooksを使ってワークフローを自動化できる<br>
+                                    - 公式ドキュメントから必要な情報を見つけられる
+                                </p>
+                            </div>
+
+                            <div class="success-box mt-6" style="border-left-color: #34d399;">
+                                <h4 style="color: #34d399;">講座を完了しました</h4>
+                                <p class="text-gray-300">
+                                    Claude Codeの仕組みを理解することで、ただ使うだけでなく、
+                                    <strong class="text-white">なぜそう動くのか</strong>を理解した上で活用できるようになります。
+                                    この知識は、AIエージェントツール全般に応用が効きます。
+                                </p>
+                                <p class="text-gray-300 mt-3">
+                                    まずは自分のプロジェクトで小さなタスクから試してみてください。
+                                    <code class="code-inline">CLAUDE.md</code> の設定、<code class="code-inline">/clear</code> によるコンテキスト管理、
+                                    検証付きプロンプトの作成 ー これらを実践するだけで、Claude Codeの効果は大幅に向上します。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+
+</html>

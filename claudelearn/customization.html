@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カスタマイズ - Claude Code メカニズム</title>
+    <meta name="description" content="CLAUDE.md、Skills、Hooks、MCP、設定ファイルなど、Claude Codeのカスタマイズ機能を網羅的に解説。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#e8734a',500:'#e36437',600:'#c2410c',700:'#9a3412',800:'#7c2d12',900:'#431407' },
+                    },
+                    fontFamily: { sans:['Noto Sans JP','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                    animation: { 'pulse-slow':'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%); background-attachment: fixed; }
+        .content-section { margin-bottom: 32px; }
+        .content-section h3 { color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease; background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52; }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .visual-diagram { background: rgba(26, 26, 46, 0.7); border: 1px solid #3a3a52; border-radius: 12px; padding: 28px; margin: 24px 0; }
+        .command-box { background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline { background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+        .info-box, .warning-box, .success-box, .error-box { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+        .info-box { border-left-color: #60a5fa; }
+        .warning-box { border-left-color: #fbbf24; }
+        .success-box { border-left-color: #34d399; }
+        .error-box { border-left-color: #f87171; }
+        .loop-step { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 18px; }
+        .loop-step-number { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #3a3a52; color: white; font-weight: 800; font-size: 14px; margin-right: 12px; flex-shrink: 0; }
+        .loop-arrow { display: flex; align-items: center; justify-content: center; color: #3a3a52; font-size: 22px; padding: 4px 0; }
+        .component-card { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px; }
+        .code-block { background: rgba(0, 0, 0, 0.35); border: 1px solid #3a3a52; border-radius: 8px; padding: 18px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto; }
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+        .code-block .highlight { color: #e8734a; font-weight: 600; }
+        header h1 span { background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; -webkit-text-fill-color: unset !important; color: #e8734a !important; }
+        .ref-link { display: inline-flex; align-items: center; gap: 4px; color: #a0a0b8; font-size: 12px; text-decoration: none; border: 1px solid #3a3a52; border-radius: 4px; padding: 2px 8px; transition: all 0.2s; margin-left: 8px; }
+        .ref-link:hover { color: #e8734a; border-color: rgba(232, 115, 74, 0.4); }
+        .custom-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+        .custom-table th { background: rgba(232, 115, 74, 0.1); color: #e8734a; padding: 10px 14px; text-align: left; border: 1px solid #3a3a52; font-weight: 600; }
+        .custom-table td { padding: 10px 14px; border: 1px solid #3a3a52; color: #d0d0e0; }
+        .custom-table tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
+        .custom-table tr:hover td { background: rgba(232, 115, 74, 0.04); }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- ========================================== -->
+                    <!-- Section 1: CLAUDE.md -->
+                    <!-- ========================================== -->
+                    <div class="content-section">
+                        <h3>CLAUDE.md ー プロジェクトの記憶
+                            <a href="https://code.claude.com/docs/ja/memory" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 20px;">
+                                <span class="code-inline">CLAUDE.md</span> は、Claude Code がセッション開始時に自動的に読み込む Markdown ファイルです。プロジェクト固有のルール、コーディング規約、アーキテクチャの決定事項などを記載しておくことで、毎回同じ指示を繰り返す必要がなくなります。いわば「プロジェクトの記憶」として機能します。
+                            </p>
+
+                            <h4>2つのメモリシステム</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                Claude Code には2種類のメモリシステムがあります。
+                            </p>
+
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>項目</th>
+                                        <th>CLAUDE.md（手動メモリ）</th>
+                                        <th>Auto Memory（自動メモリ）</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>誰が書くか</td>
+                                        <td>あなた（開発者）</td>
+                                        <td>Claude 自身</td>
+                                    </tr>
+                                    <tr>
+                                        <td>内容</td>
+                                        <td>プロジェクトルール、規約、コマンド</td>
+                                        <td>ユーザーの好み、過去の文脈</td>
+                                    </tr>
+                                    <tr>
+                                        <td>スコープ</td>
+                                        <td>プロジェクト / ユーザー / 管理者</td>
+                                        <td>プロジェクト単位</td>
+                                    </tr>
+                                    <tr>
+                                        <td>読み込み先</td>
+                                        <td>システムプロンプトに注入</td>
+                                        <td>システムプロンプトに注入</td>
+                                    </tr>
+                                    <tr>
+                                        <td>用途</td>
+                                        <td>チーム全体で共有するルール</td>
+                                        <td>個人の好み・学習内容</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>CLAUDE.md の配置場所</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                CLAUDE.md はスコープに応じて複数の場所に配置できます。Claude Code は作業ディレクトリからルートに向かってディレクトリツリーを遡りながら、すべての CLAUDE.md を読み込みます。
+                            </p>
+
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>スコープ</th>
+                                        <th>配置場所</th>
+                                        <th>目的</th>
+                                        <th>共有</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>管理者ポリシー（macOS）</td>
+                                        <td><span class="code-inline">/Library/Application Support/ClaudeCode/CLAUDE.md</span></td>
+                                        <td>組織全体の強制ルール</td>
+                                        <td>組織内全員</td>
+                                    </tr>
+                                    <tr>
+                                        <td>管理者ポリシー（Linux）</td>
+                                        <td><span class="code-inline">/etc/claude-code/CLAUDE.md</span></td>
+                                        <td>組織全体の強制ルール</td>
+                                        <td>組織内全員</td>
+                                    </tr>
+                                    <tr>
+                                        <td>管理者ポリシー（Windows）</td>
+                                        <td><span class="code-inline">C:\Program Files\ClaudeCode\CLAUDE.md</span></td>
+                                        <td>組織全体の強制ルール</td>
+                                        <td>組織内全員</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ユーザー</td>
+                                        <td><span class="code-inline">~/.claude/CLAUDE.md</span></td>
+                                        <td>個人の全プロジェクト共通ルール</td>
+                                        <td>自分のみ</td>
+                                    </tr>
+                                    <tr>
+                                        <td>プロジェクト（ルート）</td>
+                                        <td><span class="code-inline">./CLAUDE.md</span></td>
+                                        <td>プロジェクト固有のルール</td>
+                                        <td>チーム全員（Git管理）</td>
+                                    </tr>
+                                    <tr>
+                                        <td>プロジェクト（隠しディレクトリ）</td>
+                                        <td><span class="code-inline">./.claude/CLAUDE.md</span></td>
+                                        <td>プロジェクト固有のルール</td>
+                                        <td>チーム全員（Git管理）</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>効果的な CLAUDE.md の書き方</h4>
+
+                            <div class="info-box">
+                                <h4>ベストプラクティス</h4>
+                                <ul style="color: #d0d0e0; line-height: 2; padding-left: 20px;">
+                                    <li><strong>サイズ：</strong>200行以下を目標にする。長すぎるとコンテキストウィンドウを圧迫する</li>
+                                    <li><strong>構造：</strong>Markdown の見出し（<span class="code-inline">#</span>、<span class="code-inline">##</span>）と箇条書きで整理する</li>
+                                    <li><strong>具体性：</strong>検証可能な具体的指示を書く（「2スペースインデント」のように）</li>
+                                    <li><strong>一貫性：</strong>矛盾する指示を避ける</li>
+                                </ul>
+                            </div>
+
+                            <h4>インポート構文</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                <span class="code-inline">@path/to/file</span> 構文で、外部ファイルの内容を CLAUDE.md に取り込めます。
+                            </p>
+
+                            <div class="code-block">
+<span class="comment"># CLAUDE.md の中で他のファイルをインポート</span>
+
+<span class="highlight">@README.md</span>                           <span class="comment"># プロジェクトルートの README</span>
+<span class="highlight">@package.json</span>                        <span class="comment"># 依存関係情報</span>
+<span class="highlight">@docs/architecture.md</span>                <span class="comment"># アーキテクチャドキュメント</span>
+<span class="highlight">@~/.claude/my-project-instructions.md</span> <span class="comment"># ユーザーレベルの指示</span>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>インポートの制限</h4>
+                                <ul style="color: #d0d0e0; line-height: 2; padding-left: 20px;">
+                                    <li>相対パスと絶対パスの両方が使用可能</li>
+                                    <li>最大深度は <strong>5ホップ</strong>（インポートのインポートを含む）</li>
+                                    <li>循環参照は自動的に検出・防止される</li>
+                                </ul>
+                            </div>
+
+                            <h4>/init コマンド</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                <span class="code-inline">/init</span> コマンドを実行すると、Claude がコードベースを分析し、最適な CLAUDE.md を自動生成します。
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">/init</div>
+                                <div class="output">
+                                    Claude がプロジェクト構造を分析し、言語、フレームワーク、<br>
+                                    テストコマンド、コーディング規約などを検出して<br>
+                                    CLAUDE.md のひな型を生成します。
+                                </div>
+                            </div>
+
+                            <h4>CLAUDE.md の読み込み順序</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                Claude Code は作業ディレクトリからルートディレクトリに向かってディレクトリツリーを遡り、見つかったすべての CLAUDE.md を読み込みます。上位のファイルほど優先度が低くなります。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; color: #d0d0e0; font-size: 14px;">
+                                    <div class="loop-step" style="margin-bottom: 8px;">
+                                        <span class="loop-step-number">1</span>
+                                        <span style="color: #e8734a; font-weight: 600;">管理者ポリシー</span> CLAUDE.md（最高優先度）
+                                    </div>
+                                    <div class="loop-arrow">↓</div>
+                                    <div class="loop-step" style="margin-bottom: 8px;">
+                                        <span class="loop-step-number">2</span>
+                                        <span style="color: #e8734a; font-weight: 600;">ユーザー</span> ~/.claude/CLAUDE.md
+                                    </div>
+                                    <div class="loop-arrow">↓</div>
+                                    <div class="loop-step" style="margin-bottom: 8px;">
+                                        <span class="loop-step-number">3</span>
+                                        <span style="color: #e8734a; font-weight: 600;">プロジェクトルート</span> ./CLAUDE.md または ./.claude/CLAUDE.md
+                                    </div>
+                                    <div class="loop-arrow">↓</div>
+                                    <div class="loop-step">
+                                        <span class="loop-step-number">4</span>
+                                        <span style="color: #e8734a; font-weight: 600;">サブディレクトリ</span>（作業ディレクトリまで遡る）
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>書くべき内容 vs 書くべきでない内容</h4>
+
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th style="color: #34d399;">書くべき内容</th>
+                                        <th style="color: #f87171;">書くべきでない内容</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Claude が推測できない bash コマンド</td>
+                                        <td>コードから読み取れる情報</td>
+                                    </tr>
+                                    <tr>
+                                        <td>コードスタイルのルール</td>
+                                        <td>標準的な慣習（自明なもの）</td>
+                                    </tr>
+                                    <tr>
+                                        <td>テストの実行方法</td>
+                                        <td>詳細な API ドキュメント</td>
+                                    </tr>
+                                    <tr>
+                                        <td>リポジトリの作法（PR ルールなど）</td>
+                                        <td>頻繁に変わる情報</td>
+                                    </tr>
+                                    <tr>
+                                        <td>アーキテクチャ上の重要な決定事項</td>
+                                        <td>ファイルごとの詳細な説明</td>
+                                    </tr>
+                                    <tr>
+                                        <td>開発環境の特殊な設定</td>
+                                        <td>自明なプラクティス</td>
+                                    </tr>
+                                    <tr>
+                                        <td>よくあるハマりどころ・注意点</td>
+                                        <td>一般的なプログラミング知識</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="success-box">
+                                <h4>CLAUDE.md の良い例</h4>
+                                <div class="code-block">
+<span class="comment"># プロジェクト概要</span>
+TypeScript + React のモノレポ。pnpm を使用。
+
+<span class="comment"># 開発コマンド</span>
+- ビルド: <span class="highlight">pnpm build</span>
+- テスト: <span class="highlight">pnpm test</span>（単体テスト1つ: <span class="highlight">pnpm test -- path/to/test</span>）
+- リント: <span class="highlight">pnpm lint</span>
+
+<span class="comment"># コーディング規約</span>
+- インデント: 2スペース
+- import は絶対パスを使う（<span class="highlight">@/components/Button</span>）
+- コンポーネントは名前付きエクスポート（default export 禁止）
+- テストファイルは <span class="highlight">*.test.ts</span> の命名規則
+
+<span class="comment"># アーキテクチャ</span>
+- src/api/ - バックエンド API（Express）
+- src/web/ - フロントエンド（React）
+- src/shared/ - 共通型定義とユーティリティ
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- Section 2: .claude/rules/ -->
+                    <!-- ========================================== -->
+                    <div class="content-section">
+                        <h3>.claude/rules/ ー ルールファイル
+                            <a href="https://code.claude.com/docs/ja/memory" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 20px;">
+                                ルールファイルは、<span class="code-inline">.claude/rules/</span> ディレクトリに配置するモジュール式の指示ファイルです。CLAUDE.md を一枚の大きなファイルにする代わりに、関心ごとに分割して管理できます。特定のファイルパスにのみ適用されるルールも定義可能です。
+                            </p>
+
+                            <h4>ディレクトリ構造の例</h4>
+                            <div class="code-block">
+<span class="variable">.claude/rules/</span>
+├── <span class="highlight">code-style.md</span>          <span class="comment"># 全体のコードスタイル</span>
+├── <span class="highlight">testing.md</span>              <span class="comment"># テストに関するルール</span>
+├── <span class="highlight">api-conventions.md</span>      <span class="comment"># API 設計の規約</span>
+├── <span class="highlight">react-components.md</span>     <span class="comment"># React コンポーネントのルール</span>
+└── <span class="highlight">security.md</span>             <span class="comment"># セキュリティ関連のガイドライン</span>
+                            </div>
+
+                            <h4>パス固有のルール（YAML フロントマター）</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                ルールファイルに YAML フロントマターを追加すると、特定のパスに一致するファイルが会話に含まれる場合にのみそのルールが適用されます。
+                            </p>
+
+                            <div class="code-block">
+<span class="comment">---</span>
+<span class="highlight">paths</span>: [<span class="string">"src/api/**/*.ts"</span>]
+<span class="comment">---</span>
+
+<span class="comment"># API ルール</span>
+- すべてのエンドポイントに入力バリデーションを実装すること
+- エラーレスポンスは RFC 7807 形式に従うこと
+- 認証ミドルウェアを必ず適用すること
+                            </div>
+
+                            <h4>Glob パターンの例</h4>
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>パターン</th>
+                                        <th>マッチ対象</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="code-inline">**/*.ts</span></td>
+                                        <td>すべての TypeScript ファイル</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">src/**/*</span></td>
+                                        <td>src ディレクトリ以下のすべてのファイル</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">*.md</span></td>
+                                        <td>ルート直下の Markdown ファイル</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">src/components/*.tsx</span></td>
+                                        <td>components 直下の TSX ファイル</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">tests/**/*.test.ts</span></td>
+                                        <td>tests 以下のテストファイル</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>ユーザーレベルのルール</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                <span class="code-inline">~/.claude/rules/</span> にルールファイルを配置すると、すべてのプロジェクトに適用される個人ルールになります。
+                            </p>
+
+                            <div class="code-block">
+<span class="variable">~/.claude/rules/</span>
+├── <span class="highlight">personal-style.md</span>      <span class="comment"># 個人のコーディングスタイル</span>
+└── <span class="highlight">always-japanese.md</span>     <span class="comment"># 「常に日本語で応答」など</span>
+                            </div>
+
+                            <h4>シンボリックリンクによる共有</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                シンボリックリンクを使えば、複数プロジェクト間でルールファイルを共有できます。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">ln -s ~/shared-rules/security.md .claude/rules/security.md</div>
+                            </div>
+
+                            <h4>ルール vs CLAUDE.md：いつどちらを使うか</h4>
+                            <div class="info-box">
+                                <ul style="color: #d0d0e0; line-height: 2; padding-left: 20px;">
+                                    <li><strong>CLAUDE.md：</strong>プロジェクト全体に適用される基本ルール、ビルドコマンド、アーキテクチャ概要</li>
+                                    <li><strong>ルールファイル：</strong>特定の技術領域やファイルパスに限定されるルール、頻繁に更新されるルール、チーム間で共有・再利用したいルール</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- Section 3: Auto Memory -->
+                    <!-- ========================================== -->
+                    <div class="content-section">
+                        <h3>Auto Memory ー 自動メモリ
+                            <a href="https://code.claude.com/docs/ja/memory" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 20px;">
+                                Auto Memory は、Claude が自分自身のためにメモを保存する機能です。セッション中に学んだユーザーの好みやプロジェクトの特徴を記録し、次回以降のセッションで活用します。
+                            </p>
+
+                            <h4>有効化・無効化</h4>
+                            <div class="component-card" style="margin-bottom: 16px;">
+                                <ul style="color: #d0d0e0; line-height: 2; padding-left: 20px;">
+                                    <li><span class="code-inline">/memory</span> コマンドで切り替え</li>
+                                    <li>設定ファイルで <span class="code-inline">autoMemoryEnabled</span> を <span class="code-inline">true</span> / <span class="code-inline">false</span> に設定</li>
+                                </ul>
+                            </div>
+
+                            <h4>保存場所</h4>
+                            <div class="code-block">
+<span class="variable">~/.claude/projects/</span>&lt;project-hash&gt;/<span class="highlight">memory/</span>
+├── <span class="highlight">MEMORY.md</span>              <span class="comment"># インデックスファイル（最初の200行が常に読み込まれる）</span>
+├── <span class="highlight">coding-preferences.md</span>  <span class="comment"># トピック別ファイル</span>
+├── <span class="highlight">architecture-notes.md</span>  <span class="comment"># トピック別ファイル</span>
+└── <span class="highlight">debugging-tips.md</span>      <span class="comment"># トピック別ファイル</span>
+                            </div>
+
+                            <h4>仕組み</h4>
+                            <div class="visual-diagram">
+                                <div style="text-align: center; color: #d0d0e0; font-size: 14px;">
+                                    <div class="loop-step" style="margin-bottom: 8px;">
+                                        <span class="loop-step-number">1</span>
+                                        <strong>MEMORY.md</strong>（インデックス）の最初の200行がセッション開始時に読み込まれる
+                                    </div>
+                                    <div class="loop-arrow">↓</div>
+                                    <div class="loop-step" style="margin-bottom: 8px;">
+                                        <span class="loop-step-number">2</span>
+                                        関連するトピックファイルは<strong>オンデマンド</strong>で読み込まれる
+                                    </div>
+                                    <div class="loop-arrow">↓</div>
+                                    <div class="loop-step">
+                                        <span class="loop-step-number">3</span>
+                                        セッション中に新しい学びがあれば、Claude が自動的にメモリを更新
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>/memory コマンド</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                <span class="code-inline">/memory</span> コマンドで、保存されたメモリの閲覧・編集ができます。
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">/memory</div>
+                                <div class="output">
+                                    メモリの一覧表示、個別のメモリの確認・編集・削除が可能
+                                </div>
+                            </div>
+
+                            <h4>手動でのメモリ操作</h4>
+                            <div class="info-box">
+                                <ul style="color: #d0d0e0; line-height: 2; padding-left: 20px;">
+                                    <li><strong>「これを覚えておいて」</strong>（Remember this）と伝えると、Claude がメモリに保存</li>
+                                    <li><strong>「これは忘れて」</strong>（Forget this）と伝えると、Claude が該当するメモリを削除</li>
+                                    <li>メモリファイルはプレーンテキストなので、直接エディタで編集することも可能</li>
+                                </ul>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>注意点</h4>
+                                <p style="color: #d0d0e0; line-height: 1.8;">
+                                    Auto Memory は個人単位で保存されるため、チームメンバーとは共有されません。チーム共有のルールは CLAUDE.md やルールファイルを使用してください。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- Section 4: Skills -->
+                    <!-- ========================================== -->
+                    <div class="content-section">
+                        <h3>Skills ー カスタムコマンド
+                            <a href="https://code.claude.com/docs/ja/skills" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 20px;">
+                                Skills は、<span class="code-inline">SKILL.md</span> ファイルを使って Claude Code の機能を拡張するカスタムコマンドです。スラッシュコマンド（<span class="code-inline">/my-skill</span>）として呼び出すことも、Claude が自動的に適切なタイミングで使用することもできます。
+                            </p>
+
+                            <h4>Skills の配置場所</h4>
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>スコープ</th>
+                                        <th>配置場所</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Enterprise</td>
+                                        <td>管理者設定で配信</td>
+                                        <td>組織全体で共有されるスキル</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Personal</td>
+                                        <td><span class="code-inline">~/.claude/skills/</span></td>
+                                        <td>個人の全プロジェクトで使えるスキル</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Project</td>
+                                        <td><span class="code-inline">.claude/skills/</span></td>
+                                        <td>プロジェクト固有のスキル（Git管理可）</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Plugin</td>
+                                        <td>npm パッケージ経由</td>
+                                        <td>外部パッケージとして配布されるスキル</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>Skill の作成</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                ディレクトリを作成し、その中に <span class="code-inline">SKILL.md</span> ファイルを置きます。
+                            </p>
+
+                            <div class="code-block">
+<span class="variable">.claude/skills/</span>
+└── <span class="highlight">deploy/</span>
+    ├── <span class="highlight">SKILL.md</span>           <span class="comment"># スキル定義（必須）</span>
+    └── <span class="highlight">deploy-checklist.md</span> <span class="comment"># サポートファイル（任意）</span>
+                            </div>
+
+                            <h4>SKILL.md の構造</h4>
+                            <div class="code-block">
+<span class="comment">---</span>
+<span class="highlight">name</span>: deploy
+<span class="highlight">description</span>: <span class="string">本番環境へのデプロイを実行する</span>
+<span class="highlight">argument-hint</span>: <span class="string">[staging|production]</span>
+<span class="comment">---</span>
+
+<span class="comment"># デプロイ手順</span>
+
+1. まずテストを実行: <span class="highlight">`pnpm test`</span>
+2. ビルドを確認: <span class="highlight">`pnpm build`</span>
+3. 引数に応じて環境を選択:
+   - staging: <span class="highlight">`pnpm deploy:staging`</span>
+   - production: <span class="highlight">`pnpm deploy:prod`</span>
+4. デプロイ結果を確認して報告
+                            </div>
+
+                            <h4>フロントマターの全フィールド</h4>
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>フィールド</th>
+                                        <th>型</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="code-inline">name</span></td>
+                                        <td>string</td>
+                                        <td>スキル名（スラッシュコマンドの名前になる）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">description</span></td>
+                                        <td>string</td>
+                                        <td>スキルの説明。Claude がいつ使うか判断する材料になる</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">argument-hint</span></td>
+                                        <td>string</td>
+                                        <td>引数のヒント（UI に表示される）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">disable-model-invocation</span></td>
+                                        <td>boolean</td>
+                                        <td><span class="code-inline">true</span> にすると Claude が自動呼び出しできなくなる（ユーザー専用）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">user-invocable</span></td>
+                                        <td>boolean</td>
+                                        <td><span class="code-inline">false</span> にするとユーザーからは呼び出せない（Claude 専用）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">allowed-tools</span></td>
+                                        <td>string[]</td>
+                                        <td>スキルが使用できるツールのリスト</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">model</span></td>
+                                        <td>string</td>
+                                        <td>スキル実行に使用するモデル</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">context</span></td>
+                                        <td>string</td>
+                                        <td><span class="code-inline">fork</span> でサブエージェントとして実行</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">agent</span></td>
+                                        <td>string</td>
+                                        <td>実行するエージェントの指定</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">hooks</span></td>
+                                        <td>object</td>
+                                        <td>スキル固有のフック定義</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>文字列置換（変数）</h4>
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>変数</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="code-inline">$ARGUMENTS</span></td>
+                                        <td>スキルに渡されたすべての引数（文字列全体）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">$ARGUMENTS[N]</span></td>
+                                        <td>N番目の引数（0ベース）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">$N</span></td>
+                                        <td>N番目の引数のショートカット（$ARGUMENTS[N] と同等）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">${CLAUDE_SESSION_ID}</span></td>
+                                        <td>現在のセッション ID</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">${CLAUDE_SKILL_DIR}</span></td>
+                                        <td>SKILL.md があるディレクトリのパス</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>ビルトインスキル</h4>
+                            <div class="component-card" style="margin-bottom: 16px;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                                    <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                        <span style="color: #e8734a; font-weight: 600;">/simplify</span>
+                                        <p style="color: #a0a0b8; font-size: 13px; margin-top: 4px;">コードを簡潔にリファクタリング</p>
+                                    </div>
+                                    <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                        <span style="color: #e8734a; font-weight: 600;">/batch</span>
+                                        <p style="color: #a0a0b8; font-size: 13px; margin-top: 4px;">複数ファイルに同じ操作を適用</p>
+                                    </div>
+                                    <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                        <span style="color: #e8734a; font-weight: 600;">/debug</span>
+                                        <p style="color: #a0a0b8; font-size: 13px; margin-top: 4px;">エラーの原因を調査・修正</p>
+                                    </div>
+                                    <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                        <span style="color: #e8734a; font-weight: 600;">/loop</span>
+                                        <p style="color: #a0a0b8; font-size: 13px; margin-top: 4px;">テストが通るまで繰り返し修正</p>
+                                    </div>
+                                    <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                        <span style="color: #e8734a; font-weight: 600;">/claude-api</span>
+                                        <p style="color: #a0a0b8; font-size: 13px; margin-top: 4px;">Claude API を直接呼び出す</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>呼び出し制御</h4>
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>モード</th>
+                                        <th>設定</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>両方（デフォルト）</td>
+                                        <td>設定なし</td>
+                                        <td>ユーザーも Claude も呼び出せる</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ユーザー専用</td>
+                                        <td><span class="code-inline">disable-model-invocation: true</span></td>
+                                        <td>ユーザーのみがスラッシュコマンドで呼び出せる</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Claude 専用</td>
+                                        <td><span class="code-inline">user-invocable: false</span></td>
+                                        <td>Claude が適切なタイミングで自動的に使用</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>高度なパターン</h4>
+
+                            <div class="info-box">
+                                <h4>動的コンテキスト（<span class="code-inline">!</span> 構文）</h4>
+                                <p style="color: #d0d0e0; line-height: 1.8;">
+                                    バッククォートの前に <span class="code-inline">!</span> を付けると、コマンドの実行結果がスキルのコンテキストに含まれます。
+                                </p>
+                                <div class="code-block">
+<span class="comment"># 現在のブランチ情報を動的に取得</span>
+現在のブランチ: <span class="highlight">!</span>`git branch --show-current`
+最新のコミット: <span class="highlight">!</span>`git log --oneline -5`
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>サブエージェントとして実行</h4>
+                                <p style="color: #d0d0e0; line-height: 1.8;">
+                                    <span class="code-inline">context: fork</span> を設定すると、スキルは独立したサブエージェントとして実行されます。メインの会話コンテキストを汚さずに独立した作業を行えます。
+                                </p>
+                                <div class="code-block">
+<span class="comment">---</span>
+<span class="highlight">name</span>: analyze
+<span class="highlight">context</span>: <span class="string">fork</span>
+<span class="comment">---</span>
+<span class="comment"># サブエージェントとして独立実行される</span>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>サポートファイル</h4>
+                                <p style="color: #d0d0e0; line-height: 1.8;">
+                                    スキルのディレクトリにテンプレートやチェックリストなどのファイルを配置し、<span class="code-inline">${CLAUDE_SKILL_DIR}</span> で参照できます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- Section 5: Hooks -->
+                    <!-- ========================================== -->
+                    <div class="content-section">
+                        <h3>Hooks ー 自動化フック
+                            <a href="https://code.claude.com/docs/ja/hooks" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 20px;">
+                                Hooks は、Claude Code のライフサイクルの特定のポイントで自動的に実行されるシェルコマンド、HTTP リクエスト、プロンプト、またはエージェントです。コードのフォーマット、危険な操作のブロック、通知の送信など、ワークフローの自動化に使用します。
+                            </p>
+
+                            <h4>フックイベント一覧</h4>
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>カテゴリ</th>
+                                        <th>イベント名</th>
+                                        <th>タイミング</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td rowspan="3">セッション</td>
+                                        <td><span class="code-inline">SessionStart</span></td>
+                                        <td>セッション開始時</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">SessionEnd</span></td>
+                                        <td>セッション終了時</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">InstructionsLoaded</span></td>
+                                        <td>CLAUDE.md/ルール読み込み完了時</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ユーザー</td>
+                                        <td><span class="code-inline">UserPromptSubmit</span></td>
+                                        <td>ユーザーがプロンプトを送信した時</td>
+                                    </tr>
+                                    <tr>
+                                        <td rowspan="3">ツール</td>
+                                        <td><span class="code-inline">PreToolUse</span></td>
+                                        <td>ツール実行前</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">PostToolUse</span></td>
+                                        <td>ツール実行後（成功時）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">PostToolUseFailure</span></td>
+                                        <td>ツール実行後（失敗時）</td>
+                                    </tr>
+                                    <tr>
+                                        <td rowspan="5">エージェント</td>
+                                        <td><span class="code-inline">SubagentStart</span></td>
+                                        <td>サブエージェント起動時</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">SubagentStop</span></td>
+                                        <td>サブエージェント停止時</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">Stop</span></td>
+                                        <td>Claude がレスポンスを完了した時</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">TeammateIdle</span></td>
+                                        <td>チームメイトがアイドル状態になった時</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">TaskCompleted</span></td>
+                                        <td>タスクが完了した時</td>
+                                    </tr>
+                                    <tr>
+                                        <td rowspan="7">その他</td>
+                                        <td><span class="code-inline">Notification</span></td>
+                                        <td>通知が発生した時</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">ConfigChange</span></td>
+                                        <td>設定が変更された時</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">WorktreeCreate</span></td>
+                                        <td>ワークツリー作成時</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">WorktreeRemove</span></td>
+                                        <td>ワークツリー削除時</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">PreCompact</span></td>
+                                        <td>コンパクト処理前</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">PostCompact</span></td>
+                                        <td>コンパクト処理後</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">Elicitation</span></td>
+                                        <td>ユーザーへの質問時</td>
+                                    </tr>
+                                    <tr>
+                                        <td>権限</td>
+                                        <td><span class="code-inline">PermissionRequest</span></td>
+                                        <td>権限の承認リクエスト時</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>ハンドラーの種類</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0;">
+                                <div class="component-card">
+                                    <span style="color: #e8734a; font-weight: 600; font-size: 16px;">command</span>
+                                    <p style="color: #a0a0b8; font-size: 13px; margin-top: 8px;">シェルコマンドを実行</p>
+                                </div>
+                                <div class="component-card">
+                                    <span style="color: #e8734a; font-weight: 600; font-size: 16px;">http</span>
+                                    <p style="color: #a0a0b8; font-size: 13px; margin-top: 8px;">HTTP リクエストを送信</p>
+                                </div>
+                                <div class="component-card">
+                                    <span style="color: #e8734a; font-weight: 600; font-size: 16px;">prompt</span>
+                                    <p style="color: #a0a0b8; font-size: 13px; margin-top: 8px;">プロンプトを注入</p>
+                                </div>
+                                <div class="component-card">
+                                    <span style="color: #e8734a; font-weight: 600; font-size: 16px;">agent</span>
+                                    <p style="color: #a0a0b8; font-size: 13px; margin-top: 8px;">エージェントを起動</p>
+                                </div>
+                            </div>
+
+                            <h4>設定場所</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                Hooks は <span class="code-inline">settings.json</span> ファイルに定義します。ユーザー、プロジェクト、ローカル、管理者の各スコープで設定可能です。
+                            </p>
+
+                            <h4>終了コード</h4>
+                            <div class="info-box">
+                                <ul style="color: #d0d0e0; line-height: 2; padding-left: 20px;">
+                                    <li><strong>0</strong> - 成功。処理を続行</li>
+                                    <li><strong>2</strong> - ブロッキングエラー。操作をキャンセル（PreToolUse の場合、ツール実行を阻止）</li>
+                                    <li><strong>その他</strong> - 非ブロッキングエラー。警告を表示して続行</li>
+                                </ul>
+                            </div>
+
+                            <h4>マッチャーパターン</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                <span class="code-inline">matcher</span> フィールドで、特定のツールに限定してフックを発火させます。
+                            </p>
+                            <div class="code-block">
+<span class="comment">// Edit ツールのみにマッチ</span>
+<span class="string">"matcher"</span>: <span class="string">"Edit"</span>
+
+<span class="comment">// Bash ツールのみにマッチ</span>
+<span class="string">"matcher"</span>: <span class="string">"Bash"</span>
+
+<span class="comment">// 複数ツールにマッチ（正規表現）</span>
+<span class="string">"matcher"</span>: <span class="string">"Edit|Write"</span>
+                            </div>
+
+                            <h4>実践例 1：ファイル編集後に自動フォーマット</h4>
+                            <div class="code-block">
+{
+  <span class="string">"hooks"</span>: {
+    <span class="string">"PostToolUse"</span>: [
+      {
+        <span class="string">"matcher"</span>: <span class="string">"Edit"</span>,
+        <span class="string">"hooks"</span>: [
+          {
+            <span class="string">"type"</span>: <span class="string">"command"</span>,
+            <span class="string">"command"</span>: <span class="string">"npx prettier --write $CLAUDE_FILE_PATH"</span>
+          }
+        ]
+      }
+    ]
+  }
+}
+                            </div>
+
+                            <h4>実践例 2：危険なコマンドをブロック</h4>
+                            <div class="code-block">
+{
+  <span class="string">"hooks"</span>: {
+    <span class="string">"PreToolUse"</span>: [
+      {
+        <span class="string">"matcher"</span>: <span class="string">"Bash"</span>,
+        <span class="string">"hooks"</span>: [
+          {
+            <span class="string">"type"</span>: <span class="string">"command"</span>,
+            <span class="string">"command"</span>: <span class="string">"if echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'rm -rf /'; then echo 'BLOCKED: 危険なコマンド' >&amp;2; exit 2; fi"</span>
+          }
+        ]
+      }
+    ]
+  }
+}
+                            </div>
+                            <p style="color: #a0a0b8; font-size: 13px; margin-top: 8px;">
+                                終了コード <span class="code-inline">2</span> を返すことで、ツール実行がブロックされます。
+                            </p>
+
+                            <h4>実践例 3：デスクトップ通知</h4>
+                            <div class="code-block">
+{
+  <span class="string">"hooks"</span>: {
+    <span class="string">"Notification"</span>: [
+      {
+        <span class="string">"hooks"</span>: [
+          {
+            <span class="string">"type"</span>: <span class="string">"command"</span>,
+            <span class="string">"command"</span>: <span class="string">"osascript -e 'display notification \"$CLAUDE_NOTIFICATION\" with title \"Claude Code\"'"</span>
+          }
+        ]
+      }
+    ]
+  }
+}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- Section 6: MCP -->
+                    <!-- ========================================== -->
+                    <div class="content-section">
+                        <h3>MCP ー 外部ツール連携
+                            <a href="https://code.claude.com/docs/ja/mcp" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 20px;">
+                                MCP（Model Context Protocol）は、AI ツール連携のオープン標準プロトコルです。課題管理、データベース、監視ツール、デザインツール、ワークフロー自動化など、外部サービスと Claude Code を接続します。
+                            </p>
+
+                            <h4>MCP サーバーの追加方法</h4>
+
+                            <div class="info-box" style="margin-bottom: 16px;">
+                                <h4>HTTP トランスポート</h4>
+                                <div class="command-box" style="margin-top: 8px;">
+                                    <div class="command">claude mcp add --transport http &lt;name&gt; &lt;url&gt;</div>
+                                </div>
+                                <p style="color: #a0a0b8; font-size: 13px; margin-top: 8px;">リモートサーバーへの HTTP 接続。最もシンプルな方法。</p>
+                            </div>
+
+                            <div class="info-box" style="margin-bottom: 16px;">
+                                <h4>SSE トランスポート（非推奨）</h4>
+                                <div class="command-box" style="margin-top: 8px;">
+                                    <div class="command">claude mcp add --transport sse &lt;name&gt; &lt;url&gt;</div>
+                                </div>
+                                <p style="color: #a0a0b8; font-size: 13px; margin-top: 8px;">Server-Sent Events。HTTP トランスポートへの移行が推奨。</p>
+                            </div>
+
+                            <div class="info-box" style="margin-bottom: 16px;">
+                                <h4>stdio トランスポート</h4>
+                                <div class="command-box" style="margin-top: 8px;">
+                                    <div class="command">claude mcp add --transport stdio &lt;name&gt; -- &lt;command&gt;</div>
+                                </div>
+                                <p style="color: #a0a0b8; font-size: 13px; margin-top: 8px;">ローカルプロセスとして起動し、標準入出力で通信。</p>
+                            </div>
+
+                            <h4>MCP サーバーの管理</h4>
+                            <div class="command-box" style="margin-bottom: 8px;">
+                                <div class="command">claude mcp list</div>
+                                <div class="output">設定済みの MCP サーバーの一覧を表示</div>
+                            </div>
+                            <div class="command-box" style="margin-bottom: 8px;">
+                                <div class="command">claude mcp get &lt;name&gt;</div>
+                                <div class="output">特定の MCP サーバーの詳細情報を表示</div>
+                            </div>
+                            <div class="command-box" style="margin-bottom: 8px;">
+                                <div class="command">claude mcp remove &lt;name&gt;</div>
+                                <div class="output">MCP サーバーを削除</div>
+                            </div>
+                            <div class="command-box" style="margin-bottom: 8px;">
+                                <div class="command">/mcp</div>
+                                <div class="output">インタラクティブな MCP 管理画面を開く</div>
+                            </div>
+
+                            <h4>スコープ</h4>
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>スコープ</th>
+                                        <th>保存先</th>
+                                        <th>用途</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>local（デフォルト）</td>
+                                        <td><span class="code-inline">~/.claude/</span> 配下のローカル設定</td>
+                                        <td>個人の開発環境でのみ使用するサーバー</td>
+                                    </tr>
+                                    <tr>
+                                        <td>project</td>
+                                        <td><span class="code-inline">.mcp.json</span>（リポジトリルート）</td>
+                                        <td>チームで共有するサーバー（Git管理）</td>
+                                    </tr>
+                                    <tr>
+                                        <td>user</td>
+                                        <td><span class="code-inline">~/.claude/</span> 配下のユーザー設定</td>
+                                        <td>全プロジェクトで使用するサーバー</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="command-box">
+                                <div class="command">claude mcp add --scope project --transport stdio github -- npx @modelcontextprotocol/server-github</div>
+                                <div class="output">プロジェクトスコープで GitHub MCP サーバーを追加</div>
+                            </div>
+
+                            <h4>OAuth 認証</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                OAuth 対応の MCP サーバーは、<span class="code-inline">/mcp</span> コマンドから認証フローを開始できます。ブラウザが開き、認証後にトークンが自動的に保存されます。
+                            </p>
+
+                            <h4>人気の MCP サーバー</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0;">
+                                <div class="component-card" style="text-align: center;">
+                                    <span style="color: #e8734a; font-weight: 600;">GitHub</span>
+                                    <p style="color: #a0a0b8; font-size: 12px; margin-top: 4px;">Issue、PR、リポジトリ操作</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <span style="color: #e8734a; font-weight: 600;">Sentry</span>
+                                    <p style="color: #a0a0b8; font-size: 12px; margin-top: 4px;">エラー監視・デバッグ</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <span style="color: #e8734a; font-weight: 600;">Notion</span>
+                                    <p style="color: #a0a0b8; font-size: 12px; margin-top: 4px;">ドキュメント・ナレッジベース</p>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <span style="color: #e8734a; font-weight: 600;">PostgreSQL</span>
+                                    <p style="color: #a0a0b8; font-size: 12px; margin-top: 4px;">データベースクエリ・スキーマ</p>
+                                </div>
+                            </div>
+
+                            <h4>MCP リソース</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                MCP サーバーが公開するリソースは、<span class="code-inline">@</span> メンション構文で Claude の会話に取り込めます。データベースのスキーマ、API ドキュメント、設定ファイルなどを直接参照できます。
+                            </p>
+
+                            <h4>MCP プロンプト</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                MCP サーバーが提供するプロンプトは、<span class="code-inline">/mcp__&lt;server&gt;__&lt;prompt&gt;</span> 形式のコマンドとして利用可能です。
+                            </p>
+
+                            <h4>Claude Code を MCP サーバーとして公開</h4>
+                            <div class="command-box">
+                                <div class="command">claude mcp serve</div>
+                                <div class="output">
+                                    Claude Code 自体を MCP サーバーとして起動。<br>
+                                    他の AI ツールから Claude Code の機能を利用可能に。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- Section 7: 設定ファイル体系 -->
+                    <!-- ========================================== -->
+                    <div class="content-section">
+                        <h3>設定ファイル体系
+                            <a href="https://code.claude.com/docs/ja/settings" target="_blank" class="ref-link">Docs</a>
+                        </h3>
+                        <div class="collapsible-content">
+
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 20px;">
+                                Claude Code の設定は階層的なスコープで管理されます。各スコープは異なる目的と権限レベルを持ち、設定の優先度が明確に定義されています。
+                            </p>
+
+                            <h4>設定スコープ</h4>
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>スコープ</th>
+                                        <th>場所</th>
+                                        <th>管理者</th>
+                                        <th>共有</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Managed（管理者）</td>
+                                        <td>サーバー / plist / レジストリ / <span class="code-inline">managed-settings.json</span></td>
+                                        <td>組織の管理者</td>
+                                        <td>組織全体</td>
+                                    </tr>
+                                    <tr>
+                                        <td>User（ユーザー）</td>
+                                        <td><span class="code-inline">~/.claude/settings.json</span></td>
+                                        <td>個人</td>
+                                        <td>個人のみ</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Project（プロジェクト）</td>
+                                        <td><span class="code-inline">.claude/settings.json</span></td>
+                                        <td>チーム</td>
+                                        <td>Git管理（チーム共有）</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Local（ローカル）</td>
+                                        <td><span class="code-inline">.claude/settings.local.json</span></td>
+                                        <td>個人</td>
+                                        <td>個人のみ（.gitignore）</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h4>設定ファイルの詳細</h4>
+
+                            <div style="display: grid; gap: 12px; margin: 16px 0;">
+                                <div class="component-card">
+                                    <span style="color: #e8734a; font-weight: 600;">~/.claude/settings.json</span>
+                                    <span style="color: #a0a0b8; font-size: 12px; margin-left: 8px;">ユーザー設定</span>
+                                    <p style="color: #d0d0e0; font-size: 13px; margin-top: 8px;">個人の全プロジェクトに適用。API キー、テーマ、デフォルトのパーミッション設定など。</p>
+                                </div>
+                                <div class="component-card">
+                                    <span style="color: #e8734a; font-weight: 600;">.claude/settings.json</span>
+                                    <span style="color: #a0a0b8; font-size: 12px; margin-left: 8px;">プロジェクト設定</span>
+                                    <p style="color: #d0d0e0; font-size: 13px; margin-top: 8px;">Git にコミットしてチームで共有。プロジェクト固有のフック、MCP、パーミッション設定。</p>
+                                </div>
+                                <div class="component-card">
+                                    <span style="color: #e8734a; font-weight: 600;">.claude/settings.local.json</span>
+                                    <span style="color: #a0a0b8; font-size: 12px; margin-left: 8px;">ローカル設定</span>
+                                    <p style="color: #d0d0e0; font-size: 13px; margin-top: 8px;">.gitignore に追加。個人のローカル環境固有の設定（ローカル MCP サーバーなど）。</p>
+                                </div>
+                            </div>
+
+                            <h4>主な設定カテゴリ</h4>
+                            <div class="code-block">
+{
+  <span class="comment">// パーミッション設定</span>
+  <span class="string">"permissions"</span>: {
+    <span class="string">"allow"</span>: [<span class="string">"Edit"</span>, <span class="string">"Read"</span>, <span class="string">"Bash(npm test)"</span>],
+    <span class="string">"deny"</span>: [<span class="string">"Bash(rm -rf *)"</span>]
+  },
+
+  <span class="comment">// フック設定</span>
+  <span class="string">"hooks"</span>: { <span class="comment">/* ... */</span> },
+
+  <span class="comment">// MCP サーバー設定</span>
+  <span class="string">"mcpServers"</span>: { <span class="comment">/* ... */</span> },
+
+  <span class="comment">// モデル設定</span>
+  <span class="string">"model"</span>: <span class="string">"claude-sonnet-4-20250514"</span>,
+
+  <span class="comment">// エフォートレベル</span>
+  <span class="string">"effortLevel"</span>: <span class="string">"high"</span>,
+
+  <span class="comment">// テーマ</span>
+  <span class="string">"theme"</span>: <span class="string">"dark"</span>,
+
+  <span class="comment">// 自動メモリ</span>
+  <span class="string">"autoMemoryEnabled"</span>: <span class="keyword">true</span>
+}
+                            </div>
+
+                            <h4>設定の優先度</h4>
+                            <div class="visual-diagram">
+                                <div style="text-align: center; color: #d0d0e0; font-size: 14px;">
+                                    <div class="loop-step" style="margin-bottom: 8px; border-color: #f87171;">
+                                        <span class="loop-step-number" style="background: #f87171;">1</span>
+                                        <span style="color: #f87171; font-weight: 600;">Managed</span>（管理者設定） ー 最高優先度
+                                    </div>
+                                    <div class="loop-arrow">↓</div>
+                                    <div class="loop-step" style="margin-bottom: 8px; border-color: #fbbf24;">
+                                        <span class="loop-step-number" style="background: #fbbf24; color: #000;">2</span>
+                                        <span style="color: #fbbf24; font-weight: 600;">CLI フラグ</span>（コマンドライン引数）
+                                    </div>
+                                    <div class="loop-arrow">↓</div>
+                                    <div class="loop-step" style="margin-bottom: 8px; border-color: #60a5fa;">
+                                        <span class="loop-step-number" style="background: #60a5fa;">3</span>
+                                        <span style="color: #60a5fa; font-weight: 600;">Local</span>（settings.local.json）
+                                    </div>
+                                    <div class="loop-arrow">↓</div>
+                                    <div class="loop-step" style="margin-bottom: 8px; border-color: #34d399;">
+                                        <span class="loop-step-number" style="background: #34d399; color: #000;">4</span>
+                                        <span style="color: #34d399; font-weight: 600;">Project</span>（settings.json）
+                                    </div>
+                                    <div class="loop-arrow">↓</div>
+                                    <div class="loop-step" style="border-color: #a0a0b8;">
+                                        <span class="loop-step-number" style="background: #a0a0b8; color: #000;">5</span>
+                                        <span style="color: #a0a0b8; font-weight: 600;">User</span>（~/.claude/settings.json） ー 最低優先度
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>/config コマンド</h4>
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 16px;">
+                                <span class="code-inline">/config</span> コマンドで、インタラクティブな設定 UI を開けます。GUI ベースで設定を変更できるため、JSON を直接編集する必要がありません。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">/config</div>
+                                <div class="output">設定画面が開き、各種設定を対話的に変更可能</div>
+                            </div>
+
+                            <h4>主要な環境変数</h4>
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>環境変数</th>
+                                        <th>説明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="code-inline">ANTHROPIC_API_KEY</span></td>
+                                        <td>Anthropic API キー</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">CLAUDE_CODE_EFFORT_LEVEL</span></td>
+                                        <td>エフォートレベル（low / medium / high）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">CLAUDE_CODE_MAX_TURNS</span></td>
+                                        <td>最大ターン数の制限</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">CLAUDE_CODE_USE_BEDROCK</span></td>
+                                        <td>Amazon Bedrock を使用（1 で有効）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">CLAUDE_CODE_USE_VERTEX</span></td>
+                                        <td>Google Vertex AI を使用（1 で有効）</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="code-inline">CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</span></td>
+                                        <td>テレメトリ等の非必須通信を無効化</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- Section 8: まとめ -->
+                    <!-- ========================================== -->
+                    <div class="content-section">
+                        <h3>まとめと次のステップ</h3>
+                        <div class="collapsible-content">
+
+                            <p style="color: #d0d0e0; line-height: 1.8; margin-bottom: 20px;">
+                                Claude Code のカスタマイズ機能は、プロジェクトの要件に合わせて AI エージェントの振る舞いを細かく制御するための強力なツールセットです。
+                            </p>
+
+                            <h4>カスタマイズ機能のまとめ</h4>
+                            <div style="display: grid; gap: 12px; margin: 16px 0;">
+                                <div class="loop-step">
+                                    <span class="loop-step-number" style="background: #e8734a;">1</span>
+                                    <strong style="color: #e8734a;">CLAUDE.md</strong>
+                                    <span style="color: #d0d0e0;"> ー プロジェクトの基本ルールと記憶を定義</span>
+                                </div>
+                                <div class="loop-step">
+                                    <span class="loop-step-number" style="background: #e8734a;">2</span>
+                                    <strong style="color: #e8734a;">.claude/rules/</strong>
+                                    <span style="color: #d0d0e0;"> ー モジュール式のルールで関心事を分離</span>
+                                </div>
+                                <div class="loop-step">
+                                    <span class="loop-step-number" style="background: #e8734a;">3</span>
+                                    <strong style="color: #e8734a;">Auto Memory</strong>
+                                    <span style="color: #d0d0e0;"> ー Claude が自動的に学習・記憶</span>
+                                </div>
+                                <div class="loop-step">
+                                    <span class="loop-step-number" style="background: #e8734a;">4</span>
+                                    <strong style="color: #e8734a;">Skills</strong>
+                                    <span style="color: #d0d0e0;"> ー カスタムコマンドで機能を拡張</span>
+                                </div>
+                                <div class="loop-step">
+                                    <span class="loop-step-number" style="background: #e8734a;">5</span>
+                                    <strong style="color: #e8734a;">Hooks</strong>
+                                    <span style="color: #d0d0e0;"> ー ライフサイクルイベントで自動化</span>
+                                </div>
+                                <div class="loop-step">
+                                    <span class="loop-step-number" style="background: #e8734a;">6</span>
+                                    <strong style="color: #e8734a;">MCP</strong>
+                                    <span style="color: #d0d0e0;"> ー 外部ツール・サービスとの連携</span>
+                                </div>
+                                <div class="loop-step">
+                                    <span class="loop-step-number" style="background: #e8734a;">7</span>
+                                    <strong style="color: #e8734a;">設定ファイル体系</strong>
+                                    <span style="color: #d0d0e0;"> ー 階層的な設定管理で柔軟に制御</span>
+                                </div>
+                            </div>
+
+                            <h4>確認チェックリスト</h4>
+                            <div class="success-box">
+                                <ul style="color: #d0d0e0; line-height: 2.2; padding-left: 20px;">
+                                    <li>CLAUDE.md の配置場所と優先度を理解している</li>
+                                    <li>ルールファイルのパス固有ルール（YAML フロントマター）を使える</li>
+                                    <li>Auto Memory の仕組みと <span class="code-inline">/memory</span> コマンドを知っている</li>
+                                    <li>Skills の SKILL.md 構造とフロントマターフィールドを理解している</li>
+                                    <li>Hooks のイベント種類と終了コードの意味を把握している</li>
+                                    <li>MCP サーバーの追加・管理方法とスコープの違いを理解している</li>
+                                    <li>設定ファイルの優先度（Managed > CLI > Local > Project > User）を覚えている</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>次のステップ</h4>
+                                <p style="color: #d0d0e0; line-height: 1.8;">
+                                    カスタマイズの基礎を理解したら、実際のプロジェクトで CLAUDE.md を作成し、必要に応じて Skills や Hooks を追加していきましょう。まずは <span class="code-inline">/init</span> コマンドで CLAUDE.md のひな型を生成するところから始めるのがおすすめです。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+</html>

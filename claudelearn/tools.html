@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ツールシステム - Claude Code メカニズム</title>
+    <meta name="description" content="Claude Codeのツールシステムの仕組みを深掘り。エージェントハーネスの正体、JSONスキーマによるツール定義、パーミッションシステムまで。">
+
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#e8734a',
+                            500: '#e36437',
+                            600: '#c2410c',
+                            700: '#9a3412',
+                            800: '#7c2d12',
+                            900: '#431407',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%);
+            background-attachment: fixed;
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        /* h3 見出し — オレンジ */
+        .content-section h3 {
+            color: #e8734a;
+            margin-bottom: 16px;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            background: rgba(232, 115, 74, 0.06);
+            border: 1px solid #3a3a52;
+        }
+
+        .content-section h3:hover {
+            background: rgba(232, 115, 74, 0.1);
+            border-color: rgba(232, 115, 74, 0.35);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 14px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+            color: #a0a0b8;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .content-section .collapsible-content {
+            display: block !important;
+        }
+
+        .content-section .collapsible-content.collapsed {
+            display: none !important;
+        }
+
+        /* h4 — 白 */
+        .content-section h4 {
+            color: #e8e8f0;
+            margin: 24px 0 12px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* ボックス内の最初のh4は上マージンなし */
+        .info-box h4:first-child,
+        .warning-box h4:first-child,
+        .success-box h4:first-child,
+        .error-box h4:first-child {
+            margin-top: 0;
+        }
+
+        /* 図解エリア */
+        .visual-diagram {
+            background: rgba(26, 26, 46, 0.7);
+            border: 1px solid #3a3a52;
+            border-radius: 12px;
+            padding: 28px;
+            margin: 24px 0;
+        }
+
+        /* コマンドボックス */
+        .command-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a52;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .command {
+            color: #ffffff;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .command::before {
+            content: '$';
+            color: #a0a0b8;
+        }
+
+        .output {
+            color: #a0a0b8;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #3a3a52;
+        }
+
+        .code-inline {
+            background: rgba(255, 255, 255, 0.08);
+            color: #d0d0e0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88em;
+        }
+
+        /* 情報ボックス */
+        .info-box,
+        .warning-box,
+        .success-box,
+        .error-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid #3a3a52;
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+
+        /* ループステップ */
+        .loop-step {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #3a3a52;
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .loop-step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3a3a52;
+            color: white;
+            font-weight: 800;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .loop-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3a3a52;
+            font-size: 22px;
+            padding: 4px 0;
+        }
+
+        /* コンポーネントカード */
+        .component-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #3a3a52;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        /* コードブロック */
+        .code-block {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid #3a3a52;
+            border-radius: 8px;
+            padding: 18px;
+            margin: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            overflow-x: auto;
+        }
+
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+        .code-block .highlight { color: #e8734a; font-weight: 600; }
+
+        /* ヘッダータイトルをClaude Codeオレンジ単色に */
+        header h1 span {
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            -webkit-text-fill-color: unset !important;
+            color: #e8734a !important;
+        }
+
+        /* ツールカード拡張 */
+        .tool-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #3a3a52;
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.2s ease;
+        }
+
+        .tool-card:hover {
+            border-color: rgba(232, 115, 74, 0.3);
+        }
+
+        .tool-card .tool-name {
+            font-weight: 700;
+            color: #e8734a;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .tool-card .tool-desc {
+            color: #a0a0b8;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .tool-card .tool-detail {
+            color: #d0d0e0;
+            font-size: 13px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #3a3a52;
+            line-height: 1.7;
+        }
+
+        /* フロー図 */
+        .flow-step {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #3a3a52;
+            border-radius: 8px;
+            padding: 14px 18px;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0a0b8;
+            font-size: 20px;
+            padding: 6px 0;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- セクション1: エージェントハーネスの正体 -->
+                    <div class="content-section">
+                        <h3>エージェントハーネスの正体を見に行く</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                前のセクションで「エージェントハーネス」という言葉が出てきました。
+                                ここからは実際にその正体を確認していきましょう。
+                            </p>
+
+                            <div class="warning-box">
+                                <h4>半分当たってた話</h4>
+                                <p class="text-gray-300">
+                                    Claude CodeのGitHubリポジトリ（<code class="code-inline">anthropics/claude-code</code>）を見ると、
+                                    TypeScriptのソースコードが並んでいます。「これがClaude Codeの本体か」と思いたくなりますが、
+                                    実はこれはプラグイン集（ツール定義やHooks等）であり、本体ではありません。
+                                </p>
+                            </div>
+
+                            <h4>インストール先を確認する</h4>
+                            <p class="text-gray-300 mb-4">
+                                Claude Codeは <code class="code-inline">curl -fsSL https://claude.ai/install.sh | bash</code> でインストールされます
+                                （npmインストールは非推奨）。
+                                実際にどこに何がインストールされているか確認してみましょう。
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">which claude</div>
+                                <div class="output">
+                                    /Users/you/.local/bin/claude
+                                </div>
+                            </div>
+
+                            <div class="command-box">
+                                <div class="command">ls -la ~/.local/share/claude/</div>
+                                <div class="output">
+                                    claude-code-{version}/  &larr; ネイティブバイナリ本体
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>つまり</h4>
+                                <p class="text-gray-300">
+                                    <code class="code-inline">claude</code> コマンドの実体は、たった1つのファイル
+                                    <code class="code-inline">cli.js</code> です。このファイルが約10MBあり、
+                                    ミニファイ（圧縮）された状態で全てのロジックがバンドルされています。
+                                </p>
+                            </div>
+
+                            <h4>cli.js の中身をのぞく</h4>
+                            <p class="text-gray-300 mb-4">
+                                ミニファイされているので人間には読みにくいですが、キーワード検索はできます。
+                                実際に検索してみると、Claude Codeの仕組みが透けて見えます。
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">grep -c "toolUse\|tool_use" cli.js</div>
+                                <div class="output">235 件のマッチ — ツール呼び出しの処理が至るところにある</div>
+                            </div>
+
+                            <div class="command-box">
+                                <div class="command">grep -c "systemPrompt\|system_prompt" cli.js</div>
+                                <div class="output">86 件のマッチ — システムプロンプトの構築・注入処理</div>
+                            </div>
+
+                            <div class="command-box">
+                                <div class="command">grep -c "permission\|Permission" cli.js</div>
+                                <div class="output">多数のマッチ — パーミッション確認の仕組み</div>
+                            </div>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #e8e8f0; margin-bottom: 24px;">
+                                    Claude Code の構造
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="component-card">
+                                        <div class="text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2">
+                                            本体（あなたのPCにインストール済み）
+                                        </div>
+                                        <h4 class="text-lg font-bold text-white" style="margin-top: 0;">cli.js（約10MB）</h4>
+                                        <ul class="text-gray-300 mt-2 space-y-1 text-sm">
+                                            <li>- エージェントループの実装</li>
+                                            <li>- ツールの実行エンジン</li>
+                                            <li>- パーミッションシステム</li>
+                                            <li>- システムプロンプトの構築</li>
+                                            <li>- API通信の管理</li>
+                                            <li>- TUI（ターミナルUI）</li>
+                                        </ul>
+                                    </div>
+                                    <div class="component-card">
+                                        <div class="text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2">
+                                            GitHubリポジトリ（anthropics/claude-code）
+                                        </div>
+                                        <h4 class="text-lg font-bold text-white" style="margin-top: 0;">プラグイン・設定集</h4>
+                                        <ul class="text-gray-300 mt-2 space-y-1 text-sm">
+                                            <li>- ツール定義（TypeScript）</li>
+                                            <li>- Hooks の仕組み</li>
+                                            <li>- MCPサーバー連携</li>
+                                            <li>- スラッシュコマンド</li>
+                                            <li>- ドキュメント</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>なぜこれが重要か</h4>
+                                <p class="text-gray-300">
+                                    GitHubリポジトリを読んでも「エージェントループの核心部分」は見えません。
+                                    それはcli.jsにバンドルされているからです。しかし、ツールの定義方法や
+                                    拡張の仕組みはリポジトリから学べます。つまり「半分当たってた」のです。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2: ツール定義の実態 -->
+                    <div class="content-section">
+                        <h3>ツール定義の実態 ー JSONスキーマ</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                LLMにとってツールとは何でしょうか？
+                                答えは「テキストで説明された関数のインターフェース」です。
+                                実際のツール定義を見てみましょう。
+                            </p>
+
+                            <h4>ツール定義の3要素</h4>
+                            <p class="text-gray-300 mb-4">
+                                全てのツールは、以下の3つの要素で定義されています。
+                            </p>
+
+                            <div class="code-block">
+                                <div class="comment">// Bashツールの定義（簡略版）</div>
+                                <div class="mt-2">{</div>
+                                <div class="ml-4"><span class="highlight">"name"</span>: <span class="string">"Bash"</span>,</div>
+                                <div class="ml-4"><span class="highlight">"description"</span>: <span class="string">"コマンドを実行する。</span></div>
+                                <div class="ml-8"><span class="string">catやgrepではなくRead、Grepツールを使え。</span></div>
+                                <div class="ml-8"><span class="string">sedやawkではなくEditツールを使え..."</span>,</div>
+                                <div class="ml-4"><span class="highlight">"input_schema"</span>: {</div>
+                                <div class="ml-8"><span class="keyword">"type"</span>: <span class="string">"object"</span>,</div>
+                                <div class="ml-8"><span class="keyword">"properties"</span>: {</div>
+                                <div class="ml-12"><span class="keyword">"command"</span>: {</div>
+                                <div class="ml-16"><span class="keyword">"type"</span>: <span class="string">"string"</span>,</div>
+                                <div class="ml-16"><span class="keyword">"description"</span>: <span class="string">"実行するコマンド"</span></div>
+                                <div class="ml-12">},</div>
+                                <div class="ml-12"><span class="keyword">"timeout"</span>: {</div>
+                                <div class="ml-16"><span class="keyword">"type"</span>: <span class="string">"number"</span>,</div>
+                                <div class="ml-16"><span class="keyword">"description"</span>: <span class="string">"タイムアウト（ミリ秒）"</span></div>
+                                <div class="ml-12">}</div>
+                                <div class="ml-8">},</div>
+                                <div class="ml-8"><span class="keyword">"required"</span>: [<span class="string">"command"</span>]</div>
+                                <div class="ml-4">}</div>
+                                <div>}</div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">name</div>
+                                    <p class="text-gray-400 text-sm">ツールの識別名。LLMが tool_use レスポンスで指定する名前。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">description</div>
+                                    <p class="text-gray-400 text-sm">LLMへの説明文。いつ・どう使うべきかの戦略的指示を含む。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">input_schema</div>
+                                    <p class="text-gray-400 text-sm">パラメータの型定義。JSON Schemaで引数の形を規定する。</p>
+                                </div>
+                            </div>
+
+                            <div class="warning-box mt-6">
+                                <h4>descriptionの戦略性</h4>
+                                <p class="text-gray-300">
+                                    ツールの description は単なる説明ではありません。
+                                    「catではなくReadツールを使え」「grepコマンドではなくGrepツールを使え」といった
+                                    戦略的な指示がここに含まれています。
+                                    LLMはこの説明を読んで、どのツールを選ぶか判断します。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>LLMにとっての「ツール」</h4>
+                                <p class="text-gray-300">
+                                    LLMはツールの実装コードを一切見ていません。
+                                    name・description・input_schema という「テキスト情報」だけを見て、
+                                    どのツールをどう使うか判断しています。
+                                    だからこそ、descriptionの書き方がClaude Codeの品質に直結するのです。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション3: ツール実行フロー -->
+                    <div class="content-section">
+                        <h3>ツール実行フロー ー tool_use から tool_result まで</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                LLMがツールを使いたいと言ってから、結果が返るまでの詳細なフローを見てみましょう。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #e8e8f0; margin-bottom: 24px;">
+                                    ツール実行の詳細フロー
+                                </div>
+
+                                <div style="max-width: 560px; margin: 0 auto;">
+                                    <div class="flow-step">
+                                        <div class="font-bold text-white">Claude APIが <code class="code-inline">tool_use</code> を返す</div>
+                                        <div class="text-gray-400 text-sm mt-1">「Bashツールで <code class="code-inline">ls -la</code> を実行して」</div>
+                                    </div>
+
+                                    <div class="flow-arrow">&#8595;</div>
+
+                                    <div class="flow-step" style="border-color: rgba(232, 115, 74, 0.4);">
+                                        <div class="font-bold" style="color: #e8734a;">パーミッション確認</div>
+                                        <div class="text-gray-400 text-sm mt-1">このツール呼び出しは許可されているか？</div>
+                                        <div class="mt-2 grid grid-cols-2 gap-2">
+                                            <div style="background: rgba(255,255,255,0.03); border: 1px solid #3a3a52; border-radius: 6px; padding: 8px;">
+                                                <span class="text-green-400 text-sm font-semibold">許可</span>
+                                                <div class="text-gray-500 text-xs mt-1">→ 実行へ進む</div>
+                                            </div>
+                                            <div style="background: rgba(255,255,255,0.03); border: 1px solid #3a3a52; border-radius: 6px; padding: 8px;">
+                                                <span class="text-red-400 text-sm font-semibold">拒否</span>
+                                                <div class="text-gray-500 text-xs mt-1">→ エラーを返す</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flow-arrow">&#8595;</div>
+
+                                    <div class="flow-step">
+                                        <div class="font-bold text-white">ツールをローカルPCで実行</div>
+                                        <div class="text-gray-400 text-sm mt-1">エージェントハーネスが実際にコマンドを実行</div>
+                                    </div>
+
+                                    <div class="flow-arrow">&#8595;</div>
+
+                                    <div class="flow-step">
+                                        <div class="font-bold text-white"><code class="code-inline">tool_result</code> としてAPIに返送</div>
+                                        <div class="text-gray-400 text-sm mt-1">実行結果をメッセージに追加してループ継続</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>実際のデータで見る</h4>
+
+                            <div class="code-block">
+                                <div class="comment">// 1. LLMの応答（tool_use）</div>
+                                <div class="mt-2">{</div>
+                                <div class="ml-4"><span class="keyword">"type"</span>: <span class="string">"tool_use"</span>,</div>
+                                <div class="ml-4"><span class="keyword">"id"</span>: <span class="string">"toolu_01ABC..."</span>,</div>
+                                <div class="ml-4"><span class="keyword">"name"</span>: <span class="highlight">"Bash"</span>,</div>
+                                <div class="ml-4"><span class="keyword">"input"</span>: {</div>
+                                <div class="ml-8"><span class="keyword">"command"</span>: <span class="string">"ls -la"</span>,</div>
+                                <div class="ml-8"><span class="keyword">"description"</span>: <span class="string">"List files in current directory"</span></div>
+                                <div class="ml-4">}</div>
+                                <div>}</div>
+                            </div>
+
+                            <div class="code-block">
+                                <div class="comment">// 2. エージェントハーネスが実行後、結果を返す（tool_result）</div>
+                                <div class="mt-2">{</div>
+                                <div class="ml-4"><span class="keyword">"type"</span>: <span class="string">"tool_result"</span>,</div>
+                                <div class="ml-4"><span class="keyword">"tool_use_id"</span>: <span class="string">"toolu_01ABC..."</span>,</div>
+                                <div class="ml-4"><span class="keyword">"content"</span>: <span class="string">"total 48\ndrwxr-xr-x  5 user staff ..."</span></div>
+                                <div>}</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>tool_use_id による紐づけ</h4>
+                                <p class="text-gray-300">
+                                    <code class="code-inline">tool_use_id</code> は、LLMのツール呼び出しと実行結果を紐づけるIDです。
+                                    LLMは1回の応答で複数のツールを呼び出すことがあり、
+                                    このIDによってどの結果がどの呼び出しに対応するか判別します。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション4: 各ツールの詳細 -->
+                    <div class="content-section">
+                        <h3>各ツールの詳細と使い分け</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeが使える主要なツールを、それぞれの役割と使い分けの観点から見ていきましょう。
+                            </p>
+
+                            <div class="grid grid-cols-1 gap-4">
+                                <!-- Bash -->
+                                <div class="tool-card">
+                                    <div class="tool-name">Bash</div>
+                                    <div class="tool-desc">シェルコマンドを実行する万能ツール</div>
+                                    <div class="tool-detail">
+                                        <p>
+                                            任意のシェルコマンドを実行できる最も強力なツール。
+                                            ただし、システムプロンプトで「ファイル読み込みには <code class="code-inline">Read</code> を使え」
+                                            「検索には <code class="code-inline">Grep</code> を使え」と制限されています。
+                                        </p>
+                                        <p class="mt-2">
+                                            <span class="text-gray-400">主な用途：</span>
+                                            <code class="code-inline">npm install</code>、
+                                            <code class="code-inline">git</code> 操作、
+                                            <code class="code-inline">docker</code> コマンド、
+                                            ビルド・テスト実行など
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Read -->
+                                <div class="tool-card">
+                                    <div class="tool-name">Read</div>
+                                    <div class="tool-desc">ファイルの内容を読み取る専用ツール</div>
+                                    <div class="tool-detail">
+                                        <p>
+                                            ファイルを読むための専用ツール。<code class="code-inline">cat</code> や
+                                            <code class="code-inline">head</code> の代わりに使用されます。
+                                            行番号付きで表示され、画像やPDFも読めます。
+                                        </p>
+                                        <p class="mt-2">
+                                            <span class="text-gray-400">なぜcat ではダメなのか：</span>
+                                            専用ツールを使うことで、ユーザーが「何のファイルを読んだか」を
+                                            明確に把握でき、パーミッション制御も効きます。
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Edit / Write -->
+                                <div class="tool-card">
+                                    <div class="tool-name">Edit / Write</div>
+                                    <div class="tool-desc">ファイルの編集・作成ツール</div>
+                                    <div class="tool-detail">
+                                        <p>
+                                            <code class="code-inline">Edit</code> は既存ファイルの部分的な変更（差分ベース）、
+                                            <code class="code-inline">Write</code> は新規ファイルの作成または全体の書き換え。
+                                            <code class="code-inline">sed</code> や <code class="code-inline">awk</code> の代わりに使用されます。
+                                        </p>
+                                        <p class="mt-2">
+                                            <span class="text-gray-400">Editの仕組み：</span>
+                                            <code class="code-inline">old_string</code>（変更前）と
+                                            <code class="code-inline">new_string</code>（変更後）を指定する文字列置換方式。
+                                            差分が明確なので、ユーザーが変更を確認しやすい。
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Grep / Glob -->
+                                <div class="tool-card">
+                                    <div class="tool-name">Grep / Glob</div>
+                                    <div class="tool-desc">コードベースの検索ツール</div>
+                                    <div class="tool-detail">
+                                        <p>
+                                            <code class="code-inline">Grep</code> はファイル内容の正規表現検索（ripgrep ベース）、
+                                            <code class="code-inline">Glob</code> はファイル名のパターンマッチ。
+                                            Bashで <code class="code-inline">grep</code> や <code class="code-inline">find</code> を使うことは禁止されています。
+                                        </p>
+                                        <p class="mt-2">
+                                            <span class="text-gray-400">専用ツールの利点：</span>
+                                            パーミッション最適化、出力フォーマット統一、パフォーマンス向上。
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Agent -->
+                                <div class="tool-card">
+                                    <div class="tool-name">Agent</div>
+                                    <div class="tool-desc">サブエージェントを起動するツール</div>
+                                    <div class="tool-detail">
+                                        <p>
+                                            独立したコンテキストウィンドウを持つサブエージェントを起動します。
+                                            複雑なタスクの並列処理や、メインのコンテキストウィンドウを
+                                            汚さないための調査作業に使用されます。
+                                        </p>
+                                        <p class="mt-2">
+                                            <span class="text-gray-400">特徴：</span>
+                                            サブエージェントは独自のシステムプロンプトとツールセットを持つ。
+                                            結果だけがメインエージェントに返される。
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- WebFetch -->
+                                <div class="tool-card">
+                                    <div class="tool-name">WebFetch / WebSearch</div>
+                                    <div class="tool-desc">Webからの情報取得ツール</div>
+                                    <div class="tool-detail">
+                                        <p>
+                                            <code class="code-inline">WebFetch</code> は指定URLのページ取得、
+                                            <code class="code-inline">WebSearch</code> はWeb検索。
+                                            ドキュメント参照やAPI仕様の確認に使われます。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box mt-6">
+                                <h4>「Bashがあれば全部できる」のに、なぜ専用ツールがあるのか？</h4>
+                                <p class="text-gray-300">
+                                    理由は3つあります：
+                                </p>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300 mt-2">
+                                    <li><strong>安全性</strong> — 専用ツールは操作範囲が限定されている。Bashは何でもできてしまう</li>
+                                    <li><strong>可視性</strong> — 「Readツールでファイルを読んだ」はユーザーに明確。「Bashでcatした」は意図が不明瞭</li>
+                                    <li><strong>パーミッション制御</strong> — ツールごとに許可/拒否の粒度で制御できる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション5: パーミッションシステム -->
+                    <div class="content-section">
+                        <h3>パーミッションシステム ー なぜ確認が出るのか</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeを使っていると「このツールの実行を許可しますか？」という確認が出ます。
+                                これはパーミッションシステムが動いているからです。
+                            </p>
+
+                            <h4>パーミッションの仕組み</h4>
+                            <p class="text-gray-300 mb-4">
+                                ツール呼び出しの度に、エージェントハーネスが以下のチェックを行います。
+                            </p>
+
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-center gap-3">
+                                        <span class="loop-step-number">1</span>
+                                        <div>
+                                            <div class="font-bold text-white">ツールの種類を確認</div>
+                                            <div class="text-gray-400 text-sm">Read は安全、Bash は危険かもしれない、Edit はファイルを変更する</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-center gap-3">
+                                        <span class="loop-step-number">2</span>
+                                        <div>
+                                            <div class="font-bold text-white">パーミッション設定と照合</div>
+                                            <div class="text-gray-400 text-sm">ユーザーが事前に許可/拒否しているかチェック</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-center gap-3">
+                                        <span class="loop-step-number">3</span>
+                                        <div>
+                                            <div class="font-bold text-white">必要に応じてユーザーに確認</div>
+                                            <div class="text-gray-400 text-sm">未設定の操作は、実行前にユーザーの承認を求める</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>パーミッションモード</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">Plan モード</div>
+                                    <p class="text-gray-400 text-sm">読み取りのみ。ファイル変更やコマンド実行は不可。調査・計画に使用。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">Default モード</div>
+                                    <p class="text-gray-400 text-sm">安全な操作は自動許可。ファイル変更やBashコマンドは確認を求める。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">Yolo モード</div>
+                                    <p class="text-gray-400 text-sm">ほぼ全ての操作を自動許可。高速だが注意が必要。</p>
+                                </div>
+                            </div>
+
+                            <div class="info-box mt-6">
+                                <h4>パーミッション ＝ エージェントハーネスの仕事</h4>
+                                <p class="text-gray-300">
+                                    パーミッション確認はLLM側では一切行われていません。
+                                    エージェントハーネスが tool_use を受け取った時点で、
+                                    ローカルで判断しています。LLMが「許可が必要」と言っているわけではなく、
+                                    ハーネスが「この操作は確認が必要」と判定しているのです。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション6: サブエージェント -->
+                    <div class="content-section">
+                        <h3>サブエージェントの仕組み</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeには「エージェントの中にエージェントを起動する」機能があります。
+                                これがサブエージェントです。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #e8e8f0; margin-bottom: 24px;">
+                                    サブエージェントの構造
+                                </div>
+
+                                <div style="border: 1px solid #3a3a52; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                                    <div class="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-3">
+                                        メインエージェント
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.03); border: 1px solid #3a3a52; border-radius: 8px; padding: 14px; margin-bottom: 12px;">
+                                        <div class="font-bold text-white text-sm">コンテキストウィンドウ</div>
+                                        <div class="text-gray-400 text-xs mt-1">ユーザーとの全会話履歴・システムプロンプト・全ツール定義</div>
+                                    </div>
+                                    <div class="text-gray-500 text-center text-xs mb-3">↓ Agent ツールを呼び出す</div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div style="border: 1px solid rgba(232, 115, 74, 0.3); border-radius: 10px; padding: 16px; background: rgba(232, 115, 74, 0.03);">
+                                            <div class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #e8734a;">
+                                                サブエージェント A
+                                            </div>
+                                            <div class="text-gray-300 text-sm space-y-1">
+                                                <div>- 独自のコンテキストウィンドウ</div>
+                                                <div>- 独自のシステムプロンプト</div>
+                                                <div>- 限定されたツールセット</div>
+                                            </div>
+                                            <div class="text-gray-500 text-xs mt-2">例: コードベース探索</div>
+                                        </div>
+                                        <div style="border: 1px solid rgba(232, 115, 74, 0.3); border-radius: 10px; padding: 16px; background: rgba(232, 115, 74, 0.03);">
+                                            <div class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #e8734a;">
+                                                サブエージェント B
+                                            </div>
+                                            <div class="text-gray-300 text-sm space-y-1">
+                                                <div>- 独自のコンテキストウィンドウ</div>
+                                                <div>- 独自のシステムプロンプト</div>
+                                                <div>- 限定されたツールセット</div>
+                                            </div>
+                                            <div class="text-gray-500 text-xs mt-2">例: テスト実行</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-gray-500 text-center text-xs mt-3">↑ 結果だけがメインに返される</div>
+                                </div>
+                            </div>
+
+                            <h4>サブエージェントのメリット</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">コンテキスト分離</div>
+                                    <p class="text-gray-400 text-sm">
+                                        大量の検索結果や調査内容がメインのコンテキストウィンドウを圧迫しない。
+                                        結果のサマリーだけが返される。
+                                    </p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">並列処理</div>
+                                    <p class="text-gray-400 text-sm">
+                                        複数のサブエージェントを同時に起動し、独立したタスクを並列実行できる。
+                                    </p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">専門化</div>
+                                    <p class="text-gray-400 text-sm">
+                                        サブエージェントごとに異なるシステムプロンプトとツールセットを持てる。
+                                        探索用、テスト用など用途に特化できる。
+                                    </p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">コスト効率</div>
+                                    <p class="text-gray-400 text-sm">
+                                        メインの会話履歴を送らないため、トークン消費を抑えられる場合がある。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="info-box mt-6">
+                                <h4>サブエージェント = 別のエージェントループ</h4>
+                                <p class="text-gray-300">
+                                    サブエージェントは、メインエージェントとは独立した
+                                    エージェントループを実行します。自分自身のシステムプロンプト、
+                                    ツール定義、会話履歴を持ち、タスクが完了すると結果だけをメインに返します。
+                                    「エージェントの中のエージェント」ですが、仕組みは全く同じです。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>まとめと次のステップ</h3>
+                        <div class="collapsible-content">
+                            <div class="info-box">
+                                <h4>このセクションで学んだこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li>Claude Codeの本体は <code class="code-inline">cli.js</code>（約10MB）にバンドルされている</li>
+                                    <li>GitHubリポジトリはプラグイン集であり、コアのエージェントループは含まれない</li>
+                                    <li>ツールはJSONスキーマ（name, description, input_schema）で定義される</li>
+                                    <li>description にはLLMへの戦略的な指示が含まれている</li>
+                                    <li>ツール実行フローは tool_use → パーミッション確認 → 実行 → tool_result</li>
+                                    <li>専用ツール（Read, Grep等）がBashの代わりに使われる理由は安全性・可視性・制御性</li>
+                                    <li>パーミッション確認はエージェントハーネス側で行われる</li>
+                                    <li>サブエージェントは独立したエージェントループを持つ</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>復習チェック</h4>
+                                <p class="mb-2 text-gray-300">次に進む前に、以下を説明できるか確認してみましょう：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1 text-gray-300">
+                                    <li><code class="code-inline">cli.js</code> とGitHubリポジトリの関係</li>
+                                    <li>ツール定義の3要素と、それぞれの役割</li>
+                                    <li>なぜ <code class="code-inline">cat</code> ではなく <code class="code-inline">Read</code> ツールが使われるのか</li>
+                                    <li>パーミッション確認がどこで行われているか</li>
+                                    <li>サブエージェントの「独立したコンテキスト」の意味</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+
+</body>
+
+</html>
