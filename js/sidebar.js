@@ -2,7 +2,7 @@
 function initSidebar() {
     // 現在のパスから相対パスを計算
     const currentPath = window.location.pathname;
-    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/') || currentPath.includes('/miraichi-docker/') || currentPath.includes('/docker-intro/') || currentPath.includes('/vibe-coding/') || currentPath.includes('/udemy-special/');
+    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/') || currentPath.includes('/miraichi-docker/') || currentPath.includes('/docker-intro/') || currentPath.includes('/vibe-coding/') || currentPath.includes('/udemy-special/') || currentPath.includes('/claudelearn/');
     const rootPath = isInSubfolder ? '../' : './';
 
     // サイドバーHTML
@@ -49,6 +49,14 @@ function initSidebar() {
                             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                     <span>【第五弾】Docker入門</span>
+                </a>
+                <a href="${rootPath}claudelearn/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/claudelearn/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span>【第六弾】Claude Code メカニズム</span>
                 </a>
                 <div class="pt-4 pb-2">
                     <p class="text-xs font-semibold text-gray-400 uppercase px-4 mb-2">MIRAICHI特別講座</p>

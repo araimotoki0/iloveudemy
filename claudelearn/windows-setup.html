@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows環境構築 - Claude Code メカニズム</title>
+    <meta name="description" content="WindowsでClaude Codeを使うための環境構築手順">
+
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74',
+                            400: '#e8734a', 500: '#e36437', 600: '#c2410c', 700: '#9a3412',
+                            800: '#7c2d12', 900: '#431407',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: { 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%);
+            background-attachment: fixed;
+        }
+        .content-section h3 {
+            color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease;
+            background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52;
+        }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .info-box, .warning-box, .success-box, .error-box {
+            background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52;
+            border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0;
+        }
+        .command-box {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px;
+            padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace;
+        }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline {
+            background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px;
+            border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em;
+        }
+        header h1 span {
+            background: none !important; -webkit-background-clip: unset !important;
+            background-clip: unset !important; -webkit-text-fill-color: unset !important;
+            color: #e8734a !important;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <div class="content-section">
+                        <h3>Windows環境構築</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                （内容は後ほど追加予定）
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+
+</body>
+
+</html>

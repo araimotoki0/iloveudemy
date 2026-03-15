@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>エージェントループ - Claude Code メカニズム</title>
+    <meta name="description" content="Claude Codeの核心であるエージェントループの仕組みを図解で理解する">
+
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#e8734a',
+                            500: '#e36437',
+                            600: '#c2410c',
+                            700: '#9a3412',
+                            800: '#7c2d12',
+                            900: '#431407',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%);
+            background-attachment: fixed;
+        }
+
+        .content-section {
+            margin-bottom: 32px;
+        }
+
+        /* h3 見出し — オレンジ */
+        .content-section h3 {
+            color: #e8734a;
+            margin-bottom: 16px;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            background: rgba(232, 115, 74, 0.06);
+            border: 1px solid #3a3a52;
+        }
+
+        .content-section h3:hover {
+            background: rgba(232, 115, 74, 0.1);
+            border-color: rgba(232, 115, 74, 0.35);
+        }
+
+        .content-section h3::after {
+            content: '▼';
+            font-size: 14px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 12px;
+            color: #a0a0b8;
+        }
+
+        .content-section h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .content-section .collapsible-content {
+            display: block !important;
+        }
+
+        .content-section .collapsible-content.collapsed {
+            display: none !important;
+        }
+
+        /* h4 — 白 */
+        .content-section h4 {
+            color: #e8e8f0;
+            margin: 24px 0 12px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* ボックス内の最初のh4は上マージンなし */
+        .info-box h4:first-child,
+        .warning-box h4:first-child,
+        .success-box h4:first-child,
+        .error-box h4:first-child {
+            margin-top: 0;
+        }
+
+        /* 図解エリア */
+        .visual-diagram {
+            background: rgba(26, 26, 46, 0.7);
+            border: 1px solid #3a3a52;
+            border-radius: 12px;
+            padding: 28px;
+            margin: 24px 0;
+        }
+
+        /* コマンドボックス */
+        .command-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a52;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .command {
+            color: #ffffff;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .command::before {
+            content: '$';
+            color: #a0a0b8;
+        }
+
+        .output {
+            color: #a0a0b8;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #3a3a52;
+        }
+
+        .code-inline {
+            background: rgba(255, 255, 255, 0.08);
+            color: #d0d0e0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88em;
+        }
+
+        /* 情報ボックス */
+        .info-box,
+        .warning-box,
+        .success-box,
+        .error-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid #3a3a52;
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+
+        /* ループステップ */
+        .loop-step {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #3a3a52;
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .loop-step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3a3a52;
+            color: white;
+            font-weight: 800;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .loop-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3a3a52;
+            font-size: 22px;
+            padding: 4px 0;
+        }
+
+        /* コンポーネントカード */
+        .component-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #3a3a52;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        /* コードブロック */
+        .code-block {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid #3a3a52;
+            border-radius: 8px;
+            padding: 18px;
+            margin: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            overflow-x: auto;
+        }
+
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+
+        /* ヘッダータイトルをClaude Codeオレンジ単色に */
+        header h1 span {
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            -webkit-text-fill-color: unset !important;
+            color: #e8734a !important;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- セクション1 -->
+                    <div class="content-section">
+                        <h3>Claude Codeの正体 ー 「賢いAI」ではなく「仕組み」</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeを使うと、AIがファイルを読み、コードを書き、コマンドを実行してくれます。
+                                まるでAIが「考えて行動している」ように見えますが、実際には
+                                Claude（LLM）自体はテキストを受け取り、テキストを返すことしかできません。
+                            </p>
+
+                            <div class="error-box">
+                                <h4>よくある誤解</h4>
+                                <p class="text-gray-300">「Claude Codeは超高性能なAIだから、ファイル操作やコマンド実行ができる」</p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>実際の仕組み</h4>
+                                <p class="text-gray-300">Claude（LLM）は「このツールを使いたい」という意図をテキストで返すだけ。
+                                    実際にファイルを読み書きするのは、エージェントハーネス（CLIプログラム）の仕事です。</p>
+                            </div>
+
+                            <h4>2つのコンポーネント</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                <div class="component-card">
+                                    <div class="text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2">サーバー側</div>
+                                    <h4 class="text-lg font-bold text-white" style="margin-top: 0;">Claude API（LLM）</h4>
+                                    <p class="text-gray-300 mt-2">Anthropicのサーバーで動作。テキストを入力すると、テキスト（+ ツール呼び出し意図）を返す。ツールの実行はできない。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2">クライアント側</div>
+                                    <h4 class="text-lg font-bold text-white" style="margin-top: 0;">エージェントハーネス（CLI）</h4>
+                                    <p class="text-gray-300 mt-2">あなたのPCで動作。APIとの通信、ツールの実行、結果のフィードバックを行うループプログラム。</p>
+                                </div>
+                            </div>
+
+                            <div class="info-box mt-6">
+                                <h4>この講座で伝えたいこと</h4>
+                                <p class="text-gray-300">Claude Codeの「すごさ」は、LLMの能力だけでなく、エージェントハーネスの設計にあります。
+                                    この仕組みを理解すれば、使い方が根本的に変わります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2 -->
+                    <div class="content-section">
+                        <h3>エージェントループ ー Claude Codeの心臓部</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeの全ての動作は、たった1つのループで説明できます。
+                                これがエージェントループです。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #e8e8f0; margin-bottom: 24px;">
+                                    エージェントループの全体像
+                                </div>
+
+                                <div style="max-width: 560px; margin: 0 auto;">
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="loop-step-number">1</span>
+                                            <div>
+                                                <div class="font-bold text-white">メッセージ送信</div>
+                                                <div class="text-gray-400 mt-1 text-sm">ユーザーの入力 + システムプロンプト + 会話履歴を Claude API に送信</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="loop-arrow">&#8595;</div>
+
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="loop-step-number">2</span>
+                                            <div>
+                                                <div class="font-bold text-white">応答を受信</div>
+                                                <div class="text-gray-400 mt-1 text-sm">Claude APIがテキスト応答を返す。応答には2種類ある：</div>
+                                                <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    <div style="background: rgba(255,255,255,0.03); border: 1px solid #3a3a52; border-radius: 6px; padding: 8px 12px;">
+                                                        <span class="text-white font-semibold text-sm">A) テキストのみ</span>
+                                                        <div class="text-gray-500 text-xs mt-1">→ ユーザーに表示して終了</div>
+                                                    </div>
+                                                    <div style="background: rgba(255,255,255,0.03); border: 1px solid #3a3a52; border-radius: 6px; padding: 8px 12px;">
+                                                        <span class="text-white font-semibold text-sm">B) ツール呼び出し</span>
+                                                        <div class="text-gray-500 text-xs mt-1">→ ステップ3へ</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="loop-arrow">&#8595;</div>
+
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="loop-step-number">3</span>
+                                            <div>
+                                                <div class="font-bold text-white">ツール実行</div>
+                                                <div class="text-gray-400 mt-1 text-sm">エージェントハーネスがツールをローカルPC上で実行する</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="loop-arrow">&#8595;</div>
+
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="loop-step-number">4</span>
+                                            <div>
+                                                <div class="font-bold text-white">結果をAPIに送り返す</div>
+                                                <div class="text-gray-400 mt-1 text-sm">ツールの実行結果を会話に追加し、ステップ1に戻る</div>
+                                                <div class="mt-2 text-gray-500 text-xs">
+                                                    ↩ ツール呼び出しがなくなるまでループ
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>最重要ポイント</h4>
+                                <p class="text-gray-300">Claude（LLM）は「Bashツールを使って <code class="code-inline">ls -la</code> を実行してください」というテキストを返すだけです。
+                                    実際に <code class="code-inline">ls -la</code> を実行するのはエージェントハーネス。
+                                    LLMは一切コマンドを実行していません。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション3 -->
+                    <div class="content-section">
+                        <h3>API通信の実態 ー 何が送受信されているか</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                エージェントループで実際にやりとりされるデータを見てみましょう。
+                            </p>
+
+                            <h4>1. ユーザーが「このディレクトリのファイルを見せて」と入力</h4>
+
+                            <div class="code-block">
+                                <div class="comment">// エージェントハーネス → Claude API（リクエスト）</div>
+                                <div class="mt-2">{</div>
+                                <div class="ml-4"><span class="keyword">"model"</span>: <span class="string">"claude-sonnet-4-20250514"</span>,</div>
+                                <div class="ml-4"><span class="keyword">"system"</span>: <span class="string">"あなたはClaude Codeです。Bashツール、Readツール..."</span>,</div>
+                                <div class="ml-4"><span class="keyword">"tools"</span>: [</div>
+                                <div class="ml-8">{ <span class="keyword">"name"</span>: <span class="string">"Bash"</span>, <span class="keyword">"description"</span>: <span class="string">"コマンドを実行する"</span> },</div>
+                                <div class="ml-8">{ <span class="keyword">"name"</span>: <span class="string">"Read"</span>, <span class="keyword">"description"</span>: <span class="string">"ファイルを読む"</span> }, ...</div>
+                                <div class="ml-4">],</div>
+                                <div class="ml-4"><span class="keyword">"messages"</span>: [</div>
+                                <div class="ml-8">{ <span class="keyword">"role"</span>: <span class="string">"user"</span>, <span class="keyword">"content"</span>: <span class="string">"このディレクトリのファイルを見せて"</span> }</div>
+                                <div class="ml-4">]</div>
+                                <div>}</div>
+                            </div>
+
+                            <div class="code-block">
+                                <div class="comment">// Claude API → エージェントハーネス（レスポンス）</div>
+                                <div class="mt-2">{</div>
+                                <div class="ml-4"><span class="keyword">"content"</span>: [{</div>
+                                <div class="ml-8"><span class="keyword">"type"</span>: <span class="string">"tool_use"</span>,</div>
+                                <div class="ml-8"><span class="keyword">"name"</span>: <span class="variable">"Bash"</span>,</div>
+                                <div class="ml-8"><span class="keyword">"input"</span>: { <span class="keyword">"command"</span>: <span class="string">"ls -la"</span> }</div>
+                                <div class="ml-4">}],</div>
+                                <div class="ml-4"><span class="keyword">"stop_reason"</span>: <span class="string">"tool_use"</span></div>
+                                <div>}</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>注目ポイント</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li><code class="code-inline">stop_reason: "tool_use"</code> — LLMは「まだ終わっていない、ツールの結果を待っている」</li>
+                                    <li><code class="code-inline">tools</code> 配列 — 使えるツールの定義はエージェントハーネスが毎回送っている</li>
+                                    <li>LLMは <code class="code-inline">ls -la</code> を実行していない。「実行してほしい」と返しただけ</li>
+                                </ul>
+                            </div>
+
+                            <h4>2. ツール実行後、結果を送り返す</h4>
+
+                            <div class="code-block">
+                                <div class="comment">// エージェントハーネス → Claude API（ツール結果を含む2回目のリクエスト）</div>
+                                <div class="mt-2"><span class="keyword">"messages"</span>: [</div>
+                                <div class="ml-4">{ <span class="keyword">"role"</span>: <span class="string">"user"</span>, <span class="keyword">"content"</span>: <span class="string">"このディレクトリのファイルを見せて"</span> },</div>
+                                <div class="ml-4">{ <span class="keyword">"role"</span>: <span class="string">"assistant"</span>, <span class="keyword">"content"</span>: [{ <span class="keyword">"type"</span>: <span class="string">"tool_use"</span>, ... }] },</div>
+                                <div class="ml-4">{ <span class="keyword">"role"</span>: <span class="string">"user"</span>, <span class="keyword">"content"</span>: [{</div>
+                                <div class="ml-8"><span class="keyword">"type"</span>: <span class="string">"tool_result"</span>,</div>
+                                <div class="ml-8"><span class="keyword">"content"</span>: <span class="string">"total 48\ndrwxr-xr-x  5 user  staff ..."</span></div>
+                                <div class="ml-4">}] }</div>
+                                <div>]</div>
+                            </div>
+
+                            <div class="code-block">
+                                <div class="comment">// Claude API → エージェントハーネス（最終レスポンス）</div>
+                                <div class="mt-2">{</div>
+                                <div class="ml-4"><span class="keyword">"content"</span>: [{</div>
+                                <div class="ml-8"><span class="keyword">"type"</span>: <span class="string">"text"</span>,</div>
+                                <div class="ml-8"><span class="keyword">"text"</span>: <span class="string">"このディレクトリには以下のファイルがあります..."</span></div>
+                                <div class="ml-4">}],</div>
+                                <div class="ml-4"><span class="keyword">"stop_reason"</span>: <span class="string">"end_turn"</span></div>
+                                <div>}</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>ループ完了</h4>
+                                <p class="text-gray-300"><code class="code-inline">stop_reason: "end_turn"</code> でループ終了。
+                                    今回はAPIを2往復しました。複雑なタスクでは数十往復することもあります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション4 -->
+                    <div class="content-section">
+                        <h3>ツールの仕組み ー LLMの「手足」</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeが使えるツールは全てエージェントハーネス側で定義されています。
+                            </p>
+
+                            <h4>主要なツール一覧</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1">Bash</div>
+                                    <p class="text-gray-400 text-sm">シェルコマンドを実行</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1">Read</div>
+                                    <p class="text-gray-400 text-sm">ファイルの内容を読み取る</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1">Edit / Write</div>
+                                    <p class="text-gray-400 text-sm">ファイルの編集・作成</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1">Grep / Glob</div>
+                                    <p class="text-gray-400 text-sm">コードベースの検索</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1">Agent</div>
+                                    <p class="text-gray-400 text-sm">サブエージェントを起動</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-1">WebFetch</div>
+                                    <p class="text-gray-400 text-sm">Webページの取得</p>
+                                </div>
+                            </div>
+
+                            <div class="info-box mt-6">
+                                <h4>ツールの本質</h4>
+                                <p class="text-gray-300">ツールはJSONスキーマで定義されています。
+                                    LLMにとってツールは「テキストで説明された関数のインターフェース」に過ぎません。
+                                    実装はエージェントハーネス側にあります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション5 -->
+                    <div class="content-section">
+                        <h3>システムプロンプト ー Claudeへの「取扱説明書」</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                エージェントハーネスが毎回送信する巨大なシステムプロンプトが、Claude Codeの振る舞いを規定しています。
+                            </p>
+
+                            <h4>システムプロンプトに含まれるもの</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-center gap-3">
+                                        <span class="loop-step-number">1</span>
+                                        <div>
+                                            <div class="font-bold text-white">ツールの定義と使い方</div>
+                                            <div class="text-gray-400 text-sm">「Bashツールはこう使え」「Readツールでファイルを読め」</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-center gap-3">
+                                        <span class="loop-step-number">2</span>
+                                        <div>
+                                            <div class="font-bold text-white">行動規範</div>
+                                            <div class="text-gray-400 text-sm">「危険な操作は確認を取れ」「セキュリティ脆弱性を作るな」</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-center gap-3">
+                                        <span class="loop-step-number">3</span>
+                                        <div>
+                                            <div class="font-bold text-white">環境情報</div>
+                                            <div class="text-gray-400 text-sm">OS、シェル、カレントディレクトリ、gitブランチなど</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-center gap-3">
+                                        <span class="loop-step-number">4</span>
+                                        <div>
+                                            <div class="font-bold text-white">CLAUDE.md の内容</div>
+                                            <div class="text-gray-400 text-sm">ユーザーが定義したプロジェクト固有の指示</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box mt-6">
+                                <h4>なぜこれが重要か</h4>
+                                <p class="text-gray-300">LLM自体は「自分がClaude Codeである」ことすら知りません。
+                                    システムプロンプトで教えているからこそ、ソフトウェアエンジニアのように振る舞えるのです。
+                                    プロンプトを変えれば、同じLLMで全く違うエージェントを作れます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション6 -->
+                    <div class="content-section">
+                        <h3>全体アーキテクチャ ー 全てを繋げる</h3>
+                        <div class="collapsible-content">
+
+                            <div class="visual-diagram">
+                                <div style="text-align: center; font-weight: 700; font-size: 18px; color: #e8e8f0; margin-bottom: 28px;">
+                                    Claude Code アーキテクチャ全体像
+                                </div>
+
+                                <!-- あなたのPC -->
+                                <div style="border: 1px solid #3a3a52; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                                    <div class="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-3">
+                                        あなたのPC（クライアント側）
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div style="background: rgba(255,255,255,0.03); border: 1px solid #3a3a52; border-radius: 10px; padding: 16px; text-align: center;">
+                                            <div class="font-bold text-white">ユーザー</div>
+                                            <div class="text-gray-400 text-sm mt-1">プロンプト入力</div>
+                                        </div>
+                                        <div style="background: rgba(255,255,255,0.03); border: 1px solid #3a3a52; border-radius: 10px; padding: 16px; text-align: center;">
+                                            <div class="font-bold text-white">エージェントハーネス</div>
+                                            <div class="text-gray-400 text-sm mt-1">ループ制御・ツール実行</div>
+                                        </div>
+                                        <div style="background: rgba(255,255,255,0.03); border: 1px solid #3a3a52; border-radius: 10px; padding: 16px; text-align: center;">
+                                            <div class="font-bold text-white">ツール群</div>
+                                            <div class="text-gray-400 text-sm mt-1">Bash, Read, Edit, Grep...</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="text-align: center; color: #a0a0b8; font-size: 13px; margin: 12px 0;">
+                                    ↕ HTTP（Messages API）
+                                </div>
+
+                                <!-- Anthropicサーバー -->
+                                <div style="border: 1px solid #3a3a52; border-radius: 12px; padding: 20px;">
+                                    <div class="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-3">
+                                        Anthropic サーバー
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.03); border: 1px solid #3a3a52; border-radius: 10px; padding: 16px; text-align: center;">
+                                        <div class="font-bold text-white">Claude（LLM）</div>
+                                        <div class="text-gray-400 text-sm mt-1">テキスト入力 → テキスト + ツール呼び出し意図 を出力</div>
+                                        <div class="text-gray-500 text-xs mt-2">※ ファイル操作やコマンド実行は一切できない</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>この図が理解できれば</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li>なぜネットワークが必要か — LLMはリモートサーバーにいるから</li>
+                                    <li>なぜパーミッション確認があるか — ツール実行はローカルPCで行われるから</li>
+                                    <li>なぜCLAUDE.mdが効くか — システムプロンプトとしてAPIに毎回送られるから</li>
+                                    <li>なぜトークン消費が多いか — ループの度に全会話履歴を送るから</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>まとめと次のステップ</h3>
+                        <div class="collapsible-content">
+                            <div class="info-box">
+                                <h4>このセクションで学んだこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li>Claude Codeは「エージェントループ」という仕組みで動いている</li>
+                                    <li>LLMはテキストを返すだけ。ツールを実行するのはエージェントハーネス</li>
+                                    <li>ツールはJSONスキーマで定義され、LLMには説明文として渡される</li>
+                                    <li>システムプロンプトがClaude Codeの「人格」と「能力」を規定している</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>復習チェック</h4>
+                                <p class="mb-2 text-gray-300">次に進む前に、以下を説明できるか確認してみましょう：</p>
+                                <ul class="list-disc list-inside ml-4 space-y-1 text-gray-300">
+                                    <li>Claude（LLM）とエージェントハーネスの役割の違い</li>
+                                    <li>エージェントループの4ステップ</li>
+                                    <li><code class="code-inline">stop_reason</code> の <code class="code-inline">"tool_use"</code> と <code class="code-inline">"end_turn"</code> の違い</li>
+                                    <li>なぜCLAUDE.mdが効果を持つのか</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+
+</body>
+
+</html>

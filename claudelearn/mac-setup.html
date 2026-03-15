@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mac環境構築 - Claude Code メカニズム</title>
+    <meta name="description" content="MacでClaude Codeを使うための環境構築手順">
+
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74',
+                            400: '#e8734a', 500: '#e36437', 600: '#c2410c', 700: '#9a3412',
+                            800: '#7c2d12', 900: '#431407',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: { 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%);
+            background-attachment: fixed;
+        }
+        .content-section {
+            margin-bottom: 32px;
+        }
+        .content-section h3 {
+            color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease;
+            background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52;
+        }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .info-box, .warning-box, .success-box, .error-box {
+            background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52;
+            border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0;
+        }
+        .command-box {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px;
+            padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace;
+        }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline {
+            background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px;
+            border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em;
+        }
+        header h1 span {
+            background: none !important; -webkit-background-clip: unset !important;
+            background-clip: unset !important; -webkit-text-fill-color: unset !important;
+            color: #e8734a !important;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- Claude 有料アカウント -->
+                    <div class="content-section">
+                        <h3>Claude 有料アカウントの準備</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                Claude Codeを使うには有料のClaudeアカウントが必要です。無料プランでは使用できません。
+                                先にアカウントを準備しておきましょう。
+                            </p>
+
+                            <h4>プランの選択肢</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px;">
+                                    <div class="font-bold text-white text-lg mb-2">Claude Pro（月額 $20）</div>
+                                    <p class="text-gray-400 text-sm mb-2">Claude Codeの使用が可能。ただし使用量に制限あり。</p>
+                                    <p class="text-gray-500 text-sm">個人の学習やライトな開発向け。まずはこちらで始めてみるのがおすすめです。</p>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px;">
+                                    <div class="font-bold text-white text-lg mb-2">Claude Max（月額 $100 / $200）</div>
+                                    <p class="text-gray-400 text-sm mb-2">Claude Codeをより多く使える。Opus モデルも使用可能。</p>
+                                    <p class="text-gray-500 text-sm">本格的な開発で「制限に引っかかるのがストレス」という方に。</p>
+                                </div>
+                            </div>
+
+                            <h4>アカウント作成手順</h4>
+                            <ol class="list-decimal list-inside space-y-3 text-gray-300 ml-4">
+                                <li>https://claude.ai/ にアクセス</li>
+                                <li>アカウントを作成（メールアドレスまたはGoogleアカウント）</li>
+                                <li>左下のアイコン → Settings → Billing → 「Upgrade Plan」から Pro または Max プランに登録</li>
+                                <li>支払い情報を入力して完了</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- VS Code -->
+                    <div class="content-section">
+                        <h3>VS Code のインストール</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                Visual Studio Code（VS Code）は、Microsoftが無料で提供しているコードエディタです。
+                                Claude Codeはターミナルで動くツールですが、VS Codeにはターミナルが内蔵されているので、
+                                コードを見ながらClaude Codeを操作できます。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>他のエディタでもOK</h4>
+                                <p class="text-gray-300">Claude Codeはエディタに依存しません。JetBrains（IntelliJ, WebStormなど）、Cursor、サクラエディタ、秀丸など、
+                                    使い慣れたエディタがあればそちらで構いません。本講座ではVS Codeを使って説明しますが、
+                                    Claude Code自体はターミナルさえあれば動きます。
+                                    なお、エディタのショートカットキーは今の開発では重要です。AIがコードを書く時代になっても、コードを読む・移動する・選択する操作は人間の仕事なので、覚えておいて損はありません。</p>
+                            </div>
+
+                            <h4>インストール手順</h4>
+                            <ol class="list-decimal list-inside space-y-3 text-gray-300 ml-4">
+                                <li>公式サイト（https://code.visualstudio.com/）にアクセス</li>
+                                <li>「Download for Mac」をクリック（Apple Silicon / Intel は自動判別されます）</li>
+                                <li>ダウンロードした .zip ファイルを展開</li>
+                                <li>Visual Studio Code.app をアプリケーションフォルダにドラッグ</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- VS Code ショートカット -->
+                    <div class="content-section">
+                        <h3>VS Code 必須ショートカット</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                最低限これだけ覚えておけば作業スピードが大きく変わります。
+                            </p>
+
+                            <h4>ファイル操作</h4>
+                            <div style="overflow-x: auto;">
+                                <table class="w-full text-sm mt-2" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #3a3a52;">
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">ショートカット</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Cmd + P</code></td>
+                                            <td class="py-2">ファイル名で検索して開く</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Cmd + Shift + P</code></td>
+                                            <td class="py-2">コマンドパレットを開く</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Cmd + S</code></td>
+                                            <td class="py-2">ファイルを保存</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Cmd + W</code></td>
+                                            <td class="py-2">タブを閉じる</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4>編集</h4>
+                            <div style="overflow-x: auto;">
+                                <table class="w-full text-sm mt-2" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #3a3a52;">
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">ショートカット</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Cmd + D</code></td>
+                                            <td class="py-2">同じ単語を次の出現箇所も選択（複数同時編集）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Cmd + Shift + K</code></td>
+                                            <td class="py-2">行を丸ごと削除</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Option + ↑ / ↓</code></td>
+                                            <td class="py-2">行を上下に移動</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Cmd + /</code></td>
+                                            <td class="py-2">コメントアウト / 解除</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4>検索・移動</h4>
+                            <div style="overflow-x: auto;">
+                                <table class="w-full text-sm mt-2" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #3a3a52;">
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">ショートカット</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Cmd + F</code></td>
+                                            <td class="py-2">ファイル内検索</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Cmd + Shift + F</code></td>
+                                            <td class="py-2">プロジェクト全体を検索</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4>ターミナル</h4>
+                            <div style="overflow-x: auto;">
+                                <table class="w-full text-sm mt-2" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #3a3a52;">
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">ショートカット</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Ctrl + Shift + @</code></td>
+                                            <td class="py-2">ターミナルの表示 / 非表示（日本語キーボード）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">Cmd + B</code></td>
+                                            <td class="py-2">サイドバーの表示 / 非表示</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- iTerm2 -->
+                    <div class="content-section">
+                        <h3>iTerm2 のインストール</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                Macには標準で「ターミナル.app」が入っていますが、iTerm2はその上位互換です。
+                                画面の分割、コマンド履歴の検索など、開発作業に便利な機能が揃っています。必須ではありませんがおすすめです。
+                            </p>
+
+                            <h4>インストール手順</h4>
+                            <ol class="list-decimal list-inside space-y-3 text-gray-300 ml-4">
+                                <li>公式サイト（https://iterm2.com/）にアクセス</li>
+                                <li>「Download」をクリック</li>
+                                <li>ダウンロードした .zip ファイルを展開</li>
+                                <li>iTerm.app をアプリケーションフォルダにドラッグ</li>
+                            </ol>
+
+                            <div class="info-box mt-4">
+                                <h4>VS Code のターミナルでも十分</h4>
+                                <p class="text-gray-300">VS Codeには統合ターミナルが内蔵されています（<code class="code-inline">Ctrl + Shift + @</code> で開けます）。
+                                    iTerm2を入れなくても Claude Code は使えるので、お好みで選んでください。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Claude Code -->
+                    <div class="content-section">
+                        <h3>Claude Code のインストール</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                Claude Codeのインストールはたった1行のコマンドで完了します。
+                                ネイティブインストーラーが提供されており、Node.jsなどの依存関係は不要です。
+                            </p>
+
+                            <h4>インストールコマンド</h4>
+                            <p class="text-gray-300 mb-2">ターミナルで以下を実行します。</p>
+                            <div class="command-box">
+                                <div class="command">curl -fsSL https://claude.ai/install.sh | bash</div>
+                            </div>
+
+                            <h4>インストール確認</h4>
+                            <div class="command-box">
+                                <div class="command">claude --version</div>
+                                <div class="output">claude v2.x.x<br>（バージョン番号が表示されればOK）</div>
+                            </div>
+
+                            <h4>Claude Code を起動して連携する</h4>
+                            <p class="text-gray-300 mb-2">ターミナルで <code class="code-inline">claude</code> と入力して起動します。</p>
+                            <div class="command-box">
+                                <div class="command">claude</div>
+                            </div>
+                            <p class="text-gray-300 mt-3">
+                                初回起動時にブラウザが開き、先ほど作成した有料アカウントとの連携を求められます。
+                                ログインして許可すれば完了です。
+                            </p>
+
+                            <div class="info-box mt-4">
+                                <h4>自動アップデート</h4>
+                                <p class="text-gray-300">ネイティブインストーラーで入れたClaude Codeは、起動時に自動でアップデートを確認します。手動で更新する必要はありません。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- おすすめツール（オプション） -->
+                    <div class="content-section">
+                        <h3>おすすめツール（オプション）</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                必須ではありませんが、開発作業の効率が上がるツールを2つ紹介します。
+                                講座の中で私がウィンドウをサッと分割したり、過去にコピーしたものをパッと持ってきたりしているのは、この2つのおかげです。
+                            </p>
+
+                            <h4>Rectangle — ウィンドウ分割</h4>
+                            <p class="text-gray-300 mb-3">
+                                キーボードショートカットでウィンドウを画面の左半分・右半分にぴったり配置できます。
+                                VS Codeとターミナルを左右に並べたり、ブラウザと横並びにしたりする時に重宝します。
+                            </p>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-300 ml-4">
+                                <li>公式サイト（https://rectangleapp.com/）からダウンロード</li>
+                                <li>アプリケーションフォルダに移動して起動</li>
+                                <li>アクセシビリティの許可を求められるので許可する</li>
+                            </ol>
+                            <div class="info-box mt-3">
+                                <h4>よく使うショートカット</h4>
+                                <p class="text-gray-300">
+                                    <code class="code-inline">Ctrl + Option + ←</code> 左半分 /
+                                    <code class="code-inline">Ctrl + Option + →</code> 右半分 /
+                                    <code class="code-inline">Ctrl + Option + Enter</code> 最大化
+                                </p>
+                            </div>
+
+                            <h4>Clipy — クリップボード履歴</h4>
+                            <p class="text-gray-300 mb-3">
+                                通常のコピー&ペーストでは直前にコピーしたものしか貼り付けられませんが、
+                                Clipyを入れると過去のコピー履歴から選んで貼り付けできます。
+                                コードやコマンドを何度もコピペする開発作業では地味に助かります。
+                            </p>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-300 ml-4">
+                                <li>公式サイト（https://clipy-app.com/）からダウンロード</li>
+                                <li>アプリケーションフォルダに移動して起動</li>
+                            </ol>
+                            <div class="info-box mt-3">
+                                <h4>使い方</h4>
+                                <p class="text-gray-300">
+                                    <code class="code-inline">Cmd + Shift + V</code> でクリップボード履歴が表示されます。
+                                    貼り付けたい項目を選ぶだけです。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+
+</body>
+
+</html>

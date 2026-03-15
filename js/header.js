@@ -3,7 +3,7 @@ function initHeader(courseConfig) {
     // 現在のパスから相対パスを計算
     const currentPath = window.location.pathname;
     const currentFile = currentPath.split('/').pop();
-    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/');
+    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/claudelearn/');
     const rootPath = isInSubfolder ? '../' : './';
 
     // ヘッダーHTML生成
