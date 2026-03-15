@@ -387,6 +387,16 @@
                                 <div class="command">curl -fsSL https://claude.ai/install.sh | bash</div>
                             </div>
 
+                            <h4>PATHを通す</h4>
+                            <p class="text-gray-300 mb-2">
+                                インストール後に <code class="code-inline">claude: command not found</code> と出る場合は、
+                                PATHの設定が必要です。以下を実行してください。
+                            </p>
+                            <div class="command-box">
+                                <div class="command" style="display:block;">echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc</div>
+                                <div class="output">~/.zshrc にPATH設定を追加して、即座に反映します</div>
+                            </div>
+
                             <h4>インストール確認</h4>
                             <div class="command-box">
                                 <div class="command">claude --version</div>
