@@ -90,16 +90,19 @@
             <div class="max-w-5xl mx-auto">
                 <div class="p-8 border border-slate-700/50 rounded-2xl">
 
+                    <!-- 注意 -->
+                    <div class="info-box mb-8">
+                        <h4>注意</h4>
+                        <p class="text-gray-300">Claude Codeを使うにはClaudeの有料プラン（Pro / Max）が必要です。
+                            無料プランでは使用できません。</p>
+                    </div>
+
                     <!-- Claude 有料アカウント -->
                     <div class="content-section">
                         <h3>Claude 有料アカウントの準備</h3>
                         <div class="collapsible-content">
-                            <p class="text-gray-300 mb-4">
-                                Claude Codeを使うには有料のClaudeアカウントが必要です。無料プランでは使用できません。
-                                先にアカウントを準備しておきましょう。
-                            </p>
 
-                            <h4>プランの選択肢</h4>
+                            <h4>サブスクリプションプラン</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 <div style="background: rgba(255,255,255,0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px;">
                                     <div class="font-bold text-white text-lg mb-2">Claude Pro（月額 $20）</div>
@@ -111,6 +114,20 @@
                                     <p class="text-gray-400 text-sm mb-2">Claude Codeをより多く使える。Opus モデルも使用可能。</p>
                                     <p class="text-gray-500 text-sm">本格的な開発で「制限に引っかかるのがストレス」という方に。</p>
                                 </div>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h4>API従量課金という選択肢もある</h4>
+                                <p class="text-gray-300 mb-2">Anthropic Console（https://console.anthropic.com/）でAPIキーを発行し、使った分だけ支払う従量課金で使うこともできます。</p>
+                                <p class="text-gray-300 mb-2">ただしClaude Codeはエージェントループで何度もAPIを往復するため、想像以上にコストがかかります。
+                                    参考値として、Sonnet 4.6の場合：</p>
+                                <ul class="list-disc list-inside ml-4 text-gray-300 space-y-1">
+                                    <li>入力 $3 / 出力 $15（100万トークンあたり）</li>
+                                    <li>公式ドキュメントによると、開発者の平均的な使用量は1日あたり約$6（90%のユーザーは$12以下）</li>
+                                    <li>$20分は約3〜4日で使い切る計算</li>
+                                </ul>
+                                <p class="text-gray-300 mt-2">参考: https://code.claude.com/docs/en/costs</p>
+                                <p class="text-gray-300 mt-2">サブスクリプションプランなら定額なので安心です。本講座ではサブスクリプション（Pro / Max）を前提に進めます。</p>
                             </div>
 
                             <h4>アカウント作成手順</h4>
@@ -308,7 +325,6 @@
                             <h4>インストール確認</h4>
                             <div class="command-box">
                                 <div class="command">claude --version</div>
-                                <div class="output">claude v2.x.x<br>（バージョン番号が表示されればOK）</div>
                             </div>
 
                             <h4>Claude Code を起動して連携する</h4>
@@ -352,7 +368,7 @@
                                 <p class="text-gray-300">
                                     <code class="code-inline">Ctrl + Option + ←</code> 左半分 /
                                     <code class="code-inline">Ctrl + Option + →</code> 右半分 /
-                                    <code class="code-inline">Ctrl + Option + Enter</code> 最大化
+                                    <code class="code-inline">Ctrl + Option + F</code> 最大化
                                 </p>
                             </div>
 
