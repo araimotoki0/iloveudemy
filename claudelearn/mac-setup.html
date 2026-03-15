@@ -282,9 +282,9 @@
                         </div>
                     </div>
 
-                    <!-- iTerm2 -->
+                    <!-- iTerm2 + シェル設定 -->
                     <div class="content-section">
-                        <h3>iTerm2 のインストール</h3>
+                        <h3>iTerm2 のインストールとシェル設定</h3>
                         <div class="collapsible-content">
                             <p class="text-gray-300 mb-4">
                                 Macには標準で「ターミナル.app」が入っていますが、iTerm2はその上位互換です。
@@ -300,9 +300,63 @@
                             </ol>
 
                             <div class="info-box mt-4">
-                                <h4>VS Code のターミナルでも十分</h4>
-                                <p class="text-gray-300">VS Codeには統合ターミナルが内蔵されています（<code class="code-inline">Ctrl + Shift + @</code> で開けます）。
-                                    iTerm2を入れなくても Claude Code は使えるので、お好みで選んでください。</p>
+                                <h4>別に入れなくてもいい</h4>
+                                <p class="text-gray-300">
+                                    iTerm2は必須ではありません。Mac標準の「ターミナル.app」でも、VS Codeの統合ターミナル（<code class="code-inline">Ctrl + Shift + @</code>）でも、Claude Codeは普通に動きます。
+                                    すでに使い慣れたターミナルがあるなら、そちらでOKです。
+                                </p>
+                                <p class="text-gray-300 mt-3">
+                                    他にも人気のあるターミナルアプリはたくさんあります：
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300 mt-2">
+                                    <li><strong>Warp</strong> — AI機能内蔵のモダンなターミナル。補完やコマンド提案が最初から強力</li>
+                                    <li><strong>Alacritty</strong> — GPU描画で超高速。設定ファイルで細かくカスタマイズしたい人向け</li>
+                                    <li><strong>Kitty</strong> — 高速かつ画像表示にも対応。リッチな表示が好きな人に</li>
+                                    <li><strong>Hyper</strong> — Web技術（HTML/CSS/JS）で拡張できるターミナル。見た目にこだわりたい人に</li>
+                                </ul>
+                                <p class="text-gray-400 text-sm mt-3">
+                                    どれを使っても Claude Code の動作に違いはありません。好みの問題です。
+                                    本講座では iTerm2 を例に説明しますが、読み替えてください。
+                                </p>
+                            </div>
+
+                            <h4>シェル（zsh）の設定 — Oh My Zsh を入れる</h4>
+                            <p class="text-gray-300 mb-4">
+                                ターミナルをインストールしただけでは、素のzshが動いているだけです。
+                                タブ補完で大文字・小文字を区別しない、入力途中で履歴から候補を出す、
+                                といった「あって当然」の機能が実はオフになっています。
+                            </p>
+                            <p class="text-gray-300 mb-4">
+                                これらを手動で1つずつ設定ファイルに書くこともできますが、
+                                <strong>Oh My Zsh</strong> というフレームワークを入れれば、コマンド1行で全部まとめて有効になります。
+                                世界中の開発者が使っている定番ツールです。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>Oh My Zsh を入れると何が変わるか</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300 mt-2">
+                                    <li><strong>タブ補完が賢くなる</strong> — <code class="code-inline">doc</code> と入力してTabを押すと <code class="code-inline">Documents</code> にマッチ。大文字・小文字を気にしなくていい</li>
+                                    <li><strong>コマンド履歴が残る</strong> — ターミナルを閉じても過去のコマンドが消えない。履歴10,000件保存。上矢印キーで遡れる</li>
+                                    <li><strong>Gitの状態が見える</strong> — 今いるブランチ名がプロンプトに表示される。いちいち <code class="code-inline">git branch</code> しなくていい</li>
+                                    <li><strong>見た目がわかりやすくなる</strong> — ディレクトリとファイルが色分けされる。テーマも選べる</li>
+                                    <li><strong>プラグインで拡張できる</strong> — 300以上のプラグインがある。git補完、Docker補完、Node.js補完など必要なものだけ追加</li>
+                                </ul>
+                            </div>
+
+                            <h4>インストール</h4>
+                            <p class="text-gray-300 mb-2">ターミナルで以下を実行するだけです。</p>
+                            <div class="command-box">
+                                <div class="command" style="display:block;">sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"</div>
+                                <div class="output">Oh My Zsh がインストールされ、~/.zshrc が自動生成されます。ターミナルを再起動すると有効になります。</div>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h4>動作確認</h4>
+                                <p class="text-gray-300">
+                                    ターミナルのプロンプトの見た目が変わっていれば成功です（矢印マークやブランチ名が出る）。
+                                    <code class="code-inline">doc</code> と入力してTabキーを押して、
+                                    <code class="code-inline">Documents</code> に補完されるか確認しましょう。
+                                </p>
                             </div>
                         </div>
                     </div>
