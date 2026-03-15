@@ -343,8 +343,19 @@
                                 </ul>
                             </div>
 
+                            <h4>事前準備 — Xcode Command Line Tools</h4>
+                            <p class="text-gray-300 mb-2">
+                                Oh My Zsh のインストールには Git が必要です。
+                                Macでは Xcode Command Line Tools を入れると Git が使えるようになります。
+                                まず以下を実行してください。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">xcode-select --install</div>
+                                <div class="output">ダイアログが表示されたら「インストール」をクリック。数分かかります。<br>「already installed」と表示されたら、すでに入っているのでそのまま次へ。</div>
+                            </div>
+
                             <h4>インストール</h4>
-                            <p class="text-gray-300 mb-2">ターミナルで以下を実行するだけです。</p>
+                            <p class="text-gray-300 mb-2">Xcode Command Line Tools が入ったら、以下を実行します。</p>
                             <div class="command-box">
                                 <div class="command" style="display:block;">sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"</div>
                                 <div class="output">Oh My Zsh がインストールされ、~/.zshrc が自動生成されます。ターミナルを再起動すると有効になります。</div>
