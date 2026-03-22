@@ -126,9 +126,13 @@
                                 </div>
                                 <p class="text-gray-300 text-sm mb-2"><code class="code-inline">~/.bashrc</code>（Macは <code class="code-inline">~/.zshrc</code>）に以下を追加：</p>
                                 <div class="command-box">
-                                    <div class="command">export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"</div>
+                                    <div class="command">export PYENV_ROOT="$HOME/.pyenv"</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">export PATH="$PYENV_ROOT/bin:$PATH"</div>
+                                </div>
+                                <div class="command-box">
+                                    <div class="command">eval "$(pyenv init -)"</div>
                                 </div>
                                 <p class="text-gray-300 text-sm mb-2">ターミナルを再起動した後：</p>
                                 <div class="command-box">
