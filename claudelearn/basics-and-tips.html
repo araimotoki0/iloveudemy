@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>便利な使い方と基本 - Claude Code メカニズム</title>
+    <meta name="description" content="Claude Codeの基本コマンドと裏技を実践で学ぶ。プレゼン作成からデプロイまで、実際の業務フローで体験しながら覚える。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#e8734a',500:'#e36437',600:'#c2410c',700:'#9a3412',800:'#7c2d12',900:'#431407' },
+                    },
+                    fontFamily: { sans:['Noto Sans JP','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                    animation: { 'pulse-slow':'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%); background-attachment: fixed; }
+        .content-section { margin-bottom: 32px; }
+        .content-section h3 { color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease; background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52; }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .visual-diagram { background: rgba(26, 26, 46, 0.7); border: 1px solid #3a3a52; border-radius: 12px; padding: 28px; margin: 24px 0; }
+        .command-box { background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline { background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+        .info-box, .warning-box, .success-box, .error-box { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+        .info-box { border-left-color: #60a5fa; }
+        .warning-box { border-left-color: #fbbf24; }
+        .success-box { border-left-color: #34d399; }
+        .error-box { border-left-color: #f87171; }
+        .loop-step { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 18px; }
+        .loop-step-number { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #3a3a52; color: white; font-weight: 800; font-size: 14px; margin-right: 12px; flex-shrink: 0; }
+        .loop-arrow { display: flex; align-items: center; justify-content: center; color: #3a3a52; font-size: 22px; padding: 4px 0; }
+        .component-card { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px; }
+        .code-block { background: rgba(0, 0, 0, 0.35); border: 1px solid #3a3a52; border-radius: 8px; padding: 18px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto; }
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+        .code-block .highlight { color: #e8734a; font-weight: 600; }
+        header h1 span { background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; -webkit-text-fill-color: unset !important; color: #e8734a !important; }
+        .ref-box { color: #a0a0b8; font-size: 13px; margin-bottom: 16px; }
+        .ref-box a { color: #e8734a; text-decoration: none; border-bottom: 1px solid rgba(232, 115, 74, 0.3); transition: all 0.2s; }
+        .ref-box a:hover { border-bottom-color: #e8734a; }
+        .chat-bubble { background: rgba(255, 255, 255, 0.05); border: 1px solid #3a3a52; border-radius: 12px; padding: 16px 20px; margin: 12px 0; position: relative; }
+        .chat-bubble.user { border-left: 3px solid #60a5fa; }
+        .chat-bubble.ai { border-left: 3px solid #e8734a; }
+        .chat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .chat-label.user { color: #60a5fa; }
+        .chat-label.ai { color: #e8734a; }
+        .key-badge { display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border: 1px solid #3a3a52; border-radius: 6px; padding: 2px 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e8e8f0; font-weight: 600; min-width: 32px; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- セクション1: やってみよう -->
+                    <div class="content-section">
+                        <h3>まずは体験</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                コマンドを覚える前に、まずは「Claude Codeで何ができるか」を体験しましょう。<br>
+                                受託開発会社 <strong class="text-white">株式会社システムソリューションズ</strong> の営業用プレゼン資料を、たった一言のプロンプトで作ります。
+                            </p>
+
+                            <h4>Claude Codeを起動する</h4>
+                            <p class="text-gray-300 mb-2">ターミナルで作業用のフォルダに移動し、<code class="code-inline">claude</code> と打つだけ。</p>
+                            <div class="command-box">
+                                <div class="command">mkdir ~/nextcode-demo && cd ~/nextcode-demo</div>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">claude</div>
+                                <div class="output">Claude Code を起動。インタラクティブモードに入ります。</div>
+                            </div>
+
+                            <h4>プレゼン資料を作らせる</h4>
+                            <p class="text-gray-300 mb-2">起動したら、以下のように話しかけるだけです。</p>
+                            <div class="chat-bubble user">
+                                <div class="chat-label user">あなた</div>
+                                <div class="text-gray-200">受託開発会社「株式会社システムソリューションズ」の営業用プレゼン資料をHTMLで作って。AWSを活用したインフラ構築・運用、クラウド移行支援、大規模システムのモダナイゼーションが得意な会社として、企業向けの営業プレゼンをモダンなデザインで作って。</div>
+                            </div>
+                            <div class="success-box">
+                                <h4>ハンズオンで体験</h4>
+                                <p class="text-gray-300">実際にこのプロンプトを入力して、Claude Codeがどのようにファイルを生成するか体験してみましょう。</p>
+                            </div>
+
+                            <h4>PowerPointに変換する</h4>
+                            <p class="text-gray-300 mb-2">お客様にPowerPointで渡したい？そのまま続けて話しかけます。</p>
+                            <div class="chat-bubble user">
+                                <div class="chat-label user">あなた</div>
+                                <div class="text-gray-200">これをPowerPointファイル(.pptx)に変換して</div>
+                            </div>
+                            <div class="chat-bubble ai">
+                                <div class="chat-label ai">Claude</div>
+                                <div class="text-gray-400 text-sm">python-pptxをインストールして変換スクリプトを作成・実行します...<br>
+                                ✅ presentation.pptx を作成しました</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>ライブラリも勝手にインストール</h4>
+                                <p class="text-gray-300">必要なライブラリ（python-pptx等）が無い場合、Claude Codeが自動でインストールまで行います。あなたが事前にセットアップする必要はありません。</p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>Node.js のインストール（後のセクションで使います）</h4>
+                                <p class="text-gray-300 mb-3">この後のVercelデプロイで npm を使うため、Node.js を入れておきましょう。バージョン管理ができる <strong class="text-white">nvm</strong> 経由がおすすめです。</p>
+
+                                <p class="text-gray-300 mb-1">Mac / Windows（WSL2）共通：</p>
+                                <div class="command-box">
+                                    <div class="command">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash</div>
+                                </div>
+                                <p class="text-gray-300 text-sm mb-2">ターミナルを再起動した後：</p>
+                                <div class="command-box">
+                                    <div class="command">nvm install --lts</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- セクション: Vercelデプロイ -->
+                    <div class="content-section">
+                        <h3>Vercelにデプロイする</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                作ったプレゼン資料をお客様にURLで共有してみましょう。
+                            </p>
+
+                            <h4>Vercel CLIのインストール</h4>
+                            <div class="command-box">
+                                <div class="command">npm i -g vercel</div>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">vercel login</div>
+                            </div>
+
+                            <h4>デプロイする</h4>
+                            <p class="text-gray-300 mb-2">ログインできたら、Claude Codeに一言伝えるだけ。</p>
+                            <div class="chat-bubble user">
+                                <div class="chat-label user">あなた</div>
+                                <div class="text-gray-200">このHTMLをVercelにデプロイして</div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>お客様にURLを送るだけ</h4>
+                                <p class="text-gray-300">営業資料、Webアプリのモック、プロトタイプ ― 何であれ、Claude Codeで作ってVercelにデプロイすれば、お客様にURLを一つ送るだけで共有できます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2: CLAUDE.md -->
+                    <div class="content-section">
+                        <h3>CLAUDE.md ― プロジェクトのルールをClaude Codeに伝える</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://docs.anthropic.com/ja/docs/claude-code/memory#claudemd" target="_blank">CLAUDE.md</a></div>
+                            <h4>仕組み</h4>
+                            <p class="text-gray-300 mb-3">
+                                Claude Codeは、あなたがプロンプトを送信するたびに、CLAUDE.mdの内容を<strong class="text-white">APIリクエストのメッセージに自動で含めます</strong>。
+                                つまり、あなたが「ログイン画面を作って」と打つと、実際にはこうなっています：
+                            </p>
+                            <div class="command-box" style="background: #1a1a2e; border-left: 3px solid #6366f1;">
+                                <div class="text-gray-400 text-sm" style="white-space: pre-line;">
+<strong class="text-purple-400">【自動で含まれる - ~/CLAUDE.md】</strong>
+日本語で返答して
+
+<strong class="text-purple-400">【自動で含まれる - プロジェクト/CLAUDE.md】</strong>
+このプロジェクトはReact + TypeScript
+テストはVitest
+
+<strong class="text-blue-400">【あなたが入力したプロンプト】</strong>
+ログイン画面を作って</div>
+                            </div>
+                            <p class="text-gray-300 mt-3 mb-6">
+                                ユーザーは「ログイン画面を作って」としか打っていないのに、Claude Codeは日本語で、React + TypeScriptで、テストはVitestで書く。<br>
+                                <strong class="text-white">CLAUDE.mdの内容が毎回のリクエストに自動で載っている</strong>からです。
+                            </p>
+
+                            <h4>なぜCLAUDE.mdが必要？</h4>
+                            <p class="text-gray-300 mb-2">Claude Codeにはメモリ機能（会話から自動で学習・記憶）もありますが、メモリはClaude Codeが勝手に拾って保存するため、何が入っているか把握しづらくなりがちです。CLAUDE.mdは<strong class="text-white">自分が意図的に書いたルールだけが入る</strong>ため見通しが良く、確実です。</p>
+                            <p class="text-gray-300 mb-4">さらに、プロジェクトルートに置けば<strong class="text-white">Gitにコミットしてチーム全員で共有</strong>できます。これがCLAUDE.mdの本質です。</p>
+
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">~/CLAUDE.md</code></div>
+                                        <div class="text-gray-400 text-sm">
+                                            <ul class="list-disc list-inside space-y-1">
+                                                <li><strong class="text-white">全プロジェクト共通</strong>の指示</li>
+                                                <li>ホームディレクトリに置く</li>
+                                                <li>言語指定、作業スタイルなど</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">プロジェクト/CLAUDE.md</code></div>
+                                        <div class="text-gray-400 text-sm">
+                                            <ul class="list-disc list-inside space-y-1">
+                                                <li><strong class="text-white">プロジェクト固有</strong>の指示</li>
+                                                <li>プロジェクトルートに置く</li>
+                                                <li>技術スタック、コーディング規約など</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>まずはこれを設定しよう</h4>
+                            <p class="text-gray-300 mb-2">ホームディレクトリに <code class="code-inline">CLAUDE.md</code> を作成して、日本語指定を書きます。</p>
+                            <div class="code-block">
+<span class="comment"># ~/CLAUDE.md</span>
+
+always respond in Japanese
+                            </div>
+                            <p class="text-gray-400 text-sm mt-2">たったこれだけで、Claude Codeは常に日本語で返答するようになります。</p>
+
+                            <h4>プロジェクトごとの指示も書ける</h4>
+                            <p class="text-gray-300 mb-2">プロジェクトルートに置く <code class="code-inline">CLAUDE.md</code> には、そのプロジェクト固有のルールを書きます。</p>
+                            <div class="code-block">
+<span class="comment"># CLAUDE.md（プロジェクトルート）</span>
+
+<span class="comment">## 技術スタック</span>
+- Next.js 15 (App Router)
+- TypeScript
+- Tailwind CSS
+
+<span class="comment">## ルール</span>
+- テストは vitest を使用
+- コミットメッセージは日本語で
+                            </div>
+
+                            <div class="success-box">
+                                <h4>これがClaude Codeの「記憶」</h4>
+                                <p class="text-gray-300">CLAUDE.mdに書いておけば、毎回同じ指示を出す必要がなくなります。チームメンバーとプロジェクトのCLAUDE.mdを共有すれば、全員が同じルールでClaude Codeを使えます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション3: セッション管理 -->
+                    <div class="content-section">
+                        <h3>セッションを続ける ― claude -c と claude -r</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/interactive-mode" target="_blank">Interactive Mode</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                先ほどのプレゼン作成、途中でターミナルを閉じてしまったらどうなるでしょう？<br>
+                                大丈夫。Claude Codeにはセッションを復帰させる方法があります。
+                            </p>
+
+                            <h4><code class="code-inline">claude -c</code> ― 直前のセッションを続ける</h4>
+                            <p class="text-gray-300 mb-2">「あ、さっきの作業の続きをやりたい」というとき。直前のセッションをそのまま再開します。</p>
+                            <div class="command-box">
+                                <div class="command">claude -c</div>
+                                <div class="output">直前のセッションの会話履歴をすべて引き継いで再開</div>
+                            </div>
+                            <div class="chat-bubble user">
+                                <div class="chat-label user">あなた</div>
+                                <div class="text-gray-200">さっきのプレゼンに「よくある質問」ページを追加して</div>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-2">Claudeは前の会話を覚えているので、「さっきの」で通じます。</p>
+
+                            <h4><code class="code-inline">claude -r</code> ― 過去のセッション一覧から選ぶ</h4>
+                            <p class="text-gray-300 mb-2">「3日前のあの作業に戻りたい」というとき。過去のセッション一覧が表示され、選んで再開できます。</p>
+                            <div class="command-box">
+                                <div class="command">claude -r</div>
+                                <div class="output">過去のセッション一覧が表示される → 選択して再開</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>使い分けのコツ</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li><code class="code-inline">-c</code> = <strong class="text-white">Continue</strong>（直前のセッションを続ける）</li>
+                                    <li><code class="code-inline">-r</code> = <strong class="text-white">Resume</strong>（過去のセッション一覧から選んで復帰する）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション4: プロンプトモード -->
+                    <div class="content-section">
+                        <h3>ワンライナーで使う ― claude -p</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/cli-reference" target="_blank">CLI Reference</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                インタラクティブモードに入らなくても、一発でClaude Codeに仕事をさせる方法があります。<br>
+                                <code class="code-inline">claude -p</code> でプロンプトを直接渡します。
+                            </p>
+
+                            <h4>基本の使い方</h4>
+                            <div class="command-box">
+                                <div class="command">claude -p "このプロジェクトのREADMEを作って"</div>
+                                <div class="output">結果がターミナルに出力される（対話なし）</div>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-2">対話せず結果だけ欲しい場合に最適です。スクリプトやCI/CDにも組み込めます。</p>
+
+                            <h4>パイプで組み合わせる</h4>
+                            <p class="text-gray-300 mb-2">他のコマンドの出力をClaude Codeに渡せます。これが非常に強力です。</p>
+                            <div class="command-box">
+                                <div class="command">cat src/app.js | claude -p "このコードをレビューして"</div>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">git diff | claude -p "この差分の変更内容を要約して"</div>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">cat error.log | claude -p "このエラーログの原因を分析して"</div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>シェルの力 × AIの力</h4>
+                                <p class="text-gray-300">Unixのパイプ哲学とAIを組み合わせることで、ログ分析、コードレビュー、ドキュメント生成など、あらゆるテキスト処理を一行で実行できます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション5: ファイル指定 -->
+                    <div class="content-section">
+                        <h3>ファイルを指定する ― @ マーク</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeに「このファイルを見て」と伝えたいとき、<code class="code-inline">@</code> でファイルパスを指定できます。
+                            </p>
+
+                            <h4>基本の使い方</h4>
+                            <div class="chat-bubble user">
+                                <div class="chat-label user">あなた</div>
+                                <div class="text-gray-200">@src/app.js このファイルのバグを修正して</div>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-2"><code class="code-inline">@</code> の後にファイルパスを書くと、そのファイルの内容がコンテキストとして渡されます。</p>
+
+                            <h4>複数ファイルも指定できる</h4>
+                            <div class="chat-bubble user">
+                                <div class="chat-label user">あなた</div>
+                                <div class="text-gray-200">@src/api.js @src/types.ts この2つのファイルの型を揃えて</div>
+                            </div>
+
+                            <h4>URLも指定できる</h4>
+                            <div class="chat-bubble user">
+                                <div class="chat-label user">あなた</div>
+                                <div class="text-gray-200">@https://example.com/api/docs このAPIドキュメントを元にクライアントを作って</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>タブ補完が使える</h4>
+                                <p class="text-gray-300"><code class="code-inline">@</code> を入力した後、<code class="code-inline">Tab</code> キーを押すとファイル名の候補が表示されます。パスを手打ちする必要はありません。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション4: スラッシュコマンド -->
+                    <div class="content-section">
+                        <h3>よく使うスラッシュコマンド</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/commands" target="_blank">Commands</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                インタラクティブモード中に <code class="code-inline">/</code> で始まるコマンドを入力すると、特別な操作ができます。<br>
+                                全部覚える必要はありません。よく使うものから順に紹介します。
+                            </p>
+
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">1</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/compact</code> ― 会話を圧縮する</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                長い作業をしていると、会話履歴がどんどん長くなります。<code class="code-inline">/compact</code> を実行すると、それまでの会話を要約して圧縮し、コンテキストウィンドウの空きを作ります。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/compact</div>
+                                                <div class="output">会話が要約され、コンテキストに空きができる</div>
+                                            </div>
+                                            <div class="text-gray-500 text-xs mt-2">「動作が遅くなってきたな」と感じたら試してみてください。コンテキストが圧迫されている可能性があります。</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">2</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/clear</code> ― 会話をリセットする</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                「話題を完全に変えたい」「ゼロから始めたい」ときに使います。会話履歴をすべてクリアして、新しいセッションのようにリフレッシュします。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/clear</div>
+                                                <div class="output">会話履歴がクリアされ、まっさらな状態に</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">3</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/cost</code> ― 使用量を確認する</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                現在のセッションで消費したトークン数やコストを表示します。「今月どれくらい使ったかな？」が気になるときに。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/cost</div>
+                                                <div class="output">セッションのトークン使用量とコストが表示される</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">4</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/model</code> ― モデルを切り替える</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                セッション中にモデルを変更できます。「軽い作業はSonnet、複雑な設計はOpus」のように使い分けたいときに便利です。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/model</div>
+                                                <div class="output">利用可能なモデル一覧が表示される → 選択して切り替え</div>
+                                            </div>
+                                            <div class="text-gray-500 text-xs mt-2">Maxプランの場合、Opus / Sonnet / Haiku を自由に切り替えられます。</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">5</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/login</code> ― 再ログインする</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                セッションが切れたり、アカウントを切り替えたいときに使います。ブラウザが開いて認証フローが始まります。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/login</div>
+                                                <div class="output">ブラウザが開き、Anthropicアカウントで再認証</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">6</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/doctor</code> ― 環境を診断する</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                「なんか動かない」「エラーが出る」というときの最初の一手。Claude Codeの環境設定、認証状態、依存関係をチェックして問題点を教えてくれます。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/doctor</div>
+                                                <div class="output">環境の診断結果が表示される ― 問題があれば修正方法も提示</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box" style="margin-top: 24px;">
+                                <h4>その他のコマンド</h4>
+                                <p class="text-gray-300"><code class="code-inline">/</code> を入力するとオートコンプリートで一覧が出ます。全コマンドの詳細は「基本操作ガイド」ページにまとめてあります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション5: Shift+Tab -->
+                    <div class="content-section">
+                        <h3>考えさせてから動かす ― Shift + Tab</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank">Common Workflows</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeにはコードを書かずに「まず考える」モードがあります。<br>
+                                <span class="key-badge">Shift</span> + <span class="key-badge">Tab</span> で <strong class="text-white">Plan Mode</strong> に切り替わります。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div style="max-width: 500px; margin: 0 auto;">
+                                    <div class="loop-step" style="text-align: center;">
+                                        <div class="font-bold text-white mb-1">通常モード（Agent Mode）</div>
+                                        <div class="text-gray-400 text-sm">ファイルの読み書き・コマンド実行ができる</div>
+                                    </div>
+                                    <div class="loop-arrow" style="font-size: 16px; padding: 8px 0;">
+                                        <span class="key-badge" style="font-size: 11px;">Shift + Tab</span>
+                                    </div>
+                                    <div class="loop-step" style="text-align: center; border-color: #60a5fa;">
+                                        <div class="font-bold text-white mb-1">Plan Mode</div>
+                                        <div class="text-gray-400 text-sm">読み取り専用 ― 調査・分析・計画のみ</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>どんな時に使うか</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">大きな変更の前に</div>
+                                    <p class="text-gray-400 text-sm">「リファクタリングの方針を先に考えて」<br>→ 計画を確認してからAgent Modeに戻って実行</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">コードの理解</div>
+                                    <p class="text-gray-400 text-sm">「このプロジェクトの構成を説明して」<br>→ 変更せず読み取りだけで安全に調査</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">バグの原因調査</div>
+                                    <p class="text-gray-400 text-sm">「ログインできないバグの原因を調べて」<br>→ 原因を特定してから修正に移る</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">見積もり</div>
+                                    <p class="text-gray-400 text-sm">「この機能を追加するのに必要な変更を洗い出して」<br>→ 影響範囲の事前把握</p>
+                                </div>
+                            </div>
+
+                            <div class="warning-box" style="margin-top: 24px;">
+                                <h4>Plan Modeの注意点</h4>
+                                <p class="text-gray-300">Plan Modeではファイルの書き込みやコマンド実行ができません。計画が固まったら <span class="key-badge">Shift</span> + <span class="key-badge">Tab</span> で通常モードに戻して実行しましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション6: settings.local.json -->
+                    <div class="content-section">
+                        <h3>自分だけの設定 ― settings.local.json</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/settings" target="_blank">Settings</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeの設定は <code class="code-inline">settings.json</code> と <code class="code-inline">settings.local.json</code> の2種類があります。<br>
+                                チームで共有する設定と、自分だけの設定を分けられます。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">.claude/settings.json</code></div>
+                                        <div class="text-gray-400 text-sm">
+                                            <ul class="list-disc list-inside space-y-1">
+                                                <li>Gitで管理される（チーム共有）</li>
+                                                <li>プロジェクト共通の許可ルール</li>
+                                                <li>チームのコーディング規約など</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="loop-step" style="border-color: #e8734a;">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">.claude/settings.local.json</code></div>
+                                        <div class="text-gray-400 text-sm">
+                                            <ul class="list-disc list-inside space-y-1">
+                                                <li><strong class="text-white">.gitignoreに追加推奨</strong></li>
+                                                <li>自分だけのカスタマイズ</li>
+                                                <li>個人的なツール許可設定など</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>よく使う設定例</h4>
+                            <p class="text-gray-300 mb-2">プロジェクトルートに <code class="code-inline">.claude/settings.local.json</code> を作成します。</p>
+                            <div class="code-block">
+<span class="comment">// .claude/settings.local.json</span>
+{
+  <span class="keyword">"permissions"</span>: {
+    <span class="keyword">"allow"</span>: [
+      <span class="string">"Bash(npm run *)"</span>,
+      <span class="string">"Bash(git *)"</span>,
+      <span class="string">"Read"</span>,
+      <span class="string">"Write"</span>
+    ]
+  }
+}
+                            </div>
+
+                            <div class="info-box">
+                                <h4>許可ルールで確認ダイアログを減らす</h4>
+                                <p class="text-gray-300">Claude Codeは安全のため、ファイル書き込みやコマンド実行時に確認を求めます。信頼できる操作を <code class="code-inline">allow</code> に追加しておくと、いちいち承認する手間が省けます。</p>
+                            </div>
+
+                            <h4>グローバル設定もある</h4>
+                            <p class="text-gray-300 mb-2">プロジェクト横断で適用したい設定は、ホームディレクトリに置きます。</p>
+                            <div class="code-block">
+<span class="comment">// ~/.claude/settings.json（全プロジェクト共通）</span>
+{
+  <span class="keyword">"permissions"</span>: {
+    <span class="keyword">"allow"</span>: [
+      <span class="string">"Bash(git status)"</span>,
+      <span class="string">"Bash(git log *)"</span>,
+      <span class="string">"Bash(git diff *)"</span>
+    ]
+  }
+}
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>Bash(*) は非推奨</h4>
+                                <p class="text-gray-300"><code class="code-inline">"Bash(*)"</code> を設定するとすべてのコマンドが無条件で実行されます。セキュリティ上のリスクがあるため、必要なコマンドだけを個別に許可しましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: アップデート -->
+                    <div class="content-section">
+                        <h3>常に最新版を使う ― claude update</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeは頻繁にアップデートされます。新機能やバグ修正を逃さないために、定期的にアップデートしましょう。
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">claude update</div>
+                                <div class="output">最新バージョンに更新されます</div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>バージョン確認</h4>
+                                <p class="text-gray-300">現在のバージョンは <code class="code-inline">claude --version</code> で確認できます。起動時に新しいバージョンがある場合は通知が表示されることもあります。</p>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>古いバージョンのまま使っていませんか？</h4>
+                                <p class="text-gray-300">Claude Codeは進化が速いツールです。「先週までなかった機能」が今週には使えることも珍しくありません。困ったらまず <code class="code-inline">claude update</code> を試してみてください。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: 画像の貼り付け -->
+                    <div class="content-section">
+                        <h3>画像を渡す ― スクリーンショットも読める</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeは画像も理解できます。デザインカンプ、エラー画面のスクリーンショット、ワイヤーフレームなど、画像を渡して指示を出せます。
+                            </p>
+
+                            <h4>画像の渡し方</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">ファイルパスで指定</div>
+                                    <p class="text-gray-400 text-sm">@マークでパスを指定して画像を渡します。</p>
+                                    <div class="chat-bubble user" style="margin-top: 8px;">
+                                        <div class="chat-label user">あなた</div>
+                                        <div class="text-gray-200 text-sm">@design.png このデザインをHTMLで再現して</div>
+                                    </div>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">コピー&ペースト</div>
+                                    <p class="text-gray-400 text-sm">スクリーンショットをクリップボードにコピーして、そのままペーストできます。</p>
+                                    <div class="chat-bubble user" style="margin-top: 8px;">
+                                        <div class="chat-label user">あなた</div>
+                                        <div class="text-gray-200 text-sm">[画像をペースト] このエラー画面を修正して</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>こんな使い方ができる</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">1</span>
+                                        <div>
+                                            <div class="font-bold text-white">デザインカンプ → HTML</div>
+                                            <div class="text-gray-400 mt-1 text-sm">Figmaやデザインツールのスクリーンショットを渡して、HTMLに変換</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">2</span>
+                                        <div>
+                                            <div class="font-bold text-white">エラー画面 → 修正</div>
+                                            <div class="text-gray-400 mt-1 text-sm">ブラウザのエラー画面をスクショして渡すだけで、原因を特定して修正</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number">3</span>
+                                        <div>
+                                            <div class="font-bold text-white">手書きメモ → 実装</div>
+                                            <div class="text-gray-400 mt-1 text-sm">ホワイトボードの写真やノートのスケッチから、仕様を読み取って実装</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: キーボードショートカット -->
+                    <div class="content-section">
+                        <h3>覚えておくと便利なキー操作</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeのインタラクティブモードで使えるキーボード操作をまとめます。全部覚える必要はありませんが、上の3つは特に便利です。
+                            </p>
+
+                            <div class="grid grid-cols-1 gap-3">
+                                <div class="component-card" style="border-color: #e8734a;">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-bold text-white"><span class="key-badge">Shift</span> + <span class="key-badge">Tab</span></div>
+                                            <div class="text-gray-400 text-sm mt-1">Plan Mode ↔ Agent Mode を切り替え</div>
+                                        </div>
+                                        <span style="color: #e8734a; font-size: 12px; font-weight: 600;">超重要</span>
+                                    </div>
+                                </div>
+                                <div class="component-card" style="border-color: #e8734a;">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-bold text-white"><span class="key-badge">Esc</span></div>
+                                            <div class="text-gray-400 text-sm mt-1">実行中の処理を中断する</div>
+                                        </div>
+                                        <span style="color: #e8734a; font-size: 12px; font-weight: 600;">超重要</span>
+                                    </div>
+                                </div>
+                                <div class="component-card" style="border-color: #e8734a;">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="font-bold text-white"><span class="key-badge">Ctrl</span> + <span class="key-badge">C</span></div>
+                                            <div class="text-gray-400 text-sm mt-1">入力をクリアする（2回でClaude Codeを終了）</div>
+                                        </div>
+                                        <span style="color: #e8734a; font-size: 12px; font-weight: 600;">超重要</span>
+                                    </div>
+                                </div>
+                                <div class="component-card">
+                                    <div>
+                                        <div class="font-bold text-white"><span class="key-badge">Enter</span></div>
+                                        <div class="text-gray-400 text-sm mt-1">メッセージを送信する</div>
+                                    </div>
+                                </div>
+                                <div class="component-card">
+                                    <div>
+                                        <div class="font-bold text-white"><span class="key-badge">Option</span> + <span class="key-badge">Enter</span>（Mac）/ <span class="key-badge">Ctrl</span> + <span class="key-badge">Enter</span>（Win）</div>
+                                        <div class="text-gray-400 text-sm mt-1">改行を挿入する（送信せずに複数行入力）</div>
+                                    </div>
+                                </div>
+                                <div class="component-card">
+                                    <div>
+                                        <div class="font-bold text-white"><span class="key-badge">↑</span> / <span class="key-badge">↓</span></div>
+                                        <div class="text-gray-400 text-sm mt-1">過去の入力履歴を遡る・進む</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション8: まとめ -->
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <div class="collapsible-content">
+                            <div class="info-box">
+                                <h4>このページで学んだこと</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li>Claude Codeでプレゼン資料を作り、PowerPoint変換やVercelデプロイまでできる</li>
+                                    <li><code class="code-inline">~/CLAUDE.md</code> に「always respond in Japanese」を書いて日本語化</li>
+                                    <li><code class="code-inline">claude -c</code> で直前のセッション継続、<code class="code-inline">claude -r</code> で過去セッション一覧から復帰</li>
+                                    <li><code class="code-inline">claude -p</code> でワンライナー実行、パイプとの組み合わせが強力</li>
+                                    <li><code class="code-inline">@</code> でファイルやURLを指定、画像も渡せる</li>
+                                    <li><code class="code-inline">/compact</code> <code class="code-inline">/clear</code> <code class="code-inline">/cost</code> <code class="code-inline">/model</code> <code class="code-inline">/login</code> <code class="code-inline">/doctor</code></li>
+                                    <li><span class="key-badge" style="font-size: 11px;">Shift + Tab</span> でPlan Modeに切り替え、まず考えてから実行する</li>
+                                    <li><code class="code-inline">settings.local.json</code> で自分だけの設定をカスタマイズできる</li>
+                                    <li><code class="code-inline">claude update</code> で常に最新版を維持</li>
+                                </ul>
+                            </div>
+                            <div class="success-box">
+                                <h4>次のステップ</h4>
+                                <p class="text-gray-300">基本を押さえたら、「基本操作ガイド」でさらに詳しいコマンドやパーミッション設定を学んだり、「カスタマイズ」でCLAUDE.mdやHooksなどの高度な設定に進みましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+</html>

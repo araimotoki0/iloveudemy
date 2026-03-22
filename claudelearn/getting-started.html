@@ -53,8 +53,9 @@
         .code-block .variable { color: #ffffff; }
         .code-block .highlight { color: #e8734a; font-weight: 600; }
         header h1 span { background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; -webkit-text-fill-color: unset !important; color: #e8734a !important; }
-        .ref-link { display: inline-flex; align-items: center; gap: 4px; color: #a0a0b8; font-size: 12px; text-decoration: none; border: 1px solid #3a3a52; border-radius: 4px; padding: 2px 8px; transition: all 0.2s; margin-left: 8px; }
-        .ref-link:hover { color: #e8734a; border-color: rgba(232, 115, 74, 0.4); }
+        .ref-box { color: #a0a0b8; font-size: 13px; margin-bottom: 16px; }
+        .ref-box a { color: #e8734a; text-decoration: none; border-bottom: 1px solid rgba(232, 115, 74, 0.3); transition: all 0.2s; }
+        .ref-box a:hover { border-bottom-color: #e8734a; }
     </style>
 </head>
 <body class="text-white font-sans js-loading">
@@ -65,13 +66,9 @@
 
                     <!-- セクション1: 起動と基本 -->
                     <div class="content-section">
-                        <h3>起動と基本
-                            <span style="display: flex; gap: 4px; align-items: center;">
-                                <a href="https://code.claude.com/docs/ja/overview" target="_blank" class="ref-link">Overview</a>
-                                <a href="https://code.claude.com/docs/ja/cli-reference" target="_blank" class="ref-link">CLI Docs</a>
-                            </span>
-                        </h3>
+                        <h3>起動と基本</h3>
                         <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/overview" target="_blank">Overview</a> / <a href="https://code.claude.com/docs/ja/cli-reference" target="_blank">CLI Docs</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 Claude Codeを使い始めるために必要なインストール方法、起動コマンド、認証の仕組みを解説します。
                             </p>
@@ -192,10 +189,9 @@
 
                     <!-- セクション2: インタラクティブモードの操作 -->
                     <div class="content-section">
-                        <h3>インタラクティブモードの操作
-                            <a href="https://code.claude.com/docs/ja/interactive-mode" target="_blank" class="ref-link">Docs</a>
-                        </h3>
+                        <h3>インタラクティブモードの操作</h3>
                         <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/interactive-mode" target="_blank">Interactive Mode</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 インタラクティブモードではキーボードショートカットや特殊入力で効率的に操作できます。全ての操作を覚える必要はありませんが、主要なものを知っておくと生産性が大幅に向上します。
                             </p>
@@ -333,13 +329,9 @@
 
                     <!-- セクション3: スラッシュコマンド完全一覧 -->
                     <div class="content-section">
-                        <h3>スラッシュコマンド完全一覧
-                            <span style="display: flex; gap: 4px; align-items: center;">
-                                <a href="https://code.claude.com/docs/ja/commands" target="_blank" class="ref-link">Commands</a>
-                                <a href="https://code.claude.com/docs/ja/skills" target="_blank" class="ref-link">Skills</a>
-                            </span>
-                        </h3>
+                        <h3>スラッシュコマンド完全一覧</h3>
                         <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/commands" target="_blank">Commands</a> / <a href="https://code.claude.com/docs/ja/skills" target="_blank">Skills</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 Claude Codeには多数のスラッシュコマンドが用意されています。カテゴリ別に整理して紹介します。<code class="code-inline">/</code> を入力するとオートコンプリートが表示されます。
                             </p>
@@ -632,13 +624,9 @@
 
                     <!-- セクション4: セッション管理 -->
                     <div class="content-section">
-                        <h3>セッション管理
-                            <span style="display: flex; gap: 4px; align-items: center;">
-                                <a href="https://code.claude.com/docs/ja/interactive-mode" target="_blank" class="ref-link">Interactive</a>
-                                <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank" class="ref-link">Workflows</a>
-                            </span>
-                        </h3>
+                        <h3>セッション管理</h3>
                         <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/interactive-mode" target="_blank">Interactive Mode</a> / <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank">Workflows</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 Claude Codeのセッション管理機能を使いこなすことで、作業の継続性を保ち、効率的に開発を進められます。
                             </p>
@@ -759,10 +747,9 @@
 
                     <!-- セクション5: ファイル参照と入力 -->
                     <div class="content-section">
-                        <h3>ファイル参照と入力
-                            <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank" class="ref-link">Docs</a>
-                        </h3>
+                        <h3>ファイル参照と入力</h3>
                         <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank">Common Workflows</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 Claude Codeにコンテキストを効率的に渡す方法を解説します。適切なコンテキストを与えることが、質の高い出力を得る鍵です。
                             </p>
@@ -836,10 +823,9 @@
 
                     <!-- セクション6: パーミッションモード -->
                     <div class="content-section">
-                        <h3>パーミッションモード
-                            <a href="https://code.claude.com/docs/ja/permissions" target="_blank" class="ref-link">Docs</a>
-                        </h3>
+                        <h3>パーミッションモード</h3>
                         <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/permissions" target="_blank">Permissions</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 Claude Codeはあなたのローカルマシンでツールを実行します。パーミッションシステムにより、どの操作に承認が必要かを制御できます。
                             </p>
@@ -996,10 +982,9 @@
 
                     <!-- セクション7: Plan Mode -->
                     <div class="content-section">
-                        <h3>Plan Mode
-                            <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank" class="ref-link">Docs</a>
-                        </h3>
+                        <h3>Plan Mode</h3>
                         <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank">Common Workflows</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 Plan Modeは読み取り専用の分析モードです。コードを変更せずに調査・分析・計画立案を行います。実装前に「まず考える」フェーズを設けることで、手戻りを大幅に減らせます。
                             </p>
@@ -1120,13 +1105,9 @@
 
                     <!-- セクション8: モデル設定 -->
                     <div class="content-section">
-                        <h3>モデル設定
-                            <span style="display: flex; gap: 4px; align-items: center;">
-                                <a href="https://code.claude.com/docs/ja/model-config" target="_blank" class="ref-link">Model Config</a>
-                                <a href="https://code.claude.com/docs/ja/fast-mode" target="_blank" class="ref-link">Fast Mode</a>
-                            </span>
-                        </h3>
+                        <h3>モデル設定</h3>
                         <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/model-config" target="_blank">Model Config</a> / <a href="https://code.claude.com/docs/ja/fast-mode" target="_blank">Fast Mode</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 Claude Codeでは使用するモデルや推論パラメータを柔軟に設定できます。タスクの複雑さや速度要件に応じて最適な設定を選びましょう。
                             </p>
