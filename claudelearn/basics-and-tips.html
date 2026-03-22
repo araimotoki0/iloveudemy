@@ -117,13 +117,8 @@
                                 ✅ presentation.pptx を作成しました</div>
                             </div>
 
-                            <div class="info-box">
-                                <h4>ライブラリも勝手にインストール</h4>
-                                <p class="text-gray-300">必要なライブラリ（python-pptx等）が無い場合、Claude Codeが自動でインストールまで行います。あなたが事前にセットアップする必要はありません。</p>
-                            </div>
-
                             <div class="warning-box">
-                                <h4>Node.js のインストール（後のセクションで使います）</h4>
+                                <h4>Node.js のインストール（後のセクションで使います）
                                 <p class="text-gray-300 mb-3">この後のVercelデプロイで npm を使うため、Node.js を入れておきましょう。バージョン管理ができる <strong class="text-white">nvm</strong> 経由がおすすめです。</p>
 
                                 <p class="text-gray-300 mb-1">Mac / Windows（WSL2）共通：</p>
@@ -133,6 +128,19 @@
                                 <p class="text-gray-300 text-sm mb-2">ターミナルを再起動した後：</p>
                                 <div class="command-box">
                                     <div class="command">nvm install --lts</div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>Python のインストール（補足）</h4>
+                                <p class="text-gray-300 mb-2">PowerPoint変換など、Pythonライブラリを使う場面もあります。バージョン管理ができる <strong class="text-white">pyenv</strong> 経由がおすすめです。</p>
+                                <p class="text-gray-300 mb-1">Mac / Windows（WSL2）共通：</p>
+                                <div class="command-box">
+                                    <div class="command">curl https://pyenv.run | bash</div>
+                                </div>
+                                <p class="text-gray-300 text-sm mb-2">ターミナルを再起動した後：</p>
+                                <div class="command-box">
+                                    <div class="command">pyenv install 3.12 && pyenv global 3.12</div>
                                 </div>
                             </div>
 
