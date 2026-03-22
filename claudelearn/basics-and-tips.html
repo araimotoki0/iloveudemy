@@ -117,26 +117,18 @@
                                 ✅ presentation.pptx を作成しました</div>
                             </div>
 
-                            <div class="warning-box">
-                                <h4>Node.js のインストール（後のセクションで使います）
-                                <p class="text-gray-300 mb-3">この後のVercelデプロイで npm を使うため、Node.js を入れておきましょう。バージョン管理ができる <strong class="text-white">nvm</strong> 経由がおすすめです。</p>
-
-                                <p class="text-gray-300 mb-1">Mac / Windows（WSL2）共通：</p>
-                                <div class="command-box">
-                                    <div class="command">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash</div>
-                                </div>
-                                <p class="text-gray-300 text-sm mb-2">ターミナルを再起動した後：</p>
-                                <div class="command-box">
-                                    <div class="command">nvm install --lts</div>
-                                </div>
-                            </div>
-
                             <div class="info-box">
                                 <h4>Python のインストール（補足）</h4>
                                 <p class="text-gray-300 mb-2">PowerPoint変換など、Pythonライブラリを使う場面もあります。バージョン管理ができる <strong class="text-white">pyenv</strong> 経由がおすすめです。</p>
                                 <p class="text-gray-300 mb-1">Mac / Windows（WSL2）共通：</p>
                                 <div class="command-box">
                                     <div class="command">curl https://pyenv.run | bash</div>
+                                </div>
+                                <p class="text-gray-300 text-sm mb-2"><code class="code-inline">~/.bashrc</code>（Macは <code class="code-inline">~/.zshrc</code>）に以下を追加：</p>
+                                <div class="command-box">
+                                    <div class="command">export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"</div>
                                 </div>
                                 <p class="text-gray-300 text-sm mb-2">ターミナルを再起動した後：</p>
                                 <div class="command-box">
@@ -154,6 +146,17 @@
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 作ったプレゼン資料をお客様にURLで共有してみましょう。
                             </p>
+
+                            <h4>Node.js のインストール</h4>
+                            <p class="text-gray-300 mb-2">Vercel CLIはnpm経由でインストールするため、まずNode.jsが必要です。バージョン管理ができる <strong class="text-white">nvm</strong> 経由がおすすめです。</p>
+                            <p class="text-gray-300 mb-1">Mac / Windows（WSL2）共通：</p>
+                            <div class="command-box">
+                                <div class="command">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash</div>
+                            </div>
+                            <p class="text-gray-300 text-sm mb-2">ターミナルを再起動した後：</p>
+                            <div class="command-box">
+                                <div class="command">nvm install --lts</div>
+                            </div>
 
                             <h4>Vercel CLIのインストール</h4>
                             <div class="command-box">
