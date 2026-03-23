@@ -404,26 +404,28 @@ always respond in Japanese
                     <div class="content-section">
                         <h3>よく使うスラッシュコマンド</h3>
                         <div class="collapsible-content">
-                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/commands" target="_blank">Commands</a></div>
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/commands" target="_blank">Commands</a> / <a href="https://code.claude.com/docs/ja/interactive-mode" target="_blank">Interactive Mode</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 インタラクティブモード中に <code class="code-inline">/</code> で始まるコマンドを入力すると、特別な操作ができます。<br>
-                                全部覚える必要はありません。よく使うものから順に紹介します。
+                                実際に使用頻度が高いものを「よく使う」「知っておくと便利」「たまに使う」の3段階で紹介します。
                             </p>
 
+                            <!-- よく使う -->
+                            <h4 style="margin-bottom: 12px;">よく使う</h4>
                             <div class="grid grid-cols-1 gap-3 mt-4">
                                 <div class="loop-step">
                                     <div class="flex items-start">
                                         <span class="loop-step-number" style="background: #e8734a;">1</span>
                                         <div>
-                                            <div class="font-bold text-white"><code class="code-inline">/compact</code> ― 会話を圧縮する</div>
+                                            <div class="font-bold text-white"><code class="code-inline">/model</code> ― モデルを切り替える</div>
                                             <div class="text-gray-400 mt-2 text-sm">
-                                                長い作業をしていると、会話履歴がどんどん長くなります。<code class="code-inline">/compact</code> を実行すると、それまでの会話を要約して圧縮し、コンテキストウィンドウの空きを作ります。
+                                                セッション中にモデルを変更できます。「軽い質問はHaiku、コード生成はSonnet、複雑な設計はOpus」のように使い分けるとコスパが良いです。
                                             </div>
                                             <div class="command-box" style="margin: 8px 0 0;">
-                                                <div class="command" style="display: block;">/compact</div>
-                                                <div class="output">会話が要約され、コンテキストに空きができる</div>
+                                                <div class="command" style="display: block;">/model sonnet</div>
+                                                <div class="output">モデルがSonnetに切り替わる</div>
                                             </div>
-                                            <div class="text-gray-500 text-xs mt-2">「動作が遅くなってきたな」と感じたら試してみてください。コンテキストが圧迫されている可能性があります。</div>
+                                            <div class="text-gray-500 text-xs mt-2">Maxプランの場合、Opus / Sonnet / Haiku を自由に切り替えられます。キーボードショートカット <span class="key-badge" style="font-size: 10px;">Option + P</span> でも切り替え可能。</div>
                                         </div>
                                     </div>
                                 </div>
@@ -434,11 +436,11 @@ always respond in Japanese
                                         <div>
                                             <div class="font-bold text-white"><code class="code-inline">/clear</code> ― 会話をリセットする</div>
                                             <div class="text-gray-400 mt-2 text-sm">
-                                                「話題を完全に変えたい」「ゼロから始めたい」ときに使います。会話履歴をすべてクリアして、新しいセッションのようにリフレッシュします。
+                                                「話題を完全に変えたい」「ゼロから始めたい」ときに使います。会話履歴をすべてクリアして、まっさらな状態にします。
                                             </div>
                                             <div class="command-box" style="margin: 8px 0 0;">
                                                 <div class="command" style="display: block;">/clear</div>
-                                                <div class="output">会話履歴がクリアされ、まっさらな状態に</div>
+                                                <div class="output">会話履歴がクリアされ、新しいセッションと同じ状態に</div>
                                             </div>
                                         </div>
                                     </div>
@@ -448,13 +450,13 @@ always respond in Japanese
                                     <div class="flex items-start">
                                         <span class="loop-step-number" style="background: #e8734a;">3</span>
                                         <div>
-                                            <div class="font-bold text-white"><code class="code-inline">/cost</code> ― 使用量を確認する</div>
+                                            <div class="font-bold text-white"><code class="code-inline">/diff</code> ― 変更内容を確認する</div>
                                             <div class="text-gray-400 mt-2 text-sm">
-                                                現在のセッションで消費したトークン数やコストを表示します。「今月どれくらい使ったかな？」が気になるときに。
+                                                Claudeがファイルを編集した後、「何がどう変わったか」を差分表示で確認できます。意図しない変更がないかチェックするときに便利です。
                                             </div>
                                             <div class="command-box" style="margin: 8px 0 0;">
-                                                <div class="command" style="display: block;">/cost</div>
-                                                <div class="output">セッションのトークン使用量とコストが表示される</div>
+                                                <div class="command" style="display: block;">/diff</div>
+                                                <div class="output">変更されたファイルの差分がインタラクティブに表示される</div>
                                             </div>
                                         </div>
                                     </div>
@@ -464,30 +466,114 @@ always respond in Japanese
                                     <div class="flex items-start">
                                         <span class="loop-step-number" style="background: #e8734a;">4</span>
                                         <div>
-                                            <div class="font-bold text-white"><code class="code-inline">/model</code> ― モデルを切り替える</div>
+                                            <div class="font-bold text-white"><code class="code-inline">/compact</code> ― 会話を圧縮する</div>
                                             <div class="text-gray-400 mt-2 text-sm">
-                                                セッション中にモデルを変更できます。「軽い作業はSonnet、複雑な設計はOpus」のように使い分けたいときに便利です。
+                                                会話履歴を要約して圧縮し、コンテキストウィンドウの空きを作ります。1Mコンテキストでもすぐには必要ありませんが、数時間にわたる長い作業では有効です。
                                             </div>
                                             <div class="command-box" style="margin: 8px 0 0;">
-                                                <div class="command" style="display: block;">/model</div>
-                                                <div class="output">利用可能なモデル一覧が表示される → 選択して切り替え</div>
+                                                <div class="command" style="display: block;">/compact</div>
+                                                <div class="output">会話が要約され、コンテキストに空きができる</div>
                                             </div>
-                                            <div class="text-gray-500 text-xs mt-2">Maxプランの場合、Opus / Sonnet / Haiku を自由に切り替えられます。</div>
+                                            <div class="info-box" style="margin: 8px 0 0;">
+                                                <h4>注意：圧縮すると情報が失われる</h4>
+                                                <p class="text-gray-300">要約なので、会話の細かいニュアンスや過去の指示が落ちることがあります。「さっき言ったやり方で」が通じなくなる可能性があるので、本当に必要なときだけ使いましょう。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 知っておくと便利 -->
+                            <h4 style="margin-top: 32px; margin-bottom: 12px;">知っておくと便利</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #6b7280;">5</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/btw</code> ― 作業を中断せずに質問する</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                Claudeが長い作業（テスト実行、リファクタリングなど）を進めている最中に、「ちょっと聞きたいことがある」というときに使います。実行中のタスクを止めずに、横から質問できます。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/btw このファイルはどこからインポートされてる？</div>
+                                                <div class="output">実行中のタスクはそのまま、質問にだけ即答してくれる</div>
+                                            </div>
+                                            <div class="text-gray-500 text-xs mt-2">会話履歴に残らないので、メインの作業の流れを汚しません。キャッシュを再利用するため低コストです。</div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="loop-step">
                                     <div class="flex items-start">
-                                        <span class="loop-step-number" style="background: #e8734a;">5</span>
+                                        <span class="loop-step-number" style="background: #6b7280;">6</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/context</code> ― コンテキストの使用量を見る</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                「今コンテキストをどれくらい使っているか」をカラーグリッドで可視化します。1Mコンテキストでも「あとどれくらい余裕があるか」を把握しておくと安心です。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/context</div>
+                                                <div class="output">コンテキスト使用状況がビジュアルで表示される</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #6b7280;">7</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/resume</code> ― 前のセッションを再開する</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                ターミナルを閉じてしまった、翌日に続きをやりたい、というときに使います。過去のセッション一覧から選んで再開できます。CLIオプション <code class="code-inline">claude -c</code>（直前のセッション）や <code class="code-inline">claude -r</code>（一覧から選択）でも同じことができます。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/resume</div>
+                                                <div class="output">セッション一覧が表示される → 選択して再開</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #6b7280;">8</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/memory</code> ― CLAUDE.mdを編集する</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                「いつも日本語で答えて」「テストはpytestを使って」など、プロジェクト固有のルールを書いたCLAUDE.mdをその場で開いて編集できます。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/memory</div>
+                                                <div class="output">CLAUDE.mdがエディタで開く → 保存すれば即反映</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- たまに使う -->
+                            <h4 style="margin-top: 32px; margin-bottom: 12px;">たまに使う</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #374151;">9</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/cost</code> ― 使用量を確認する</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                セッションのトークン使用量とコストを表示します。ただし、Maxサブスクリプションの場合は詳細なトークン数は表示されず、APIキー利用時のみドル単位のコストが確認できます。
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #374151;">10</span>
                                         <div>
                                             <div class="font-bold text-white"><code class="code-inline">/login</code> ― 再ログインする</div>
                                             <div class="text-gray-400 mt-2 text-sm">
-                                                セッションが切れたり、アカウントを切り替えたいときに使います。ブラウザが開いて認証フローが始まります。
-                                            </div>
-                                            <div class="command-box" style="margin: 8px 0 0;">
-                                                <div class="command" style="display: block;">/login</div>
-                                                <div class="output">ブラウザが開き、Anthropicアカウントで再認証</div>
+                                                セッションが切れたとき、アカウントを切り替えたいときに。初回セットアップ後はめったに使いません。
                                             </div>
                                         </div>
                                     </div>
@@ -495,15 +581,11 @@ always respond in Japanese
 
                                 <div class="loop-step">
                                     <div class="flex items-start">
-                                        <span class="loop-step-number" style="background: #e8734a;">6</span>
+                                        <span class="loop-step-number" style="background: #374151;">11</span>
                                         <div>
                                             <div class="font-bold text-white"><code class="code-inline">/doctor</code> ― 環境を診断する</div>
                                             <div class="text-gray-400 mt-2 text-sm">
-                                                「なんか動かない」「エラーが出る」というときの最初の一手。Claude Codeの環境設定、認証状態、依存関係をチェックして問題点を教えてくれます。
-                                            </div>
-                                            <div class="command-box" style="margin: 8px 0 0;">
-                                                <div class="command" style="display: block;">/doctor</div>
-                                                <div class="output">環境の診断結果が表示される ― 問題があれば修正方法も提示</div>
+                                                「なんか動かない」「エラーが出る」というときの最初の一手。環境設定、認証状態、依存関係をチェックして問題点を教えてくれます。
                                             </div>
                                         </div>
                                     </div>
@@ -511,8 +593,8 @@ always respond in Japanese
                             </div>
 
                             <div class="info-box" style="margin-top: 24px;">
-                                <h4>その他のコマンド</h4>
-                                <p class="text-gray-300"><code class="code-inline">/</code> を入力するとオートコンプリートで一覧が出ます。全コマンドの詳細は「基本操作ガイド」ページにまとめてあります。</p>
+                                <h4>コマンド一覧の出し方</h4>
+                                <p class="text-gray-300"><code class="code-inline">/</code> を入力するとオートコンプリートで一覧が出ます。ここで紹介した以外にも多くのコマンドがあるので、気になったら試してみてください。</p>
                             </div>
                         </div>
                     </div>
