@@ -7,6 +7,7 @@ const claudeCodeCourseConfig = {
         { file: 'mac-setup.html', title: 'Mac環境構築', icon: '🍎' },
         { file: 'windows-setup.html', title: 'Windows環境構築', icon: '💻' },
         { file: 'basics-and-tips.html', title: '便利な使い方と基本', icon: '💡' },
+        { file: 'important-knowledge.html', title: '重要な知識', icon: '🧠' },
         { file: 'getting-started.html', title: '基本操作ガイド', icon: '📖' },
         { file: 'customization.html', title: 'カスタマイズ', icon: '⚙️' },
         { file: 'advanced-usage.html', title: '実践活用', icon: '🚀' },

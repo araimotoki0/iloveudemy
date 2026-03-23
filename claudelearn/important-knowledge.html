@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重要な知識 - Claude Code メカニズム</title>
+    <meta name="description" content="Claude Codeの仕組みを調べる方法、CLAUDE.mdと自動メモリの深掘り。公式ドキュメントの読み方とソースコード調査で正確な理解を得る。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#e8734a',500:'#e36437',600:'#c2410c',700:'#9a3412',800:'#7c2d12',900:'#431407' },
+                    },
+                    fontFamily: { sans:['Noto Sans JP','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                    animation: { 'pulse-slow':'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%); background-attachment: fixed; }
+        .content-section { margin-bottom: 32px; }
+        .content-section h3 { color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease; background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52; }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .visual-diagram { background: rgba(26, 26, 46, 0.7); border: 1px solid #3a3a52; border-radius: 12px; padding: 28px; margin: 24px 0; }
+        .command-box { background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline { background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+        .info-box, .warning-box, .success-box, .error-box { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+        .info-box { border-left-color: #60a5fa; }
+        .warning-box { border-left-color: #fbbf24; }
+        .success-box { border-left-color: #34d399; }
+        .error-box { border-left-color: #f87171; }
+        .loop-step { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 18px; }
+        .component-card { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px; }
+        .code-block { background: rgba(0, 0, 0, 0.35); border: 1px solid #3a3a52; border-radius: 8px; padding: 18px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto; white-space: pre; }
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+        .code-block .highlight { color: #e8734a; font-weight: 600; }
+        header h1 span { background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; -webkit-text-fill-color: unset !important; color: #e8734a !important; }
+        .ref-box { color: #a0a0b8; font-size: 13px; margin-bottom: 16px; }
+        .ref-box a { color: #e8734a; text-decoration: none; border-bottom: 1px solid rgba(232, 115, 74, 0.3); transition: all 0.2s; }
+        .ref-box a:hover { border-bottom-color: #e8734a; }
+        .chat-bubble { background: rgba(255, 255, 255, 0.05); border: 1px solid #3a3a52; border-radius: 12px; padding: 16px 20px; margin: 12px 0; position: relative; }
+        .chat-bubble.user { border-left: 3px solid #60a5fa; }
+        .chat-bubble.ai { border-left: 3px solid #e8734a; }
+        .chat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .chat-label.user { color: #60a5fa; }
+        .chat-label.ai { color: #e8734a; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- セクション1: Claude Codeの仕組みを調べる方法 -->
+                    <div class="content-section">
+                        <h3>Claude Codeの仕組みを調べる方法</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeを使いこなすには、「この機能は内部でどう動いているのか？」を自分で調べられることが重要です。<br>
+                                調べる方法は大きく<strong class="text-white">2つ</strong>あります。
+                            </p>
+
+                            <!-- アプローチ1: ソースコードを読む -->
+                            <h4>アプローチ1：ソースコードを読む</h4>
+                            <p class="text-gray-300 mb-3">
+                                Claude CodeはNode.jsで書かれたCLIツールです。通常のインストール（<code class="code-inline">claude</code> コマンド）ではネイティブバイナリが配布されますが、
+                                <strong class="text-white">npmでインストールするとミニファイされたJavaScriptのソースコードにアクセスできます</strong>。
+                            </p>
+                            <div class="warning-box">
+                                <h4>npm install は調査専用</h4>
+                                <p class="text-gray-300">npm経由のインストールは通常の利用方法としては非推奨です。あくまで内部実装を調査する目的で使います。</p>
+                            </div>
+                            <div class="command-box">
+                                <div class="command">npm install -g @anthropic-ai/claude-code</div>
+                            </div>
+                            <p class="text-gray-300 mb-3">インストール後、ミニファイされたJSファイルの中を <code class="code-inline">grep</code> や <code class="code-inline">strings</code> で検索できます。</p>
+
+                            <h4>具体例：CLAUDE.mdの注入メカニズムを発見する</h4>
+                            <p class="text-gray-300 mb-3">
+                                「CLAUDE.mdは本当に毎回のリクエストに載るのか？」を調べたケースです。<br>
+                                バイナリから文字列を抽出して、CLAUDE.mdの注入ロジックを特定しました。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">grep -boa "Codebase and user" /path/to/claude-binary</div>
+                                <div class="output">69833497:Codebase and user
+79063744:Codebase and user</div>
+                            </div>
+                            <p class="text-gray-300 mb-3">バイトオフセットを使って周辺のコードを抽出すると、注入ロジックが見えます。</p>
+                            <div class="command-box">
+                                <div class="command">dd if=/path/to/claude-binary bs=1 skip=69833400 count=500 2>/dev/null | strings</div>
+                            </div>
+                            <p class="text-gray-300 mb-3">実際に見つかったソースコード（ミニファイ済み）：</p>
+                            <div class="code-block mb-4">
+<span class="comment">// CLAUDE.mdの内容をラップするテキスト</span>
+wBK = <span class="string">"Codebase and user instructions are shown below.
+Be sure to adhere to these instructions.
+IMPORTANT: These instructions OVERRIDE any default behavior
+and you MUST follow them exactly as written."</span>
+
+<span class="comment">// CLAUDE.md読み込み関数（メモ化されている = セッション中1回だけディスクから読む）</span>
+a3 = Oq(async () => { ... })
+
+<span class="comment">// 種類ごとのラベル付け</span>
+R.type === <span class="string">"Project"</span>
+  ? <span class="string">" (project instructions, checked into the codebase)"</span>
+  : R.type === <span class="string">"Local"</span>
+  ? <span class="string">" (user's private project instructions, not checked in)"</span>
+  : <span class="string">" (user's private global instructions for all projects)"</span>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>ソースコードから判明した事実</h4>
+                                <ul class="text-gray-300 list-disc list-inside space-y-2">
+                                    <li>CLAUDE.mdの内容は <code class="code-inline">&lt;system-reminder&gt;</code> タグで囲まれてメッセージ配列の先頭に注入される</li>
+                                    <li>読み込み関数は<strong class="text-white">メモ化</strong>されている → ディスクから読むのはセッション開始時に1回だけ</li>
+                                    <li>一度コンテキストに入ったら、以降のすべてのAPIリクエストに含まれる（会話履歴の一部として）</li>
+                                    <li>ファイルの種類（Project / Local / User）によって異なるラベルが付与される</li>
+                                </ul>
+                            </div>
+
+                            <!-- アプローチ2: 公式ドキュメント + AIに聞く -->
+                            <h4>アプローチ2：公式ドキュメントを読む + AIに聞く</h4>
+                            <p class="text-gray-300 mb-3">
+                                公式ドキュメントには機能の使い方や設計思想が体系的にまとまっています。
+                            </p>
+                            <div class="info-box">
+                                <h4>主要な公式ドキュメント</h4>
+                                <ul class="text-gray-300 list-disc list-inside space-y-1">
+                                    <li><a href="https://docs.anthropic.com/ja/docs/claude-code/overview" class="text-primary-400 underline" target="_blank">概要</a> ― Claude Codeとは何か</li>
+                                    <li><a href="https://docs.anthropic.com/ja/docs/claude-code/memory" class="text-primary-400 underline" target="_blank">メモリ</a> ― CLAUDE.mdと自動メモリ</li>
+                                    <li><a href="https://docs.anthropic.com/ja/docs/claude-code/settings" class="text-primary-400 underline" target="_blank">設定</a> ― settings.jsonの構成</li>
+                                    <li><a href="https://docs.anthropic.com/ja/docs/claude-code/sessions" class="text-primary-400 underline" target="_blank">セッション</a> ― コンテキスト管理と会話の再開</li>
+                                    <li><a href="https://docs.anthropic.com/ja/docs/claude-code/hooks" class="text-primary-400 underline" target="_blank">フック</a> ― イベント駆動の自動化</li>
+                                </ul>
+                            </div>
+                            <p class="text-gray-300 mb-3 mt-4">
+                                ドキュメントだけで解決しない疑問は、<strong class="text-white">Claude自身に聞いてしまう</strong>のが最も効率的です。
+                            </p>
+                            <p class="text-gray-300 mb-2">方法は2つ：</p>
+                            <div class="visual-diagram mb-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-2">ブラウザ版Claude</div>
+                                        <div class="text-gray-400 text-sm">
+                                            <a href="https://claude.ai" class="text-primary-400 underline" target="_blank">claude.ai</a> を開いて質問する。<br>
+                                            「Claude CodeのCLAUDE.mdはどう読み込まれる？」のように聞けば、ドキュメントに基づいた回答が得られる。
+                                        </div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-2">Claude Code自身に聞く</div>
+                                        <div class="text-gray-400 text-sm">
+                                            ターミナルで <code class="code-inline">claude</code> を起動して直接質問する。<br>
+                                            Claude Codeは自分自身の仕組みについても回答できる。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>2つのアプローチを組み合わせる</h4>
+                                <p class="text-gray-300">公式ドキュメントで全体像を把握し、ソースコード調査で実装の詳細を確認する。疑問があればClaude自身に聞く。この3つを組み合わせることで、ドキュメントに書かれていない実装の詳細まで正確に把握できます。<br>次のセクションでは、この方法で得た知識をもとにCLAUDE.mdとメモリの仕組みを詳しく解説します。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2: CLAUDE.md と自動メモリ 深掘り -->
+                    <div class="content-section">
+                        <h3>CLAUDE.md と自動メモリ ― 深掘り</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://docs.anthropic.com/ja/docs/claude-code/memory" target="_blank">Claude があなたのプロジェクトを記憶する方法</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                ここからは、公式ドキュメントとソースコード調査で明らかになったCLAUDE.mdと自動メモリの仕組みを具体的に見ていきます。<br>
+                                Claude Codeがセッション間で知識を保持するメカニズムは2つあります。<br>
+                                <strong class="text-white">CLAUDE.md</strong>（あなたが書く指示）と<strong class="text-white">自動メモリ</strong>（Claudeが自分で書くメモ）です。
+                            </p>
+
+                            <!-- CLAUDE.md vs 自動メモリ 比較表 -->
+                            <h4>CLAUDE.md と自動メモリの比較</h4>
+                            <div class="overflow-x-auto mb-6">
+                                <table class="w-full text-sm text-left text-gray-300" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <th class="py-2 pr-4"></th>
+                                            <th class="py-2 pr-4 text-white">CLAUDE.md</th>
+                                            <th class="py-2 pr-4 text-white">自動メモリ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td class="py-2 pr-4 text-gray-400">誰が作るか</td>
+                                            <td class="py-2 pr-4">あなた</td>
+                                            <td class="py-2 pr-4">Claude</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td class="py-2 pr-4 text-gray-400">中身</td>
+                                            <td class="py-2 pr-4">指示とルール</td>
+                                            <td class="py-2 pr-4">学習とパターン</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td class="py-2 pr-4 text-gray-400">共有</td>
+                                            <td class="py-2 pr-4"><strong class="text-green-400">Gitでチーム共有可能</strong></td>
+                                            <td class="py-2 pr-4">マシンローカルのみ</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td class="py-2 pr-4 text-gray-400">管理のしやすさ</td>
+                                            <td class="py-2 pr-4">自分で書くから見通しが良い</td>
+                                            <td class="py-2 pr-4">Claudeが勝手に保存するため把握しにくい</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 pr-4 text-gray-400">読み込み</td>
+                                            <td class="py-2 pr-4">全文を毎回読み込み</td>
+                                            <td class="py-2 pr-4">MEMORY.mdの先頭200行のみ</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-gray-300 mb-6">
+                                <strong class="text-white">使い分け</strong>：確実に守らせたいルール → CLAUDE.md。Claudeが作業中に自然に学ぶ情報（ビルドコマンド、デバッグの知見など）→ 自動メモリに任せる。
+                            </p>
+
+                            <!-- CLAUDE.mdの種類 -->
+                            <h4>CLAUDE.md ファイルの種類と配置場所</h4>
+                            <p class="text-gray-300 mb-3">CLAUDE.mdは配置場所によってスコープが変わります。</p>
+                            <div class="visual-diagram mb-6">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1"><code class="code-inline">~/CLAUDE.md</code>（ユーザー指示）</div>
+                                        <div class="text-gray-400 text-sm">全プロジェクト共通の個人設定。「日本語で返答して」「コードスタイルの好み」など。あなただけに適用。</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1"><code class="code-inline">プロジェクト/CLAUDE.md</code>（プロジェクト指示）</div>
+                                        <div class="text-gray-400 text-sm">プロジェクト固有のルール。技術スタック、コーディング規約、ワークフロー。<strong class="text-green-400">Gitでチーム全員と共有。</strong></div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1"><code class="code-inline">プロジェクト/CLAUDE.local.md</code>（ローカル指示）</div>
+                                        <div class="text-gray-400 text-sm">プロジェクト固有だがGitにコミットしない個人設定。<code class="code-inline">.gitignore</code> に入れて使う。自分だけのデバッグ設定や作業メモに。</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1"><code class="code-inline">/Library/Application Support/ClaudeCode/CLAUDE.md</code>（管理ポリシー）</div>
+                                        <div class="text-gray-400 text-sm">IT/DevOpsが管理する組織全体の指示。セキュリティポリシーやコンプライアンス要件など。個別に除外不可。</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 読み込み順序 -->
+                            <h4>読み込みの仕組み</h4>
+                            <p class="text-gray-300 mb-3">
+                                Claude Codeは起動時に、現在のディレクトリからディレクトリツリーを<strong class="text-white">上方向に辿って</strong>各階層のCLAUDE.mdを読み込みます。<br>
+                                例えば <code class="code-inline">foo/bar/</code> で起動すると、<code class="code-inline">foo/bar/CLAUDE.md</code> と <code class="code-inline">foo/CLAUDE.md</code> の両方が読み込まれます。
+                            </p>
+                            <p class="text-gray-300 mb-6">
+                                サブディレクトリのCLAUDE.mdは起動時ではなく、<strong class="text-white">そのディレクトリ内のファイルを読んだとき</strong>にオンデマンドで読み込まれます。
+                            </p>
+
+                            <!-- 効果的な書き方 -->
+                            <h4>効果的なCLAUDE.mdの書き方</h4>
+                            <p class="text-gray-300 mb-3">CLAUDE.mdは「コンテキスト」であり「強制設定」ではありません。具体的で簡潔な指示ほど、Claudeが従う可能性が高くなります。</p>
+                            <div class="overflow-x-auto mb-6">
+                                <table class="w-full text-sm text-left text-gray-300" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <th class="py-2 pr-4 text-red-400">悪い例</th>
+                                            <th class="py-2 pr-4 text-green-400">良い例</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td class="py-2 pr-4">コードを適切にフォーマットする</td>
+                                            <td class="py-2 pr-4">2スペースのインデントを使用する</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td class="py-2 pr-4">変更をテストする</td>
+                                            <td class="py-2 pr-4">コミット前に <code class="code-inline">npm test</code> を実行する</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 pr-4">ファイルを整理しておく</td>
+                                            <td class="py-2 pr-4">APIハンドラーは <code class="code-inline">src/api/handlers/</code> に配置する</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="warning-box">
+                                <h4>サイズに注意</h4>
+                                <p class="text-gray-300">CLAUDE.mdは<strong class="text-white">200行以下</strong>が目安です。長すぎるとコンテキストを消費し、遵守率が下がります。大きくなったら <code class="code-inline">.claude/rules/</code> に分割しましょう。</p>
+                            </div>
+
+                            <!-- .claude/rules/ -->
+                            <h4>大規模プロジェクト：<code class="code-inline">.claude/rules/</code> でルールを分割</h4>
+                            <p class="text-gray-300 mb-3">指示が増えてきたら、<code class="code-inline">.claude/rules/</code> ディレクトリにトピックごとのファイルを置けます。</p>
+                            <div class="code-block mb-4">
+your-project/
+├── .claude/
+│   ├── CLAUDE.md           <span class="comment"># メインの指示</span>
+│   └── rules/
+│       ├── code-style.md   <span class="comment"># コードスタイル</span>
+│       ├── testing.md      <span class="comment"># テスト規約</span>
+│       └── security.md     <span class="comment"># セキュリティ要件</span>
+                            </div>
+                            <p class="text-gray-300 mb-3">さらに、<strong class="text-white">特定のファイルにだけ適用されるルール</strong>も書けます。YAMLフロントマターで対象パスを指定します。</p>
+                            <div class="code-block mb-4">
+<span class="comment"># .claude/rules/api-rules.md</span>
+---
+paths:
+  - "src/api/**/*.ts"
+---
+
+- すべてのAPIエンドポイントに入力バリデーションを含める
+- 標準エラーレスポンス形式を使用する
+- OpenAPIドキュメンテーションコメントを含める
+                            </div>
+                            <p class="text-gray-300 mb-3">このルールは <code class="code-inline">src/api/</code> 配下のTypeScriptファイルを読んだときだけ読み込まれるため、関係ないファイルの作業時にコンテキストを消費しません。</p>
+
+                            <p class="text-gray-300 mb-3">個人的なルールは <code class="code-inline">~/.claude/rules/</code> に置けば、すべてのプロジェクトに適用されます。</p>
+
+                            <h4>モノレポ：不要なCLAUDE.mdを除外する</h4>
+                            <p class="text-gray-300 mb-3">大規模なモノレポでは、他チームのCLAUDE.mdが読み込まれてしまうことがあります。<code class="code-inline">claudeMdExcludes</code> 設定で除外できます。</p>
+                            <div class="code-block mb-4">
+<span class="comment">// .claude/settings.local.json</span>
+{
+  "claudeMdExcludes": [
+    "**/monorepo/CLAUDE.md",
+    "/home/user/monorepo/other-team/.claude/rules/**"
+  ]
+}
+                            </div>
+                            <p class="text-gray-300 mb-6">管理ポリシーのCLAUDE.mdは除外できません（組織全体のルールは常に適用されます）。</p>
+
+                            <!-- @インポート -->
+                            <h4>外部ファイルのインポート</h4>
+                            <p class="text-gray-300 mb-3">CLAUDE.mdの中で <code class="code-inline">@パス</code> と書くと、そのファイルの内容を取り込めます。</p>
+                            <div class="code-block mb-4">
+<span class="comment"># CLAUDE.md</span>
+プロジェクト概要は @README を参照
+npmコマンドは @package.json を参照
+
+<span class="comment"># 個人的な好み（Gitに入らない）</span>
+- @~/.claude/my-project-instructions.md
+                            </div>
+
+                            <!-- 自動メモリ詳細 -->
+                            <h4>自動メモリの仕組み</h4>
+                            <p class="text-gray-300 mb-3">
+                                自動メモリはClaude Codeが作業中に自分でメモを書く機能です。ビルドコマンド、デバッグの知見、コードスタイルの好みなどを自動で保存します。
+                            </p>
+                            <p class="text-gray-300 mb-3">メモリファイルは <code class="code-inline">~/.claude/projects/&lt;project&gt;/memory/</code> に保存されます。</p>
+                            <div class="code-block mb-4">
+~/.claude/projects/&lt;project&gt;/memory/
+├── MEMORY.md          <span class="comment"># インデックス（先頭200行が毎回読み込まれる）</span>
+├── debugging.md       <span class="comment"># デバッグパターン</span>
+├── api-conventions.md <span class="comment"># API設計の決定</span>
+└── ...
+                            </div>
+                            <p class="text-gray-300 mb-3">メモリの内容はすべてプレーンなMarkdownなので、いつでも確認・編集・削除できます。</p>
+
+                            <h4>自動メモリの有効/無効</h4>
+                            <p class="text-gray-300 mb-3">自動メモリはデフォルトで有効です。無効にしたい場合は <code class="code-inline">/memory</code> コマンドからトグルするか、設定ファイルで無効にできます。</p>
+                            <div class="code-block mb-3">
+<span class="comment">// プロジェクト設定で無効化</span>
+{
+  "autoMemoryEnabled": false
+}
+                            </div>
+                            <p class="text-gray-300 mb-3">環境変数 <code class="code-inline">CLAUDE_CODE_DISABLE_AUTO_MEMORY=1</code> でも無効化できます。</p>
+
+                            <div class="command-box mb-3">
+                                <div class="command">/memory</div>
+                                <div class="output">読み込まれているCLAUDE.mdとメモリファイルの一覧表示、自動メモリのオン/オフ切り替え</div>
+                            </div>
+
+                            <!-- ハンズオン -->
+                            <h4>ハンズオン：/init でCLAUDE.mdを自動生成してみよう</h4>
+                            <p class="text-gray-300 mb-3">
+                                プロジェクトのCLAUDE.mdを一から書くのは大変です。<code class="code-inline">/init</code> コマンドを使えば、Claudeがコードベースを分析して自動生成してくれます。
+                            </p>
+                            <div class="command-box mb-3">
+                                <div class="command">/init</div>
+                                <div class="output">コードベースを分析し、ビルドコマンド・テスト指示・プロジェクト規約を含むCLAUDE.mdを生成</div>
+                            </div>
+                            <p class="text-gray-300 mb-3">すでにCLAUDE.mdがある場合は上書きせず、改善を提案してくれます。生成されたものをベースに、自分でカスタマイズしていきましょう。</p>
+
+                            <h4>ハンズオン：/memory でメモリを確認してみよう</h4>
+                            <p class="text-gray-300 mb-3">
+                                Claudeが何を記憶しているか気になったら、<code class="code-inline">/memory</code> で確認してみましょう。
+                            </p>
+                            <div class="command-box mb-3">
+                                <div class="command">/memory</div>
+                            </div>
+                            <p class="text-gray-300 mb-3">読み込まれているCLAUDE.mdの一覧と、自動メモリの内容を確認できます。不要なメモリは編集・削除できます。</p>
+
+                            <div class="info-box">
+                                <h4>トラブルシューティング</h4>
+                                <ul class="text-gray-300 list-disc list-inside space-y-2">
+                                    <li><strong class="text-white">CLAUDE.mdに従ってくれない？</strong> → <code class="code-inline">/memory</code> でファイルが読み込まれているか確認。指示をより具体的に。矛盾する指示がないかチェック。</li>
+                                    <li><strong class="text-white">CLAUDE.mdが大きくなりすぎた？</strong> → 200行を超えたら <code class="code-inline">.claude/rules/</code> や <code class="code-inline">@インポート</code> で分割。</li>
+                                    <li><strong class="text-white">/compact 後に指示が消えた？</strong> → CLAUDE.mdに書いた指示は圧縮後も再読み込みされます。消えたのは会話内で伝えただけの指示です。CLAUDE.mdに追加しましょう。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+</html>
