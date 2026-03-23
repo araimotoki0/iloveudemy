@@ -201,7 +201,7 @@
                             <div class="ref-box">参照: <a href="https://docs.anthropic.com/ja/docs/claude-code/memory#claudemd" target="_blank">CLAUDE.md</a></div>
                             <h4>仕組み</h4>
                             <p class="text-gray-300 mb-3">
-                                Claude Codeは、あなたがプロンプトを送信するたびに、CLAUDE.mdの内容を<strong class="text-white">APIリクエストのメッセージに自動で含めます</strong>。
+                                Claude Codeは<strong class="text-white">セッション開始時にCLAUDE.mdをディスクから読み込み、メッセージ配列の先頭に注入します</strong>。以降のすべてのAPIリクエストに会話履歴の一部として含まれます。
                                 つまり、あなたが「ログイン画面を作って」と打つと、実際にはこうなっています：
                             </p>
                             <div class="command-box" style="background: #1a1a2e; border-left: 3px solid #6366f1;">
@@ -218,7 +218,7 @@
                             </div>
                             <p class="text-gray-300 mt-3 mb-6">
                                 ユーザーは「ログイン画面を作って」としか打っていないのに、Claude Codeは日本語で、React + TypeScriptで、テストはVitestで書く。<br>
-                                <strong class="text-white">CLAUDE.mdの内容が毎回のリクエストに自動で載っている</strong>からです。
+                                <strong class="text-white">セッション開始時に読み込まれたCLAUDE.mdの内容が、会話履歴の一部としてすべてのリクエストに含まれている</strong>からです。
                             </p>
 
                             <h4>なぜCLAUDE.mdが必要？</h4>

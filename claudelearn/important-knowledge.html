@@ -229,7 +229,7 @@ R.type === <span class="string">"Project"</span>
                                         </tr>
                                         <tr>
                                             <td class="py-2 pr-4 text-gray-400">読み込み</td>
-                                            <td class="py-2 pr-4">全文を毎回読み込み</td>
+                                            <td class="py-2 pr-4">セッション開始時に全文読み込み</td>
                                             <td class="py-2 pr-4">MEMORY.mdの先頭200行のみ</td>
                                         </tr>
                                     </tbody>
@@ -366,7 +366,7 @@ npmコマンドは @package.json を参照
                             <p class="text-gray-300 mb-3">メモリファイルは <code class="code-inline">~/.claude/projects/&lt;project&gt;/memory/</code> に保存されます。</p>
                             <div class="code-block mb-4">
 ~/.claude/projects/&lt;project&gt;/memory/
-├── MEMORY.md          <span class="comment"># インデックス（先頭200行が毎回読み込まれる）</span>
+├── MEMORY.md          <span class="comment"># インデックス（先頭200行がセッション開始時に読み込まれる）</span>
 ├── debugging.md       <span class="comment"># デバッグパターン</span>
 ├── api-conventions.md <span class="comment"># API設計の決定</span>
 └── ...
