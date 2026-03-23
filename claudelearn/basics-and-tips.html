@@ -360,9 +360,19 @@ always respond in Japanese
                     <div class="content-section">
                         <h3>ファイルを指定する ― @ マーク</h3>
                         <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank">Common Workflows</a> / <a href="https://code.claude.com/docs/ja/best-practices" target="_blank">Best Practices</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 Claude Codeに「このファイルを見て」と伝えたいとき、<code class="code-inline">@</code> でファイルパスを指定できます。
                             </p>
+
+                            <div class="info-box">
+                                <h4>なぜ @ を使うべきか？</h4>
+                                <ul class="text-gray-300" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-2"><strong>即座にコンテキストに含まれる</strong> ― <code class="code-inline">@</code> なしでパスを書くと、Claudeが自分でファイルを読みに行くため余計なトークン消費と時間がかかる。<code class="code-inline">@</code> を使えばファイル内容がそのままプロンプトに含まれる</li>
+                                    <li class="mb-2"><strong>CLAUDE.mdが自動で読み込まれる</strong> ― 参照したファイルのディレクトリおよび親ディレクトリにある CLAUDE.md も自動的に会話に追加される</li>
+                                    <li><strong>コンテキストの効率的な管理</strong> ― 公式のBest Practicesでも「<code class="code-inline">@</code> でファイルやスクリーンショット、データを直接渡す」ことが推奨されている</li>
+                                </ul>
+                            </div>
 
                             <h4>基本の使い方</h4>
                             <div class="chat-bubble user">
