@@ -925,31 +925,6 @@ always respond in Japanese
                         </div>
                     </div>
 
-                    <!-- セクション: アップデート -->
-                    <div class="content-section">
-                        <h3>常に最新版を使う ― claude update</h3>
-                        <div class="collapsible-content">
-                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
-                                Claude Codeは頻繁にアップデートされます。新機能やバグ修正を逃さないために、定期的にアップデートしましょう。
-                            </p>
-
-                            <div class="command-box">
-                                <div class="command">claude update</div>
-                                <div class="output">最新バージョンに更新されます</div>
-                            </div>
-
-                            <div class="info-box">
-                                <h4>バージョン確認</h4>
-                                <p class="text-gray-300">現在のバージョンは <code class="code-inline">claude --version</code> で確認できます。起動時に新しいバージョンがある場合は通知が表示されることもあります。</p>
-                            </div>
-
-                            <div class="warning-box">
-                                <h4>古いバージョンのまま使っていませんか？</h4>
-                                <p class="text-gray-300">Claude Codeは進化が速いツールです。「先週までなかった機能」が今週には使えることも珍しくありません。困ったらまず <code class="code-inline">claude update</code> を試してみてください。</p>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- セクション: 画像の貼り付け -->
                     <div class="content-section">
                         <h3>画像を渡す ― スクリーンショットも読める</h3>
@@ -959,22 +934,26 @@ always respond in Japanese
                             </p>
 
                             <h4>画像の渡し方</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div class="component-card">
                                     <div class="font-bold text-white mb-2">ファイルパスで指定</div>
-                                    <p class="text-gray-400 text-sm">@マークでパスを指定して画像を渡します。</p>
+                                    <p class="text-gray-400 text-sm"><code class="code-inline">@</code> マークでパスを指定して画像を渡します。</p>
                                     <div class="chat-bubble user" style="margin-top: 8px;">
                                         <div class="chat-label user">あなた</div>
                                         <div class="text-gray-200 text-sm">@design.png このデザインをHTMLで再現して</div>
                                     </div>
                                 </div>
                                 <div class="component-card">
-                                    <div class="font-bold text-white mb-2">コピー&ペースト</div>
-                                    <p class="text-gray-400 text-sm">スクリーンショットをクリップボードにコピーして、そのままペーストできます。</p>
+                                    <div class="font-bold text-white mb-2"><span class="key-badge" style="font-size: 11px;">Ctrl + V</span> で貼り付け</div>
+                                    <p class="text-gray-400 text-sm">スクリーンショットをクリップボードにコピーしたら、そのまま <span class="key-badge" style="font-size: 10px;">Ctrl + V</span> でペーストできます。</p>
                                     <div class="chat-bubble user" style="margin-top: 8px;">
                                         <div class="chat-label user">あなた</div>
                                         <div class="text-gray-200 text-sm">[画像をペースト] このエラー画面を修正して</div>
                                     </div>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">ドラッグ&ドロップ</div>
+                                    <p class="text-gray-400 text-sm">対応ターミナル（iTerm2等）なら、画像ファイルをターミナルにドラッグして渡せます。</p>
                                 </div>
                             </div>
 
@@ -1011,60 +990,215 @@ always respond in Japanese
                         </div>
                     </div>
 
-                    <!-- セクション: キーボードショートカット -->
+                    <!-- セクション: パーミッション -->
                     <div class="content-section">
-                        <h3>覚えておくと便利なキー操作</h3>
+                        <h3>「これやっていい？」― パーミッションの仕組み</h3>
                         <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/permissions" target="_blank">Permissions</a></div>
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
-                                Claude Codeのインタラクティブモードで使えるキーボード操作をまとめます。全部覚える必要はありませんが、上の3つは特に便利です。
+                                Claude Codeを使い始めると、何かするたびに「これを実行していいですか？」と確認が出てきます。<br>
+                                最初はウザく感じるかもしれませんが、これは<strong class="text-white">あなたのコードを勝手に壊さないための安全装置</strong>です。
                             </p>
 
-                            <div class="grid grid-cols-1 gap-3">
-                                <div class="component-card" style="border-color: #e8734a;">
-                                    <div class="flex items-center justify-between">
+                            <h4>いつ確認が出るのか？</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="component-card" style="border-color: #22c55e;">
+                                    <div class="font-bold text-white mb-2">確認なし</div>
+                                    <p class="text-gray-400 text-sm">ファイルの読み取り、検索、コード分析など。見るだけなので安全。</p>
+                                </div>
+                                <div class="component-card" style="border-color: #f59e0b;">
+                                    <div class="font-bold text-white mb-2">確認あり</div>
+                                    <p class="text-gray-400 text-sm">ファイルの編集・作成。コードを書き換える前に必ず聞いてきます。</p>
+                                </div>
+                                <div class="component-card" style="border-color: #ef4444;">
+                                    <div class="font-bold text-white mb-2">確認あり</div>
+                                    <p class="text-gray-400 text-sm">シェルコマンドの実行（<code class="code-inline">npm install</code>、<code class="code-inline">git commit</code> など）。</p>
+                                </div>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">確認画面で選べる選択肢</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #22c55e;">Y</span>
                                         <div>
-                                            <div class="font-bold text-white"><span class="key-badge">Shift</span> + <span class="key-badge">Tab</span></div>
-                                            <div class="text-gray-400 text-sm mt-1">Plan Mode ↔ Agent Mode を切り替え</div>
+                                            <div class="font-bold text-white">Yes（今回だけ許可）</div>
+                                            <div class="text-gray-400 mt-1 text-sm">この1回だけ許可します。次に同じ操作をするときはまた聞かれます。</div>
                                         </div>
-                                        <span style="color: #e8734a; font-size: 12px; font-weight: 600;">超重要</span>
                                     </div>
                                 </div>
-                                <div class="component-card" style="border-color: #e8734a;">
-                                    <div class="flex items-center justify-between">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #3b82f6;">Y</span>
                                         <div>
-                                            <div class="font-bold text-white"><span class="key-badge">Esc</span></div>
-                                            <div class="text-gray-400 text-sm mt-1">実行中の処理を中断する</div>
+                                            <div class="font-bold text-white">Yes, don't ask again（次から聞かない）</div>
+                                            <div class="text-gray-400 mt-1 text-sm">同じ操作を今後も自動で許可します。コマンド実行はプロジェクト単位で永続、ファイル編集はセッション中のみ有効。</div>
                                         </div>
-                                        <span style="color: #e8734a; font-size: 12px; font-weight: 600;">超重要</span>
                                     </div>
                                 </div>
-                                <div class="component-card" style="border-color: #e8734a;">
-                                    <div class="flex items-center justify-between">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #ef4444;">N</span>
                                         <div>
-                                            <div class="font-bold text-white"><span class="key-badge">Ctrl</span> + <span class="key-badge">C</span></div>
-                                            <div class="text-gray-400 text-sm mt-1">入力をクリアする（2回でClaude Codeを終了）</div>
+                                            <div class="font-bold text-white">No（拒否）</div>
+                                            <div class="text-gray-400 mt-1 text-sm">この操作を拒否します。Claudeは別のアプローチを考えます。</div>
                                         </div>
-                                        <span style="color: #e8734a; font-size: 12px; font-weight: 600;">超重要</span>
                                     </div>
                                 </div>
-                                <div class="component-card">
-                                    <div>
-                                        <div class="font-bold text-white"><span class="key-badge">Enter</span></div>
-                                        <div class="text-gray-400 text-sm mt-1">メッセージを送信する</div>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">パーミッションモード</h4>
+                            <p class="text-gray-400 text-sm mb-3"><span class="key-badge" style="font-size: 11px;">Shift + Tab</span> で切り替えられます。<code class="code-inline">settings.json</code> の <code class="code-inline">defaultMode</code> でデフォルトを変更することも可能です。</p>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">モード</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">ファイル編集</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">コマンド実行</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">いつ使う？</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>default</strong></td>
+                                            <td style="padding: 8px; color: #f59e0b;">確認あり</td>
+                                            <td style="padding: 8px; color: #f59e0b;">確認あり</td>
+                                            <td style="padding: 8px; color: #9ca3af;">通常の作業</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>acceptEdits</strong></td>
+                                            <td style="padding: 8px; color: #22c55e;">自動許可</td>
+                                            <td style="padding: 8px; color: #f59e0b;">確認あり</td>
+                                            <td style="padding: 8px; color: #9ca3af;">ガンガン編集させたいとき</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>plan</strong></td>
+                                            <td style="padding: 8px; color: #ef4444;">できない</td>
+                                            <td style="padding: 8px; color: #ef4444;">できない</td>
+                                            <td style="padding: 8px; color: #9ca3af;">調査・分析だけしてほしいとき</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>dontAsk</strong></td>
+                                            <td style="padding: 8px; color: #ef4444;">事前許可のみ</td>
+                                            <td style="padding: 8px; color: #ef4444;">事前許可のみ</td>
+                                            <td style="padding: 8px; color: #9ca3af;">settings.jsonで許可したツールだけ使わせたいとき</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>bypassPermissions</strong></td>
+                                            <td style="padding: 8px; color: #22c55e;">確認なし</td>
+                                            <td style="padding: 8px; color: #22c55e;">確認なし</td>
+                                            <td style="padding: 8px; color: #9ca3af;">コンテナ・VM内限定。本番環境では使わない</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>確認が多すぎるときは</h4>
+                                <p class="text-gray-300">よく使うコマンドは <code class="code-inline">settings.json</code> に事前登録しておくと、確認をスキップできます。</p>
+                                <div class="command-box" style="margin: 8px 0 0;">
+                                    <div class="command" style="display: block; white-space: pre; font-size: 12px;">"permissions": {
+  "allow": ["Bash(npm run *)", "Bash(git commit *)"],
+  "deny": ["Bash(rm -rf *)", "Edit(.env)"]
+}</div>
+                                </div>
+                                <p class="text-gray-400 text-xs mt-2">deny（拒否）は allow（許可）より優先されます。<code class="code-inline">.env</code> や <code class="code-inline">.git/</code> への編集はdenyに入れておくと安心です。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: Esc / Rewind -->
+                    <div class="content-section">
+                        <h3>やり直す ― Esc と Rewind</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/checkpointing" target="_blank">Checkpointing</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claudeの作業結果が気に入らなかったとき、<strong class="text-white">ファイルの変更ごと元に戻せます</strong>。<br>
+                                「Ctrl+Z」のClaude Code版だと思ってください。
+                            </p>
+
+                            <h4>Escキーの使い分け</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">1</span>
+                                        <div>
+                                            <div class="font-bold text-white"><span class="key-badge" style="font-size: 11px;">Esc</span> 1回 ― 入力をキャンセル</div>
+                                            <div class="text-gray-400 mt-1 text-sm">入力中のテキストを消してやり直したいときに。シェルの <code class="code-inline">Ctrl+C</code> に近い感覚です。</div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="component-card">
-                                    <div>
-                                        <div class="font-bold text-white"><span class="key-badge">Option</span> + <span class="key-badge">Enter</span>（Mac）/ <span class="key-badge">Ctrl</span> + <span class="key-badge">Enter</span>（Win）</div>
-                                        <div class="text-gray-400 text-sm mt-1">改行を挿入する（送信せずに複数行入力）</div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">2</span>
+                                        <div>
+                                            <div class="font-bold text-white"><span class="key-badge" style="font-size: 11px;">Esc</span> <span class="key-badge" style="font-size: 11px;">Esc</span> 2回 ― Rewindメニューを開く</div>
+                                            <div class="text-gray-400 mt-1 text-sm">過去のプロンプト一覧が表示され、どの時点まで巻き戻すか選べます。</div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="component-card">
-                                    <div>
-                                        <div class="font-bold text-white"><span class="key-badge">↑</span> / <span class="key-badge">↓</span></div>
-                                        <div class="text-gray-400 text-sm mt-1">過去の入力履歴を遡る・進む</div>
-                                    </div>
-                                </div>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">Rewindメニューの選択肢</h4>
+                            <p class="text-gray-400 text-sm mb-3">巻き戻し先を選んだ後、以下の5つのアクションから選べます。</p>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">選択肢</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">ファイル</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">会話履歴</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">いつ使う？</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>Restore code and conversation</strong></td>
+                                            <td style="padding: 8px; color: #22c55e;">戻す</td>
+                                            <td style="padding: 8px; color: #22c55e;">戻す</td>
+                                            <td style="padding: 8px; color: #9ca3af;">全部なかったことにしたい</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>Restore conversation</strong></td>
+                                            <td style="padding: 8px; color: #ef4444;">そのまま</td>
+                                            <td style="padding: 8px; color: #22c55e;">戻す</td>
+                                            <td style="padding: 8px; color: #9ca3af;">コードは残して、会話だけやり直したい</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>Restore code</strong></td>
+                                            <td style="padding: 8px; color: #22c55e;">戻す</td>
+                                            <td style="padding: 8px; color: #ef4444;">そのまま</td>
+                                            <td style="padding: 8px; color: #9ca3af;">コードだけ元に戻して、別の指示を出したい</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>Summarize from here</strong></td>
+                                            <td style="padding: 8px; color: #ef4444;">そのまま</td>
+                                            <td style="padding: 8px; color: #f59e0b;">要約に圧縮</td>
+                                            <td style="padding: 8px; color: #9ca3af;">この地点以降の会話が長すぎるので要約したい</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>Never mind</strong></td>
+                                            <td style="padding: 8px; color: #9ca3af;">―</td>
+                                            <td style="padding: 8px; color: #9ca3af;">―</td>
+                                            <td style="padding: 8px; color: #9ca3af;">やっぱりやめる</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-gray-500 text-xs mt-2">「Summarize from here」は <code class="code-inline">/compact</code> の部分版です。選択地点より前の会話はそのまま残り、それ以降だけが要約に置き換わります。元のメッセージはセッション記録に保存されます。</div>
+
+                            <div class="warning-box" style="margin-top: 20px;">
+                                <h4>Rewindで戻せないもの</h4>
+                                <ul class="text-gray-300" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-1"><strong>シェルコマンドの結果</strong> ― <code class="code-inline">rm</code> や <code class="code-inline">mv</code> で消したファイルは戻せません。Claudeの編集ツール経由の変更のみ追跡されます</li>
+                                    <li><strong>Gitの代替ではない</strong> ― あくまでセッション内の高速リカバリー用です。大事な変更は <code class="code-inline">git commit</code> しておきましょう</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box" style="margin-top: 16px;">
+                                <h4>チェックポイントは自動で作られる</h4>
+                                <p class="text-gray-300">あなたがプロンプトを送るたびに、Claudeは自動でチェックポイントを作成します。セッションを再開しても30日間はアクセス可能です。特別な設定は不要で、Rewindはいつでも使えます。</p>
                             </div>
                         </div>
                     </div>
@@ -1080,11 +1214,11 @@ always respond in Japanese
                                     <li><code class="code-inline">~/CLAUDE.md</code> に「always respond in Japanese」を書いて日本語化</li>
                                     <li><code class="code-inline">claude -c</code> で直前のセッション継続、<code class="code-inline">claude -r</code> で過去セッション一覧から復帰</li>
                                     <li><code class="code-inline">claude -p</code> でワンライナー実行、パイプとの組み合わせが強力</li>
-                                    <li><code class="code-inline">@</code> でファイルやURLを指定、画像も渡せる</li>
-                                    <li><code class="code-inline">/compact</code> <code class="code-inline">/clear</code> <code class="code-inline">/cost</code> <code class="code-inline">/model</code> <code class="code-inline">/login</code> <code class="code-inline">/doctor</code></li>
+                                    <li><code class="code-inline">@</code> でファイルやURLを指定 ― 即座にコンテキストに含まれ、CLAUDE.mdも自動読み込み</li>
+                                    <li>スラッシュコマンド: <code class="code-inline">/model</code> <code class="code-inline">/effort</code> <code class="code-inline">/compact</code> <code class="code-inline">/btw</code> <code class="code-inline">/context</code> <code class="code-inline">/copy</code> など</li>
+                                    <li>キーボードショートカットはシェルと共通（<code class="code-inline">Ctrl+C</code> <code class="code-inline">Ctrl+L</code> <code class="code-inline">Ctrl+A</code> など）</li>
                                     <li><span class="key-badge" style="font-size: 11px;">Shift + Tab</span> でPlan Modeに切り替え、まず考えてから実行する</li>
                                     <li><code class="code-inline">settings.local.json</code> で自分だけの設定をカスタマイズできる</li>
-                                    <li><code class="code-inline">claude update</code> で常に最新版を維持</li>
                                 </ul>
                             </div>
                             <div class="success-box">
