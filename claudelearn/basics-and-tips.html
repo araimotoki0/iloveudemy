@@ -1061,34 +1061,22 @@ always respond in Japanese
                                     </thead>
                                     <tbody>
                                         <tr style="border-bottom: 1px solid #1f2937;">
-                                            <td style="padding: 8px; color: #e5e7eb;"><strong>default</strong></td>
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>default</strong><br><span style="color: #9ca3af; font-size: 11px;">毎回確認</span></td>
                                             <td style="padding: 8px; color: #f59e0b;">確認あり</td>
                                             <td style="padding: 8px; color: #f59e0b;">確認あり</td>
-                                            <td style="padding: 8px; color: #9ca3af;">通常の作業</td>
+                                            <td style="padding: 8px; color: #9ca3af;">通常の作業。最初はこれで慣れましょう</td>
                                         </tr>
                                         <tr style="border-bottom: 1px solid #1f2937;">
-                                            <td style="padding: 8px; color: #e5e7eb;"><strong>acceptEdits</strong></td>
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>acceptEdits</strong><br><span style="color: #9ca3af; font-size: 11px;">編集は自動OK</span></td>
                                             <td style="padding: 8px; color: #22c55e;">自動許可</td>
                                             <td style="padding: 8px; color: #f59e0b;">確認あり</td>
-                                            <td style="padding: 8px; color: #9ca3af;">ガンガン編集させたいとき</td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid #1f2937;">
-                                            <td style="padding: 8px; color: #e5e7eb;"><strong>plan</strong></td>
-                                            <td style="padding: 8px; color: #ef4444;">できない</td>
-                                            <td style="padding: 8px; color: #ef4444;">できない</td>
-                                            <td style="padding: 8px; color: #9ca3af;">調査・分析だけしてほしいとき</td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid #1f2937;">
-                                            <td style="padding: 8px; color: #e5e7eb;"><strong>dontAsk</strong></td>
-                                            <td style="padding: 8px; color: #ef4444;">事前許可のみ</td>
-                                            <td style="padding: 8px; color: #ef4444;">事前許可のみ</td>
-                                            <td style="padding: 8px; color: #9ca3af;">settings.jsonで許可したツールだけ使わせたいとき</td>
+                                            <td style="padding: 8px; color: #9ca3af;">ガンガン編集させたいとき。コマンド実行だけ確認が出る</td>
                                         </tr>
                                         <tr>
-                                            <td style="padding: 8px; color: #e5e7eb;"><strong>bypassPermissions</strong></td>
-                                            <td style="padding: 8px; color: #22c55e;">確認なし</td>
-                                            <td style="padding: 8px; color: #22c55e;">確認なし</td>
-                                            <td style="padding: 8px; color: #9ca3af;">コンテナ・VM内限定。本番環境では使わない</td>
+                                            <td style="padding: 8px; color: #e5e7eb;"><strong>plan</strong><br><span style="color: #9ca3af; font-size: 11px;">読み取り専用</span></td>
+                                            <td style="padding: 8px; color: #ef4444;">できない</td>
+                                            <td style="padding: 8px; color: #ef4444;">できない</td>
+                                            <td style="padding: 8px; color: #9ca3af;">調査・分析だけしてほしいとき。ファイルを触らせない安心感</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1104,6 +1092,14 @@ always respond in Japanese
 }</div>
                                 </div>
                                 <p class="text-gray-400 text-xs mt-2">deny（拒否）は allow（許可）より優先されます。<code class="code-inline">.env</code> や <code class="code-inline">.git/</code> への編集はdenyに入れておくと安心です。</p>
+                            </div>
+
+                            <div class="warning-box" style="margin-top: 20px;">
+                                <h4>--dangerously-skip-permissions は使わない</h4>
+                                <p class="text-gray-300">
+                                    <code class="code-inline">claude --dangerously-skip-permissions</code> というオプションがあります。名前の通り<strong>「危険に権限チェックを飛ばす」</strong>もので、すべての確認がスキップされます。<br>
+                                    コンテナやVM内でのCI/CD用途を想定したオプションなので、<strong>普段の開発では絶対に使わないでください</strong>。Claudeが <code class="code-inline">rm -rf</code> を実行しても止められなくなります。
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -1223,7 +1219,7 @@ always respond in Japanese
                             </div>
                             <div class="success-box">
                                 <h4>次のステップ</h4>
-                                <p class="text-gray-300">基本を押さえたら、「基本操作ガイド」でさらに詳しいコマンドやパーミッション設定を学んだり、「カスタマイズ」でCLAUDE.mdやHooksなどの高度な設定に進みましょう。</p>
+                                <p class="text-gray-300">基本を押さえたら、「重要な知識」でClaude Codeの根本的な仕組みを学びましょう。AIモデルとハーネスの関係、エージェントが実現できる理由、公式ドキュメントやソースコードから仕組みを調べる方法を解説しています。</p>
                             </div>
                         </div>
                     </div>
