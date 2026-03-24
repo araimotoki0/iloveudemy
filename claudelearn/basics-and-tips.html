@@ -794,6 +794,137 @@ always respond in Japanese
                         </div>
                     </div>
 
+                    <!-- セクション5: Shift+Tab -->
+                    <div class="content-section">
+                        <h3>考えさせてから動かす ― Shift + Tab</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank">Common Workflows</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeにはコードを書かずに「まず考える」モードがあります。<br>
+                                <span class="key-badge">Shift</span> + <span class="key-badge">Tab</span> で <strong class="text-white">Plan Mode</strong> に切り替わります。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div style="max-width: 500px; margin: 0 auto;">
+                                    <div class="loop-step" style="text-align: center;">
+                                        <div class="font-bold text-white mb-1">通常モード（Agent Mode）</div>
+                                        <div class="text-gray-400 text-sm">ファイルの読み書き・コマンド実行ができる</div>
+                                    </div>
+                                    <div class="loop-arrow" style="font-size: 16px; padding: 8px 0;">
+                                        <span class="key-badge" style="font-size: 11px;">Shift + Tab</span>
+                                    </div>
+                                    <div class="loop-step" style="text-align: center; border-color: #60a5fa;">
+                                        <div class="font-bold text-white mb-1">Plan Mode</div>
+                                        <div class="text-gray-400 text-sm">読み取り専用 ― 調査・分析・計画のみ</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>どんな時に使うか</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">大きな変更の前に</div>
+                                    <p class="text-gray-400 text-sm">「リファクタリングの方針を先に考えて」<br>→ 計画を確認してからAgent Modeに戻って実行</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">コードの理解</div>
+                                    <p class="text-gray-400 text-sm">「このプロジェクトの構成を説明して」<br>→ 変更せず読み取りだけで安全に調査</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">バグの原因調査</div>
+                                    <p class="text-gray-400 text-sm">「ログインできないバグの原因を調べて」<br>→ 原因を特定してから修正に移る</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="font-bold text-white mb-2">見積もり</div>
+                                    <p class="text-gray-400 text-sm">「この機能を追加するのに必要な変更を洗い出して」<br>→ 影響範囲の事前把握</p>
+                                </div>
+                            </div>
+
+                            <div class="warning-box" style="margin-top: 24px;">
+                                <h4>Plan Modeの注意点</h4>
+                                <p class="text-gray-300">Plan Modeではファイルの書き込みやコマンド実行ができません。計画が固まったら <span class="key-badge">Shift</span> + <span class="key-badge">Tab</span> で通常モードに戻して実行しましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション6: settings.local.json -->
+                    <div class="content-section">
+                        <h3>自分だけの設定 ― settings.local.json</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/settings" target="_blank">Settings</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeの設定は <code class="code-inline">settings.json</code> と <code class="code-inline">settings.local.json</code> の2種類があります。<br>
+                                チームで共有する設定と、自分だけの設定を分けられます。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">.claude/settings.json</code></div>
+                                        <div class="text-gray-400 text-sm">
+                                            <ul class="list-disc list-inside space-y-1">
+                                                <li>Gitで管理される（チーム共有）</li>
+                                                <li>プロジェクト共通の許可ルール</li>
+                                                <li>チームのコーディング規約など</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="loop-step" style="border-color: #e8734a;">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">.claude/settings.local.json</code></div>
+                                        <div class="text-gray-400 text-sm">
+                                            <ul class="list-disc list-inside space-y-1">
+                                                <li><strong class="text-white">.gitignoreに追加推奨</strong></li>
+                                                <li>自分だけのカスタマイズ</li>
+                                                <li>個人的なツール許可設定など</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>よく使う設定例</h4>
+                            <p class="text-gray-300 mb-2">プロジェクトルートに <code class="code-inline">.claude/settings.local.json</code> を作成します。</p>
+                            <div class="code-block">
+<span class="comment">// .claude/settings.local.json</span>
+{
+  <span class="keyword">"permissions"</span>: {
+    <span class="keyword">"allow"</span>: [
+      <span class="string">"Bash(npm run *)"</span>,
+      <span class="string">"Bash(git *)"</span>,
+      <span class="string">"Read"</span>,
+      <span class="string">"Write"</span>
+    ]
+  }
+}
+                            </div>
+
+                            <div class="info-box">
+                                <h4>許可ルールで確認ダイアログを減らす</h4>
+                                <p class="text-gray-300">Claude Codeは安全のため、ファイル書き込みやコマンド実行時に確認を求めます。信頼できる操作を <code class="code-inline">allow</code> に追加しておくと、いちいち承認する手間が省けます。</p>
+                            </div>
+
+                            <h4>グローバル設定もある</h4>
+                            <p class="text-gray-300 mb-2">プロジェクト横断で適用したい設定は、ホームディレクトリに置きます。</p>
+                            <div class="code-block">
+<span class="comment">// ~/.claude/settings.json（全プロジェクト共通）</span>
+{
+  <span class="keyword">"permissions"</span>: {
+    <span class="keyword">"allow"</span>: [
+      <span class="string">"Bash(git status)"</span>,
+      <span class="string">"Bash(git log *)"</span>,
+      <span class="string">"Bash(git diff *)"</span>
+    ]
+  }
+}
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>Bash(*) は非推奨</h4>
+                                <p class="text-gray-300"><code class="code-inline">"Bash(*)"</code> を設定するとすべてのコマンドが無条件で実行されます。セキュリティ上のリスクがあるため、必要なコマンドだけを個別に許可しましょう。</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- セクション: 画像の貼り付け -->
                     <div class="content-section">
                         <h3>画像を渡す ― スクリーンショットも読める</h3>
@@ -855,120 +986,6 @@ always respond in Japanese
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- セクション: パーミッション -->
-                    <div class="content-section">
-                        <h3>「これやっていい？」― パーミッションの仕組み</h3>
-                        <div class="collapsible-content">
-                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/permissions" target="_blank">Permissions</a></div>
-                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
-                                Claude Codeを使い始めると、何かするたびに「これを実行していいですか？」と確認が出てきます。<br>
-                                最初はウザく感じるかもしれませんが、これは<strong class="text-white">あなたのコードを勝手に壊さないための安全装置</strong>です。
-                            </p>
-
-                            <h4>いつ確認が出るのか？</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div class="component-card" style="border-color: #22c55e;">
-                                    <div class="font-bold text-white mb-2">確認なし</div>
-                                    <p class="text-gray-400 text-sm">ファイルの読み取り、検索、コード分析など。見るだけなので安全。</p>
-                                </div>
-                                <div class="component-card" style="border-color: #f59e0b;">
-                                    <div class="font-bold text-white mb-2">確認あり</div>
-                                    <p class="text-gray-400 text-sm">ファイルの編集・作成。コードを書き換える前に必ず聞いてきます。</p>
-                                </div>
-                                <div class="component-card" style="border-color: #ef4444;">
-                                    <div class="font-bold text-white mb-2">確認あり</div>
-                                    <p class="text-gray-400 text-sm">シェルコマンドの実行（<code class="code-inline">npm install</code>、<code class="code-inline">git commit</code> など）。</p>
-                                </div>
-                            </div>
-
-                            <h4 style="margin-top: 24px;">確認画面で選べる選択肢</h4>
-                            <div class="grid grid-cols-1 gap-3 mt-4">
-                                <div class="loop-step">
-                                    <div class="flex items-start">
-                                        <span class="loop-step-number" style="background: #22c55e;">Y</span>
-                                        <div>
-                                            <div class="font-bold text-white">Yes（今回だけ許可）</div>
-                                            <div class="text-gray-400 mt-1 text-sm">この1回だけ許可します。次に同じ操作をするときはまた聞かれます。</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="loop-step">
-                                    <div class="flex items-start">
-                                        <span class="loop-step-number" style="background: #3b82f6;">Y</span>
-                                        <div>
-                                            <div class="font-bold text-white">Yes, don't ask again（次から聞かない）</div>
-                                            <div class="text-gray-400 mt-1 text-sm">同じ操作を今後も自動で許可します。コマンド実行はプロジェクト単位で永続、ファイル編集はセッション中のみ有効。</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="loop-step">
-                                    <div class="flex items-start">
-                                        <span class="loop-step-number" style="background: #ef4444;">N</span>
-                                        <div>
-                                            <div class="font-bold text-white">No（拒否）</div>
-                                            <div class="text-gray-400 mt-1 text-sm">この操作を拒否します。Claudeは別のアプローチを考えます。</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <h4 style="margin-top: 24px;">パーミッションモード</h4>
-                            <p class="text-gray-400 text-sm mb-3"><span class="key-badge" style="font-size: 11px;">Shift + Tab</span> で切り替えられます。<code class="code-inline">settings.json</code> の <code class="code-inline">defaultMode</code> でデフォルトを変更することも可能です。</p>
-                            <div style="overflow-x: auto;">
-                                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-                                    <thead>
-                                        <tr style="border-bottom: 1px solid #374151;">
-                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">モード</th>
-                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">ファイル編集</th>
-                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">コマンド実行</th>
-                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">いつ使う？</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr style="border-bottom: 1px solid #1f2937;">
-                                            <td style="padding: 8px; color: #e5e7eb;"><strong>default</strong><br><span style="color: #9ca3af; font-size: 11px;">毎回確認</span></td>
-                                            <td style="padding: 8px; color: #f59e0b;">確認あり</td>
-                                            <td style="padding: 8px; color: #f59e0b;">確認あり</td>
-                                            <td style="padding: 8px; color: #9ca3af;">通常の作業。最初はこれで慣れましょう</td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid #1f2937;">
-                                            <td style="padding: 8px; color: #e5e7eb;"><strong>acceptEdits</strong><br><span style="color: #9ca3af; font-size: 11px;">編集は自動OK</span></td>
-                                            <td style="padding: 8px; color: #22c55e;">自動許可</td>
-                                            <td style="padding: 8px; color: #f59e0b;">確認あり</td>
-                                            <td style="padding: 8px; color: #9ca3af;">ガンガン編集させたいとき。コマンド実行だけ確認が出る</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding: 8px; color: #e5e7eb;"><strong>plan</strong><br><span style="color: #9ca3af; font-size: 11px;">読み取り専用</span></td>
-                                            <td style="padding: 8px; color: #ef4444;">できない</td>
-                                            <td style="padding: 8px; color: #ef4444;">できない</td>
-                                            <td style="padding: 8px; color: #9ca3af;">調査・分析だけしてほしいとき。ファイルを触らせない安心感</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="info-box" style="margin-top: 20px;">
-                                <h4>確認が多すぎるときは</h4>
-                                <p class="text-gray-300">よく使うコマンドは <code class="code-inline">settings.json</code> に事前登録しておくと、確認をスキップできます。</p>
-                                <div class="command-box" style="margin: 8px 0 0;">
-                                    <div class="command" style="display: block; white-space: pre; font-size: 12px;">"permissions": {
-  "allow": ["Bash(npm run *)", "Bash(git commit *)"],
-  "deny": ["Bash(rm -rf *)", "Edit(.env)"]
-}</div>
-                                </div>
-                                <p class="text-gray-400 text-xs mt-2">deny（拒否）は allow（許可）より優先されます。<code class="code-inline">.env</code> や <code class="code-inline">.git/</code> への編集はdenyに入れておくと安心です。</p>
-                            </div>
-
-                            <div class="warning-box" style="margin-top: 20px;">
-                                <h4>--dangerously-skip-permissions は使わない</h4>
-                                <p class="text-gray-300">
-                                    <code class="code-inline">claude --dangerously-skip-permissions</code> というオプションがあります。名前の通り<strong>「危険に権限チェックを飛ばす」</strong>もので、すべての確認がスキップされます。<br>
-                                    コンテナやVM内でのCI/CD用途を想定したオプションなので、<strong>普段の開発では絶対に使わないでください</strong>。Claudeが <code class="code-inline">rm -rf</code> を実行しても止められなくなります。
-                                </p>
                             </div>
                         </div>
                     </div>
@@ -1082,7 +1099,8 @@ always respond in Japanese
                                     <li><code class="code-inline">@</code> でファイルやURLを指定 ― 即座にコンテキストに含まれ、CLAUDE.mdも自動読み込み</li>
                                     <li>スラッシュコマンド: <code class="code-inline">/model</code> <code class="code-inline">/effort</code> <code class="code-inline">/compact</code> <code class="code-inline">/btw</code> <code class="code-inline">/context</code> <code class="code-inline">/copy</code> など</li>
                                     <li>キーボードショートカットはシェルと共通（<code class="code-inline">Ctrl+C</code> <code class="code-inline">Ctrl+L</code> <code class="code-inline">Ctrl+A</code> など）</li>
-                                    <li>パーミッション: default / acceptEdits / plan の3モード、<span class="key-badge" style="font-size: 11px;">Shift + Tab</span> で切り替え</li>
+                                    <li><span class="key-badge" style="font-size: 11px;">Shift + Tab</span> でPlan Modeに切り替え、まず考えてから実行する</li>
+                                    <li><code class="code-inline">settings.local.json</code> で自分だけの設定をカスタマイズできる</li>
                                     <li><span class="key-badge" style="font-size: 11px;">Esc Esc</span> でRewind ― ファイル変更や会話を巻き戻せる</li>
                                 </ul>
                             </div>
