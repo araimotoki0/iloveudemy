@@ -437,6 +437,61 @@ always respond in Japanese
                                     <div class="flex items-start">
                                         <span class="loop-step-number" style="background: #e8734a;">2</span>
                                         <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/effort</code> ― 思考の深さを調整する</div>
+                                            <div class="ref-box" style="margin-top: 4px;">参照: <a href="https://platform.claude.com/docs/en/build-with-claude/effort" target="_blank">Effort - Claude API Docs</a> / <a href="https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking" target="_blank">Adaptive Thinking</a></div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                Claudeは回答を生成する前に内部で「考える」プロセス（Extended Thinking）があります。<code class="code-inline">/effort</code> はその思考の深さを制御します。
+                                            </div>
+                                            <div style="overflow-x: auto; margin-top: 8px;">
+                                                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                                                    <thead>
+                                                        <tr style="border-bottom: 1px solid #374151;">
+                                                            <th style="text-align: left; padding: 6px 8px; color: #9ca3af;">レベル</th>
+                                                            <th style="text-align: left; padding: 6px 8px; color: #9ca3af;">動き方</th>
+                                                            <th style="text-align: left; padding: 6px 8px; color: #9ca3af;">向いてるタスク</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                                            <td style="padding: 6px 8px; color: #e5e7eb;"><code class="code-inline">low</code></td>
+                                                            <td style="padding: 6px 8px; color: #9ca3af;">思考をスキップ or 最小限、前置きなし</td>
+                                                            <td style="padding: 6px 8px; color: #9ca3af;">簡単な質問、ちょっとした修正</td>
+                                                        </tr>
+                                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                                            <td style="padding: 6px 8px; color: #e5e7eb;"><code class="code-inline">medium</code></td>
+                                                            <td style="padding: 6px 8px; color: #9ca3af;">簡単ならスキップ、複雑なら考える</td>
+                                                            <td style="padding: 6px 8px; color: #9ca3af;">コード生成、通常の作業</td>
+                                                        </tr>
+                                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                                            <td style="padding: 6px 8px; color: #e5e7eb;"><code class="code-inline">high</code></td>
+                                                            <td style="padding: 6px 8px; color: #9ca3af;">ほぼ常に深く考える</td>
+                                                            <td style="padding: 6px 8px; color: #9ca3af;">複雑な設計、難しいバグ</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 6px 8px; color: #e5e7eb;"><code class="code-inline">max</code></td>
+                                                            <td style="padding: 6px 8px; color: #9ca3af;">制約なしで最深レベル（Opus限定）</td>
+                                                            <td style="padding: 6px 8px; color: #9ca3af;">本気で考えてほしいとき</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/effort high</div>
+                                                <div class="output">思考の深さが high に切り替わる</div>
+                                            </div>
+                                            <div class="info-box" style="margin: 8px 0 0;">
+                                                <h4>裏側の仕組み</h4>
+                                                <p class="text-gray-300">effortはAPIリクエストの <code class="code-inline">output_config.effort</code> パラメータとしてモデルに渡されます。以前は <code class="code-inline">budget_tokens</code> で「思考に使えるトークン数」を数値指定する必要がありましたが、今は <code class="code-inline">effort</code> で「medium」と言うだけでモデルが自分で適切な思考量を判断する方式（Adaptive Thinking）に進化しました。</p>
+                                            </div>
+                                            <div class="text-gray-500 text-xs mt-2">厳密なトークン予算ではなく「どれくらい頑張るかのヒント」です。lowでも難しい問題なら勝手に深く考えます。</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">3</span>
+                                        <div>
                                             <div class="font-bold text-white"><code class="code-inline">/compact</code> ― 会話を圧縮する</div>
                                             <div class="text-gray-400 mt-2 text-sm">
                                                 会話履歴を要約して圧縮し、コンテキストウィンドウの空きを作ります。1Mコンテキストならすぐには必要ありませんが、数時間にわたる長い作業では出番があります。
@@ -455,7 +510,7 @@ always respond in Japanese
 
                                 <div class="loop-step">
                                     <div class="flex items-start">
-                                        <span class="loop-step-number" style="background: #e8734a;">3</span>
+                                        <span class="loop-step-number" style="background: #e8734a;">4</span>
                                         <div>
                                             <div class="font-bold text-white"><code class="code-inline">/btw</code> ― 作業を中断せずに質問する</div>
                                             <div class="text-gray-400 mt-2 text-sm">
@@ -472,7 +527,7 @@ always respond in Japanese
 
                                 <div class="loop-step">
                                     <div class="flex items-start">
-                                        <span class="loop-step-number" style="background: #e8734a;">4</span>
+                                        <span class="loop-step-number" style="background: #e8734a;">5</span>
                                         <div>
                                             <div class="font-bold text-white"><code class="code-inline">/context</code> ― コンテキストの使用量を見る</div>
                                             <div class="text-gray-400 mt-2 text-sm">
@@ -488,7 +543,7 @@ always respond in Japanese
 
                                 <div class="loop-step">
                                     <div class="flex items-start">
-                                        <span class="loop-step-number" style="background: #e8734a;">5</span>
+                                        <span class="loop-step-number" style="background: #e8734a;">6</span>
                                         <div>
                                             <div class="font-bold text-white"><code class="code-inline">/resume</code> ― 前のセッションを再開する</div>
                                             <div class="text-gray-400 mt-2 text-sm">
@@ -504,7 +559,7 @@ always respond in Japanese
 
                                 <div class="loop-step">
                                     <div class="flex items-start">
-                                        <span class="loop-step-number" style="background: #e8734a;">6</span>
+                                        <span class="loop-step-number" style="background: #e8734a;">7</span>
                                         <div>
                                             <div class="font-bold text-white"><code class="code-inline">/memory</code> ― CLAUDE.mdを編集する</div>
                                             <div class="text-gray-400 mt-2 text-sm">
@@ -517,22 +572,58 @@ always respond in Japanese
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <h4 style="margin-top: 32px; margin-bottom: 12px;">その他（必要なときだけ）</h4>
-                            <div class="grid grid-cols-1 gap-3 mt-4">
                                 <div class="loop-step">
                                     <div class="flex items-start">
-                                        <span class="loop-step-number" style="background: #374151;">―</span>
+                                        <span class="loop-step-number" style="background: #e8734a;">8</span>
                                         <div>
-                                            <div class="font-bold text-white"><code class="code-inline">/cost</code> ― 使用量を確認</div>
+                                            <div class="font-bold text-white"><code class="code-inline">/copy</code> ― 直前の回答をクリップボードにコピーする</div>
                                             <div class="text-gray-400 mt-2 text-sm">
-                                                APIキー利用時にドル単位のコストを表示。Maxサブスクリプションでは詳細なトークン数は表示されません。
+                                                Claudeの直前の回答をそのままクリップボードにコピーします。生成されたコードや説明を別の場所に貼り付けたいときに、マウスで選択する手間が省けます。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/copy</div>
+                                                <div class="output">直前のClaudeの回答がクリップボードにコピーされる</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">9</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/clear</code> ― 会話をリセットする</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                会話履歴をすべてクリアして、まっさらな状態にします。新しいセッションを開いても同じことができますが、同じターミナルで続けたいときに便利です。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/clear</div>
+                                                <div class="output">会話履歴がクリアされ、新しいセッションと同じ状態に</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="loop-step-number" style="background: #e8734a;">10</span>
+                                        <div>
+                                            <div class="font-bold text-white"><code class="code-inline">/diff</code> ― 変更内容を確認する</div>
+                                            <div class="text-gray-400 mt-2 text-sm">
+                                                Claudeがファイルを編集した後、「何がどう変わったか」を差分表示で確認できます。VSCodeなどのエディタでも差分は見られますが、ターミナルから離れずに確認したいときに使えます。
+                                            </div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/diff</div>
+                                                <div class="output">変更されたファイルの差分がインタラクティブに表示される</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 style="margin-top: 32px; margin-bottom: 12px;">その他（必要なときだけ）</h4>
+                            <div class="grid grid-cols-1 gap-3 mt-4">
                                 <div class="loop-step">
                                     <div class="flex items-start">
                                         <span class="loop-step-number" style="background: #374151;">―</span>
