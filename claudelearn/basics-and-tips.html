@@ -652,6 +652,138 @@ always respond in Japanese
                         </div>
                     </div>
 
+                    <!-- セクション: キーボードショートカット -->
+                    <div class="content-section">
+                        <h3>キーボードショートカット</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/interactive-mode" target="_blank">Interactive Mode</a> / <a href="https://code.claude.com/docs/ja/keybindings" target="_blank">Keybindings</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeのキーボードショートカットは、普段ターミナルで使っているシェルのショートカットとよく似ています。<br>
+                                <code class="code-inline">Ctrl+C</code> で中断、<code class="code-inline">Ctrl+L</code> で画面クリアなど、シェルの操作感がそのまま使えるので、ターミナルに慣れている人なら自然に使えます。
+                            </p>
+
+                            <div class="info-box" style="margin-bottom: 20px;">
+                                <h4>なぜシェルと同じなのか？</h4>
+                                <p class="text-gray-300">Claude Codeはターミナル上で動くアプリなので、<code class="code-inline">Ctrl+C</code>（中断）、<code class="code-inline">Ctrl+D</code>（終了）、<code class="code-inline">Ctrl+U</code>（行削除）、<code class="code-inline">Ctrl+K</code>（行末まで削除）などの標準的なシェル操作をそのまま採用しています。新しいキーバインドを覚え直す必要はありません。</p>
+                            </div>
+
+                            <h4 style="margin-bottom: 12px;">よく使うショートカット</h4>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">キー</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">動作</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">シェルと同じ？</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Ctrl + C</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">生成を中断する</td>
+                                            <td style="padding: 8px; color: #9ca3af;">同じ</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Ctrl + D</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">セッションを終了する</td>
+                                            <td style="padding: 8px; color: #9ca3af;">同じ（EOF）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Ctrl + L</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">画面をクリア（会話履歴は残る）</td>
+                                            <td style="padding: 8px; color: #9ca3af;">同じ</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Ctrl + U</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">入力中の行を全削除</td>
+                                            <td style="padding: 8px; color: #9ca3af;">同じ</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Ctrl + K</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">カーソルから行末まで削除</td>
+                                            <td style="padding: 8px; color: #9ca3af;">同じ</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Ctrl + R</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">過去の入力を検索</td>
+                                            <td style="padding: 8px; color: #9ca3af;">同じ</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">↑</span> / <span class="key-badge" style="font-size: 11px;">↓</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">過去の入力を呼び出す</td>
+                                            <td style="padding: 8px; color: #9ca3af;">同じ</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4 style="margin-top: 24px; margin-bottom: 12px;">Claude Code独自のショートカット</h4>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">キー</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">動作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Shift + Tab</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">モード切り替え（Agent ↔ Plan）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Esc Esc</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">会話を前の状態に巻き戻す</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Ctrl + O</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">詳細出力の切り替え（ツール実行の詳細を表示）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Ctrl + B</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">タスクをバックグラウンドで実行</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Ctrl + V</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">クリップボードから画像を貼り付け</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4 style="margin-top: 24px; margin-bottom: 12px;">複数行入力</h4>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">キー</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">補足</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">\</span> + <span class="key-badge" style="font-size: 11px;">Enter</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">すべてのターミナルで動作</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Option + Enter</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">macOSデフォルト</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; color: #e5e7eb;"><span class="key-badge" style="font-size: 11px;">Shift + Enter</span></td>
+                                            <td style="padding: 8px; color: #9ca3af;">iTerm2 / WezTerm / Ghostty / Kitty</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box" style="margin-top: 24px;">
+                                <h4>ショートカット一覧の出し方</h4>
+                                <p class="text-gray-300">入力欄で <code class="code-inline">?</code> を押すと、現在の環境で利用可能なすべてのショートカットが表示されます。</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- セクション5: Shift+Tab -->
                     <div class="content-section">
                         <h3>考えさせてから動かす ― Shift + Tab</h3>
