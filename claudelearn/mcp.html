@@ -197,37 +197,32 @@
                                 </p>
                             </div>
 
-                            <!-- ステップ2: settings.jsonで設定 -->
-                            <h4>方法2: settings.jsonで手動設定する</h4>
+                            <!-- ステップ2: CLIコマンドで設定 -->
+                            <h4>方法2: <span class="code-inline">claude mcp add</span> コマンドで追加する</h4>
 
                             <p class="text-gray-300 text-sm leading-relaxed mb-3">
-                                MCPサーバーの設定は<span class="code-inline">settings.json</span>に記述します。<br>
-                                設定ファイルの場所は3つのスコープがあります。
+                                MCPサーバーの追加は<span class="code-inline">claude mcp add</span> コマンドで行います。<br>
+                                設定はスコープに応じて以下の場所に保存されます。
                             </p>
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-6">
                                 <div class="component-card">
-                                    <div class="text-primary-400 font-bold mb-2">ユーザー（グローバル）</div>
-                                    <div class="code-inline text-xs">~/.claude/settings.json</div>
+                                    <div class="text-primary-400 font-bold mb-2">グローバル（個人）</div>
+                                    <div class="code-inline text-xs">~/.claude.json</div>
                                     <p class="text-gray-400 text-xs mt-2">全プロジェクトで使える</p>
                                 </div>
                                 <div class="component-card">
                                     <div class="text-primary-400 font-bold mb-2">プロジェクト（共有）</div>
-                                    <div class="code-inline text-xs">.claude/settings.json</div>
-                                    <p class="text-gray-400 text-xs mt-2">チームで共有される</p>
-                                </div>
-                                <div class="component-card">
-                                    <div class="text-primary-400 font-bold mb-2">プロジェクト（個人）</div>
-                                    <div class="code-inline text-xs">.claude/settings.local.json</div>
-                                    <p class="text-gray-400 text-xs mt-2">自分だけの設定</p>
+                                    <div class="code-inline text-xs">.mcp.json</div>
+                                    <p class="text-gray-400 text-xs mt-2">チームで共有される（プロジェクトルートに配置）</p>
                                 </div>
                             </div>
 
                             <div class="warning-box">
-                                <h4>どこに書くべき?</h4>
+                                <h4>どこに保存すべき?</h4>
                                 <p class="text-gray-300 text-sm leading-relaxed">
-                                    <strong class="text-white">迷ったら <span class="code-inline">~/.claude/settings.json</span>（ユーザースコープ）に書きましょう。</strong><br>
-                                    全プロジェクトで使えて、個人の環境に閉じるので安全です。
+                                    <strong class="text-white">個人で使うなら <span class="code-inline">~/.claude.json</span>（グローバル）、チームで共有するなら <span class="code-inline">.mcp.json</span>（プロジェクトルート）に保存しましょう。</strong><br>
+                                    CLIコマンドで追加する際に <span class="code-inline">--scope</span> オプションで指定できます。
                                 </p>
                             </div>
 
@@ -243,13 +238,27 @@
                                 <div class="flex items-start">
                                     <div class="step-number">1</div>
                                     <div>
-                                        <div class="text-white font-bold mb-2">settings.jsonを開く（または作成する）</div>
+                                        <div class="text-white font-bold mb-2">CLIコマンドでMCPサーバーを追加する</div>
+                                        <p class="text-gray-300 text-sm mb-3">
+                                            ターミナルで以下のコマンドを実行します。<br>
+                                            <span class="code-inline">/path/to/dir</span> は実際にアクセスを許可したいディレクトリに置き換えてください。
+                                        </p>
                                         <div class="command-box">
-                                            <div class="command">cat ~/.claude/settings.json</div>
+                                            <div class="command">claude mcp add filesystem -- npx -y @anthropic-ai/mcp-filesystem /path/to/dir</div>
                                             <div class="output">
-                                                ファイルが存在しない場合は、新規作成します。<br>
-                                                既にある場合は中身を確認しましょう。
+                                                これだけでMCPサーバーが追加されます。<br>
+                                                設定は <span class="code-inline">~/.claude.json</span> に自動で保存されます。
                                             </div>
+                                        </div>
+                                        <div class="info-box">
+                                            <p class="text-gray-300 text-sm leading-relaxed">
+                                                <strong class="text-white">コマンドの読み方:</strong><br>
+                                                <span class="code-inline">claude mcp add</span> ... MCPサーバーを追加するコマンド<br>
+                                                <span class="code-inline">filesystem</span> ... MCPサーバーの名前（自由につけられる）<br>
+                                                <span class="code-inline">--</span> ... この後ろがサーバー起動コマンド<br>
+                                                <span class="code-inline">npx -y @anthropic-ai/mcp-filesystem</span> ... 実行するパッケージ<br>
+                                                <span class="code-inline">/path/to/dir</span> ... アクセスを許可するディレクトリ
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -259,29 +268,20 @@
                                 <div class="flex items-start">
                                     <div class="step-number">2</div>
                                     <div>
-                                        <div class="text-white font-bold mb-2">MCPサーバーの設定を追加する</div>
+                                        <div class="text-white font-bold mb-2">（別の方法）.mcp.json ファイルで設定する</div>
                                         <p class="text-gray-300 text-sm mb-3">
-                                            以下の内容を <span class="code-inline">~/.claude/settings.json</span> に記述します。<br>
-                                            <span class="code-inline">/path/to/allowed/dir</span> は実際にアクセスを許可したいディレクトリに置き換えてください。
+                                            プロジェクトルートに <span class="code-inline">.mcp.json</span> ファイルを作成して設定することもできます。<br>
+                                            チームで共有したい場合はこの方法が便利です。
                                         </p>
-<div class="code-block"><span class="comment">// ~/.claude/settings.json</span>
+<div class="code-block"><span class="comment">// .mcp.json（プロジェクトルートに配置）</span>
 {
   <span class="highlight">"mcpServers"</span>: {
     <span class="variable">"filesystem"</span>: {
       <span class="keyword">"command"</span>: <span class="string">"npx"</span>,
-      <span class="keyword">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@anthropic-ai/mcp-filesystem"</span>, <span class="string">"/path/to/allowed/dir"</span>]
+      <span class="keyword">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@anthropic-ai/mcp-filesystem"</span>, <span class="string">"/path/to/dir"</span>]
     }
   }
 }</div>
-                                        <div class="info-box">
-                                            <p class="text-gray-300 text-sm leading-relaxed">
-                                                <strong class="text-white">設定の読み方:</strong><br>
-                                                <span class="code-inline">"filesystem"</span> ... MCPサーバーの名前（自由につけられる）<br>
-                                                <span class="code-inline">"command"</span> ... 起動コマンド（npxでnpmパッケージを実行）<br>
-                                                <span class="code-inline">"args"</span> ... コマンドの引数（パッケージ名とアクセス許可ディレクトリ）<br>
-                                                <span class="code-inline">"-y"</span> ... npxの確認プロンプトを自動でYes
-                                            </p>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -329,7 +329,7 @@
                                 <h4>ここまでのまとめ</h4>
                                 <p class="text-gray-300 text-sm leading-relaxed">
                                     MCPサーバーの接続は、たった2ステップです。<br>
-                                    <strong class="text-white">1.</strong> settings.jsonに設定を書く<br>
+                                    <strong class="text-white">1.</strong> <span class="code-inline">claude mcp add</span> コマンドで追加する（または <span class="code-inline">.mcp.json</span> に設定を書く）<br>
                                     <strong class="text-white">2.</strong> Claude Codeを再起動する<br><br>
                                     これだけで、Claude Codeに新しい能力が追加されます。
                                 </p>
@@ -441,10 +441,16 @@
                             <h4>ハンズオン: 複数のMCPサーバーを同時に設定する</h4>
 
                             <p class="text-gray-300 text-sm leading-relaxed mb-3">
-                                MCPサーバーは複数同時に使えます。以下は実践的な設定例です。
+                                MCPサーバーは複数同時に使えます。CLIコマンドで1つずつ追加するか、<span class="code-inline">.mcp.json</span> にまとめて記述します。
                             </p>
 
-<div class="code-block"><span class="comment">// ~/.claude/settings.json の例（複数サーバー）</span>
+                            <p class="text-gray-400 text-xs mb-2">CLIコマンドで1つずつ追加:</p>
+<div class="code-block">claude mcp add github -e GITHUB_TOKEN=ghp_xxxxxxxxxxxx -- npx -y @anthropic-ai/mcp-github
+claude mcp add filesystem -- npx -y @anthropic-ai/mcp-filesystem /Users/me/documents
+claude mcp add fetch -- npx -y @anthropic-ai/mcp-fetch</div>
+
+                            <p class="text-gray-400 text-xs mb-2 mt-4">.mcp.json にまとめて記述:</p>
+<div class="code-block"><span class="comment">// .mcp.json の例（複数サーバー）</span>
 {
   <span class="highlight">"mcpServers"</span>: {
     <span class="variable">"github"</span>: {
@@ -468,7 +474,7 @@
                             <div class="success-box">
                                 <h4>やってみよう</h4>
                                 <p class="text-gray-300 text-sm leading-relaxed">
-                                    上の設定を参考に、自分のsettings.jsonに好きなMCPサーバーを追加して、<span class="code-inline">/mcp</span> で確認してみましょう。<br>
+                                    上の設定を参考に、<span class="code-inline">claude mcp add</span> コマンドで好きなMCPサーバーを追加して、<span class="code-inline">/mcp</span> で確認してみましょう。<br>
                                     まずは設定不要の<strong class="text-white">Fetch MCP</strong>から試すのがおすすめです。
                                 </p>
                             </div>
@@ -532,7 +538,7 @@
                                 <div class="flex items-start">
                                     <div class="step-number">3</div>
                                     <div>
-                                        <div class="text-white font-bold mb-2">自動で settings.json に追加される</div>
+                                        <div class="text-white font-bold mb-2">自動で設定ファイルに追加される</div>
                                         <p class="text-gray-300 text-sm">
                                             手動でJSONを編集する必要がありません。初心者に最もおすすめの方法です。
                                         </p>
@@ -540,15 +546,19 @@
                                 </div>
                             </div>
 
-                            <!-- 方法2: settings.jsonを手動編集 -->
-                            <h4>方法2: settings.jsonを直接編集する</h4>
+                            <!-- 方法2: CLIコマンドまたは.mcp.jsonで設定 -->
+                            <h4>方法2: <span class="code-inline">claude mcp add</span> または <span class="code-inline">.mcp.json</span> で設定する</h4>
 
                             <p class="text-gray-300 text-sm leading-relaxed mb-3">
-                                前のセクションで紹介した方法です。JSONの書き方がわかっていれば最も柔軟な方法です。<br>
-                                環境変数（<span class="code-inline">env</span>）の設定が必要なサーバーは、この方法が確実です。
+                                前のセクションで紹介した方法です。CLIコマンドが最も手軽で、環境変数（<span class="code-inline">env</span>）の設定が必要なサーバーは <span class="code-inline">.mcp.json</span> での設定が確実です。
                             </p>
 
-<div class="code-block"><span class="comment">// 環境変数が必要な場合の設定例</span>
+                            <p class="text-gray-400 text-xs mb-2">CLIコマンドでの追加例:</p>
+<div class="code-block"><span class="comment"># 環境変数付きで追加する場合</span>
+claude mcp add slack -e SLACK_BOT_TOKEN=xoxb-xxxxxxxxxxxx -e SLACK_TEAM_ID=T0123456789 -- npx -y @anthropic-ai/mcp-slack</div>
+
+                            <p class="text-gray-400 text-xs mb-2 mt-4">.mcp.json での設定例:</p>
+<div class="code-block"><span class="comment">// .mcp.json（環境変数が必要な場合の設定例）</span>
 {
   <span class="highlight">"mcpServers"</span>: {
     <span class="variable">"slack"</span>: {
@@ -590,7 +600,7 @@
                                 <h4>ハンズオン: MCPサーバーを探してみよう</h4>
                                 <p class="text-gray-300 text-sm leading-relaxed">
                                     <a href="https://github.com/modelcontextprotocol/servers" target="_blank" class="text-primary-400 hover:underline">公式MCPサーバー一覧</a>にアクセスして、自分の開発で使えそうなサーバーがないか探してみましょう。<br>
-                                    気になるものがあれば、READMEの手順に従ってsettings.jsonに追加してみてください。
+                                    気になるものがあれば、READMEの手順に従って <span class="code-inline">claude mcp add</span> コマンドで追加してみてください。
                                 </p>
                             </div>
                         </div>
@@ -685,14 +695,14 @@
                                     <strong class="text-white">1.</strong> そのパッケージは公式/信頼できる開発者のものか?<br>
                                     <strong class="text-white">2.</strong> GitHubリポジトリにソースコードが公開されているか?<br>
                                     <strong class="text-white">3.</strong> 環境変数にトークンを設定する場合、そのトークンの権限は最小限か?<br>
-                                    <strong class="text-white">4.</strong> settings.jsonにトークンを直書きする場合、そのファイルはGitで管理されていないか?
+                                    <strong class="text-white">4.</strong> <span class="code-inline">.mcp.json</span>にトークンを直書きする場合、そのファイルは<span class="code-inline">.gitignore</span>に含まれているか?
                                 </p>
                             </div>
 
                             <div class="error-box">
                                 <h4>やってはいけないこと</h4>
                                 <p class="text-gray-300 text-sm leading-relaxed">
-                                    <strong class="text-white">settings.jsonをGitにコミットしない</strong> ... APIトークンが漏洩します<br>
+                                    <strong class="text-white">トークンを含む設定ファイルをGitにコミットしない</strong> ... APIトークンが漏洩します<br>
                                     <strong class="text-white">知らないMCPサーバーをそのまま入れない</strong> ... まずソースコードを確認<br>
                                     <strong class="text-white">全権限のトークンを使わない</strong> ... 必要最小限のスコープに絞る
                                 </p>

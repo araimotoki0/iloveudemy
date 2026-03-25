@@ -441,7 +441,7 @@ JSDocコメントを追加して。リクエスト/レスポンスの型、
 
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
                                 <code class="code-inline">/batch</code> 以外にも、Claude Codeの<strong class="text-white">サブエージェント</strong>は自動的にworktreeを活用します。<br>
-                                特に <code class="code-inline">context: fork</code> の設定を理解することが重要です。
+                                特に <code class="code-inline">isolation: worktree</code> の設定を理解することが重要です。
                             </p>
 
                             <h4>サブエージェントがworktreeを使う仕組み</h4>
@@ -461,22 +461,22 @@ JSDocコメントを追加して。リクエスト/レスポンスの型、
   <span class="comment">     メインエージェントが集約してマージ</span></div>
                             </div>
 
-                            <h4>context: fork の設定</h4>
+                            <h4>isolation: worktree の設定</h4>
                             <p class="text-gray-300 mb-4">
                                 カスタムスラッシュコマンド（<code class="code-inline">.claude/commands/</code>に配置するもの）で、サブエージェントにworktreeを使わせるかどうかを制御できます。
                             </p>
 
                             <div class="component-card mb-4">
-                                <p class="text-white font-bold mb-2">context: fork ― 独立したworktreeで実行</p>
+                                <p class="text-white font-bold mb-2">isolation: worktree ― 独立したworktreeで実行</p>
                                 <div class="code-block"><span class="comment"># .claude/commands/add-tests.md</span>
 <span class="keyword">---</span>
-<span class="variable">context</span>: <span class="highlight">fork</span>
+<span class="variable">isolation</span>: <span class="highlight">worktree</span>
 <span class="keyword">---</span>
 
 <span class="string">指定されたコンポーネントにユニットテストを追加してください。
 テストは同じディレクトリに .test.tsx として作成すること。</span></div>
                                 <p class="text-gray-400 text-sm mt-2">
-                                    <code class="code-inline">context: fork</code> を指定すると、このコマンドは<strong class="text-white">新しいworktreeで独立して実行</strong>されます。<br>
+                                    <code class="code-inline">isolation: worktree</code> を指定すると、このコマンドは<strong class="text-white">新しいworktreeで独立して実行</strong>されます。<br>
                                     メインの作業ディレクトリには影響を与えず、完了後に結果がマージされます。
                                 </p>
                             </div>
@@ -507,7 +507,7 @@ JSDocコメントを追加して。リクエスト/レスポンスの型、
                                     </div>
                                     <p class="text-gray-400 text-sm mb-2">以下の内容で <code class="code-inline">.claude/commands/parallel-refactor.md</code> を作成します:</p>
                                     <div class="code-block"><span class="keyword">---</span>
-<span class="variable">context</span>: <span class="highlight">fork</span>
+<span class="variable">isolation</span>: <span class="highlight">worktree</span>
 <span class="keyword">---</span>
 
 <span class="string">$ARGUMENTSで指定されたファイルをリファクタリングしてください。
@@ -524,7 +524,7 @@ JSDocコメントを追加して。リクエスト/レスポンスの型、
                                     <p class="text-gray-400 text-sm mb-2">Claude Codeのプロンプトで:</p>
                                     <div class="code-block"><span class="highlight">/parallel-refactor</span> <span class="variable">src/utils/helpers.ts</span></div>
                                     <p class="text-gray-400 text-sm mt-2">
-                                        <code class="code-inline">context: fork</code> により、別のworktreeでリファクタリングが実行されます。<br>
+                                        <code class="code-inline">isolation: worktree</code> により、別のworktreeでリファクタリングが実行されます。<br>
                                         メインの作業を止めることなく、バックグラウンドで処理が進みます。
                                     </p>
                                 </div>
@@ -584,30 +584,21 @@ JSDocコメントを追加して。リクエスト/レスポンスの型、
                                 ここでは、手動管理のためのコマンドを紹介します。
                             </p>
 
-                            <h4>/enterWorktree と /exitWorktree</h4>
+                            <h4>/worktree コマンド</h4>
                             <p class="text-gray-300 mb-4">
-                                Claude Codeのセッション中に、手動でworktreeに入ったり出たりできます。
+                                Claude Codeのセッション中に、<code class="code-inline">/worktree</code> コマンドでworktreeを管理できます。
                             </p>
 
                             <div class="component-card mb-4">
-                                <p class="text-white font-bold mb-2">/enterWorktree ― worktreeに入る</p>
+                                <p class="text-white font-bold mb-2">/worktree ― worktreeで作業を開始する</p>
                                 <div class="code-block"><span class="comment"># Claude Codeのプロンプトで:</span>
-<span class="highlight">/enterWorktree</span>
+<span class="highlight">/worktree</span>
 
-<span class="comment"># 新しいworktreeが作成され、そこに移動します</span>
+<span class="comment"># 新しいworktreeが作成され、そこで作業を開始します</span>
 <span class="comment"># この状態で行った変更は、元のディレクトリには影響しません</span></div>
                                 <p class="text-gray-400 text-sm mt-2">
                                     実験的な変更を試したいときに便利です。失敗しても元のコードには影響しません。
                                 </p>
-                            </div>
-
-                            <div class="component-card mb-4">
-                                <p class="text-white font-bold mb-2">/exitWorktree ― worktreeから出る</p>
-                                <div class="code-block"><span class="comment"># worktree内で作業した後:</span>
-<span class="highlight">/exitWorktree</span>
-
-<span class="comment"># 元のディレクトリに戻ります</span>
-<span class="comment"># worktreeでの変更をマージするかどうか選択できます</span></div>
                             </div>
 
                             <h4>ハンズオン: worktreeで安全に実験する</h4>
@@ -617,7 +608,7 @@ JSDocコメントを追加して。リクエスト/レスポンスの型、
                                 <div class="flex-1">
                                     <p class="text-white font-bold mb-1">worktreeに入る</p>
                                     <p class="text-gray-400 text-sm mb-2">Claude Codeのプロンプトで:</p>
-                                    <div class="code-block"><span class="highlight">/enterWorktree</span></div>
+                                    <div class="code-block"><span class="highlight">/worktree</span></div>
                                 </div>
                             </div>
 
@@ -636,12 +627,9 @@ React RouterからTanStack Routerに全面移行して。</span></div>
                                 <div class="flex-1">
                                     <p class="text-white font-bold mb-1">結果を確認して判断</p>
                                     <p class="text-gray-400 text-sm mb-2">うまくいったら:</p>
-                                    <div class="code-block"><span class="highlight">/exitWorktree</span>
-<span class="comment"># → 「変更をマージしますか？」 → Yes</span></div>
+                                    <div class="code-block"><span class="comment"># worktreeでの変更がコミットされ、メインブランチにマージされます</span></div>
                                     <p class="text-gray-400 text-sm mb-2 mt-2">うまくいかなかったら:</p>
-                                    <div class="code-block"><span class="highlight">/exitWorktree</span>
-<span class="comment"># → 「変更をマージしますか？」 → No</span>
-<span class="comment"># → worktreeが削除され、何事もなかったように元に戻る</span></div>
+                                    <div class="code-block"><span class="comment"># worktreeが削除され、何事もなかったように元に戻る</span></div>
                                 </div>
                             </div>
 
@@ -715,18 +703,13 @@ React RouterからTanStack Routerに全面移行して。</span></div>
                                         </tr>
                                         <tr class="border-b border-slate-700/50">
                                             <td class="py-2 px-3">自動</td>
-                                            <td class="py-2 px-3"><code class="code-inline">context: fork</code></td>
+                                            <td class="py-2 px-3"><code class="code-inline">isolation: worktree</code></td>
                                             <td class="py-2 px-3">サブエージェントの独立実行</td>
                                         </tr>
                                         <tr class="border-b border-slate-700/50">
                                             <td class="py-2 px-3">手動</td>
-                                            <td class="py-2 px-3"><code class="code-inline">/enterWorktree</code></td>
+                                            <td class="py-2 px-3"><code class="code-inline">/worktree</code></td>
                                             <td class="py-2 px-3">セッション中に安全な実験環境を作る</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-700/50">
-                                            <td class="py-2 px-3">手動</td>
-                                            <td class="py-2 px-3"><code class="code-inline">/exitWorktree</code></td>
-                                            <td class="py-2 px-3">worktreeから出る（マージ選択あり）</td>
                                         </tr>
                                         <tr>
                                             <td class="py-2 px-3">CLI起動時</td>
