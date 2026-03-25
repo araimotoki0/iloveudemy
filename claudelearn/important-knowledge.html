@@ -72,7 +72,78 @@
             <div class="max-w-5xl mx-auto">
                 <div class="p-8 border border-slate-700/50 rounded-2xl">
 
-                    <!-- セクション1: Claude Codeの仕組みを調べる方法 -->
+                    <!-- セクション: ハーネスとは何か -->
+                    <div class="content-section">
+                        <h3>AIモデルとハーネス ― Claude Codeが「エージェント」になれる理由</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeを理解するうえで最も重要な概念が<strong class="text-white">ハーネス</strong>です。
+                            </p>
+
+                            <h4>AIモデル単体は「テキストを受け取って返す」だけ</h4>
+                            <p class="text-gray-300 mb-3">
+                                Claude（AIモデル）がやっていることは、突き詰めると<strong class="text-white">テキストを入力として受け取り、テキストを出力として返す</strong>だけです。<br>
+                                ファイルを読むことも、コマンドを実行することも、デプロイすることも、AIモデル単体ではできません。
+                            </p>
+
+                            <h4>ハーネスがAIをエージェントにする</h4>
+                            <p class="text-gray-300 mb-3">
+                                <strong class="text-white">ハーネス</strong>とは、AIモデルを包み込んで動かすプログラムのことです。Claude Codeの場合、このハーネスが以下を担当しています：
+                            </p>
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">CLAUDE.mdの読み込みとリクエストへの注入</div>
+                                        <div class="text-gray-400 text-sm">セッション開始時にCLAUDE.mdを読み、メッセージ配列の先頭に差し込む</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">ツールの実行</div>
+                                        <div class="text-gray-400 text-sm">AIが「このファイルを読みたい」「このコマンドを実行したい」と返答したら、ハーネスが実際にファイルを読み、コマンドを実行し、結果をAIに返す</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">会話ループの管理</div>
+                                        <div class="text-gray-400 text-sm">AIの出力を解析し、ツール呼び出しがあればそれを実行、結果を付けて再度AIにリクエスト ― これを繰り返す（エージェントループ）</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">権限管理・サンドボックス</div>
+                                        <div class="text-gray-400 text-sm">危険な操作をブロックしたり、ユーザーに許可を求めたりする</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">コンテキストウィンドウの管理</div>
+                                        <div class="text-gray-400 text-sm">会話が長くなったら自動で圧縮（/compact）し、コンテキストの枯渇を防ぐ</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="command-box" style="background: #1a1a2e; border-left: 3px solid #6366f1;">
+                                <div class="text-gray-400 text-sm" style="white-space: pre-line;">
+<strong class="text-blue-400">【ユーザー】</strong>
+「ログイン画面を作って」
+
+      ↓  ハーネスがCLAUDE.mdを注入してAPIリクエスト送信
+
+<strong class="text-purple-400">【AIモデル（Claude）】</strong>
+「ファイルを作成します」→ ツール呼び出し: Write("login.tsx", ...)
+
+      ↓  ハーネスがツールを実行し、結果をAIに返す
+
+<strong class="text-purple-400">【AIモデル（Claude）】</strong>
+「テストも書きます」→ ツール呼び出し: Write("login.test.tsx", ...)
+
+      ↓  ハーネスがツールを実行...（繰り返し）
+
+<strong class="text-green-400">【完了】</strong>
+ファイルが作成される</div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>つまり</h4>
+                                <p class="text-gray-300">AIモデルは「テキストを返す」だけ。それを受け取って実際にファイルを操作し、コマンドを実行し、結果を返してまたAIに聞く ― この<strong class="text-white">ループを回すのがハーネス</strong>です。このハーネスがあるからこそ、Claude Codeはエージェントのように振る舞えます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: Claude Codeの仕組みを調べる方法 -->
                     <div class="content-section">
                         <h3>Claude Codeの仕組みを調べる方法</h3>
                         <div class="collapsible-content">
@@ -84,9 +155,33 @@
                             <!-- アプローチ1: ソースコードを読む -->
                             <h4>アプローチ1：ソースコードを読む</h4>
                             <p class="text-gray-300 mb-3">
-                                Claude CodeはNode.jsで書かれたCLIツールです。通常のインストール（<code class="code-inline">claude</code> コマンド）ではネイティブバイナリが配布されますが、
-                                <strong class="text-white">npmでインストールするとミニファイされたJavaScriptのソースコードにアクセスできます</strong>。
+                                Claude CodeはJavaScript（Node.js）で書かれたCLIツールです。インストール方法によって、ソースコードの読みやすさが変わります。
                             </p>
+
+                            <div class="visual-diagram mb-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-2">通常インストール（<code class="code-inline">claude</code>コマンド）</div>
+                                        <div class="text-gray-400 text-sm">
+                                            <strong class="text-white">ネイティブバイナリ</strong>が配布される。<br>
+                                            JavaScriptのソースコードがバイナリの中に埋め込まれているため、<code class="code-inline">strings</code> コマンドで文字列を抽出すれば読めるが、<strong class="text-yellow-400">周辺のコードを探すのが大変</strong>。
+                                        </div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-2">npm インストール</div>
+                                        <div class="text-gray-400 text-sm">
+                                            <strong class="text-white">ミニファイされたJSファイル</strong>がそのまま配置される。<br>
+                                            変数名は短縮されているが、テキストファイルなので <code class="code-inline">grep</code> で<strong class="text-green-400">簡単に検索・調査できる</strong>。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>なぜネイティブバイナリだと読みにくい？</h4>
+                                <p class="text-gray-300">ネイティブバイナリは、JavaScriptのコードをCPUが直接実行できる機械語に変換（コンパイル）したものです。人間が読めるソースコードの構造は失われています。ただし、文字列リテラル（エラーメッセージやキーワードなど）はバイナリの中にそのまま残っているため、<code class="code-inline">strings</code> コマンドで抽出できます。</p>
+                            </div>
+
                             <div class="warning-box">
                                 <h4>npm install は調査専用</h4>
                                 <p class="text-gray-300">npm経由のインストールは通常の利用方法としては非推奨です。あくまで内部実装を調査する目的で使います。</p>
@@ -94,7 +189,7 @@
                             <div class="command-box">
                                 <div class="command">npm install -g @anthropic-ai/claude-code</div>
                             </div>
-                            <p class="text-gray-300 mb-3">インストール後、ミニファイされたJSファイルの中を <code class="code-inline">grep</code> や <code class="code-inline">strings</code> で検索できます。</p>
+                            <p class="text-gray-300 mb-3">インストール後、ミニファイされたJSファイルの中を <code class="code-inline">grep</code> で検索できます。ネイティブバイナリの場合は <code class="code-inline">strings</code> コマンドで文字列を抽出してから検索します。</p>
 
                             <h4>具体例：CLAUDE.mdの注入メカニズムを発見する</h4>
                             <p class="text-gray-300 mb-3">
@@ -418,6 +513,8 @@ npmコマンドは @package.json を参照
                             </div>
                         </div>
                     </div>
+
+                    <!-- スキル・ルール等は skills-and-agents.html に分離 -->
 
                 </div>
             </div>

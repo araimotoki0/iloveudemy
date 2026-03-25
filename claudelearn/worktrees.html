@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worktrees（並列処理） - Claude Code</title>
+    <meta name="description" content="Claude CodeのWorktreesとbatchコマンドで複数エージェントを並列実行する方法。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#e8734a',500:'#e36437',600:'#c2410c',700:'#9a3412',800:'#7c2d12',900:'#431407' },
+                    },
+                    fontFamily: { sans:['Noto Sans JP','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                    animation: { 'pulse-slow':'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%); background-attachment: fixed; }
+        .content-section { margin-bottom: 32px; }
+        .content-section h3 { color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease; background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52; }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .visual-diagram { background: rgba(26, 26, 46, 0.7); border: 1px solid #3a3a52; border-radius: 12px; padding: 28px; margin: 24px 0; }
+        .command-box { background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline { background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+        .info-box, .warning-box, .success-box, .error-box { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+        .info-box { border-left-color: #60a5fa; }
+        .warning-box { border-left-color: #fbbf24; }
+        .success-box { border-left-color: #34d399; }
+        .error-box { border-left-color: #f87171; }
+        .loop-step { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 18px; }
+        .component-card { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px; }
+        .code-block { background: rgba(0, 0, 0, 0.35); border: 1px solid #3a3a52; border-radius: 8px; padding: 18px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto; white-space: pre; }
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+        .code-block .highlight { color: #e8734a; font-weight: 600; }
+        header h1 span { background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; -webkit-text-fill-color: unset !important; color: #e8734a !important; }
+        .ref-box { color: #a0a0b8; font-size: 13px; margin-bottom: 16px; }
+        .ref-box a { color: #e8734a; text-decoration: none; border-bottom: 1px solid rgba(232, 115, 74, 0.3); transition: all 0.2s; }
+        .ref-box a:hover { border-bottom-color: #e8734a; }
+        .step-number { background: #e8734a; color: white; font-weight: 700; min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 14px; flex-shrink: 0; font-size: 14px; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- セクション1: Worktreesとは何か -->
+                    <div class="content-section">
+                        <h3>Worktreesとは何か</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank">Common Workflows</a> / <a href="https://git-scm.com/docs/git-worktree" target="_blank">git worktree ドキュメント</a></div>
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Worktree（ワークツリー）は、<strong class="text-white">1つのGitリポジトリに複数の作業ディレクトリを作る</strong>Gitの機能です。<br>
+                                Claude Codeはこの仕組みを活用して、<strong class="text-white">複数のAIエージェントを同時に走らせる並列処理</strong>を実現しています。
+                            </p>
+
+                            <h4>身近な例えで理解する</h4>
+                            <div class="visual-diagram">
+                                <p class="text-gray-300 mb-4">
+                                    想像してください。あなたは1つのプロジェクトの書類を持っています。
+                                </p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div class="component-card">
+                                        <p class="text-white font-bold mb-2">通常のGit（デスクが1つ）</p>
+                                        <p class="text-gray-400 text-sm">
+                                            1つのデスクで1人が作業。<br>
+                                            別の作業をするには、今の書類を片付けて（<code class="code-inline">git stash</code>）、<br>
+                                            別の書類を出す（<code class="code-inline">git checkout</code>）必要がある。
+                                        </p>
+                                    </div>
+                                    <div class="component-card" style="border-color: rgba(232, 115, 74, 0.3);">
+                                        <p class="text-white font-bold mb-2">Worktree（デスクが複数）</p>
+                                        <p class="text-gray-400 text-sm">
+                                            同じ書類をコピーして<strong class="text-white">複数のデスク</strong>に配布。<br>
+                                            それぞれのデスクで<strong class="text-white">別の人が同時に</strong>作業できる。<br>
+                                            終わったら成果を1つにまとめる（マージ）。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>Worktreeの仕組みを図で見る</h4>
+                            <div class="visual-diagram">
+<div class="code-block"><span class="comment">  メインのリポジトリ（.git フォルダは1つだけ）</span>
+  <span class="highlight">my-project/</span>          <span class="comment">← 元の作業ディレクトリ（mainブランチ）</span>
+      ├── src/
+      ├── package.json
+      └── .git/              <span class="comment">← Gitの本体。ここは共有される</span>
+
+  <span class="highlight">my-project-worktree-1/</span>  <span class="comment">← worktree 1（feature-aブランチ）</span>
+      ├── src/
+      └── package.json       <span class="comment">← ファイルは独立したコピー</span>
+
+  <span class="highlight">my-project-worktree-2/</span>  <span class="comment">← worktree 2（feature-bブランチ）</span>
+      ├── src/
+      └── package.json       <span class="comment">← こちらも独立したコピー</span></div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>ポイント</h4>
+                                <ul class="text-gray-300 space-y-2">
+                                    <li>Gitの履歴データ（<code class="code-inline">.git</code>）は<strong class="text-white">共有</strong>されるので、ディスク容量の無駄がない</li>
+                                    <li>各worktreeは<strong class="text-white">それぞれ別のブランチ</strong>をチェックアウトしている</li>
+                                    <li>ファイルの実体は独立しているので、<strong class="text-white">同時に編集しても競合しない</strong></li>
+                                </ul>
+                            </div>
+
+                            <h4>ハンズオン: git worktreeを体験する</h4>
+                            <p class="text-gray-300 mb-4">まずはGit単体でworktreeの動きを確認しましょう。</p>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">1</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">既存リポジトリでworktreeを作成</p>
+                                    <div class="command-box">
+                                        <div class="command">git worktree add ../my-feature feature-branch</div>
+                                        <div class="output">
+                                            Preparing worktree (new branch 'feature-branch')<br>
+                                            HEAD is now at abc1234 Latest commit message
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">2</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">worktreeの一覧を確認</p>
+                                    <div class="command-box">
+                                        <div class="command">git worktree list</div>
+                                        <div class="output">
+                                            /home/user/my-project          abc1234 [main]<br>
+                                            /home/user/my-feature          abc1234 [feature-branch]
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">3</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">不要になったworktreeを削除</p>
+                                    <div class="command-box">
+                                        <div class="command">git worktree remove ../my-feature</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>Claude Codeでの活用</h4>
+                                <p class="text-gray-300">
+                                    Claude Codeでは、上記のworktree操作を<strong class="text-white">自動で</strong>行います。<br>
+                                    ユーザーが意識しなくても、並列タスクを依頼すると裏でworktreeが作られ、各エージェントが独立した作業場所で動き、完了後に自動的にマージされます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2: なぜWorktreesが必要なのか -->
+                    <div class="content-section">
+                        <h3>なぜWorktreesが必要なのか</h3>
+                        <div class="collapsible-content">
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                「AIが賢いなら、1つのディレクトリで全部やればいいのでは？」と思うかもしれません。<br>
+                                しかし、<strong class="text-white">複数のAIが同時にファイルを触ると、必ず問題が起きます。</strong>
+                            </p>
+
+                            <h4>問題: ファイル競合</h4>
+                            <div class="visual-diagram">
+<div class="code-block"><span class="comment">  同じディレクトリで2つのAIが同時に作業したら...</span>
+
+  <span class="highlight">AI-A:</span> src/App.tsx の10行目を編集中...
+  <span class="highlight">AI-B:</span> src/App.tsx の15行目を編集中...
+
+  <span class="comment">  → AI-Aの変更をAI-Bが上書き！</span>
+  <span class="comment">  → テストが通らない、ビルドが壊れる...</span>
+
+<span class="comment">  ────────────────────────────────</span>
+
+  <span class="comment">  Worktreeなら...</span>
+
+  <span class="highlight">AI-A:</span> worktree-a/src/App.tsx を編集 <span class="comment">← 完全に独立</span>
+  <span class="highlight">AI-B:</span> worktree-b/src/App.tsx を編集 <span class="comment">← 完全に独立</span>
+
+  <span class="comment">  → 作業後にGitが賢くマージ</span>
+  <span class="comment">  → 競合がなければ自動解決！</span></div>
+                            </div>
+
+                            <h4>Worktreeが解決する3つの課題</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                <div class="component-card">
+                                    <p class="text-white font-bold mb-2">1. ファイル競合の回避</p>
+                                    <p class="text-gray-400 text-sm">
+                                        各AIが独立したディレクトリで作業するため、同じファイルを同時に編集しても衝突しない。
+                                    </p>
+                                </div>
+                                <div class="component-card">
+                                    <p class="text-white font-bold mb-2">2. 劇的な速度向上</p>
+                                    <p class="text-gray-400 text-sm">
+                                        10個のタスクを順番に実行すると10倍の時間がかかる。並列なら<strong class="text-white">ほぼ同時に完了</strong>。
+                                    </p>
+                                </div>
+                                <div class="component-card">
+                                    <p class="text-white font-bold mb-2">3. 安全なロールバック</p>
+                                    <p class="text-gray-400 text-sm">
+                                        各worktreeは独立したブランチ。1つのタスクが失敗しても、他のタスクに影響しない。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <h4>実際の速度比較</h4>
+                            <div class="visual-diagram">
+<div class="code-block"><span class="comment">  「5つのコンポーネントにテストを追加して」</span>
+
+  <span class="highlight">直列実行（worktreeなし）:</span>
+  Component-A ████████░░  2分
+  Component-B ░░░░░░░░░░  （待機中...）
+  Component-C ░░░░░░░░░░  （待機中...）
+  Component-D ░░░░░░░░░░  （待機中...）
+  Component-E ░░░░░░░░░░  （待機中...）
+  <span class="comment">→ 合計: 約10分</span>
+
+  <span class="highlight">並列実行（worktreeあり）:</span>
+  Component-A ████████░░  2分
+  Component-B ████████░░  2分  <span class="comment">← 同時進行！</span>
+  Component-C ████████░░  2分  <span class="comment">← 同時進行！</span>
+  Component-D ████████░░  2分  <span class="comment">← 同時進行！</span>
+  Component-E ████████░░  2分  <span class="comment">← 同時進行！</span>
+  <span class="comment">→ 合計: 約2分（5倍速い！）</span></div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>注意: 並列処理が向かないケース</h4>
+                                <ul class="text-gray-300 space-y-2">
+                                    <li><strong class="text-white">タスク間に依存関係がある場合</strong> ― 「タスクAの結果を使ってタスクBを実行」のような場合は直列の方が安全</li>
+                                    <li><strong class="text-white">同じファイルを必ず編集する場合</strong> ― マージ時に競合が発生しやすい</li>
+                                    <li><strong class="text-white">APIレート制限</strong> ― 多数のエージェントを同時に動かすと、APIの制限に達する可能性がある</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション3: ハンズオン ― /batch で並列実行してみよう -->
+                    <div class="content-section">
+                        <h3>ハンズオン ― /batch で並列実行してみよう</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/common-workflows" target="_blank">Common Workflows - Batch Processing</a></div>
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                <code class="code-inline">/batch</code> コマンドは、Claude Codeの中で<strong class="text-white">最も簡単に並列処理を体験できる機能</strong>です。<br>
+                                複数のタスクを一気に渡すと、それぞれがworktree上で独立して実行されます。
+                            </p>
+
+                            <h4>基本的な使い方</h4>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">1</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">Claude Codeを起動</p>
+                                    <div class="command-box">
+                                        <div class="command">claude</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">2</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">/batch コマンドで複数タスクを投入</p>
+                                    <p class="text-gray-400 text-sm mb-2">Claude Codeのプロンプトで以下のように入力します。</p>
+                                    <div class="code-block"><span class="highlight">/batch</span>
+
+<span class="comment"># 以下のようにタスクを記述します:</span>
+<span class="variable">src/配下のすべてのコンポーネントにユニットテストを追加して。
+各コンポーネントに対して、基本的なレンダリングテストと
+propsのテストを含めてください。</span></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">3</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">Claude Codeがタスクを分割して並列実行</p>
+                                    <div class="visual-diagram">
+<div class="code-block"><span class="comment">  Claude Code が自動的にタスクを分解:</span>
+
+  <span class="highlight">Worktree 1:</span> src/components/Header.tsx のテスト作成
+  <span class="highlight">Worktree 2:</span> src/components/Footer.tsx のテスト作成
+  <span class="highlight">Worktree 3:</span> src/components/Sidebar.tsx のテスト作成
+  <span class="highlight">Worktree 4:</span> src/components/Button.tsx のテスト作成
+  <span class="highlight">Worktree 5:</span> src/components/Modal.tsx のテスト作成
+
+  <span class="comment">  ↓ すべて同時に実行中...</span>
+  <span class="comment">  ↓ 完了したworktreeから順にマージ</span>
+
+  <span class="string">✓ 5つのテストファイルが作成されました</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>実践例: よくあるbatchの使い方</h4>
+
+                            <div class="component-card mb-4">
+                                <p class="text-white font-bold mb-2">例1: 複数ファイルのリファクタリング</p>
+                                <div class="code-block"><span class="highlight">/batch</span>
+<span class="variable">以下のファイルをTypeScriptに変換して:
+- src/utils/helpers.js
+- src/utils/validators.js
+- src/utils/formatters.js
+それぞれ適切な型定義を追加すること。</span></div>
+                            </div>
+
+                            <div class="component-card mb-4">
+                                <p class="text-white font-bold mb-2">例2: ドキュメントの一括生成</p>
+                                <div class="code-block"><span class="highlight">/batch</span>
+<span class="variable">src/api/配下のすべてのエンドポイントに対して、
+JSDocコメントを追加して。リクエスト/レスポンスの型、
+エラーケース、使用例を含めること。</span></div>
+                            </div>
+
+                            <div class="component-card mb-4">
+                                <p class="text-white font-bold mb-2">例3: バグ修正の一括対応</p>
+                                <div class="code-block"><span class="highlight">/batch</span>
+<span class="variable">以下のGitHub Issueをそれぞれ修正して:
+- #123: ログインボタンが二重クリックできる問題
+- #124: メール検証の正規表現が不正
+- #125: ページネーションの境界値バグ</span></div>
+                            </div>
+
+                            <h4>最大30エージェントの並列処理</h4>
+                            <div class="info-box">
+                                <h4>batchの上限</h4>
+                                <ul class="text-gray-300 space-y-2">
+                                    <li><code class="code-inline">/batch</code> は最大<strong class="text-white">30個のサブエージェント</strong>を同時に起動できます</li>
+                                    <li>タスクが30個を超える場合は、自動的にキューイングされます</li>
+                                    <li>各エージェントはそれぞれ独立したworktreeで動作するため、互いに干渉しません</li>
+                                </ul>
+                            </div>
+
+                            <h4>ハンズオン: 実際にbatchを試す</h4>
+                            <p class="text-gray-300 mb-4">簡単なプロジェクトで試してみましょう。</p>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">1</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">テスト用プロジェクトを作成</p>
+                                    <div class="command-box">
+                                        <div class="command">mkdir batch-test && cd batch-test && git init</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">2</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">シンプルなファイルを3つ作成</p>
+                                    <div class="command-box">
+                                        <div class="command">echo "function add(a, b) { return a + b; }" > math.js</div>
+                                    </div>
+                                    <div class="command-box">
+                                        <div class="command">echo "function greet(name) { return 'Hello ' + name; }" > greet.js</div>
+                                    </div>
+                                    <div class="command-box">
+                                        <div class="command">echo "function isEven(n) { return n % 2 === 0; }" > check.js</div>
+                                    </div>
+                                    <div class="command-box">
+                                        <div class="command">git add -A && git commit -m "initial commit"</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">3</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">Claude Codeで/batchを実行</p>
+                                    <div class="code-block"><span class="highlight">/batch</span>
+<span class="variable">以下の3つのJSファイルそれぞれにJestテストを作成して:
+- math.js
+- greet.js
+- check.js
+各テストファイルは *.test.js という命名にすること。</span></div>
+                                    <p class="text-gray-400 text-sm mt-2">3つのworktreeが作成され、各エージェントが独立してテストを書きます。</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">4</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">結果を確認</p>
+                                    <div class="command-box">
+                                        <div class="command">ls *.test.js</div>
+                                        <div class="output">
+                                            math.test.js  greet.test.js  check.test.js
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mt-2">3つのテストファイルが並列で作成されていることを確認できます。</p>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>batchのコツ</h4>
+                                <ul class="text-gray-300 space-y-2">
+                                    <li><strong class="text-white">タスクは具体的に</strong> ― 曖昧な指示だとClaude Codeがうまく分割できないことがある</li>
+                                    <li><strong class="text-white">独立したタスクを渡す</strong> ― タスク間に依存関係がないことが並列処理の前提</li>
+                                    <li><strong class="text-white">完了後にテストを実行</strong> ― マージ後にテストを走らせて、全体の整合性を確認しましょう</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション4: サブエージェントとWorktree -->
+                    <div class="content-section">
+                        <h3>サブエージェントとWorktree</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/sub-agents" target="_blank">Sub-agents</a></div>
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                <code class="code-inline">/batch</code> 以外にも、Claude Codeの<strong class="text-white">サブエージェント</strong>は自動的にworktreeを活用します。<br>
+                                特に <code class="code-inline">context: fork</code> の設定を理解することが重要です。
+                            </p>
+
+                            <h4>サブエージェントがworktreeを使う仕組み</h4>
+                            <div class="visual-diagram">
+<div class="code-block"><span class="comment">  メインエージェント（あなたとの会話）</span>
+       │
+       ├── <span class="highlight">サブエージェント A</span>  <span class="comment">← 別のworktreeで動作</span>
+       │     └── worktree-a/ で独立して作業
+       │
+       ├── <span class="highlight">サブエージェント B</span>  <span class="comment">← 別のworktreeで動作</span>
+       │     └── worktree-b/ で独立して作業
+       │
+       └── <span class="highlight">サブエージェント C</span>  <span class="comment">← 別のworktreeで動作</span>
+             └── worktree-c/ で独立して作業
+
+  <span class="comment">  → 各サブエージェントの成果を</span>
+  <span class="comment">     メインエージェントが集約してマージ</span></div>
+                            </div>
+
+                            <h4>context: fork の設定</h4>
+                            <p class="text-gray-300 mb-4">
+                                カスタムスラッシュコマンド（<code class="code-inline">.claude/commands/</code>に配置するもの）で、サブエージェントにworktreeを使わせるかどうかを制御できます。
+                            </p>
+
+                            <div class="component-card mb-4">
+                                <p class="text-white font-bold mb-2">context: fork ― 独立したworktreeで実行</p>
+                                <div class="code-block"><span class="comment"># .claude/commands/add-tests.md</span>
+<span class="keyword">---</span>
+<span class="variable">context</span>: <span class="highlight">fork</span>
+<span class="keyword">---</span>
+
+<span class="string">指定されたコンポーネントにユニットテストを追加してください。
+テストは同じディレクトリに .test.tsx として作成すること。</span></div>
+                                <p class="text-gray-400 text-sm mt-2">
+                                    <code class="code-inline">context: fork</code> を指定すると、このコマンドは<strong class="text-white">新しいworktreeで独立して実行</strong>されます。<br>
+                                    メインの作業ディレクトリには影響を与えず、完了後に結果がマージされます。
+                                </p>
+                            </div>
+
+                            <div class="component-card mb-4">
+                                <p class="text-white font-bold mb-2">context: inherit ― 同じディレクトリで実行（デフォルト）</p>
+                                <div class="code-block"><span class="comment"># .claude/commands/review.md</span>
+<span class="keyword">---</span>
+<span class="variable">context</span>: <span class="highlight">inherit</span>
+<span class="keyword">---</span>
+
+<span class="string">現在のコードをレビューして、改善点を指摘してください。
+ファイルの変更は行わないこと。</span></div>
+                                <p class="text-gray-400 text-sm mt-2">
+                                    <code class="code-inline">context: inherit</code>（デフォルト）は、メインエージェントと<strong class="text-white">同じディレクトリ</strong>で実行されます。<br>
+                                    レビューや分析など、ファイルを変更しないタスクに適しています。
+                                </p>
+                            </div>
+
+                            <h4>ハンズオン: fork付きコマンドを作ってみよう</h4>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">1</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">コマンドファイルを作成</p>
+                                    <div class="command-box">
+                                        <div class="command">mkdir -p .claude/commands</div>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mb-2">以下の内容で <code class="code-inline">.claude/commands/parallel-refactor.md</code> を作成します:</p>
+                                    <div class="code-block"><span class="keyword">---</span>
+<span class="variable">context</span>: <span class="highlight">fork</span>
+<span class="keyword">---</span>
+
+<span class="string">$ARGUMENTSで指定されたファイルをリファクタリングしてください。
+- 関数を小さく分割する
+- 適切な型定義を追加する
+- コメントを追加する</span></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">2</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">コマンドを実行</p>
+                                    <p class="text-gray-400 text-sm mb-2">Claude Codeのプロンプトで:</p>
+                                    <div class="code-block"><span class="highlight">/parallel-refactor</span> <span class="variable">src/utils/helpers.ts</span></div>
+                                    <p class="text-gray-400 text-sm mt-2">
+                                        <code class="code-inline">context: fork</code> により、別のworktreeでリファクタリングが実行されます。<br>
+                                        メインの作業を止めることなく、バックグラウンドで処理が進みます。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <h4>Worktreeの自動クリーンアップ</h4>
+                            <div class="info-box">
+                                <h4>知っておきたいこと</h4>
+                                <ul class="text-gray-300 space-y-2">
+                                    <li>サブエージェントが作成したworktreeは、<strong class="text-white">タスク完了後に自動的に削除</strong>されます</li>
+                                    <li>変更内容はマージされてからworktreeが削除されるので、<strong class="text-white">成果物が失われることはありません</strong></li>
+                                    <li>万が一クリーンアップが失敗した場合は、<code class="code-inline">git worktree prune</code> で手動クリーンアップできます</li>
+                                </ul>
+                            </div>
+
+                            <h4>ハンズオン: worktreeのクリーンアップを確認</h4>
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">1</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">batch実行中にworktreeを確認</p>
+                                    <p class="text-gray-400 text-sm mb-2">別のターミナルで以下を実行:</p>
+                                    <div class="command-box">
+                                        <div class="command">git worktree list</div>
+                                        <div class="output">
+                                            /home/user/my-project                     abc1234 [main]<br>
+                                            /tmp/claude-worktree-abc123-task1          def5678 [claude/batch-task-1]<br>
+                                            /tmp/claude-worktree-abc123-task2          ghi9012 [claude/batch-task-2]
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mt-2">実行中はworktreeが存在していることが確認できます。</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">2</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">完了後にもう一度確認</p>
+                                    <div class="command-box">
+                                        <div class="command">git worktree list</div>
+                                        <div class="output">
+                                            /home/user/my-project    abc1234 [main]
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mt-2">worktreeが自動的に削除されていることがわかります。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション5: 手動でWorktreeを管理する -->
+                    <div class="content-section">
+                        <h3>手動でWorktreeを管理する</h3>
+                        <div class="collapsible-content">
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                通常はClaude Codeが自動でworktreeを管理しますが、<strong class="text-white">手動で制御したい場面</strong>もあります。<br>
+                                ここでは、手動管理のためのコマンドを紹介します。
+                            </p>
+
+                            <h4>/enterWorktree と /exitWorktree</h4>
+                            <p class="text-gray-300 mb-4">
+                                Claude Codeのセッション中に、手動でworktreeに入ったり出たりできます。
+                            </p>
+
+                            <div class="component-card mb-4">
+                                <p class="text-white font-bold mb-2">/enterWorktree ― worktreeに入る</p>
+                                <div class="code-block"><span class="comment"># Claude Codeのプロンプトで:</span>
+<span class="highlight">/enterWorktree</span>
+
+<span class="comment"># 新しいworktreeが作成され、そこに移動します</span>
+<span class="comment"># この状態で行った変更は、元のディレクトリには影響しません</span></div>
+                                <p class="text-gray-400 text-sm mt-2">
+                                    実験的な変更を試したいときに便利です。失敗しても元のコードには影響しません。
+                                </p>
+                            </div>
+
+                            <div class="component-card mb-4">
+                                <p class="text-white font-bold mb-2">/exitWorktree ― worktreeから出る</p>
+                                <div class="code-block"><span class="comment"># worktree内で作業した後:</span>
+<span class="highlight">/exitWorktree</span>
+
+<span class="comment"># 元のディレクトリに戻ります</span>
+<span class="comment"># worktreeでの変更をマージするかどうか選択できます</span></div>
+                            </div>
+
+                            <h4>ハンズオン: worktreeで安全に実験する</h4>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">1</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">worktreeに入る</p>
+                                    <p class="text-gray-400 text-sm mb-2">Claude Codeのプロンプトで:</p>
+                                    <div class="code-block"><span class="highlight">/enterWorktree</span></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">2</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">大胆な変更を試す</p>
+                                    <div class="code-block"><span class="variable">このプロジェクトのルーティングを
+React RouterからTanStack Routerに全面移行して。</span></div>
+                                    <p class="text-gray-400 text-sm mt-2">worktree内なので、失敗しても元のコードは安全です。</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">3</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">結果を確認して判断</p>
+                                    <p class="text-gray-400 text-sm mb-2">うまくいったら:</p>
+                                    <div class="code-block"><span class="highlight">/exitWorktree</span>
+<span class="comment"># → 「変更をマージしますか？」 → Yes</span></div>
+                                    <p class="text-gray-400 text-sm mb-2 mt-2">うまくいかなかったら:</p>
+                                    <div class="code-block"><span class="highlight">/exitWorktree</span>
+<span class="comment"># → 「変更をマージしますか？」 → No</span>
+<span class="comment"># → worktreeが削除され、何事もなかったように元に戻る</span></div>
+                                </div>
+                            </div>
+
+                            <h4>claude --worktree オプション</h4>
+                            <p class="text-gray-300 mb-4">
+                                CLIからClaude Codeを起動するときに、最初からworktreeで作業を開始できます。
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">claude --worktree</div>
+                                <div class="output">
+                                    Creating new worktree...<br>
+                                    Worktree created at /tmp/claude-worktree-xyz789<br>
+                                    You are now working in an isolated worktree.
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>--worktree の使いどころ</h4>
+                                <ul class="text-gray-300 space-y-2">
+                                    <li><strong class="text-white">大きなリファクタリングを試す前に</strong> ― 「この変更で壊れないか不安...」というとき</li>
+                                    <li><strong class="text-white">複数のアプローチを比較するとき</strong> ― 別々のworktreeで異なるアプローチを試して、良い方を採用</li>
+                                    <li><strong class="text-white">コードレビュー中の実験</strong> ― PRのコードを動かして確認したいとき、本体を汚さずに試せる</li>
+                                </ul>
+                            </div>
+
+                            <h4>ハンズオン: CLIからworktreeを起動</h4>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">1</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">worktreeモードで起動</p>
+                                    <div class="command-box">
+                                        <div class="command">claude --worktree</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">2</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">作業を行う</p>
+                                    <div class="code-block"><span class="variable">package.jsonの依存関係をすべて最新バージョンに更新して、
+テストが通ることを確認して。</span></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start mb-3">
+                                <div class="step-number">3</div>
+                                <div class="flex-1">
+                                    <p class="text-white font-bold mb-1">テストが通ったらマージ</p>
+                                    <p class="text-gray-400 text-sm">Claude Codeを終了すると、変更をメインブランチにマージするか聞かれます。</p>
+                                </div>
+                            </div>
+
+                            <h4>worktree管理のまとめ</h4>
+                            <div class="visual-diagram">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b border-slate-700">
+                                            <th class="text-left py-2 px-3 text-white">方法</th>
+                                            <th class="text-left py-2 px-3 text-white">コマンド</th>
+                                            <th class="text-left py-2 px-3 text-white">用途</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-400">
+                                        <tr class="border-b border-slate-700/50">
+                                            <td class="py-2 px-3">自動（推奨）</td>
+                                            <td class="py-2 px-3"><code class="code-inline">/batch</code></td>
+                                            <td class="py-2 px-3">複数タスクの並列実行</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-700/50">
+                                            <td class="py-2 px-3">自動</td>
+                                            <td class="py-2 px-3"><code class="code-inline">context: fork</code></td>
+                                            <td class="py-2 px-3">サブエージェントの独立実行</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-700/50">
+                                            <td class="py-2 px-3">手動</td>
+                                            <td class="py-2 px-3"><code class="code-inline">/enterWorktree</code></td>
+                                            <td class="py-2 px-3">セッション中に安全な実験環境を作る</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-700/50">
+                                            <td class="py-2 px-3">手動</td>
+                                            <td class="py-2 px-3"><code class="code-inline">/exitWorktree</code></td>
+                                            <td class="py-2 px-3">worktreeから出る（マージ選択あり）</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-3">CLI起動時</td>
+                                            <td class="py-2 px-3"><code class="code-inline">claude --worktree</code></td>
+                                            <td class="py-2 px-3">最初からworktreeで作業開始</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>トラブルシューティング</h4>
+                                <ul class="text-gray-300 space-y-2">
+                                    <li><strong class="text-white">worktreeが残ってしまった場合:</strong> <code class="code-inline">git worktree list</code> で確認し、<code class="code-inline">git worktree remove &lt;path&gt;</code> で削除</li>
+                                    <li><strong class="text-white">ロックエラーが出る場合:</strong> <code class="code-inline">git worktree prune</code> で不要な参照をクリーンアップ</li>
+                                    <li><strong class="text-white">マージ競合が発生した場合:</strong> Claude Codeが自動で解決を試みますが、手動対応が必要な場合もあります</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+</html>

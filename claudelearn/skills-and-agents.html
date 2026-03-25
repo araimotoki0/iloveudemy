@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スキル・ルール・エージェント - Claude Code</title>
+    <meta name="description" content="Claude Codeのスキル、ルール、コマンド、サブエージェント、プラグインの違いと使い方。Progressive Disclosureの仕組み、skills.shマーケットプレイス、プラグインシステムまで。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#e8734a',500:'#e36437',600:'#c2410c',700:'#9a3412',800:'#7c2d12',900:'#431407' },
+                    },
+                    fontFamily: { sans:['Noto Sans JP','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                    animation: { 'pulse-slow':'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%); background-attachment: fixed; }
+        .content-section { margin-bottom: 32px; }
+        .content-section h3 { color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease; background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52; }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .visual-diagram { background: rgba(26, 26, 46, 0.7); border: 1px solid #3a3a52; border-radius: 12px; padding: 28px; margin: 24px 0; }
+        .command-box { background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline { background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+        .info-box, .warning-box, .success-box, .error-box { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+        .info-box { border-left-color: #60a5fa; }
+        .warning-box { border-left-color: #fbbf24; }
+        .success-box { border-left-color: #34d399; }
+        .error-box { border-left-color: #f87171; }
+        .loop-step { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 18px; }
+        .component-card { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px; }
+        .code-block { background: rgba(0, 0, 0, 0.35); border: 1px solid #3a3a52; border-radius: 8px; padding: 18px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto; white-space: pre; }
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+        .code-block .highlight { color: #e8734a; font-weight: 600; }
+        header h1 span { background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; -webkit-text-fill-color: unset !important; color: #e8734a !important; }
+        .ref-box { color: #a0a0b8; font-size: 13px; margin-bottom: 16px; }
+        .ref-box a { color: #e8734a; text-decoration: none; border-bottom: 1px solid rgba(232, 115, 74, 0.3); transition: all 0.2s; }
+        .ref-box a:hover { border-bottom-color: #e8734a; }
+        .step-number { background: #e8734a; color: white; font-weight: 700; min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 14px; flex-shrink: 0; font-size: 14px; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- セクション: まず全体像 -->
+                    <div class="content-section">
+                        <h3>まず全体像 ― 4つの仕組みを料理で理解する</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/skills" target="_blank">Skills</a> / <a href="https://code.claude.com/docs/ja/sub-agents" target="_blank">Sub-agents</a> / <a href="https://code.claude.com/docs/ja/commands" target="_blank">Commands</a> / <a href="https://agentskills.io" target="_blank">Agent Skills IO</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Claude Codeには、AIの振る舞いをカスタマイズする仕組みが4つあります。<br>
+                                名前が似ていて混乱しがちですが、<strong class="text-white">それぞれ全く違う役割</strong>です。まず料理に例えて理解しましょう。
+                            </p>
+
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="loop-step" style="border-color: #e8734a;">
+                                        <div class="font-bold text-white mb-2">スキル = レシピ本</div>
+                                        <p class="text-gray-400 text-sm">「カレーの作り方」が書いてあり、「カレー作って」と言われたらAIが自動で開く。材料リスト（リファレンス）も別ページにある。<strong class="text-white">何度でも同じ品質で再現できる。</strong></p>
+                                    </div>
+                                    <div class="loop-step" style="border-color: #60a5fa;">
+                                        <div class="font-bold text-white mb-2">ルール = キッチンの張り紙</div>
+                                        <p class="text-gray-400 text-sm">「肉を触ったら必ず手を洗え」。<strong class="text-white">肉を触るときだけ適用される。</strong>野菜を切ってるときは関係ない。CLAUDE.mdに「条件」をつけたもの。</p>
+                                    </div>
+                                    <div class="loop-step" style="border-color: #9ca3af;">
+                                        <div class="font-bold text-white mb-2">コマンド = 口頭の指示メモ</div>
+                                        <p class="text-gray-400 text-sm">「今日はこのメニューで」と自分で手渡すだけ。AIが勝手に使ってくれることはない。<strong class="text-white">スキルの下位互換で、今後消えていく存在。</strong></p>
+                                    </div>
+                                    <div class="loop-step" style="border-color: #22c55e;">
+                                        <div class="font-bold text-white mb-2">サブエージェント = 助手</div>
+                                        <p class="text-gray-400 text-sm">「皮むきはお前に任せた」と別の人に仕事を渡す。メインの料理人の頭（コンテキスト）を使わない。<strong class="text-white">結果だけが返ってくる。</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>比較表</h4>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;"></th>
+                                            <th style="text-align: left; padding: 8px; color: #e8734a;">スキル</th>
+                                            <th style="text-align: left; padding: 8px; color: #60a5fa;">ルール</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">コマンド</th>
+                                            <th style="text-align: left; padding: 8px; color: #22c55e;">サブエージェント</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb; font-weight: 600;">AIが自動で使う？</td>
+                                            <td style="padding: 8px; color: #22c55e;">使う</td>
+                                            <td style="padding: 8px; color: #22c55e;">使う（条件一致時）</td>
+                                            <td style="padding: 8px; color: #ef4444;">使わない</td>
+                                            <td style="padding: 8px; color: #22c55e;">使う</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb; font-weight: 600;">手動で呼べる？</td>
+                                            <td style="padding: 8px; color: #22c55e;">呼べる</td>
+                                            <td style="padding: 8px; color: #ef4444;">呼べない（自動のみ）</td>
+                                            <td style="padding: 8px; color: #22c55e;">呼べる（手動のみ）</td>
+                                            <td style="padding: 8px; color: #22c55e;">呼べる</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb; font-weight: 600;">別ファイル参照</td>
+                                            <td style="padding: 8px; color: #22c55e;">できる</td>
+                                            <td style="padding: 8px; color: #ef4444;">できない</td>
+                                            <td style="padding: 8px; color: #ef4444;">できない</td>
+                                            <td style="padding: 8px; color: #ef4444;">できない</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb; font-weight: 600;">コンテキスト</td>
+                                            <td style="padding: 8px; color: #9ca3af;">段階的に読み込み</td>
+                                            <td style="padding: 8px; color: #9ca3af;">条件一致時のみ</td>
+                                            <td style="padding: 8px; color: #9ca3af;">呼び出し時に全読み</td>
+                                            <td style="padding: 8px; color: #22c55e;">別のコンテキスト</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; color: #e5e7eb; font-weight: 600;">置き場所</td>
+                                            <td style="padding: 8px; color: #9ca3af;"><code class="code-inline">.claude/skills/</code></td>
+                                            <td style="padding: 8px; color: #9ca3af;"><code class="code-inline">.claude/rules/</code></td>
+                                            <td style="padding: 8px; color: #9ca3af;"><code class="code-inline">.claude/commands/</code></td>
+                                            <td style="padding: 8px; color: #9ca3af;"><code class="code-inline">.claude/agents/</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>CLAUDE.mdとの関係</h4>
+                                <p class="text-gray-300">CLAUDE.mdは<strong>常に全文が読み込まれます</strong>。どんなプロンプトでも必ず知っておいてほしいこと（「bunを使え」「日本語で答えろ」など）を書く場所です。上の4つは「常に読み込む必要がないもの」を効率的に管理する仕組みです。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: スキル -->
+                    <div class="content-section">
+                        <h3>スキル ― AIへの「頼み方」を再利用する</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/skills" target="_blank">Skills</a> / <a href="https://agentskills.io/specification" target="_blank">Agent Skills Specification</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                AIに毎回1から説明し直していませんか？<br>
+                                スキルは<strong class="text-white">「AIへの頼み方をファイルに書いて、何度でも再利用する仕組み」</strong>です。
+                            </p>
+
+                            <h4>スキルがないと何が困るのか</h4>
+                            <p class="text-gray-300 mb-3">例：結婚式場サイトで10会場分のページを作る仕事</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="component-card" style="border-color: #ef4444;">
+                                    <div class="font-bold text-white mb-2">スキルなし</div>
+                                    <p class="text-gray-400 text-sm">毎回「このページ構成で、この画像を使って、このコンポーネントで…」と1から説明。足りない情報があればやり直し。1会場あたり約2時間。</p>
+                                </div>
+                                <div class="component-card" style="border-color: #22c55e;">
+                                    <div class="font-bold text-white mb-2">スキルあり</div>
+                                    <p class="text-gray-400 text-sm"><code class="code-inline">/add-venue</code> と呼び出すだけ。手順も参照ファイルもスキルに書いてあるので、毎回同じ品質。約5分で261ファイルが自動生成。</p>
+                                </div>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">スキルの正体：ただのマークダウンファイル</h4>
+                            <p class="text-gray-300 mb-3">スキルは特別なものではありません。YAMLヘッダー（フロントマター）+ マークダウン本文だけです。</p>
+                            <div class="code-block"><span class="comment"># .claude/skills/compress-image/SKILL.md</span>
+---
+<span class="highlight">name</span>: compress-image                    <span class="comment"># 必須：スキルの名前</span>
+<span class="highlight">description</span>: >                           <span class="comment"># 必須：AIがこれを見て使うか判断する</span>
+  500KB以上の画像をsharpパッケージで圧縮・最適化する。
+  画像圧縮、画像最適化、large images、compress image
+  などのキーワードで使用する。
+---
+
+<span class="variable">## ワークフロー</span>
+1. プロジェクト内の画像ファイルを走査
+2. 500KB以上のファイルを特定
+3. scripts/compress-image.ts で圧縮を実行
+4. 圧縮結果をレポート
+
+<span class="variable">## 圧縮スクリプト</span>
+画像の圧縮には <span class="keyword">scripts/compress-image.ts</span> を使用すること。</div>
+                            <p class="text-gray-400 text-sm mt-2"><code class="code-inline">name</code> と <code class="code-inline">description</code> だけが必須です。descriptionに書いたキーワード（「画像圧縮」など）をプロンプトで使うと、AIが自動でこのスキルを呼び出します。</p>
+
+                            <h4 style="margin-top: 24px;">ディレクトリ構成</h4>
+                            <p class="text-gray-300 mb-3">スキルは単一ファイルではなく<strong class="text-white">ディレクトリ</strong>です。リファレンスやスクリプトを別ファイルとして持てます。</p>
+                            <div class="code-block"><span class="variable">.claude/skills/</span>
+  <span class="variable">compress-image/</span>              <span class="comment"># スキルのディレクトリ</span>
+    <span class="highlight">SKILL.md</span>                   <span class="comment"># 本体（これが必須）</span>
+    <span class="keyword">scripts/</span>                   <span class="comment"># スクリプト（任意）</span>
+      <span class="string">compress-image.ts</span>        <span class="comment"># 実際の圧縮処理</span>
+    <span class="keyword">references/</span>                <span class="comment"># 参照ファイル（任意）</span>
+      <span class="string">supported-formats.md</span>     <span class="comment"># 対応フォーマットの説明など</span></div>
+
+                            <h4 style="margin-top: 24px;">Progressive Disclosure（段階的開示）― スキル最大の特徴</h4>
+                            <p class="text-gray-300 mb-3">CLAUDE.mdとスキルの最大の違いがここです。CLAUDE.mdは常に全文が読み込まれますが、スキルは<strong class="text-white">必要なときだけ段階的に読み込まれます</strong>。</p>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="step-number">1</span>
+                                            <div>
+                                                <div class="font-bold text-white">メタデータだけが常にAIに見えている</div>
+                                                <div class="text-gray-400 mt-1 text-sm"><code class="code-inline">name</code> と <code class="code-inline">description</code> の数行だけ。10個スキルがあっても数十行程度しかコンテキストを使わない。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; color: #6b7280; font-size: 18px;">↓ 「画像を圧縮して」→ AIが「compress-imageスキルが使えそう」と判断</div>
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="step-number">2</span>
+                                            <div>
+                                                <div class="font-bold text-white">SKILL.mdの本文を読み込む</div>
+                                                <div class="text-gray-400 mt-1 text-sm">ワークフロー、注意事項など具体的な手順がここで初めてコンテキストに入る。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center; color: #6b7280; font-size: 18px;">↓ 「圧縮スクリプトが必要」→ リファレンスを参照</div>
+                                    <div class="loop-step">
+                                        <div class="flex items-start">
+                                            <span class="step-number">3</span>
+                                            <div>
+                                                <div class="font-bold text-white">リファレンス・スクリプトを読み込む</div>
+                                                <div class="text-gray-400 mt-1 text-sm">コードテンプレート、型定義、実行スクリプトなど補助ファイルを必要に応じて参照。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="info-box">
+                                <h4>なぜこれが重要なのか</h4>
+                                <p class="text-gray-300">コンテキストウィンドウが大きくなるほどAIの精度は落ちます。CLAUDE.mdに全部書くと、関係ない作業でもその情報が読み込まれてコンテキストを圧迫します。スキルなら<strong>必要なときだけ必要な情報が読み込まれる</strong>ので、コンテキストを効率的に使えます。</p>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">スキルの作り方</h4>
+                            <p class="text-gray-300 mb-3">自分で1から書く必要はありません。<strong class="text-white">AIに作らせます。</strong></p>
+                            <div class="grid grid-cols-1 gap-3">
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="step-number">1</span>
+                                        <div>
+                                            <div class="font-bold text-white">Skill Creatorを入れる（初回のみ）</div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">npx skillsz</div>
+                                                <div class="output">対話式UIで、使っているエージェント（Claude Code等）を選択 → グローバル/プロジェクト選択 → 完了</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="loop-step">
+                                    <div class="flex items-start">
+                                        <span class="step-number">2</span>
+                                        <div>
+                                            <div class="font-bold text-white">Claude Code内でスキルを作成</div>
+                                            <div class="command-box" style="margin: 8px 0 0;">
+                                                <div class="command" style="display: block;">/skill-creator</div>
+                                                <div class="output">「500KB以上の画像を圧縮するスキルを作って」と伝えるだけ。AIがSKILL.md、リファレンス、スクリプトまで全部作ってくれる。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">スキルの入手先：skills.sh</h4>
+                            <p class="text-gray-300 mb-3">自分で作らなくても、<strong class="text-white">skills.sh</strong>（Vercel運営のスキルマーケットプレイス）から高品質なスキルをインストールできます。npmのスキル版です。</p>
+                            <div class="code-block"><span class="variable">$ npx skillsz</span>          <span class="comment"># 対話式でインストール</span>
+<span class="variable">$ npx skillsz list</span>     <span class="comment"># インストール済み一覧</span>
+<span class="variable">$ npx skillsz update</span>   <span class="comment"># 最新版に更新</span></div>
+
+                            <div class="warning-box" style="margin-top: 16px;">
+                                <h4>外部スキルのセキュリティに注意</h4>
+                                <p class="text-gray-300">公開スキルの<strong>36.8%にセキュリティ上の問題がある</strong>という調査データがあります。スキルの中に <code class="code-inline">rm -rf /</code> のような危険なコマンドが書かれていたら、AIはそれを実行しようとします。<br>skills.shにはaudit（監査）機能があるので確認しましょう。インストール数が極端に少ないものは特に注意してください。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: ルール -->
+                    <div class="content-section">
+                        <h3>ルール ― 「このファイルを触るときだけ」適用される指示</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/memory" target="_blank">Memory</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                ルールは<strong class="text-white">CLAUDE.mdに「条件」をつけたもの</strong>です。<br>
+                                「.tsxファイルを触るときだけこの指示に従え」のように、<strong class="text-white">globパターンで適用範囲を絞れます</strong>。
+                            </p>
+
+                            <h4>なぜルールが必要なのか ― 具体例</h4>
+                            <p class="text-gray-300 mb-3">Tailwind CSSを使ったプロジェクトで「font-medium、font-semiboldは使うな（日本語フォントはnormalかboldだけ）」という指示を出したいとします。</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="component-card" style="border-color: #ef4444;">
+                                    <div class="font-bold text-white mb-2">CLAUDE.mdに書いた場合</div>
+                                    <p class="text-gray-400 text-sm">README.mdを編集してるときも、package.jsonを触ってるときも、この指示が読み込まれる。Tailwindと無関係なのにコンテキストを消費。</p>
+                                </div>
+                                <div class="component-card" style="border-color: #22c55e;">
+                                    <div class="font-bold text-white mb-2">ルールにした場合</div>
+                                    <p class="text-gray-400 text-sm"><code class="code-inline">.tsx</code> <code class="code-inline">.jsx</code> <code class="code-inline">.css</code> ファイルを触るときだけ読み込まれる。他のファイル作業ではコンテキストを消費しない。</p>
+                                </div>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">ルールファイルの例</h4>
+                            <div class="code-block"><span class="comment"># .claude/rules/tailwind.md</span>
+---
+<span class="highlight">globs</span>: ["*.tsx", "*.jsx", "*.css"]     <span class="comment"># この拡張子のファイルを触るときだけ適用</span>
+<span class="highlight">alwaysApply</span>: false                     <span class="comment"># falseなら条件一致時のみ</span>
+---
+
+<span class="variable">## Tailwind CSS ルール</span>
+- font-medium, font-semibold は使わないこと
+  （日本語フォントはnormalかboldのみ）
+- spacing は 4の倍数を基本とすること
+- カスタムカラーは tailwind.config.ts に定義してから使うこと</div>
+
+                            <div class="info-box">
+                                <h4>CLAUDE.md / ルール / スキルの使い分け</h4>
+                                <ul class="text-gray-300" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-2"><strong class="text-white">CLAUDE.md</strong> → どんな作業でも常に知っておいてほしいこと（「bunを使え」「日本語で答えろ」）</li>
+                                    <li class="mb-2"><strong class="text-white">ルール</strong> → 特定のファイルを触るときだけ必要なこと（「.tsxではfont-medium使うな」）</li>
+                                    <li><strong class="text-white">スキル</strong> → 繰り返す作業の手順書（「会場を追加するときはこの手順で」）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: コマンド -->
+                    <div class="content-section">
+                        <h3>コマンド ― 手動で呼ぶだけのシンプルな指示（スキルに統合済み）</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/commands" target="_blank">Commands</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                コマンドは<strong class="text-white">手動でのみ呼び出せる単一ファイルの指示</strong>です。<br>
+                                Claude Codeではスキルとカスタムスラッシュコマンドが統合されたため、新しく作るならスキルを使いましょう。
+                            </p>
+
+                            <h4>コマンドとスキルの違い</h4>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;"></th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">コマンド</th>
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;">スキル</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;">AIが自動で呼ぶ</td>
+                                            <td style="padding: 8px; color: #ef4444;">できない</td>
+                                            <td style="padding: 8px; color: #22c55e;">できる</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;">別ファイル参照</td>
+                                            <td style="padding: 8px; color: #ef4444;">できない（単一ファイル）</td>
+                                            <td style="padding: 8px; color: #22c55e;">できる（ディレクトリ構成）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;">段階的読み込み</td>
+                                            <td style="padding: 8px; color: #ef4444;">なし</td>
+                                            <td style="padding: 8px; color: #22c55e;">あり</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; color: #e5e7eb;">今後の方向性</td>
+                                            <td style="padding: 8px; color: #f59e0b;">スキルに吸収されていく</td>
+                                            <td style="padding: 8px; color: #22c55e;">これからの主役</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-3">既存のコマンドがある場合は、順次スキルに移行するのがおすすめです。</p>
+                        </div>
+                    </div>
+
+                    <!-- セクション: サブエージェント -->
+                    <div class="content-section">
+                        <h3>サブエージェント ― 別のAIに仕事を任せる</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/sub-agents" target="_blank">Sub-agents</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                サブエージェントは<strong class="text-white">特定のタスク専用の別のAI</strong>です。<br>
+                                メインのAIとは<strong class="text-white">完全に別のコンテキスト</strong>で動くため、メインの記憶を一切消費しません。
+                            </p>
+
+                            <h4>なぜサブエージェントが必要なのか</h4>
+                            <p class="text-gray-300 mb-3">メインのAIに全部やらせると、コンテキストがどんどん消費されて品質が落ちます。サブエージェントは「仕事を分担する」仕組みです。</p>
+                            <div class="visual-diagram">
+                                <div style="max-width: 600px; margin: 0 auto;">
+                                    <div class="loop-step" style="text-align: center;">
+                                        <div class="font-bold text-white mb-1">メインエージェント</div>
+                                        <div class="text-gray-400 text-sm">プランを立てて、タスクを振り分ける</div>
+                                    </div>
+                                    <div style="display: flex; justify-content: center; gap: 8px; padding: 12px 0;">
+                                        <span style="color: #6b7280;">↓ 委任</span>
+                                        <span style="color: #6b7280;">↓ 委任</span>
+                                        <span style="color: #6b7280;">↓ 委任</span>
+                                    </div>
+                                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                        <div class="loop-step" style="flex: 1; min-width: 150px; text-align: center; border-color: #60a5fa;">
+                                            <div class="font-bold text-white text-sm mb-1">code-reviewer</div>
+                                            <div class="text-gray-400 text-xs">コードレビュー専用</div>
+                                        </div>
+                                        <div class="loop-step" style="flex: 1; min-width: 150px; text-align: center; border-color: #22c55e;">
+                                            <div class="font-bold text-white text-sm mb-1">security-check</div>
+                                            <div class="text-gray-400 text-xs">セキュリティ監査専用</div>
+                                        </div>
+                                        <div class="loop-step" style="flex: 1; min-width: 150px; text-align: center; border-color: #e8734a;">
+                                            <div class="font-bold text-white text-sm mb-1">refactorer</div>
+                                            <div class="text-gray-400 text-xs">リファクタリング専用</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">スキルとサブエージェントの違い</h4>
+                            <p class="text-gray-300 mb-3">どちらもAIにタスクをさせる仕組みですが、<strong class="text-white">「誰が実行するか」</strong>が決定的に違います。</p>
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #374151;">
+                                            <th style="text-align: left; padding: 8px; color: #9ca3af;"></th>
+                                            <th style="text-align: left; padding: 8px; color: #e8734a;">スキル</th>
+                                            <th style="text-align: left; padding: 8px; color: #22c55e;">サブエージェント</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;">誰が実行？</td>
+                                            <td style="padding: 8px; color: #9ca3af;">メインのAIが手順に従って自分で実行</td>
+                                            <td style="padding: 8px; color: #9ca3af;"><strong class="text-white">別のAI</strong>が独立して実行</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #1f2937;">
+                                            <td style="padding: 8px; color: #e5e7eb;">コンテキスト</td>
+                                            <td style="padding: 8px; color: #9ca3af;">メインのコンテキストを使う</td>
+                                            <td style="padding: 8px; color: #22c55e;">独立したコンテキストで動く</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; color: #e5e7eb;">向いてる仕事</td>
+                                            <td style="padding: 8px; color: #9ca3af;">手順が決まった繰り返し作業</td>
+                                            <td style="padding: 8px; color: #9ca3af;">独立した分析・レビュー・並列作業</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box" style="margin-top: 16px;">
+                                <h4>Claude Codeの組み込みサブエージェント</h4>
+                                <ul class="text-gray-300" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-1"><strong class="text-white">Explore</strong> ― コードベース検索専用（Haiku、読み取り専用、高速）</li>
+                                    <li class="mb-1"><strong class="text-white">Plan</strong> ― 計画・調査専用（読み取り専用）</li>
+                                    <li><strong class="text-white">general-purpose</strong> ― 汎用的な複雑処理（全ツール利用可）</li>
+                                </ul>
+                            </div>
+
+                            <div class="info-box" style="margin-top: 16px;">
+                                <h4>相互呼び出しができる</h4>
+                                <p class="text-gray-300">スキルからサブエージェントを呼び出す、サブエージェントがスキルを使う、といった相互連携が可能です。例えば「会場追加スキル」の中で「セキュリティチェック用サブエージェント」を呼び出して、生成したコードを自動レビューさせることもできます。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: プラグイン -->
+                    <div class="content-section">
+                        <h3>プラグイン ― スキル・ルール・サブエージェントのまとめ売り</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/plugins" target="_blank">Plugins</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                スキル・ルール・コマンド・サブエージェントを1つずつ揃えるのは大変です。<br>
+                                プラグインは<strong class="text-white">これらをまとめてインストールできるパッケージ</strong>です。
+                            </p>
+
+                            <h4>例：Superpowers プラグイン（57.4Kインストール）</h4>
+                            <p class="text-gray-300 mb-3">1つのプラグインを入れるだけで、以下がまとめて追加されます：</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white text-2xl mb-1">1</div>
+                                    <div class="text-gray-400 text-sm">サブエージェント</div>
+                                    <div class="text-gray-500 text-xs mt-1">code-reviewer</div>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white text-2xl mb-1">14</div>
+                                    <div class="text-gray-400 text-sm">スキル</div>
+                                    <div class="text-gray-500 text-xs mt-1">brainstorm, plan, etc.</div>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white text-2xl mb-1">1</div>
+                                    <div class="text-gray-400 text-sm">フック</div>
+                                </div>
+                                <div class="component-card" style="text-align: center;">
+                                    <div class="font-bold text-white text-2xl mb-1">3</div>
+                                    <div class="text-gray-400 text-sm">コマンド</div>
+                                </div>
+                            </div>
+
+                            <h4 style="margin-top: 24px;">Claude Codeでのプラグイン管理</h4>
+                            <div class="command-box">
+                                <div class="command">/manage-plugins</div>
+                                <div class="output">プラグインの追加・削除・更新ができるUIが開く</div>
+                            </div>
+
+                            <div class="success-box" style="margin-top: 16px;">
+                                <h4>結局どうすればいい？</h4>
+                                <ul class="text-gray-300" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-2"><strong class="text-white">汎用的な作業</strong>（ブレスト、プラン、レビューなど）→ プラグインや skills.sh から入れる。先人が作った高品質なものの方が自作より良い</li>
+                                    <li class="mb-2"><strong class="text-white">ドメイン固有の作業</strong>（会場追加、業務特化の処理など）→ <code class="code-inline">/skill-creator</code> で自分で作る。野良に転がっているわけがない</li>
+                                    <li><strong class="text-white">特定ファイルの制約</strong>（Tailwindルール、テスト規約など）→ <code class="code-inline">.claude/rules/</code> にルールとして配置</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+</html>

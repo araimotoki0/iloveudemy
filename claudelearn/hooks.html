@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hooks（自動化） - Claude Code</title>
+    <meta name="description" content="Claude CodeのHooksで作業完了通知、自動リント、Slack連携などを実現する方法。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#e8734a',500:'#e36437',600:'#c2410c',700:'#9a3412',800:'#7c2d12',900:'#431407' },
+                    },
+                    fontFamily: { sans:['Noto Sans JP','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                    animation: { 'pulse-slow':'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%); background-attachment: fixed; }
+        .content-section { margin-bottom: 32px; }
+        .content-section h3 { color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease; background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52; }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .visual-diagram { background: rgba(26, 26, 46, 0.7); border: 1px solid #3a3a52; border-radius: 12px; padding: 28px; margin: 24px 0; }
+        .command-box { background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline { background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+        .info-box, .warning-box, .success-box, .error-box { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+        .info-box { border-left-color: #60a5fa; }
+        .warning-box { border-left-color: #fbbf24; }
+        .success-box { border-left-color: #34d399; }
+        .error-box { border-left-color: #f87171; }
+        .loop-step { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 18px; }
+        .component-card { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px; }
+        .code-block { background: rgba(0, 0, 0, 0.35); border: 1px solid #3a3a52; border-radius: 8px; padding: 18px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto; white-space: pre; }
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+        .code-block .highlight { color: #e8734a; font-weight: 600; }
+        header h1 span { background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; -webkit-text-fill-color: unset !important; color: #e8734a !important; }
+        .ref-box { color: #a0a0b8; font-size: 13px; margin-bottom: 16px; }
+        .ref-box a { color: #e8734a; text-decoration: none; border-bottom: 1px solid rgba(232, 115, 74, 0.3); transition: all 0.2s; }
+        .ref-box a:hover { border-bottom-color: #e8734a; }
+        .chat-bubble { background: rgba(255, 255, 255, 0.05); border: 1px solid #3a3a52; border-radius: 12px; padding: 16px 20px; margin: 12px 0; position: relative; }
+        .chat-bubble.user { border-left: 3px solid #60a5fa; }
+        .chat-bubble.ai { border-left: 3px solid #e8734a; }
+        .chat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .chat-label.user { color: #60a5fa; }
+        .chat-label.ai { color: #e8734a; }
+        .step-number { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(232, 115, 74, 0.2); color: #e8734a; font-weight: 700; font-size: 14px; margin-right: 8px; flex-shrink: 0; }
+        .event-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        .event-table th { background: rgba(232, 115, 74, 0.12); color: #e8734a; text-align: left; padding: 12px 16px; font-weight: 700; font-size: 14px; border-bottom: 2px solid #3a3a52; }
+        .event-table td { padding: 12px 16px; border-bottom: 1px solid #3a3a52; color: #d0d0e0; font-size: 14px; vertical-align: top; }
+        .event-table tr:hover { background: rgba(255, 255, 255, 0.02); }
+        .event-table code { background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- セクション1: Hooksとは何か -->
+                    <div class="content-section">
+                        <h3>Hooksとは何か ― AIの作業に「自動処理」を差し込む</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">
+                                参照: <a href="https://code.claude.com/docs/ja/hooks" target="_blank">Hooks - 公式ドキュメント</a> / <a href="https://code.claude.com/docs/ja/hooks-guide" target="_blank">Hooks ガイド</a>
+                            </div>
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                <strong class="text-white">Hooks</strong>とは、<strong class="text-white">AIの作業の特定タイミングで自動的に何かを実行する仕組み</strong>です。
+                            </p>
+
+                            <h4>日常生活で例えると</h4>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-2">料理が完成したらベルを鳴らす</div>
+                                        <div class="text-gray-400 text-sm">
+                                            トリガー: 料理の完成<br>
+                                            アクション: ベルを鳴らす<br>
+                                            <span class="text-primary-400">→ Claude Codeでは「作業完了したら通知を出す」</span>
+                                        </div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-2">包丁を使う前に手を洗う</div>
+                                        <div class="text-gray-400 text-sm">
+                                            トリガー: 包丁を使う前<br>
+                                            アクション: 手を洗う<br>
+                                            <span class="text-primary-400">→ Claude Codeでは「コミット前にリントを実行する」</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>Gitのpre-commitフックに馴染みがあれば</h4>
+                                <p class="text-gray-300">
+                                    Gitでは <code class="code-inline">pre-commit</code> フックを使って、コミット前にリントやテストを自動実行できます。
+                                    Claude CodeのHooksはそれと同じ考え方で、<strong class="text-white">AIの各種アクションをトリガーにして任意のコマンドやHTTPリクエストを自動実行</strong>できます。
+                                </p>
+                            </div>
+
+                            <h4>Hooksの全体像</h4>
+                            <div class="visual-diagram">
+                                <div class="text-center text-gray-400 text-sm mb-4">Hooksの仕組み</div>
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step" style="border-left: 3px solid #60a5fa;">
+                                        <div class="font-bold text-white mb-1">1. イベントが発生する</div>
+                                        <div class="text-gray-400 text-sm">例: AIがツールを使おうとした、セッションが始まった、作業が完了した</div>
+                                    </div>
+                                    <div class="text-center text-gray-500 text-lg">↓</div>
+                                    <div class="loop-step" style="border-left: 3px solid #fbbf24;">
+                                        <div class="font-bold text-white mb-1">2. matcherで条件を判定（オプション）</div>
+                                        <div class="text-gray-400 text-sm">例: 「Bashツールで、git commit* というコマンドの場合だけ」</div>
+                                    </div>
+                                    <div class="text-center text-gray-500 text-lg">↓</div>
+                                    <div class="loop-step" style="border-left: 3px solid #34d399;">
+                                        <div class="font-bold text-white mb-1">3. 登録されたコマンド/HTTPリクエストを自動実行</div>
+                                        <div class="text-gray-400 text-sm">例: <code class="code-inline">npm run lint</code> を実行、macOS通知を表示、Slackに投稿</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>Hooksの設定場所</h4>
+                                <p class="text-gray-300">
+                                    Hooksは <code class="code-inline">settings.json</code> に記述します。<br>
+                                    <code class="code-inline">/hooks</code> コマンドでGUIから設定することもできますし、直接JSONファイルを編集することもできます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2: 使えるイベント一覧 -->
+                    <div class="content-section">
+                        <h3>使えるイベント一覧</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                Hooksで使えるイベント（トリガー）は以下の通りです。それぞれのイベントで「いつ発火するか」と「どんな使い方ができるか」をまとめました。
+                            </p>
+
+                            <div style="overflow-x: auto;">
+                                <table class="event-table">
+                                    <thead>
+                                        <tr>
+                                            <th>イベント名</th>
+                                            <th>発火タイミング</th>
+                                            <th>具体的な使い道</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>PreToolUse</code></td>
+                                            <td>ツール実行の<strong class="text-white">前</strong></td>
+                                            <td>
+                                                ・特定のファイルの編集をブロック<br>
+                                                ・コミット前にリントを実行<br>
+                                                ・危険なコマンドの実行を阻止
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>PostToolUse</code></td>
+                                            <td>ツール実行の<strong class="text-white">後</strong></td>
+                                            <td>
+                                                ・コミット後に自動でリント<br>
+                                                ・ファイル編集後にフォーマッタを実行<br>
+                                                ・ビルド結果のログ記録
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>SessionStart</code></td>
+                                            <td>セッション<strong class="text-white">開始時</strong></td>
+                                            <td>
+                                                ・作業環境のセットアップ<br>
+                                                ・依存パッケージの確認<br>
+                                                ・ブランチ情報の取得
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>Stop</code></td>
+                                            <td>AIが作業を<strong class="text-white">完了</strong>した時</td>
+                                            <td>
+                                                ・macOS/Linux通知で完了を知らせる<br>
+                                                ・Slackに完了メッセージを投稿<br>
+                                                ・作業ログの記録
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>PermissionRequest</code></td>
+                                            <td>パーミッション確認時</td>
+                                            <td>
+                                                ・通知音を鳴らして注意を促す<br>
+                                                ・ユーザーの操作待ちであることを通知
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>PreToolUseとPostToolUseが最も使う場面が多い</h4>
+                                <p class="text-gray-300">
+                                    ツールの実行前後にフックを差し込むことで、コード品質の維持や自動フォーマットなど、開発ワークフローを大幅に効率化できます。
+                                    <code class="code-inline">matcher</code> と組み合わせることで、特定のツール・特定のコマンドにだけ反応させることも可能です。
+                                </p>
+                            </div>
+
+                            <h4>イベント発火の流れ</h4>
+                            <div class="visual-diagram">
+                                <div class="text-gray-400 text-sm" style="white-space: pre-line;">
+<strong class="text-blue-400">SessionStart</strong>  →  セッション開始時に1回だけ発火
+      ↓
+<strong class="text-white">AIがタスクを処理中...</strong>
+      ↓
+<strong class="text-yellow-400">PreToolUse</strong>   →  ツール実行の直前（matcherで絞り込み可能）
+      ↓
+<strong class="text-white">ツール実行（Bash, Edit, Read など）</strong>
+      ↓
+<strong class="text-green-400">PostToolUse</strong>  →  ツール実行の直後（matcherで絞り込み可能）
+      ↓
+（繰り返し...）
+      ↓
+<strong class="text-purple-400">Stop</strong>          →  AIが全作業を完了した時に発火</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション3: ハンズオン ― 作業完了通知 -->
+                    <div class="content-section">
+                        <h3>ハンズオン: 「作業完了したら通知する」Hookを作ろう</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                最初のハンズオンとして、<strong class="text-white">AIの作業が完了したらmacOSの通知を表示する</strong>Hookを作ります。
+                                長いタスクを任せている間に別の作業をしていても、完了を見逃しません。
+                            </p>
+
+                            <h4><span class="step-number">1</span>設定ファイルを開く</h4>
+                            <p class="text-gray-300 mb-3">
+                                Claude Codeで <code class="code-inline">/hooks</code> コマンドを実行するか、直接 <code class="code-inline">settings.json</code> を編集します。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">/hooks</div>
+                                <div class="output">GUIでHooksの設定画面が開きます</div>
+                            </div>
+                            <p class="text-gray-300 mb-3">
+                                または、直接JSONファイルを編集する場合は以下のパスです。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">code ~/.claude/settings.json</div>
+                                <div class="output">プロジェクト固有の場合: .claude/settings.json</div>
+                            </div>
+
+                            <h4><span class="step-number">2</span>settings.jsonにHookを追加</h4>
+                            <p class="text-gray-300 mb-3">
+                                以下の設定を <code class="code-inline">settings.json</code> に追加します。
+                            </p>
+                            <div class="code-block"><span class="comment">// settings.json</span>
+{
+  <span class="highlight">"hooks"</span>: {
+    <span class="highlight">"Stop"</span>: [
+      {
+        <span class="string">"hooks"</span>: [
+          {
+            <span class="string">"type"</span>: <span class="string">"command"</span>,
+            <span class="string">"command"</span>: <span class="string">"osascript -e 'display notification \"Claudeの作業が完了しました\" with title \"Claude Code\"'"</span>
+          }
+        ]
+      }
+    ]
+  }
+}</div>
+
+                            <h4><span class="step-number">3</span>設定内容の解説</h4>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1"><code class="code-inline">"Stop"</code></div>
+                                        <div class="text-gray-400 text-sm">イベント名。AIが作業を完了した時に発火する</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1"><code class="code-inline">"type": "command"</code></div>
+                                        <div class="text-gray-400 text-sm">シェルコマンドを実行するタイプ（他に "http" もある）</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1"><code class="code-inline">"command": "osascript -e ..."</code></div>
+                                        <div class="text-gray-400 text-sm">macOSの <code class="code-inline">osascript</code> コマンドで通知を表示する。Linuxの場合は <code class="code-inline">notify-send</code> を使う</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4><span class="step-number">4</span>動作を確認する</h4>
+                            <p class="text-gray-300 mb-3">
+                                Claude Codeで何かタスクを実行してみましょう。AIが作業を完了すると、macOSの通知センターに通知が表示されます。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">claude "Hello と表示するだけのPythonスクリプトを作って"</div>
+                                <div class="output">→ AIが作業完了 → macOS通知が表示される!</div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>Linux/WSLの場合</h4>
+                                <p class="text-gray-300">
+                                    <code class="code-inline">osascript</code> はmacOS専用です。Linuxでは代わりに以下を使います:
+                                </p>
+                                <div class="code-block"><span class="string">"command"</span>: <span class="string">"notify-send 'Claude Code' 'Claudeの作業が完了しました'"</span></div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>音も鳴らしたい場合</h4>
+                                <p class="text-gray-300">
+                                    macOSの場合、<code class="code-inline">afplay</code> コマンドでシステムサウンドを再生できます:
+                                </p>
+                                <div class="code-block"><span class="string">"command"</span>: <span class="string">"osascript -e 'display notification \"完了\" with title \"Claude Code\"' && afplay /System/Library/Sounds/Glass.aiff"</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション4: ハンズオン ― コミット前に自動リント -->
+                    <div class="content-section">
+                        <h3>ハンズオン: 「コミット前に自動リント」Hookを作ろう</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                次のハンズオンでは、<strong class="text-white">AIが <code class="code-inline">git commit</code> を実行した後に自動でリントを走らせる</strong>Hookを作ります。
+                                AIがコミットした後にコード品質をチェックし、問題があればすぐに検知できます。
+                            </p>
+
+                            <h4><span class="step-number">1</span>やりたいこと</h4>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 gap-2">
+                                    <div class="loop-step" style="border-left: 3px solid #60a5fa;">
+                                        <div class="text-gray-300">AIが <code class="code-inline">git commit -m "..."</code> を実行</div>
+                                    </div>
+                                    <div class="text-center text-gray-500">↓ PostToolUseイベント発火</div>
+                                    <div class="loop-step" style="border-left: 3px solid #fbbf24;">
+                                        <div class="text-gray-300">matcherで「Bashツール」かつ「git commit*」に一致するか判定</div>
+                                    </div>
+                                    <div class="text-center text-gray-500">↓ 一致した場合のみ</div>
+                                    <div class="loop-step" style="border-left: 3px solid #34d399;">
+                                        <div class="text-gray-300"><code class="code-inline">npm run lint</code> が自動で実行される</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4><span class="step-number">2</span>settings.jsonに追加する設定</h4>
+                            <div class="code-block"><span class="comment">// settings.json</span>
+{
+  <span class="highlight">"hooks"</span>: {
+    <span class="highlight">"PostToolUse"</span>: [
+      {
+        <span class="highlight">"matcher"</span>: {
+          <span class="string">"tool_name"</span>: <span class="string">"Bash"</span>,
+          <span class="string">"command"</span>: <span class="string">"git commit*"</span>
+        },
+        <span class="string">"hooks"</span>: [
+          {
+            <span class="string">"type"</span>: <span class="string">"command"</span>,
+            <span class="string">"command"</span>: <span class="string">"npm run lint"</span>
+          }
+        ]
+      }
+    ]
+  }
+}</div>
+
+                            <h4><span class="step-number">3</span>設定内容の解説</h4>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1"><code class="code-inline">"PostToolUse"</code></div>
+                                        <div class="text-gray-400 text-sm">ツール実行の「後」に発火するイベント</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1"><code class="code-inline">"matcher"</code> オブジェクト</div>
+                                        <div class="text-gray-400 text-sm">条件を絞り込む。<code class="code-inline">tool_name</code> でツール名、<code class="code-inline">command</code> でコマンドパターン（ワイルドカード <code class="code-inline">*</code> 使用可）を指定</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1"><code class="code-inline">"command": "npm run lint"</code></div>
+                                        <div class="text-gray-400 text-sm">条件に一致した時に実行されるコマンド</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4><span class="step-number">4</span>動作確認</h4>
+                            <p class="text-gray-300 mb-3">
+                                Claude Codeにコードを書かせてコミットまでお願いしてみましょう。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">claude "utils.jsにformatDate関数を追加してコミットして"</div>
+                                <div class="output">
+→ AIがコードを書く
+→ AIが git commit を実行
+→ 自動で npm run lint が走る!
+→ リントエラーがあればAIに結果が伝わる</div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>npm run lint が設定されていない場合</h4>
+                                <p class="text-gray-300">
+                                    プロジェクトに <code class="code-inline">package.json</code> の <code class="code-inline">scripts.lint</code> が定義されていない場合はエラーになります。
+                                    ESLint等のリンターがセットアップ済みのプロジェクトで試してください。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>応用: フォーマッタも自動実行</h4>
+                                <p class="text-gray-300">
+                                    同じ仕組みで、ファイル編集後に <code class="code-inline">prettier</code> を自動実行することもできます:
+                                </p>
+                                <div class="code-block">{
+  <span class="highlight">"PostToolUse"</span>: [
+    {
+      <span class="highlight">"matcher"</span>: {
+        <span class="string">"tool_name"</span>: <span class="string">"Edit"</span>
+      },
+      <span class="string">"hooks"</span>: [
+        {
+          <span class="string">"type"</span>: <span class="string">"command"</span>,
+          <span class="string">"command"</span>: <span class="string">"npx prettier --write $CLAUDE_FILE_PATH"</span>
+        }
+      ]
+    }
+  ]
+}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション5: matcherで条件を絞る -->
+                    <div class="content-section">
+                        <h3>matcherで条件を絞る ― 必要な時だけHookを発火させる</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                <code class="code-inline">matcher</code> を使うと、<strong class="text-white">特定の条件に一致した時だけ</strong>Hookを実行できます。
+                                matcherを指定しない場合、そのイベントのすべてのケースでHookが発火します。
+                            </p>
+
+                            <h4>ツール名でフィルタリング</h4>
+                            <p class="text-gray-300 mb-3">
+                                <code class="code-inline">tool_name</code> を指定すると、特定のツールが使われた時だけHookが発火します。
+                            </p>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    <div class="component-card">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">Bash</code></div>
+                                        <div class="text-gray-400 text-sm">シェルコマンドの実行時に発火</div>
+                                    </div>
+                                    <div class="component-card">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">Edit</code></div>
+                                        <div class="text-gray-400 text-sm">ファイル編集時に発火</div>
+                                    </div>
+                                    <div class="component-card">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">Write</code></div>
+                                        <div class="text-gray-400 text-sm">ファイル作成時に発火</div>
+                                    </div>
+                                    <div class="component-card">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">Read</code></div>
+                                        <div class="text-gray-400 text-sm">ファイル読み取り時に発火</div>
+                                    </div>
+                                    <div class="component-card">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">Glob</code></div>
+                                        <div class="text-gray-400 text-sm">ファイル検索時に発火</div>
+                                    </div>
+                                    <div class="component-card">
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">Grep</code></div>
+                                        <div class="text-gray-400 text-sm">テキスト検索時に発火</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>コマンドパターンでフィルタリング</h4>
+                            <p class="text-gray-300 mb-3">
+                                <code class="code-inline">command</code> を指定すると、Bashツールの場合に実行されるコマンドをワイルドカードで絞り込めます。
+                            </p>
+                            <div class="code-block"><span class="comment">// git commit で始まるコマンドにだけ反応</span>
+<span class="string">"matcher"</span>: {
+  <span class="string">"tool_name"</span>: <span class="string">"Bash"</span>,
+  <span class="string">"command"</span>: <span class="string">"git commit*"</span>
+}
+
+<span class="comment">// npm test で始まるコマンドにだけ反応</span>
+<span class="string">"matcher"</span>: {
+  <span class="string">"tool_name"</span>: <span class="string">"Bash"</span>,
+  <span class="string">"command"</span>: <span class="string">"npm test*"</span>
+}
+
+<span class="comment">// docker で始まるコマンドにだけ反応</span>
+<span class="string">"matcher"</span>: {
+  <span class="string">"tool_name"</span>: <span class="string">"Bash"</span>,
+  <span class="string">"command"</span>: <span class="string">"docker*"</span>
+}</div>
+
+                            <h4>matcherなし vs matcherあり の違い</h4>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="loop-step" style="border-left: 3px solid #f87171;">
+                                        <div class="font-bold text-white mb-2">matcherなし</div>
+                                        <div class="text-gray-400 text-sm">
+                                            すべてのツール実行で発火<br>
+                                            → <code class="code-inline">Read</code>, <code class="code-inline">Edit</code>, <code class="code-inline">Bash</code>, <code class="code-inline">Grep</code>... 全部で発火してしまう<br>
+                                            <span class="text-red-400">パフォーマンスに影響する可能性あり</span>
+                                        </div>
+                                    </div>
+                                    <div class="loop-step" style="border-left: 3px solid #34d399;">
+                                        <div class="font-bold text-white mb-2">matcherあり</div>
+                                        <div class="text-gray-400 text-sm">
+                                            条件に一致した時だけ発火<br>
+                                            → 必要な場面だけで実行される<br>
+                                            <span class="text-green-400">効率的で予測可能</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>ハンズオン: 特定ファイルの編集をブロックする</h4>
+                                <p class="text-gray-300 mb-3">
+                                    <code class="code-inline">PreToolUse</code> と matcher を組み合わせて、特定のファイルをAIに編集させないようにすることもできます。
+                                    Hookのコマンドが<strong class="text-white">非ゼロの終了コードを返すと、そのツール実行がブロック</strong>されます。
+                                </p>
+                                <div class="code-block">{
+  <span class="highlight">"PreToolUse"</span>: [
+    {
+      <span class="highlight">"matcher"</span>: {
+        <span class="string">"tool_name"</span>: <span class="string">"Edit"</span>
+      },
+      <span class="string">"hooks"</span>: [
+        {
+          <span class="string">"type"</span>: <span class="string">"command"</span>,
+          <span class="string">"command"</span>: <span class="string">"echo $CLAUDE_FILE_PATH | grep -q 'package-lock.json' && exit 1 || exit 0"</span>
+        }
+      ]
+    }
+  ]
+}</div>
+                                <p class="text-gray-300 mt-3">
+                                    この例では、AIが <code class="code-inline">package-lock.json</code> を編集しようとした場合、Hookが終了コード1を返してブロックします。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション6: HTTP Hooks -->
+                    <div class="content-section">
+                        <h3>HTTP Hooks ― 外部サービスと連携する</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Hooksはシェルコマンドだけでなく、<strong class="text-white">HTTP POSTリクエスト</strong>を送ることもできます。
+                                これにより、Slack、Discord、Webhookなど外部サービスとの連携が可能になります。
+                            </p>
+
+                            <h4>HTTP Hookの基本構文</h4>
+                            <div class="code-block">{
+  <span class="highlight">"hooks"</span>: {
+    <span class="highlight">"Stop"</span>: [
+      {
+        <span class="string">"hooks"</span>: [
+          {
+            <span class="string">"type"</span>: <span class="highlight">"http"</span>,
+            <span class="string">"url"</span>: <span class="string">"https://hooks.slack.com/services/T.../B.../xxx"</span>,
+            <span class="string">"headers"</span>: {
+              <span class="string">"Content-Type"</span>: <span class="string">"application/json"</span>
+            },
+            <span class="string">"body"</span>: <span class="string">"{\"text\": \"Claude Codeの作業が完了しました\"}"</span>
+          }
+        ]
+      }
+    ]
+  }
+}</div>
+
+                            <h4>Slack通知の例（概念）</h4>
+                            <p class="text-gray-300 mb-3">
+                                Slackの Incoming Webhook URLを取得すれば、AIの作業完了をチームのSlackチャンネルに通知できます。
+                            </p>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step" style="border-left: 3px solid #60a5fa;">
+                                        <div class="font-bold text-white mb-1">1. Slack AppでIncoming Webhookを作成</div>
+                                        <div class="text-gray-400 text-sm">Slack APIの設定画面で、通知を送りたいチャンネルにWebhookを設定</div>
+                                    </div>
+                                    <div class="loop-step" style="border-left: 3px solid #fbbf24;">
+                                        <div class="font-bold text-white mb-1">2. Webhook URLをHookのurlに設定</div>
+                                        <div class="text-gray-400 text-sm"><code class="code-inline">https://hooks.slack.com/services/T.../B.../xxx</code> のようなURLをコピー</div>
+                                    </div>
+                                    <div class="loop-step" style="border-left: 3px solid #34d399;">
+                                        <div class="font-bold text-white mb-1">3. AIが作業完了 → Slackに自動投稿</div>
+                                        <div class="text-gray-400 text-sm">チームメンバーがリアルタイムで作業完了を確認できる</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>Webhook URLの管理に注意</h4>
+                                <p class="text-gray-300">
+                                    Webhook URLは秘密情報です。<code class="code-inline">settings.json</code> をGitにコミットする場合、URLが公開されないよう注意してください。
+                                    環境変数を使うか、ユーザーレベルの <code class="code-inline">~/.claude/settings.json</code> に記述するのが安全です。
+                                </p>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>commandタイプでもHTTPリクエストは送れる</h4>
+                                <p class="text-gray-300">
+                                    <code class="code-inline">type: "command"</code> で <code class="code-inline">curl</code> コマンドを使えば、同じことが実現できます。
+                                    <code class="code-inline">type: "http"</code> はより宣言的で、コマンドの書き方を覚える必要がないというメリットがあります。
+                                </p>
+                                <div class="code-block"><span class="comment">// commandタイプでcurlを使う場合</span>
+{
+  <span class="string">"type"</span>: <span class="string">"command"</span>,
+  <span class="string">"command"</span>: <span class="string">"curl -X POST -H 'Content-Type: application/json' -d '{\"text\":\"完了\"}' https://hooks.slack.com/..."</span>
+}</div>
+                            </div>
+
+                            <h4>まとめ: どのタイプを使う？</h4>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="component-card">
+                                        <div class="font-bold text-primary-400 mb-2">type: "command"</div>
+                                        <div class="text-gray-400 text-sm">
+                                            ・ローカルのコマンド実行に最適<br>
+                                            ・リント、フォーマット、通知音、OS通知<br>
+                                            ・柔軟性が高い（パイプ、条件分岐など）
+                                        </div>
+                                    </div>
+                                    <div class="component-card">
+                                        <div class="font-bold text-primary-400 mb-2">type: "http"</div>
+                                        <div class="text-gray-400 text-sm">
+                                            ・外部サービスとの連携に最適<br>
+                                            ・Slack、Discord、Webhook<br>
+                                            ・宣言的でシンプル
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+</html>

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP（外部ツール連携） - Claude Code</title>
+    <meta name="description" content="Claude CodeのMCP（Model Context Protocol）でGitHub、Slack、データベースなどの外部ツールを接続する方法。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#e8734a',500:'#e36437',600:'#c2410c',700:'#9a3412',800:'#7c2d12',900:'#431407' },
+                    },
+                    fontFamily: { sans:['Noto Sans JP','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%); background-attachment: fixed; }
+        .content-section { margin-bottom: 32px; }
+        .content-section h3 { color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease; background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52; }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .visual-diagram { background: rgba(26, 26, 46, 0.7); border: 1px solid #3a3a52; border-radius: 12px; padding: 28px; margin: 24px 0; }
+        .command-box { background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline { background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+        .info-box, .warning-box, .success-box, .error-box { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+        .info-box { border-left-color: #60a5fa; }
+        .warning-box { border-left-color: #fbbf24; }
+        .success-box { border-left-color: #34d399; }
+        .error-box { border-left-color: #f87171; }
+        .loop-step { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 18px; }
+        .component-card { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px; }
+        .code-block { background: rgba(0, 0, 0, 0.35); border: 1px solid #3a3a52; border-radius: 8px; padding: 18px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto; white-space: pre; }
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+        .code-block .highlight { color: #e8734a; font-weight: 600; }
+        header h1 span { background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; -webkit-text-fill-color: unset !important; color: #e8734a !important; }
+        .ref-box { color: #a0a0b8; font-size: 13px; margin-bottom: 16px; }
+        .ref-box a { color: #e8734a; text-decoration: none; border-bottom: 1px solid rgba(232, 115, 74, 0.3); transition: all 0.2s; }
+        .ref-box a:hover { border-bottom-color: #e8734a; }
+        .step-number { background: #e8734a; color: white; font-weight: 700; min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 14px; flex-shrink: 0; font-size: 14px; }
+        .mcp-flow-arrow { color: #e8734a; font-size: 24px; font-weight: 700; }
+        .mcp-server-card { background: rgba(255, 255, 255, 0.03); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px; transition: all 0.2s; }
+        .mcp-server-card:hover { border-color: rgba(232, 115, 74, 0.4); background: rgba(232, 115, 74, 0.05); }
+        .mcp-server-card .server-icon { font-size: 32px; margin-bottom: 12px; }
+        .mcp-server-card .server-name { color: #e8e8f0; font-weight: 600; font-size: 16px; margin-bottom: 8px; }
+        .mcp-server-card .server-desc { color: #a0a0b8; font-size: 14px; line-height: 1.6; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- ========== セクション1: MCPとは何か ========== -->
+                    <div class="content-section">
+                        <h3>MCPとは何か ― AIと外部ツールをつなぐ「USBポート」</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/mcp" target="_blank">Claude Code公式ドキュメント - MCP</a></div>
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                <strong class="text-white">MCP（Model Context Protocol）</strong>は、Claude Codeに外部ツールを接続するための<strong class="text-white">標準規格</strong>です。<br>
+                                パソコンの<strong class="text-white">USBポート</strong>に例えるとわかりやすいでしょう。
+                            </p>
+
+                            <!-- USBポートの例え図 -->
+                            <div class="visual-diagram">
+                                <p class="text-center text-gray-400 text-sm mb-4">MCPは「USBポート」のようなもの</p>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                                    <div class="text-center">
+                                        <div class="text-4xl mb-3">🤖</div>
+                                        <div class="text-white font-bold text-lg">Claude Code</div>
+                                        <div class="text-gray-400 text-sm mt-1">（パソコン本体）</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-3xl mb-3">🔌</div>
+                                        <div class="text-primary-400 font-bold text-lg">MCP</div>
+                                        <div class="text-gray-400 text-sm mt-1">（USBポート＝接続規格）</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-4xl mb-3">🌐</div>
+                                        <div class="text-white font-bold text-lg">外部ツール</div>
+                                        <div class="text-gray-400 text-sm mt-1">GitHub / Slack / DB / API...</div>
+                                    </div>
+                                </div>
+                                <div class="mt-6 text-center text-gray-400 text-sm">
+                                    USBポートがあれば、マウスもキーボードもプリンターも接続できる。<br>
+                                    MCPがあれば、GitHubもSlackもデータベースもClaude Codeに接続できる。
+                                </div>
+                            </div>
+
+                            <h4>MCPがない世界 vs MCPがある世界</h4>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                <div class="error-box">
+                                    <h4 style="margin-top: 0; color: #f87171;">MCPなし</h4>
+                                    <p class="text-gray-300 text-sm leading-relaxed">
+                                        1. ブラウザでGitHubを開く<br>
+                                        2. Issueの内容を手動でコピー<br>
+                                        3. Claude Codeに貼り付けて質問<br>
+                                        4. AIの回答を手動でGitHubに反映<br><br>
+                                        <strong class="text-gray-200">毎回この手作業が必要...</strong>
+                                    </p>
+                                </div>
+                                <div class="success-box">
+                                    <h4 style="margin-top: 0; color: #34d399;">MCPあり</h4>
+                                    <p class="text-gray-300 text-sm leading-relaxed">
+                                        1. Claude Codeに「Issue #42を修正して」と言うだけ<br>
+                                        2. AIが自動でIssueを読む<br>
+                                        3. AIがコードを修正<br>
+                                        4. AIがPRを作成<br><br>
+                                        <strong class="text-gray-200">全部AIが直接やってくれる!</strong>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="info-box mt-6">
+                                <h4>技術的に言うと</h4>
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    MCPサーバーは<strong class="text-white">ローカルで動く小さなプログラム</strong>です。Claude Codeが「GitHub上のIssue一覧を取得して」と依頼すると、MCPサーバーがGitHub APIを叩いて結果を返します。<br>
+                                    Claude Code自体が直接外部APIにアクセスするのではなく、<strong class="text-white">MCPサーバーが橋渡し役</strong>をします。
+                                </p>
+                            </div>
+
+                            <!-- MCPの仕組み詳細図 -->
+                            <div class="visual-diagram mt-6">
+                                <p class="text-center text-gray-400 text-sm mb-4">MCPの通信フロー</p>
+<div class="code-block"><span class="comment">// あなたの指示</span>
+<span class="string">"GitHubのIssue #42を見て、修正PRを作って"</span>
+
+        <span class="mcp-flow-arrow">|</span>
+        <span class="mcp-flow-arrow">v</span>
+
+<span class="highlight">[Claude Code]</span>  --MCP Protocol--&gt;  <span class="highlight">[GitHub MCPサーバー]</span>  --API--&gt;  <span class="highlight">[GitHub]</span>
+                                          (ローカルで動作)
+
+<span class="comment">// MCPサーバーが提供する「ツール」の例:</span>
+<span class="keyword">- list_issues()</span>      <span class="comment">// Issue一覧を取得</span>
+<span class="keyword">- get_issue(id)</span>      <span class="comment">// 特定のIssueを取得</span>
+<span class="keyword">- create_pr(title)</span>   <span class="comment">// PRを作成</span>
+<span class="keyword">- add_comment(text)</span>  <span class="comment">// コメントを追加</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========== セクション2: ハンズオン ========== -->
+                    <div class="content-section">
+                        <h3>ハンズオン ― MCPサーバーを接続してみよう</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/mcp" target="_blank">Claude Code公式ドキュメント - MCP</a></div>
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                実際にMCPサーバーを設定して、Claude Codeの機能を拡張してみましょう。<br>
+                                まずは一番シンプルな<strong class="text-white">Filesystem MCPサーバー</strong>から始めます。
+                            </p>
+
+                            <!-- ステップ1: /mcp コマンド -->
+                            <h4>方法1: <span class="code-inline">/mcp</span> コマンドで確認する</h4>
+
+                            <p class="text-gray-300 text-sm leading-relaxed mb-3">
+                                まず、現在接続されているMCPサーバーを確認してみましょう。
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command">/mcp</div>
+                                <div class="output">
+                                    Claude Code内で <span class="code-inline">/mcp</span> と入力すると、現在のMCPサーバーの状態が表示されます。<br>
+                                    まだ何も設定していなければ「No MCP servers configured」と出ます。
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>ハンズオン: まず試してみよう</h4>
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    Claude Codeを起動して、<span class="code-inline">/mcp</span> と入力してみてください。<br>
+                                    何が表示されるか確認しましょう。何も設定していなければ空のリストが返ってきます。
+                                </p>
+                            </div>
+
+                            <!-- ステップ2: settings.jsonで設定 -->
+                            <h4>方法2: settings.jsonで手動設定する</h4>
+
+                            <p class="text-gray-300 text-sm leading-relaxed mb-3">
+                                MCPサーバーの設定は<span class="code-inline">settings.json</span>に記述します。<br>
+                                設定ファイルの場所は3つのスコープがあります。
+                            </p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 mb-6">
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">ユーザー（グローバル）</div>
+                                    <div class="code-inline text-xs">~/.claude/settings.json</div>
+                                    <p class="text-gray-400 text-xs mt-2">全プロジェクトで使える</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">プロジェクト（共有）</div>
+                                    <div class="code-inline text-xs">.claude/settings.json</div>
+                                    <p class="text-gray-400 text-xs mt-2">チームで共有される</p>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">プロジェクト（個人）</div>
+                                    <div class="code-inline text-xs">.claude/settings.local.json</div>
+                                    <p class="text-gray-400 text-xs mt-2">自分だけの設定</p>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>どこに書くべき?</h4>
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    <strong class="text-white">迷ったら <span class="code-inline">~/.claude/settings.json</span>（ユーザースコープ）に書きましょう。</strong><br>
+                                    全プロジェクトで使えて、個人の環境に閉じるので安全です。
+                                </p>
+                            </div>
+
+                            <!-- ハンズオン: Filesystem MCPサーバーを設定 -->
+                            <h4>ハンズオン: Filesystem MCPサーバーを設定してみよう</h4>
+
+                            <p class="text-gray-300 text-sm leading-relaxed mb-3">
+                                Filesystem MCPサーバーを使うと、Claude Codeが<strong class="text-white">指定したディレクトリ内のファイルを安全に読み書き</strong>できるようになります。<br>
+                                以下の手順で設定してみましょう。
+                            </p>
+
+                            <div class="loop-step mb-4">
+                                <div class="flex items-start">
+                                    <div class="step-number">1</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-2">settings.jsonを開く（または作成する）</div>
+                                        <div class="command-box">
+                                            <div class="command">cat ~/.claude/settings.json</div>
+                                            <div class="output">
+                                                ファイルが存在しない場合は、新規作成します。<br>
+                                                既にある場合は中身を確認しましょう。
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-step mb-4">
+                                <div class="flex items-start">
+                                    <div class="step-number">2</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-2">MCPサーバーの設定を追加する</div>
+                                        <p class="text-gray-300 text-sm mb-3">
+                                            以下の内容を <span class="code-inline">~/.claude/settings.json</span> に記述します。<br>
+                                            <span class="code-inline">/path/to/allowed/dir</span> は実際にアクセスを許可したいディレクトリに置き換えてください。
+                                        </p>
+<div class="code-block"><span class="comment">// ~/.claude/settings.json</span>
+{
+  <span class="highlight">"mcpServers"</span>: {
+    <span class="variable">"filesystem"</span>: {
+      <span class="keyword">"command"</span>: <span class="string">"npx"</span>,
+      <span class="keyword">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@anthropic-ai/mcp-filesystem"</span>, <span class="string">"/path/to/allowed/dir"</span>]
+    }
+  }
+}</div>
+                                        <div class="info-box">
+                                            <p class="text-gray-300 text-sm leading-relaxed">
+                                                <strong class="text-white">設定の読み方:</strong><br>
+                                                <span class="code-inline">"filesystem"</span> ... MCPサーバーの名前（自由につけられる）<br>
+                                                <span class="code-inline">"command"</span> ... 起動コマンド（npxでnpmパッケージを実行）<br>
+                                                <span class="code-inline">"args"</span> ... コマンドの引数（パッケージ名とアクセス許可ディレクトリ）<br>
+                                                <span class="code-inline">"-y"</span> ... npxの確認プロンプトを自動でYes
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-step mb-4">
+                                <div class="flex items-start">
+                                    <div class="step-number">3</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-2">Claude Codeを再起動して確認する</div>
+                                        <p class="text-gray-300 text-sm mb-3">
+                                            設定後、Claude Codeを再起動（またはリロード）して、<span class="code-inline">/mcp</span> で確認します。
+                                        </p>
+                                        <div class="command-box">
+                                            <div class="command">/mcp</div>
+                                            <div class="output">
+                                                MCP Servers:<br>
+                                                &nbsp;&nbsp;filesystem: connected<br><br>
+                                                このように「connected」と表示されれば成功です!
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-step mb-4">
+                                <div class="flex items-start">
+                                    <div class="step-number">4</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-2">実際に使ってみる</div>
+                                        <p class="text-gray-300 text-sm mb-3">
+                                            接続できたら、Claude Codeに話しかけてみましょう。
+                                        </p>
+                                        <div class="command-box">
+                                            <div class="command" style="flex-wrap: wrap;">指定したディレクトリにあるファイルの一覧を教えて</div>
+                                            <div class="output">
+                                                Claude CodeがFilesystem MCPサーバーを使って、<br>
+                                                指定ディレクトリ内のファイル一覧を取得して表示してくれます。
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>ここまでのまとめ</h4>
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    MCPサーバーの接続は、たった2ステップです。<br>
+                                    <strong class="text-white">1.</strong> settings.jsonに設定を書く<br>
+                                    <strong class="text-white">2.</strong> Claude Codeを再起動する<br><br>
+                                    これだけで、Claude Codeに新しい能力が追加されます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========== セクション3: 人気のMCPサーバー ========== -->
+                    <div class="content-section">
+                        <h3>人気のMCPサーバー ― まず入れるならこれ</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/mcp" target="_blank">Claude Code公式ドキュメント - MCP</a> / <a href="https://github.com/modelcontextprotocol/servers" target="_blank">公式MCPサーバー一覧</a></div>
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                MCPサーバーは多数公開されています。<br>
+                                ここでは特に<strong class="text-white">開発者に人気の定番サーバー</strong>を紹介します。
+                            </p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <!-- GitHub MCP -->
+                                <div class="mcp-server-card">
+                                    <div class="server-icon">🐙</div>
+                                    <div class="server-name">GitHub MCP</div>
+                                    <div class="server-desc">
+                                        Issue、PR、リポジトリの操作ができます。<br>
+                                        「Issue #42を修正してPRを作って」のような<strong class="text-white">開発フロー全体をAIに任せる</strong>ことが可能に。
+                                    </div>
+                                    <div class="mt-3">
+<div class="code-block"><span class="highlight">"github"</span>: {
+  <span class="keyword">"command"</span>: <span class="string">"npx"</span>,
+  <span class="keyword">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@anthropic-ai/mcp-github"</span>],
+  <span class="keyword">"env"</span>: {
+    <span class="variable">"GITHUB_TOKEN"</span>: <span class="string">"ghp_xxxxxxxxxxxx"</span>
+  }
+}</div>
+                                    </div>
+                                    <div class="warning-box mt-2" style="margin-bottom: 0;">
+                                        <p class="text-gray-300 text-xs leading-relaxed">
+                                            <strong class="text-white">GITHUB_TOKEN</strong>が必要です。GitHubの Settings &gt; Developer settings &gt; Personal access tokens で発行してください。
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Filesystem MCP -->
+                                <div class="mcp-server-card">
+                                    <div class="server-icon">📁</div>
+                                    <div class="server-name">Filesystem MCP</div>
+                                    <div class="server-desc">
+                                        指定したディレクトリ内のファイルを読み書きできます。<br>
+                                        Claude Codeの標準機能と似ていますが、<strong class="text-white">プロジェクト外のファイルにもアクセス</strong>できるのが特徴。
+                                    </div>
+                                    <div class="mt-3">
+<div class="code-block"><span class="highlight">"filesystem"</span>: {
+  <span class="keyword">"command"</span>: <span class="string">"npx"</span>,
+  <span class="keyword">"args"</span>: [
+    <span class="string">"-y"</span>,
+    <span class="string">"@anthropic-ai/mcp-filesystem"</span>,
+    <span class="string">"/Users/me/documents"</span>
+  ]
+}</div>
+                                    </div>
+                                    <div class="info-box mt-2" style="margin-bottom: 0;">
+                                        <p class="text-gray-300 text-xs leading-relaxed">
+                                            複数のディレクトリを許可したい場合は、argsにパスを追加するだけです。
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Fetch / Web MCP -->
+                                <div class="mcp-server-card">
+                                    <div class="server-icon">🌐</div>
+                                    <div class="server-name">Fetch MCP</div>
+                                    <div class="server-desc">
+                                        Web上の情報を取得できます。<br>
+                                        「このURLのページ内容を要約して」「APIのレスポンスを確認して」のような<strong class="text-white">Webアクセスが可能</strong>に。
+                                    </div>
+                                    <div class="mt-3">
+<div class="code-block"><span class="highlight">"fetch"</span>: {
+  <span class="keyword">"command"</span>: <span class="string">"npx"</span>,
+  <span class="keyword">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@anthropic-ai/mcp-fetch"</span>]
+}</div>
+                                    </div>
+                                    <div class="info-box mt-2" style="margin-bottom: 0;">
+                                        <p class="text-gray-300 text-xs leading-relaxed">
+                                            追加設定なしですぐ使えます。URLを渡すだけでWebページの内容を取得できます。
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- その他 -->
+                                <div class="mcp-server-card">
+                                    <div class="server-icon">🔧</div>
+                                    <div class="server-name">その他の人気サーバー</div>
+                                    <div class="server-desc">
+                                        <strong class="text-white">Slack MCP</strong> ... チャンネル閲覧、メッセージ送信<br>
+                                        <strong class="text-white">PostgreSQL MCP</strong> ... DB操作、クエリ実行<br>
+                                        <strong class="text-white">Puppeteer MCP</strong> ... ブラウザ自動操作<br>
+                                        <strong class="text-white">Memory MCP</strong> ... 長期記憶の保存<br>
+                                    </div>
+                                    <div class="mt-3">
+                                        <a href="https://github.com/modelcontextprotocol/servers" target="_blank" class="text-primary-400 text-sm hover:underline">
+                                            公式MCPサーバー一覧を見る &rarr;
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 複数サーバーの設定例 -->
+                            <h4>ハンズオン: 複数のMCPサーバーを同時に設定する</h4>
+
+                            <p class="text-gray-300 text-sm leading-relaxed mb-3">
+                                MCPサーバーは複数同時に使えます。以下は実践的な設定例です。
+                            </p>
+
+<div class="code-block"><span class="comment">// ~/.claude/settings.json の例（複数サーバー）</span>
+{
+  <span class="highlight">"mcpServers"</span>: {
+    <span class="variable">"github"</span>: {
+      <span class="keyword">"command"</span>: <span class="string">"npx"</span>,
+      <span class="keyword">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@anthropic-ai/mcp-github"</span>],
+      <span class="keyword">"env"</span>: {
+        <span class="variable">"GITHUB_TOKEN"</span>: <span class="string">"ghp_xxxxxxxxxxxx"</span>
+      }
+    },
+    <span class="variable">"filesystem"</span>: {
+      <span class="keyword">"command"</span>: <span class="string">"npx"</span>,
+      <span class="keyword">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@anthropic-ai/mcp-filesystem"</span>, <span class="string">"/Users/me/documents"</span>]
+    },
+    <span class="variable">"fetch"</span>: {
+      <span class="keyword">"command"</span>: <span class="string">"npx"</span>,
+      <span class="keyword">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@anthropic-ai/mcp-fetch"</span>]
+    }
+  }
+}</div>
+
+                            <div class="success-box">
+                                <h4>やってみよう</h4>
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    上の設定を参考に、自分のsettings.jsonに好きなMCPサーバーを追加して、<span class="code-inline">/mcp</span> で確認してみましょう。<br>
+                                    まずは設定不要の<strong class="text-white">Fetch MCP</strong>から試すのがおすすめです。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========== セクション4: MCPサーバーの探し方・入れ方 ========== -->
+                    <div class="content-section">
+                        <h3>MCPサーバーの探し方・入れ方</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/mcp" target="_blank">Claude Code公式ドキュメント - MCP</a></div>
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                「どんなMCPサーバーがあるの?」「どうやって入れるの?」<br>
+                                3つの方法を紹介します。
+                            </p>
+
+                            <!-- 方法1: 対話式インストール -->
+                            <h4>方法1: 対話式でインストールする（初心者におすすめ）</h4>
+
+                            <p class="text-gray-300 text-sm leading-relaxed mb-3">
+                                Claude Codeの中で<span class="code-inline">/mcp</span>コマンドを使うと、対話的にMCPサーバーを追加できます。
+                            </p>
+
+                            <div class="loop-step mb-4">
+                                <div class="flex items-start">
+                                    <div class="step-number">1</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-2">Claude Code内で /mcp コマンドを実行</div>
+                                        <div class="command-box">
+                                            <div class="command">/mcp</div>
+                                            <div class="output">
+                                                MCPサーバーの管理メニューが表示されます。<br>
+                                                「Add」を選択して、新しいサーバーを追加できます。
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-step mb-4">
+                                <div class="flex items-start">
+                                    <div class="step-number">2</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-2">サーバー名とコマンドを入力</div>
+                                        <p class="text-gray-300 text-sm mb-3">
+                                            対話形式で以下を聞かれます:
+                                        </p>
+                                        <div class="command-box">
+                                            <div class="output" style="margin-top: 0; padding-top: 0; border-top: none;">
+                                                Server name: <span class="text-white">fetch</span><br>
+                                                Server command: <span class="text-white">npx -y @anthropic-ai/mcp-fetch</span><br>
+                                                Scope: <span class="text-white">User</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-step mb-4">
+                                <div class="flex items-start">
+                                    <div class="step-number">3</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-2">自動で settings.json に追加される</div>
+                                        <p class="text-gray-300 text-sm">
+                                            手動でJSONを編集する必要がありません。初心者に最もおすすめの方法です。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 方法2: settings.jsonを手動編集 -->
+                            <h4>方法2: settings.jsonを直接編集する</h4>
+
+                            <p class="text-gray-300 text-sm leading-relaxed mb-3">
+                                前のセクションで紹介した方法です。JSONの書き方がわかっていれば最も柔軟な方法です。<br>
+                                環境変数（<span class="code-inline">env</span>）の設定が必要なサーバーは、この方法が確実です。
+                            </p>
+
+<div class="code-block"><span class="comment">// 環境変数が必要な場合の設定例</span>
+{
+  <span class="highlight">"mcpServers"</span>: {
+    <span class="variable">"slack"</span>: {
+      <span class="keyword">"command"</span>: <span class="string">"npx"</span>,
+      <span class="keyword">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@anthropic-ai/mcp-slack"</span>],
+      <span class="keyword">"env"</span>: {
+        <span class="variable">"SLACK_BOT_TOKEN"</span>: <span class="string">"xoxb-xxxxxxxxxxxx"</span>,
+        <span class="variable">"SLACK_TEAM_ID"</span>: <span class="string">"T0123456789"</span>
+      }
+    }
+  }
+}</div>
+
+                            <!-- 方法3: MCP Registry -->
+                            <h4>方法3: MCP Registryで探す</h4>
+
+                            <p class="text-gray-300 text-sm leading-relaxed mb-3">
+                                MCP Registryは、公開されているMCPサーバーを検索・インストールできる<strong class="text-white">マーケットプレイス</strong>のようなものです。
+                            </p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">公式MCPサーバー一覧</div>
+                                    <p class="text-gray-400 text-sm mb-3">Anthropicと公式パートナーが提供するサーバー</p>
+                                    <a href="https://github.com/modelcontextprotocol/servers" target="_blank" class="text-primary-400 text-sm hover:underline">
+                                        github.com/modelcontextprotocol/servers &rarr;
+                                    </a>
+                                </div>
+                                <div class="component-card">
+                                    <div class="text-primary-400 font-bold mb-2">MCP Registry</div>
+                                    <p class="text-gray-400 text-sm mb-3">コミュニティ製サーバーも含む包括的な一覧</p>
+                                    <a href="https://mcp.so" target="_blank" class="text-primary-400 text-sm hover:underline">
+                                        mcp.so &rarr;
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>ハンズオン: MCPサーバーを探してみよう</h4>
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    <a href="https://github.com/modelcontextprotocol/servers" target="_blank" class="text-primary-400 hover:underline">公式MCPサーバー一覧</a>にアクセスして、自分の開発で使えそうなサーバーがないか探してみましょう。<br>
+                                    気になるものがあれば、READMEの手順に従ってsettings.jsonに追加してみてください。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========== セクション5: セキュリティの注意点 ========== -->
+                    <div class="content-section">
+                        <h3>セキュリティの注意点</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/mcp" target="_blank">Claude Code公式ドキュメント - MCP</a></div>
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                MCPは便利ですが、<strong class="text-white">セキュリティを意識して使う</strong>ことが重要です。<br>
+                                以下の3つのポイントを覚えておきましょう。
+                            </p>
+
+                            <!-- ポイント1 -->
+                            <div class="loop-step mb-4">
+                                <div class="flex items-start">
+                                    <div class="step-number">1</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-2">MCPサーバーはローカルで動くプロセス</div>
+                                        <p class="text-gray-300 text-sm leading-relaxed">
+                                            MCPサーバーは<strong class="text-white">あなたのPC上で動作するプログラム</strong>です。<br>
+                                            つまり、そのプログラムはあなたのPCの権限でファイルやネットワークにアクセスできます。<br>
+                                            悪意のあるMCPサーバーを入れると、ファイルを読まれたり、データを送信されたりする可能性があります。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ポイント2 -->
+                            <div class="loop-step mb-4">
+                                <div class="flex items-start">
+                                    <div class="step-number">2</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-2">信頼できるソースからのみインストール</div>
+                                        <p class="text-gray-300 text-sm leading-relaxed">
+                                            MCPサーバーは以下の信頼できるソースから入れましょう。
+                                        </p>
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                                            <div class="component-card text-center">
+                                                <div class="text-2xl mb-2">&#9989;</div>
+                                                <div class="text-white text-sm font-bold">Anthropic公式</div>
+                                                <div class="text-gray-400 text-xs mt-1">@anthropic-ai/ で始まるパッケージ</div>
+                                            </div>
+                                            <div class="component-card text-center">
+                                                <div class="text-2xl mb-2">&#9989;</div>
+                                                <div class="text-white text-sm font-bold">公式リポジトリ</div>
+                                                <div class="text-gray-400 text-xs mt-1">modelcontextprotocol/ のGitHub</div>
+                                            </div>
+                                            <div class="component-card text-center">
+                                                <div class="text-2xl mb-2">&#9888;&#65039;</div>
+                                                <div class="text-white text-sm font-bold">コミュニティ製</div>
+                                                <div class="text-gray-400 text-xs mt-1">スター数やREADMEを確認</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ポイント3 -->
+                            <div class="loop-step mb-4">
+                                <div class="flex items-start">
+                                    <div class="step-number">3</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-2">パーミッション設定との関係</div>
+                                        <p class="text-gray-300 text-sm leading-relaxed">
+                                            MCPサーバーが提供するツールも、Claude Codeの<strong class="text-white">パーミッションシステム</strong>の対象です。<br>
+                                            MCPサーバー経由の操作であっても、初回はClaude Codeが「このツールを使っていいですか?」と確認してきます。
+                                        </p>
+                                        <div class="visual-diagram mt-3">
+<div class="code-block" style="margin: 0;"><span class="comment">// MCPツールの使用時にパーミッション確認が出る</span>
+<span class="highlight">Claude wants to use mcp_github_create_pr</span>
+<span class="string">Title: "Fix issue #42"</span>
+<span class="string">Base: "main"</span>
+
+<span class="keyword">Allow?</span> [y/n/always]</div>
+                                        </div>
+                                        <p class="text-gray-300 text-sm leading-relaxed mt-3">
+                                            <span class="code-inline">always</span> を選ぶと、次回から同じツールの確認がスキップされます。<br>
+                                            信頼できるMCPサーバーのツールだけ <span class="code-inline">always</span> にしましょう。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>セキュリティチェックリスト</h4>
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    MCPサーバーを追加する前に確認しましょう:<br><br>
+                                    <strong class="text-white">1.</strong> そのパッケージは公式/信頼できる開発者のものか?<br>
+                                    <strong class="text-white">2.</strong> GitHubリポジトリにソースコードが公開されているか?<br>
+                                    <strong class="text-white">3.</strong> 環境変数にトークンを設定する場合、そのトークンの権限は最小限か?<br>
+                                    <strong class="text-white">4.</strong> settings.jsonにトークンを直書きする場合、そのファイルはGitで管理されていないか?
+                                </p>
+                            </div>
+
+                            <div class="error-box">
+                                <h4>やってはいけないこと</h4>
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    <strong class="text-white">settings.jsonをGitにコミットしない</strong> ... APIトークンが漏洩します<br>
+                                    <strong class="text-white">知らないMCPサーバーをそのまま入れない</strong> ... まずソースコードを確認<br>
+                                    <strong class="text-white">全権限のトークンを使わない</strong> ... 必要最小限のスコープに絞る
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+</html>

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Teams・定期実行 - Claude Code</title>
+    <meta name="description" content="Claude CodeのAgent Teams、/batch、/loop、/schedule、Remote Controlで複数エージェントの協調と定期実行を実現する方法。">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#e8734a',500:'#e36437',600:'#c2410c',700:'#9a3412',800:'#7c2d12',900:'#431407' },
+                    },
+                    fontFamily: { sans:['Noto Sans JP','sans-serif'], mono:['JetBrains Mono','monospace'] },
+                    animation: { 'pulse-slow':'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body { overflow-x: hidden; background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%); background-attachment: fixed; }
+        .content-section { margin-bottom: 32px; }
+        .content-section h3 { color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease; background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52; }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .visual-diagram { background: rgba(26, 26, 46, 0.7); border: 1px solid #3a3a52; border-radius: 12px; padding: 28px; margin: 24px 0; }
+        .command-box { background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px; padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline { background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+        .info-box, .warning-box, .success-box, .error-box { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+        .info-box { border-left-color: #60a5fa; }
+        .warning-box { border-left-color: #fbbf24; }
+        .success-box { border-left-color: #34d399; }
+        .error-box { border-left-color: #f87171; }
+        .loop-step { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 18px; }
+        .component-card { background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3a52; border-radius: 10px; padding: 20px; }
+        .code-block { background: rgba(0, 0, 0, 0.35); border: 1px solid #3a3a52; border-radius: 8px; padding: 18px; margin: 16px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto; white-space: pre; }
+        .code-block .comment { color: #6b6b80; }
+        .code-block .keyword { color: #d0d0e0; }
+        .code-block .string { color: #a0a0b8; }
+        .code-block .variable { color: #ffffff; }
+        .code-block .highlight { color: #e8734a; font-weight: 600; }
+        header h1 span { background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; -webkit-text-fill-color: unset !important; color: #e8734a !important; }
+        .ref-box { color: #a0a0b8; font-size: 13px; margin-bottom: 16px; }
+        .ref-box a { color: #e8734a; text-decoration: none; border-bottom: 1px solid rgba(232, 115, 74, 0.3); transition: all 0.2s; }
+        .ref-box a:hover { border-bottom-color: #e8734a; }
+        .step-number { background: #e8734a; color: white; font-weight: 700; min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 14px; flex-shrink: 0; font-size: 14px; }
+    </style>
+</head>
+<body class="text-white font-sans js-loading">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- セクション1: Agent Teamsとは何か -->
+                    <div class="content-section">
+                        <h3>Agent Teamsとは何か</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/agent-teams" target="_blank">Agent Teams</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Agent Teamsとは、<strong class="text-white">複数のAIエージェントがチームとして協調して作業する仕組み</strong>です。<br>
+                                1つのClaude Codeセッションの中で、複数のエージェントが<strong class="text-white">それぞれ独立したworktree（作業ディレクトリ）</strong>を持ち、並列で作業を進めます。
+                            </p>
+
+                            <h4>リフォームで例えると</h4>
+                            <div class="visual-diagram">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="component-card">
+                                        <div style="font-size: 28px; margin-bottom: 12px;">🔨</div>
+                                        <h4 style="margin-top: 0;">従来：1人でリフォーム</h4>
+                                        <p class="text-gray-400 text-sm leading-relaxed">
+                                            大工さんが1人で、壁を壊し、電気配線をやり、水道管を繋ぎ、壁紙を貼る。<br>
+                                            <strong class="text-white">全部順番にやるので遅い。</strong><br>
+                                            これが通常のClaude Code（1エージェント）です。
+                                        </p>
+                                    </div>
+                                    <div class="component-card" style="border-color: rgba(232, 115, 74, 0.3);">
+                                        <div style="font-size: 28px; margin-bottom: 12px;">👷👷‍♀️👷‍♂️</div>
+                                        <h4 style="margin-top: 0;">Agent Teams：チームでリフォーム</h4>
+                                        <p class="text-gray-400 text-sm leading-relaxed">
+                                            大工・電気工事士・水道屋さんがそれぞれの持ち場で<strong class="text-white">同時に作業</strong>。<br>
+                                            お互いの作業が干渉しないように、<strong class="text-white">別々の部屋（worktree）</strong>で作業。<br>
+                                            最後に結果を合体させる。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>技術的な仕組み</h4>
+                            <div class="visual-diagram">
+<div class="code-block"><span class="comment">// Agent Teamsの動作イメージ</span>
+
+<span class="highlight">メインエージェント</span>（司令塔）
+  │
+  ├── <span class="variable">エージェント A</span>  →  worktree-a/  →  「認証機能を実装」
+  │
+  ├── <span class="variable">エージェント B</span>  →  worktree-b/  →  「APIエンドポイントを追加」
+  │
+  └── <span class="variable">エージェント C</span>  →  worktree-c/  →  「テストを書く」
+
+<span class="comment">// 各エージェントは独立したgit worktreeで作業</span>
+<span class="comment">// → ファイルの競合が起きない！</span>
+<span class="comment">// → 全員が終わったら結果をマージ</span></div>
+                            </div>
+
+                            <div class="info-box">
+                                <h4>git worktreeとは？</h4>
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    1つのgitリポジトリから、<strong class="text-white">複数の作業コピーを作る</strong>gitの機能です。
+                                    同じリポジトリなのに、別々のフォルダで別々のブランチを同時に編集できます。<br>
+                                    Agent Teamsはこの仕組みを使って、エージェント同士がファイルを奪い合わないようにしています。
+                                </p>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>Agent Teamsが得意なこと</h4>
+                                <ul class="text-gray-300" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-2"><strong class="text-white">大規模なリファクタリング</strong> ― 10個のファイルを同時に修正</li>
+                                    <li class="mb-2"><strong class="text-white">複数機能の同時実装</strong> ― フロント・バック・テストを並列で</li>
+                                    <li class="mb-2"><strong class="text-white">コードベース全体への変更</strong> ― 全コンポーネントにエラーハンドリング追加</li>
+                                    <li><strong class="text-white">マイグレーション</strong> ― 複数ファイルのAPI呼び出しを一括更新</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション2: ハンズオン ― /batch -->
+                    <div class="content-section">
+                        <h3>ハンズオン ― /batch で大規模変更を並列実行</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/agent-teams" target="_blank">Agent Teams - Batch</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                <code class="code-inline">/batch</code> コマンドは、Agent Teamsの中核機能です。<br>
+                                大きなタスクを指示すると、AIが自動でサブタスクに分割し、<strong class="text-white">複数エージェントが並列で処理</strong>します。
+                            </p>
+
+                            <h4>Step 1: /batch コマンドを実行する</h4>
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <p class="text-gray-300 text-sm mb-3">
+                                    Claude Codeのプロンプトで <code class="code-inline">/batch</code> と入力し、やりたいことを伝えます。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">/batch 全コンポーネントにエラーハンドリングを追加して</div>
+                                </div>
+                                <div class="info-box" style="margin-top: 12px;">
+                                    <p class="text-gray-300 text-sm">
+                                        <strong class="text-white">ポイント:</strong> 具体的に指示するほど精度が上がります。「try-catchで囲んで、エラーはconsole.errorで出力して」のように詳細を加えましょう。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <h4>Step 2: AIがタスクを自動分割する</h4>
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <p class="text-gray-300 text-sm mb-3">
+                                    AIがコードベースを分析し、変更が必要なファイルを特定。タスクをサブタスクに分割します。
+                                </p>
+                                <div class="visual-diagram">
+<div class="code-block"><span class="highlight">AIの自動分割結果:</span>
+
+<span class="comment">タスク1:</span> <span class="variable">src/components/UserList.tsx</span> にエラーハンドリング追加
+<span class="comment">タスク2:</span> <span class="variable">src/components/Dashboard.tsx</span> にエラーハンドリング追加
+<span class="comment">タスク3:</span> <span class="variable">src/components/Settings.tsx</span> にエラーハンドリング追加
+<span class="comment">タスク4:</span> <span class="variable">src/components/Profile.tsx</span> にエラーハンドリング追加
+
+<span class="string">→ 4つのエージェントが並列で作業開始！</span></div>
+                                </div>
+                            </div>
+
+                            <h4>Step 3: 並列処理の様子を観察する</h4>
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <p class="text-gray-300 text-sm mb-3">
+                                    各エージェントの進捗がリアルタイムで表示されます。
+                                </p>
+                                <div class="visual-diagram">
+<div class="code-block"><span class="highlight">Agent Teams 実行中...</span>
+
+<span class="variable">[Agent 1]</span> UserList.tsx   ████████████░░░░  75%  <span class="string">try-catch追加中</span>
+<span class="variable">[Agent 2]</span> Dashboard.tsx  ██████████████░░  88%  <span class="string">ErrorBoundary実装中</span>
+<span class="variable">[Agent 3]</span> Settings.tsx   ████████████████  <span class="highlight">完了!</span>
+<span class="variable">[Agent 4]</span> Profile.tsx    ██████░░░░░░░░░░  38%  <span class="string">分析中</span></div>
+                                </div>
+                            </div>
+
+                            <h4>Step 4: 結果のマージと確認</h4>
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <p class="text-gray-300 text-sm mb-3">
+                                    全エージェントの作業が完了すると、結果が自動でマージされます。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">git diff --stat</div>
+                                    <div class="output">
+src/components/UserList.tsx   | 15 ++++++++++---<br>
+src/components/Dashboard.tsx  | 22 +++++++++++++-----<br>
+src/components/Settings.tsx   | 18 +++++++++++----<br>
+src/components/Profile.tsx    | 12 ++++++++--<br>
+4 files changed, 52 insertions(+), 15 deletions(-)
+                                    </div>
+                                </div>
+                                <div class="success-box" style="margin-top: 12px;">
+                                    <p class="text-gray-300 text-sm">
+                                        <strong class="text-white">確認のコツ:</strong> マージ後は <code class="code-inline">git diff</code> で変更内容を確認し、
+                                        テストを実行して問題がないか検証しましょう。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <h4>実践的な /batch の使い方いろいろ</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" style="margin-top: 16px;">
+                                <div class="component-card">
+                                    <h4 style="margin-top: 0; font-size: 15px;">テスト一括追加</h4>
+                                    <div class="command-box" style="margin-bottom: 0;">
+                                        <div class="command" style="font-size: 12px;">/batch 全APIルートにユニットテストを追加して</div>
+                                    </div>
+                                </div>
+                                <div class="component-card">
+                                    <h4 style="margin-top: 0; font-size: 15px;">型定義の追加</h4>
+                                    <div class="command-box" style="margin-bottom: 0;">
+                                        <div class="command" style="font-size: 12px;">/batch 全jsファイルをTypeScriptに変換して</div>
+                                    </div>
+                                </div>
+                                <div class="component-card">
+                                    <h4 style="margin-top: 0; font-size: 15px;">ログ追加</h4>
+                                    <div class="command-box" style="margin-bottom: 0;">
+                                        <div class="command" style="font-size: 12px;">/batch 全サービスに構造化ログを追加して</div>
+                                    </div>
+                                </div>
+                                <div class="component-card">
+                                    <h4 style="margin-top: 0; font-size: 15px;">API移行</h4>
+                                    <div class="command-box" style="margin-bottom: 0;">
+                                        <div class="command" style="font-size: 12px;">/batch fetchをaxiosに全部置き換えて</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box" style="margin-top: 20px;">
+                                <h4>注意点</h4>
+                                <ul class="text-gray-300 text-sm" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-2"><strong class="text-white">API使用量が増える:</strong> エージェントの数だけAPI呼び出しが発生します。Max プランまたはAPIキーが必要です</li>
+                                    <li class="mb-2"><strong class="text-white">競合の可能性:</strong> 同じファイルを複数エージェントが編集する場合、マージ時に競合が起きることがあります</li>
+                                    <li><strong class="text-white">まず小さく試す:</strong> 最初は2〜3ファイル程度で試して、結果を確認してから大規模に実行しましょう</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション3: Triggers / 定期実行 -->
+                    <div class="content-section">
+                        <h3>Triggers / 定期実行（/loop と /schedule）</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/agent-teams" target="_blank">Agent Teams - Triggers</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Agent Teamsには、タスクを<strong class="text-white">定期的に自動実行する仕組み</strong>があります。<br>
+                                人間が毎回指示しなくても、AIが自律的に監視や作業を続けてくれます。
+                            </p>
+
+                            <h4>/loop ― 一定間隔で繰り返し実行</h4>
+                            <div class="component-card" style="margin-bottom: 20px;">
+                                <p class="text-gray-300 text-sm mb-3">
+                                    <code class="code-inline">/loop</code> は、指定した間隔でコマンドやタスクを繰り返し実行します。<br>
+                                    バックグラウンドで動き続け、あなたは別の作業に集中できます。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">/loop 5m PRの状態を確認して、新しいPRがあればレビューして</div>
+                                    <div class="output">
+5分ごとにPRの状態をチェックするループを開始しました。<br>
+停止するには Ctrl+F を2回押してください。
+                                    </div>
+                                </div>
+
+                                <div class="visual-diagram" style="margin-top: 16px;">
+<div class="code-block"><span class="highlight">/loop の書式:</span>
+
+/loop <span class="variable">[間隔]</span> <span class="string">[実行したいタスク]</span>
+
+<span class="comment">// 間隔の例:</span>
+<span class="variable">30s</span>   → 30秒ごと
+<span class="variable">5m</span>    → 5分ごと
+<span class="variable">1h</span>    → 1時間ごと
+<span class="variable">30m</span>   → 30分ごと</div>
+                                </div>
+                            </div>
+
+                            <h4>/schedule ― cron的な定期実行</h4>
+                            <div class="component-card" style="margin-bottom: 20px;">
+                                <p class="text-gray-300 text-sm mb-3">
+                                    <code class="code-inline">/schedule</code> は、より細かいスケジュール設定ができる定期実行です。<br>
+                                    「毎朝9時に」「毎週月曜に」のようなスケジュールを指定できます。
+                                </p>
+                                <div class="command-box">
+                                    <div class="command">/schedule "毎朝9時にmainブランチのテストを実行して結果をSlackに投稿して"</div>
+                                </div>
+                            </div>
+
+                            <h4>実用例</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" style="margin-top: 16px;">
+                                <div class="loop-step">
+                                    <div style="font-size: 24px; margin-bottom: 8px;">🔍</div>
+                                    <h4 style="margin-top: 0; font-size: 15px;">デプロイ監視</h4>
+                                    <div class="command-box" style="font-size: 12px; margin-bottom: 0;">
+                                        <div class="command" style="font-size: 11px;">/loop 2m デプロイ状態を確認して、失敗していたら教えて</div>
+                                    </div>
+                                    <p class="text-gray-400 text-xs mt-2">CI/CDパイプラインの状態を定期チェック。失敗時にすぐ気づける。</p>
+                                </div>
+                                <div class="loop-step">
+                                    <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
+                                    <h4 style="margin-top: 0; font-size: 15px;">PR自動レビュー</h4>
+                                    <div class="command-box" style="font-size: 12px; margin-bottom: 0;">
+                                        <div class="command" style="font-size: 11px;">/loop 10m 新しいPRがあればコードレビューして</div>
+                                    </div>
+                                    <p class="text-gray-400 text-xs mt-2">新しいPRが来るたびにAIが自動でレビュー。人間のレビュー前に問題を発見。</p>
+                                </div>
+                                <div class="loop-step">
+                                    <div style="font-size: 24px; margin-bottom: 8px;">🧪</div>
+                                    <h4 style="margin-top: 0; font-size: 15px;">テスト定期実行</h4>
+                                    <div class="command-box" style="font-size: 12px; margin-bottom: 0;">
+                                        <div class="command" style="font-size: 11px;">/loop 30m テストを実行して、失敗があれば修正して</div>
+                                    </div>
+                                    <p class="text-gray-400 text-xs mt-2">テストが壊れたらAIが自動で修正を試みる。常にグリーンを維持。</p>
+                                </div>
+                            </div>
+
+                            <div class="info-box" style="margin-top: 20px;">
+                                <h4>/loop と /schedule の使い分け</h4>
+                                <ul class="text-gray-300 text-sm" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-2"><strong class="text-white">/loop</strong> → 「今から繰り返して」。作業セッション中の一時的な監視に最適</li>
+                                    <li><strong class="text-white">/schedule</strong> → 「決まった時間に実行して」。恒常的なタスクの自動化に最適</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション4: ハンズオン ― /loop -->
+                    <div class="content-section">
+                        <h3>ハンズオン ― /loop でPR監視してみよう</h3>
+                        <div class="collapsible-content">
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                実際に <code class="code-inline">/loop</code> を使って、PRの自動監視をセットアップしてみましょう。<br>
+                                バックグラウンドで動き続けるAIエージェントを体験できます。
+                            </p>
+
+                            <h4>Step 1: GitHubリポジトリで実行する</h4>
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <div style="display: flex; align-items: flex-start;">
+                                    <div class="step-number">1</div>
+                                    <div style="flex: 1;">
+                                        <p class="text-gray-300 text-sm mb-3">
+                                            まず、GitHubリポジトリのあるディレクトリでClaude Codeを起動します。
+                                        </p>
+                                        <div class="command-box">
+                                            <div class="command">cd ~/my-project && claude</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>Step 2: /loop でPR監視を開始する</h4>
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <div style="display: flex; align-items: flex-start;">
+                                    <div class="step-number">2</div>
+                                    <div style="flex: 1;">
+                                        <p class="text-gray-300 text-sm mb-3">
+                                            Claude Codeのプロンプトで以下を入力します。
+                                        </p>
+                                        <div class="command-box">
+                                            <div class="command">/loop 5m オープンなPRを確認して、新しいものがあればコードレビューして</div>
+                                            <div class="output">
+ループを開始しました (間隔: 5分)<br>
+<br>
+[1回目の実行 - 14:30:00]<br>
+PR #42 "Add user authentication" を確認中...<br>
+→ セキュリティ上の問題を1件発見。コメントを投稿しました。<br>
+<br>
+次回実行: 14:35:00
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>Step 3: バックグラウンドで動き続ける</h4>
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <div style="display: flex; align-items: flex-start;">
+                                    <div class="step-number">3</div>
+                                    <div style="flex: 1;">
+                                        <p class="text-gray-300 text-sm mb-3">
+                                            ループが開始されると、エージェントはバックグラウンドで動き続けます。<br>
+                                            あなたは別のタスクを続けることができます。
+                                        </p>
+                                        <div class="visual-diagram">
+<div class="code-block"><span class="highlight">バックグラウンド動作のイメージ:</span>
+
+<span class="variable">あなた:</span>         別の機能を実装中... 🧑‍💻
+<span class="string">裏で動くAgent:</span>   5分ごとにPRチェック 🔄
+
+<span class="comment">14:30</span> → PR確認... 新着なし
+<span class="comment">14:35</span> → PR確認... PR #43 発見！レビュー中...
+<span class="comment">14:40</span> → PR確認... 新着なし
+<span class="comment">14:45</span> → PR確認... PR #44 発見！レビュー中...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>Step 4: ループを停止する</h4>
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <div style="display: flex; align-items: flex-start;">
+                                    <div class="step-number">4</div>
+                                    <div style="flex: 1;">
+                                        <p class="text-gray-300 text-sm mb-3">
+                                            ループを止めたいときは、以下の方法で停止できます。
+                                        </p>
+                                        <div class="visual-diagram">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div class="component-card">
+                                                    <h4 style="margin-top: 0; font-size: 15px;">Ctrl+F を2回押す</h4>
+                                                    <p class="text-gray-400 text-sm">
+                                                        <strong class="text-white">全エージェントを一括停止</strong>します。<br>
+                                                        Ctrl+F 1回目 → 警告表示<br>
+                                                        Ctrl+F 2回目 → 完全停止
+                                                    </p>
+                                                </div>
+                                                <div class="component-card">
+                                                    <h4 style="margin-top: 0; font-size: 15px;">Ctrl+C</h4>
+                                                    <p class="text-gray-400 text-sm">
+                                                        現在のタスクを中断します。<br>
+                                                        ループ自体は次の実行タイミングで再開される場合があります。<br>
+                                                        <strong class="text-white">確実に止めるなら Ctrl+F 2回</strong>。
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="warning-box">
+                                <h4>ハンズオンの注意</h4>
+                                <ul class="text-gray-300 text-sm" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-2"><strong class="text-white">APIコストに注意:</strong> ループが回るたびにAPI呼び出しが発生します。短い間隔（30sなど）は学習目的のみにしましょう</li>
+                                    <li class="mb-2"><strong class="text-white">GitHubトークンが必要:</strong> PR操作にはGitHub CLIの認証が必要です（<code class="code-inline">gh auth login</code>）</li>
+                                    <li><strong class="text-white">ネットワーク接続:</strong> オフラインでは動作しません</li>
+                                </ul>
+                            </div>
+
+                            <h4>応用: /loop の便利なパターン</h4>
+                            <div class="grid grid-cols-1 gap-4" style="margin-top: 16px;">
+                                <div class="component-card">
+                                    <h4 style="margin-top: 0; font-size: 15px;">ファイル変更の自動テスト</h4>
+                                    <div class="command-box" style="margin-bottom: 8px;">
+                                        <div class="command">/loop 1m src/ディレクトリの変更を検知して、変更があればテストを実行して</div>
+                                    </div>
+                                    <p class="text-gray-400 text-sm">ファイルを保存するたびに自動でテストが走る、ホットリロード的な体験。</p>
+                                </div>
+                                <div class="component-card">
+                                    <h4 style="margin-top: 0; font-size: 15px;">ビルドエラーの自動修正</h4>
+                                    <div class="command-box" style="margin-bottom: 8px;">
+                                        <div class="command">/loop 3m ビルドを実行して、エラーがあれば修正して</div>
+                                    </div>
+                                    <p class="text-gray-400 text-sm">ビルドが壊れてもAIが自動で直してくれる。開発中のストレスが激減。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション5: Remote Control -->
+                    <div class="content-section">
+                        <h3>Remote Control（スマホからClaude Codeを操作）</h3>
+                        <div class="collapsible-content">
+                            <div class="ref-box">参照: <a href="https://code.claude.com/docs/ja/remote-control" target="_blank">Remote Control</a></div>
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                Remote Controlは、ローカルで動いているClaude Codeを<strong class="text-white">Webブラウザから操作できる</strong>機能です。<br>
+                                スマホからでも、別のPCからでも、あなたのClaude Codeに指示を出せます。
+                            </p>
+
+                            <h4>どういう仕組み？</h4>
+                            <div class="visual-diagram">
+<div class="code-block"><span class="highlight">Remote Controlの流れ:</span>
+
+<span class="variable">あなたのPC</span>（ローカル）
+  └── Claude Code が動いている
+        │
+        │  <span class="string">セキュアな接続</span>
+        │
+<span class="variable">claude.ai/code</span>（Webブラウザ）
+  └── スマホ / タブレット / 別PC からアクセス
+        └── Claude Codeに指示を送る
+              └── 結果がリアルタイムで表示される
+
+<span class="comment">// コードはローカルに残る（クラウドにアップロードされない）</span></div>
+                            </div>
+
+                            <h4>ハンズオン: Remote Controlを使ってみる</h4>
+
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <div style="display: flex; align-items: flex-start;">
+                                    <div class="step-number">1</div>
+                                    <div style="flex: 1;">
+                                        <h4 style="margin-top: 0; font-size: 15px;">ローカルでClaude Codeを起動</h4>
+                                        <p class="text-gray-300 text-sm mb-2">いつも通り、ターミナルでClaude Codeを起動します。</p>
+                                        <div class="command-box">
+                                            <div class="command">claude</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <div style="display: flex; align-items: flex-start;">
+                                    <div class="step-number">2</div>
+                                    <div style="flex: 1;">
+                                        <h4 style="margin-top: 0; font-size: 15px;">Webブラウザでアクセス</h4>
+                                        <p class="text-gray-300 text-sm mb-2">
+                                            スマホやタブレットで以下のURLにアクセスします。
+                                        </p>
+                                        <div class="command-box">
+                                            <div style="color: #e8734a; font-weight: 600; font-size: 16px;">
+                                                https://claude.ai/code
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-400 text-sm mt-2">
+                                            ログインすると、ローカルで動いているClaude Codeのセッションが表示されます。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="loop-step" style="margin-bottom: 16px;">
+                                <div style="display: flex; align-items: flex-start;">
+                                    <div class="step-number">3</div>
+                                    <div style="flex: 1;">
+                                        <h4 style="margin-top: 0; font-size: 15px;">スマホから指示を送る</h4>
+                                        <p class="text-gray-300 text-sm mb-2">
+                                            Webブラウザ上でプロンプトを入力すると、ローカルのClaude Codeが実行します。
+                                        </p>
+                                        <div class="visual-diagram">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div class="component-card">
+                                                    <div style="font-size: 24px; margin-bottom: 8px;">📱</div>
+                                                    <h4 style="margin-top: 0; font-size: 14px;">スマホから送信</h4>
+                                                    <p class="text-gray-400 text-sm">「テストを全部実行して結果を教えて」</p>
+                                                </div>
+                                                <div class="component-card">
+                                                    <div style="font-size: 24px; margin-bottom: 8px;">💻</div>
+                                                    <h4 style="margin-top: 0; font-size: 14px;">ローカルPCが実行</h4>
+                                                    <p class="text-gray-400 text-sm">Claude Codeがテストを実行し、結果をスマホに返す</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>Remote Controlの活用シーン</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" style="margin-top: 16px;">
+                                <div class="component-card">
+                                    <div style="font-size: 20px; margin-bottom: 8px;">🚶</div>
+                                    <h4 style="margin-top: 0; font-size: 15px;">外出中の確認</h4>
+                                    <p class="text-gray-400 text-sm">移動中にスマホでビルド状態やテスト結果を確認。問題があればその場で修正指示。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div style="font-size: 20px; margin-bottom: 8px;">🛋️</div>
+                                    <h4 style="margin-top: 0; font-size: 15px;">リラックスしながら</h4>
+                                    <p class="text-gray-400 text-sm">ソファでタブレットからコードレビューを依頼。AIが分析してくれるのを待つだけ。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div style="font-size: 20px; margin-bottom: 8px;">🔄</div>
+                                    <h4 style="margin-top: 0; font-size: 15px;">長時間タスクの監視</h4>
+                                    <p class="text-gray-400 text-sm">大規模なリファクタリングをAgent Teamsで実行中、スマホで進捗を確認。</p>
+                                </div>
+                                <div class="component-card">
+                                    <div style="font-size: 20px; margin-bottom: 8px;">👥</div>
+                                    <h4 style="margin-top: 0; font-size: 15px;">ペアプログラミング</h4>
+                                    <p class="text-gray-400 text-sm">同僚に画面を見せながら、自分はスマホからClaude Codeに指示を出す。</p>
+                                </div>
+                            </div>
+
+                            <div class="success-box" style="margin-top: 20px;">
+                                <h4>セキュリティについて</h4>
+                                <ul class="text-gray-300 text-sm" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-2"><strong class="text-white">コードはローカルに残る:</strong> Remote Controlはあくまで「リモコン」。コードがクラウドにアップロードされることはありません</li>
+                                    <li class="mb-2"><strong class="text-white">認証が必要:</strong> claude.ai にログインしたアカウントからのみアクセスできます</li>
+                                    <li><strong class="text-white">暗号化通信:</strong> ローカルPCとWebブラウザ間の通信はセキュアに暗号化されています</li>
+                                </ul>
+                            </div>
+
+                            <div class="warning-box" style="margin-top: 16px;">
+                                <h4>制限事項</h4>
+                                <ul class="text-gray-300 text-sm" style="list-style: disc; padding-left: 1.5rem; margin-top: 8px;">
+                                    <li class="mb-2"><strong class="text-white">ローカルPCが起動している必要あり:</strong> PCがスリープ/シャットダウンすると接続が切れます</li>
+                                    <li class="mb-2"><strong class="text-white">Claude Codeが起動している必要あり:</strong> ターミナルでClaude Codeを閉じると使えません</li>
+                                    <li><strong class="text-white">ネットワーク接続:</strong> ローカルPCとスマホの両方がインターネットに接続されている必要があります</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+</body>
+</html>
