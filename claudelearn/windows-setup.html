@@ -99,21 +99,21 @@
 
                     <!-- なぜWSLを使うのか -->
                     <div class="content-section">
-                        <h3>本講座では WSL を使います</h3>
+                        <h3>本講座では WSL 2 を使います</h3>
                         <div class="collapsible-content">
                             <p class="text-gray-300 mb-4">
                                 Claude Code は PowerShell やコマンドプロンプトからも実行できます。
-                                ただし本講座では <strong>WSL（Windows Subsystem for Linux）</strong> を使う方法で進めます。
+                                ただし本講座では <strong>WSL 2（Windows Subsystem for Linux 2）</strong> を使う方法で進めます。
                             </p>
 
-                            <h4>WSL とは</h4>
+                            <h4>WSL 2 とは</h4>
                             <p class="text-gray-300 mb-3">
-                                WSL（Windows Subsystem for Linux）は、Windows の中で Linux 環境を動かせる Microsoft 公式の仕組みです。
+                                WSL 2 は、Windows の中で本物の Linux 環境を動かせる Microsoft 公式の仕組みです。
                             </p>
                             <p class="text-gray-300 mb-3">
                                 そもそも、パソコンの OS は大きく分けて <strong>Windows</strong>・<strong>macOS</strong>・<strong>Linux</strong> の3つがあります。
                                 このうち macOS と Linux は同じ Unix 系の設計をベースにしていて、ターミナルのコマンド体系がほぼ同じです。
-                                WSL を使うと、Windows の中に Linux 環境が入るので、Mac ユーザーと同じコマンドが使えるようになります。
+                                WSL 2 を使うと、Windows の中に Linux 環境が入るので、Mac ユーザーと同じコマンドが使えるようになります。
                             </p>
 
                             <div class="info-box">
@@ -124,13 +124,13 @@
                                 </p>
                                 <p class="text-gray-300">
                                     npm、Docker、Git などの開発ツールも Linux / Unix を前提に作られています。
-                                    Mac はそのまま Unix 系なので問題ありませんが、Windows で開発するなら WSL で Linux 環境を用意するのが現在の標準的なやり方です。
+                                    Mac はそのまま Unix 系なので問題ありませんが、Windows で開発するなら WSL 2 で Linux 環境を用意するのが現在の標準的なやり方です。
                                     実際、Microsoft 自身が WSL を開発して推進しています。
                                 </p>
                             </div>
 
                             <div class="info-box mt-4">
-                                <h4>WSL 2 で実用的になった</h4>
+                                <h4>WSL 1 と WSL 2 の違い</h4>
                                 <p class="text-gray-300">
                                     WSL には初期の WSL 1 と現行の WSL 2 があります。
                                     WSL 1 は Linux コマンドの互換レイヤーでしたが、WSL 2 では本物の Linux カーネルが動いており、
@@ -140,10 +140,10 @@
                                 </p>
                             </div>
 
-                            <h4>なぜ本講座で WSL を使うのか</h4>
+                            <h4>なぜ本講座で WSL 2 を使うのか</h4>
                             <ul class="list-disc list-inside space-y-3 ml-4 text-gray-300">
-                                <li><strong>講座の内容がそのまま動く</strong> — 本講座は Mac のターミナルで操作を見せます。WSL なら同じ Linux コマンド体系なので、講座で見せるコマンドをそのままコピペして実行できます。PowerShell だとコマンドの書き方が違う場面が頻繁に出てきます</li>
-                                <li><strong>Claude Code が内部で使うのも Linux コマンド</strong> — Claude Code がファイル操作や検索を行うとき、内部的に <code class="code-inline">ls</code>, <code class="code-inline">grep</code>, <code class="code-inline">cat</code> などの Linux コマンドを実行します。WSL ならこれらがネイティブに動きます。PowerShell で使う場合は別途 Git for Windows のインストールが必要です</li>
+                                <li><strong>講座の内容がそのまま動く</strong> — 本講座は Mac のターミナルで操作を見せます。WSL 2 なら同じ Linux コマンド体系なので、講座で見せるコマンドをそのままコピペして実行できます。PowerShell だとコマンドの書き方が違う場面が頻繁に出てきます</li>
+                                <li><strong>Claude Code が内部で使うのも Linux コマンド</strong> — Claude Code がファイル操作や検索を行うとき、内部的に <code class="code-inline">ls</code>, <code class="code-inline">grep</code>, <code class="code-inline">cat</code> などの Linux コマンドを実行します。WSL 2 ならこれらがネイティブに動きます。PowerShell で使う場合は別途 Git for Windows のインストールが必要です</li>
                                 <li><strong>サンドボックスが使える</strong> — Claude Code には、コマンド実行を安全に隔離するサンドボックス機能があります。これは WSL 2 でのみ利用可能で、PowerShell ネイティブ環境では使えません</li>
                             </ul>
 
@@ -151,8 +151,8 @@
                                 <h4>PowerShell でも使えなくはない</h4>
                                 <p class="text-gray-300">
                                     Claude Code は PowerShell / CMD / Git Bash でも動作します。
-                                    Git for Windows をインストールすれば、WSL なしでも使えます。
-                                    ただし、講座の進行と合わせるなら WSL の方がスムーズです。
+                                    Git for Windows をインストールすれば、WSL 2 なしでも使えます。
+                                    ただし、講座の進行と合わせるなら WSL 2 の方がスムーズです。
                                 </p>
                             </div>
                         </div>
@@ -232,7 +232,7 @@
                                 <h4>WSL拡張機能を入れよう</h4>
                                 <p class="text-gray-300">
                                     VS Code をインストールしたら、拡張機能「<strong>WSL</strong>」（Microsoft公式）を入れてください。
-                                    これを入れると、VS Code から WSL 内のファイルを直接開いて編集できます。
+                                    これを入れると、VS Code から WSL 2 内のファイルを直接開いて編集できます。
                                     VS Code の拡張機能タブ（<code class="code-inline">Ctrl + Shift + X</code>）で「WSL」と検索してインストールします。
                                 </p>
                             </div>
@@ -355,17 +355,17 @@
 
                     <!-- WSL のインストール -->
                     <div class="content-section">
-                        <h3>WSL（Windows Subsystem for Linux）のインストール</h3>
+                        <h3>WSL 2 のインストール</h3>
                         <div class="collapsible-content">
                             <p class="text-gray-300 mb-4">
-                                WSL は Windows の中で Linux を動かす Microsoft 公式の仕組みです。
+                                WSL 2 は Windows の中で Linux を動かす Microsoft 公式の仕組みです。
                                 コマンド1つでインストールできます。
                             </p>
 
                             <h4>システム要件</h4>
                             <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
                                 <li>Windows 10 バージョン 2004 以降、または Windows 11</li>
-                                <li>「仮想マシン プラットフォーム」が有効になっていること（WSL インストール時に自動で有効化されます）</li>
+                                <li>「仮想マシン プラットフォーム」が有効になっていること（WSL 2 インストール時に自動で有効化されます）</li>
                             </ul>
 
                             <h4>インストール手順</h4>
@@ -398,21 +398,21 @@
                             </div>
 
                             <div class="info-box mt-4">
-                                <h4>WSL に入るには</h4>
+                                <h4>WSL 2 に入るには</h4>
                                 <p class="text-gray-300">
                                     PowerShell やコマンドプロンプトで <code class="code-inline">wsl</code> と入力するだけで Linux 環境に入れます。
                                     スタートメニューから「Ubuntu」を起動しても同じです。
                                     VS Code で WSL 拡張機能を使っている場合は、左下の「><」アイコンから「WSL への接続」を選ぶと、
-                                    VS Code のターミナルが WSL 内で動きます。
+                                    VS Code のターミナルが WSL 2 内で動きます。
                                 </p>
                             </div>
 
                             <div class="info-box mt-4">
-                                <h4>VS Code から WSL に接続する方法</h4>
+                                <h4>VS Code から WSL 2 に接続する方法</h4>
                                 <p class="text-gray-300">
                                     VS Code で <code class="code-inline">Ctrl + Shift + P</code> → 「WSL: Connect to WSL」を選択するか、
                                     左下の「><」アイコンをクリックして「WSL への接続」を選びます。
-                                    接続すると、VS Code のターミナルが WSL 内の bash/zsh になり、ファイルツリーも WSL 側のファイルが表示されます。
+                                    接続すると、VS Code のターミナルが WSL 2 内の bash になり、ファイルツリーも WSL 2 側のファイルが表示されます。
                                 </p>
                             </div>
                         </div>
@@ -428,14 +428,14 @@
                             </p>
 
                             <div class="warning-box" style="border-left-color: #e8734a;">
-                                <h4 style="color: #e8734a;">必ず WSL 内で実行してください</h4>
+                                <h4 style="color: #e8734a;">必ず WSL 2 内で実行してください</h4>
                                 <p class="text-gray-300">以下のコマンドは Windows の PowerShell やコマンドプロンプトではなく、
-                                    <strong>WSL の Ubuntu ターミナル</strong>で実行してください。
+                                    <strong>WSL 2 の Ubuntu ターミナル</strong>で実行してください。
                                     <code class="code-inline">wsl</code> と入力して Linux 環境に入った状態で実行します。</p>
                             </div>
 
                             <h4>インストールコマンド</h4>
-                            <p class="text-gray-300 mb-2">WSL のターミナルで以下を実行します。</p>
+                            <p class="text-gray-300 mb-2">WSL 2 のターミナルで以下を実行します。</p>
                             <div class="command-box">
                                 <div class="command">curl -fsSL https://claude.ai/install.sh | bash</div>
                             </div>
@@ -467,13 +467,62 @@
 
                             <div class="info-box mt-4">
                                 <h4>ブラウザが自動で開かない場合</h4>
-                                <p class="text-gray-300">WSL からブラウザが自動で開かないことがあります。
+                                <p class="text-gray-300">WSL 2 からブラウザが自動で開かないことがあります。
                                     その場合、ターミナルに表示される URL をコピーして、Windows 側のブラウザに貼り付けてアクセスしてください。</p>
                             </div>
 
                             <div class="info-box mt-4">
                                 <h4>自動アップデート</h4>
                                 <p class="text-gray-300">ネイティブインストーラーで入れたClaude Codeは、起動時に自動でアップデートを確認します。手動で更新する必要はありません。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API キーの設定（従量課金の場合） -->
+                    <div class="content-section">
+                        <h3>API キーの設定（従量課金で使う場合）</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                Pro / Max プランの方はこのセクションは不要です。
+                                前のステップで <code class="code-inline">claude</code> を起動してブラウザ認証が済んでいれば、そのまま使えます。
+                            </p>
+                            <p class="text-gray-300 mb-4">
+                                Anthropic Console の従量課金（APIキー）で使いたい方は、以下の手順で設定してください。
+                            </p>
+
+                            <h4>1. API キーを発行する</h4>
+                            <ol class="list-decimal list-inside space-y-3 text-gray-300 ml-4">
+                                <li>https://console.anthropic.com/ にアクセスしてログイン</li>
+                                <li>左メニューの「API Keys」を開く</li>
+                                <li>「Create Key」をクリックしてキーを作成</li>
+                                <li>表示されたキー（<code class="code-inline">sk-ant-...</code> で始まる文字列）をコピーして安全な場所に保存。このキーは一度しか表示されません</li>
+                            </ol>
+
+                            <h4>2. 環境変数に設定する</h4>
+                            <p class="text-gray-300 mb-2">WSL 2 のターミナルで以下を実行します。</p>
+                            <div class="command-box">
+                                <div class="command" style="display:block;">echo 'export ANTHROPIC_API_KEY="sk-ant-ここにあなたのキーを貼り付け"' >> ~/.bashrc && source ~/.bashrc</div>
+                            </div>
+                            <p class="text-gray-300 mt-2">
+                                これで <code class="code-inline">claude</code> を起動すると、ブラウザ認証ではなく API キーが使われるようになります。
+                            </p>
+
+                            <div class="info-box mt-4">
+                                <h4>サブスクリプションに戻したい場合</h4>
+                                <p class="text-gray-300">
+                                    <code class="code-inline">~/.bashrc</code> に追加した <code class="code-inline">export ANTHROPIC_API_KEY=...</code> の行を削除して、
+                                    <code class="code-inline">source ~/.bashrc</code> を実行すれば、元のサブスクリプション認証に戻ります。
+                                </p>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h4>API キーは Pro / Max より高くなりがち</h4>
+                                <p class="text-gray-300">
+                                    繰り返しになりますが、Claude Code はエージェントループで何度も API を往復するため、
+                                    従量課金だと1日あたり平均 $6 程度かかります。
+                                    月に数日使うだけなら API キーの方が安くなりますが、
+                                    毎日使うなら Pro（$20/月）の方がお得です。
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -488,13 +537,13 @@
 
                             <h4>Windows Terminal — モダンなターミナル</h4>
                             <p class="text-gray-300 mb-3">
-                                Microsoft 公式のターミナルアプリです。タブで PowerShell・コマンドプロンプト・WSL を切り替えられます。
-                                画面分割にも対応しており、WSL を使うなら入れておくと便利です。
+                                Microsoft 公式のターミナルアプリです。タブで PowerShell・コマンドプロンプト・WSL 2 を切り替えられます。
+                                画面分割にも対応しており、WSL 2 を使うなら入れておくと便利です。
                                 Windows 11 には標準搭載されています。
                             </p>
                             <ol class="list-decimal list-inside space-y-2 text-gray-300 ml-4">
                                 <li>Microsoft Store で「Windows Terminal」を検索してインストール</li>
-                                <li>起動してタブの「＋」ボタンから「Ubuntu」を選ぶと WSL に入れる</li>
+                                <li>起動してタブの「＋」ボタンから「Ubuntu」を選ぶと WSL 2 に入れる</li>
                             </ol>
                             <div class="info-box mt-3">
                                 <h4>よく使うショートカット</h4>
