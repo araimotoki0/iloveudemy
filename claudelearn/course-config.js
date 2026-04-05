@@ -18,8 +18,5 @@ const claudeCodeCourseConfig = {
         { file: 'advanced-usage.html', title: '実践活用', icon: '🚀' },
         { file: 'index.html', title: 'エージェントループ', icon: '🔄' },
         { file: 'tools.html', title: 'ツールシステム', icon: '🔧' },
-        { file: 'system-prompt.html', title: 'システムプロンプト', icon: '📋' },
-        { file: 'context-window.html', title: 'コンテキストウィンドウ', icon: '📦' },
-        { file: 'extensions.html', title: '拡張ポイント', icon: '🔌' }
     ]
 };
