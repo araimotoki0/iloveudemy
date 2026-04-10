@@ -86,23 +86,31 @@
                                 ファイルを読むことも、コマンドを実行することも、デプロイすることも、AIモデル単体ではできません。
                             </p>
 
-                            <h4>ハーネスがAIをエージェントにする</h4>
+                            <h4>ハーネス = AIを包む「もう一つのプログラム」</h4>
                             <p class="text-gray-300 mb-3">
-                                <strong class="text-white">ハーネス</strong>とは、AIモデルを包み込んで動かすプログラムのことです。Claude Codeの場合、このハーネスが以下を担当しています：
+                                <strong class="text-white">ハーネス</strong>とは、AIモデルを包み込んで動かす<strong class="text-white">別のプログラム</strong>のことです。<br>
+                                Claude Codeの場合、ハーネスの正体は<strong class="text-white">TypeScriptで書かれた約51万行のCLIプログラム</strong>です。あなたのPCにインストールされて動いています。
                             </p>
+
+                            <div class="warning-box mb-4">
+                                <h4>💡 実際に確認できます</h4>
+                                <p class="text-gray-300 mb-2">ターミナルで <code>which claude</code> と打つと、Claude Codeの実行ファイルのパスが表示されます。それがハーネスです。AIモデル本体はAnthropicのサーバー上にあり、ハーネスがAPIを通じてやり取りしています。</p>
+                            </div>
+
+                            <h4>ハーネスが担当していること</h4>
                             <div class="visual-diagram mb-4">
                                 <div class="grid grid-cols-1 gap-3">
                                     <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">CLAUDE.mdの読み込みとリクエストへの注入</div>
-                                        <div class="text-gray-400 text-sm">セッション開始時にCLAUDE.mdを読み、メッセージ配列の先頭に差し込む</div>
+                                        <div class="font-bold text-white mb-1">システムプロンプトの組み立て</div>
+                                        <div class="text-gray-400 text-sm">CLAUDE.mdの読み込み、ツール一覧の定義、現在のgit状態など ― AIに渡す「指示書」をハーネスが毎回組み立てている</div>
                                     </div>
                                     <div class="loop-step">
                                         <div class="font-bold text-white mb-1">ツールの実行</div>
-                                        <div class="text-gray-400 text-sm">AIが「このファイルを読みたい」「このコマンドを実行したい」と返答したら、ハーネスが実際にファイルを読み、コマンドを実行し、結果をAIに返す</div>
+                                        <div class="text-gray-400 text-sm">AIが「このファイルを読みたい」「このコマンドを実行したい」とテキストで返答 → ハーネスが実際にファイルを読み、コマンドを実行し、結果をAIに返す</div>
                                     </div>
                                     <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">会話ループの管理</div>
-                                        <div class="text-gray-400 text-sm">AIの出力を解析し、ツール呼び出しがあればそれを実行、結果を付けて再度AIにリクエスト ― これを繰り返す（エージェントループ）</div>
+                                        <div class="font-bold text-white mb-1">エージェントループの制御</div>
+                                        <div class="text-gray-400 text-sm">AIの出力を解析 → ツール呼び出しがあれば実行 → 結果を付けて再度AIにリクエスト ― この繰り返しを管理する</div>
                                     </div>
                                     <div class="loop-step">
                                         <div class="font-bold text-white mb-1">権限管理・サンドボックス</div>
@@ -120,17 +128,17 @@
 <strong class="text-blue-400">【ユーザー】</strong>
 「ログイン画面を作って」
 
-      ↓  ハーネスがCLAUDE.mdを注入してAPIリクエスト送信
+      ↓  ハーネス（TypeScript）がCLAUDE.mdやツール定義を組み立て、Claude APIに送信
+
+<strong class="text-purple-400">【AIモデル（Claude） ― Anthropicのサーバー上】</strong>
+「ファイルを作成します」→ テキストで返答: Write("login.tsx", ...)
+
+      ↓  ハーネスがこのテキストを解析し、実際にファイルを書き込み、結果をAPIに返す
 
 <strong class="text-purple-400">【AIモデル（Claude）】</strong>
-「ファイルを作成します」→ ツール呼び出し: Write("login.tsx", ...)
+「テストも書きます」→ テキストで返答: Write("login.test.tsx", ...)
 
-      ↓  ハーネスがツールを実行し、結果をAIに返す
-
-<strong class="text-purple-400">【AIモデル（Claude）】</strong>
-「テストも書きます」→ ツール呼び出し: Write("login.test.tsx", ...)
-
-      ↓  ハーネスがツールを実行...（繰り返し）
+      ↓  ハーネスが実行...（ツール呼び出しがなくなるまで繰り返し）
 
 <strong class="text-green-400">【完了】</strong>
 ファイルが作成される</div>
@@ -139,6 +147,468 @@
                             <div class="success-box">
                                 <h4>つまり</h4>
                                 <p class="text-gray-300">AIモデルは「テキストを返す」だけ。それを受け取って実際にファイルを操作し、コマンドを実行し、結果を返してまたAIに聞く ― この<strong class="text-white">ループを回すのがハーネス</strong>です。このハーネスがあるからこそ、Claude Codeはエージェントのように振る舞えます。</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- セクション: ソースコード流出事件 -->
+                    <div class="content-section">
+                        <h3>💬 実話：ソースコード流出事件 ― ハーネスの中身が丸見えになった日</h3>
+                        <div class="collapsible-content">
+
+                            <h4>何が起きたのか</h4>
+                            <p class="text-gray-300 mb-3">
+                                2026年3月31日、Anthropicがnpmパッケージ <code>@anthropic-ai/claude-code</code> v2.1.88 を公開した際、<strong class="text-white">ソースマップファイル（.map）を誤って同梱</strong>してしまいました。
+                            </p>
+                            <p class="text-gray-300 mb-3">
+                                ソースマップとは、本来開発者がデバッグ用に使う内部ファイルです。これがあると、圧縮・難読化されたコードから<strong class="text-white">元のTypeScriptソースコードを完全に復元</strong>できます。
+                            </p>
+                            <p class="text-gray-300 mb-3">
+                                数時間のうちにGitHubにミラーされ、<strong class="text-white">84,000スター・82,000フォーク</strong>に到達。韓国の開発者がPythonで全体を書き直すなど、世界中で解析が始まりました。
+                            </p>
+
+                            <h4>漏れたもの・漏れなかったもの</h4>
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="loop-step" style="border-left: 3px solid #ef4444;">
+                                        <div class="font-bold text-red-400 mb-1">漏れたもの（ハーネス側）</div>
+                                        <div class="text-gray-400 text-sm">
+                                            ・システムプロンプトの全文<br>
+                                            ・ツール実行の実装コード<br>
+                                            ・エージェントループの制御ロジック<br>
+                                            ・未公開のフィーチャーフラグ44個<br>
+                                            ・未発表機能（KAIROS、Buddy等）
+                                        </div>
+                                    </div>
+                                    <div class="loop-step" style="border-left: 3px solid #22c55e;">
+                                        <div class="font-bold text-green-400 mb-1">漏れなかったもの（モデル側）</div>
+                                        <div class="text-gray-400 text-sm">
+                                            ・AIモデルの重み・学習データ<br>
+                                            ・ユーザーの会話履歴<br>
+                                            ・APIキー・認証情報<br>
+                                            ・ユーザーの個人データ
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 mb-3">
+                                この事件は「<strong class="text-white">AIモデルとハーネスは完全に別物</strong>」であることを図らずも証明しました。ハーネス（TypeScriptプログラム）が丸ごと漏れても、AIモデル本体には一切影響がなかったのです。
+                            </p>
+                            <p class="text-gray-300 mb-6">
+                                逆に言えば、あなたのPCで動いているClaude Codeの大部分は「普通のプログラム」です。AIの魔法に見える動作の裏側には、ファイルを読み書きし、コマンドを実行し、APIを叩く ― そういう<strong class="text-white">地道なコードの積み重ね</strong>があります。
+                            </p>
+
+                            <h4>流出したソースコードを実際に見てみる</h4>
+                            <p class="text-gray-300 mb-3">
+                                フォークされたリポジトリは今もGitHub上に残っており、ハーネスの中身を自分の目で確認できます。「ハーネスとは何か」を理解するのに最も直接的な方法です。
+                            </p>
+
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">ソースコード全体（フォーク）</div>
+                                        <div class="text-gray-400 text-sm mb-2">約51万行・1,900ファイルのTypeScriptコードが確認できます。</div>
+                                        <a href="https://github.com/yasasbanukaofficial/claude-code" target="_blank" class="text-blue-400 hover:underline text-sm">github.com/yasasbanukaofficial/claude-code</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-gray-300 mb-3">
+                                特に注目すべきファイル・ディレクトリを紹介します。
+                            </p>
+
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">システムプロンプト（AIへの指示書）</div>
+                                        <div class="text-gray-400 text-sm mb-2">
+                                            Claude Codeが毎回AIに渡している「指示書」の全文です。ツールの使い方、コードの書き方のルール、安全性の制約 ― ハーネスがこれを組み立ててAPIに送信しています。<br>
+                                            以下のリポジトリでは、バージョンごとのシステムプロンプトが整理されています：
+                                        </div>
+                                        <a href="https://github.com/Piebald-AI/claude-code-system-prompts" target="_blank" class="text-blue-400 hover:underline text-sm">github.com/Piebald-AI/claude-code-system-prompts</a>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">ツール定義（AIが使える道具の一覧） ― 28種類以上</div>
+                                        <div class="text-gray-400 text-sm mb-2">
+                                            Claude Codeには<strong class="text-white">28種類以上の組み込みツール</strong>が定義されています（バージョンにより変動）。AIはこの定義を読んで「どのツールをどう使うか」を判断します。
+                                        </div>
+                                        <div class="text-gray-500 text-xs mb-2" style="line-height: 1.6;">
+                                            Agent / AskUserQuestion / Bash / Computer / Config / CronCreate / Edit / EnterPlanMode / EnterWorktree / ExitPlanMode / ExitWorktree / Glob / Grep / LSP / NotebookEdit / PowerShell / Read / RequestTeachAccess / SendMessage / Skill / TaskCreate / TaskList / TeamDelete / Teammate / TodoWrite / ToolSearch / WebFetch / WebSearch / Write
+                                        </div>
+                                        <div class="text-gray-400 text-sm mb-1">
+                                            各ツールのパラメータや説明文がそのまま定義されており、流出したソースから確認できます：
+                                        </div>
+                                        <a href="https://github.com/Piebald-AI/claude-code-system-prompts/tree/main/system-prompts" target="_blank" class="text-blue-400 hover:underline text-xs">github.com/Piebald-AI/claude-code-system-prompts（tool-description-*.md が各ツールの定義）</a>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">エージェントループ（繰り返し処理の心臓部）</div>
+                                        <div class="text-gray-400 text-sm">
+                                            「ユーザーの入力を受け取る → AIにリクエスト → レスポンスを解析 → ツール呼び出しがあれば実行 → 結果をまたAIに渡す」という繰り返しのロジックです。ハーネスの最も重要な部分です。
+                                        </div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">権限チェック・サンドボックス</div>
+                                        <div class="text-gray-400 text-sm">
+                                            AIが危険な操作（ファイル削除、force push等）を要求したとき、ハーネスがブロックしたりユーザーに確認を求めたりするロジックです。AIモデル自体に「やっていいこと」を判断する機能はなく、ハーネスが制御しています。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>解説記事で読む</h4>
+                            <p class="text-gray-300 mb-3">
+                                ソースコードを直接読むのが難しい場合は、以下の解説記事がわかりやすくまとめています。
+                            </p>
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">英語の解説記事</div>
+                                        <div class="text-gray-400 text-sm mb-1">
+                                            <a href="https://read.engineerscodex.com/p/diving-into-claude-codes-source-code" target="_blank" class="text-blue-400 hover:underline">Diving into Claude Code's Source Code Leak（Engineer's Codex）</a><br>
+                                            <span class="text-gray-500">ハーネスの構造、システムプロンプト、ツール定義を図解で解説</span>
+                                        </div>
+                                        <div class="text-gray-400 text-sm mb-1">
+                                            <a href="https://kuber.studio/blog/AI/Claude-Code's-Entire-Source-Code-Got-Leaked-via-a-Sourcemap-in-npm,-Let's-Talk-About-it" target="_blank" class="text-blue-400 hover:underline">Claude Code's Entire Source Code Got Leaked（Kuber Studio）</a><br>
+                                            <span class="text-gray-500">流出の経緯、KAIROS、Undercover Modeなど未公開機能の解説</span>
+                                        </div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">日本語の解説記事</div>
+                                        <div class="text-gray-400 text-sm mb-1">
+                                            <a href="https://qiita.com/TaichiEndoh/items/a4c0b1d8f3ea60d8cb4a" target="_blank" class="text-blue-400 hover:underline">Claude Codeソースコード漏洩事件 ─ 何が漏れ、何が漏れなかったのか（Qiita）</a><br>
+                                            <span class="text-gray-500">漏洩の全体像と影響範囲を日本語で整理</span>
+                                        </div>
+                                        <div class="text-gray-400 text-sm mb-1">
+                                            <a href="https://www.gizmodo.jp/2026/04/source-code-for-anthropics-claude-code-leaks-at-the-exact-wrong-time.html" target="_blank" class="text-blue-400 hover:underline">話題の「Claude Code」、ソースコードが流出してしまう（Gizmodo Japan）</a><br>
+                                            <span class="text-gray-500">非エンジニア向けにもわかりやすい記事</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>この事件から学べること</h4>
+                                <p class="text-gray-300 mb-2">流出したソースコードを眺めると、「<strong class="text-white">Claude Codeの正体は、よくできたTypeScriptプログラム</strong>」であることが実感できます。</p>
+                                <p class="text-gray-300">AIの賢さはモデル側の話。ハーネス側は「システムプロンプトを組み立てる」「ツールを実行する」「ループを回す」という<strong class="text-white">地道なプログラミングの積み重ね</strong>です。この理解があると、Claude Codeの挙動に困ったとき「ハーネス側の問題か、モデル側の問題か」を切り分けて考えられるようになります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: コンテキストエンジニアリング -->
+                    <div class="content-section">
+                        <h3>コンテキストエンジニアリング ― AIの性能を決めるのは「何を渡すか」</h3>
+                        <div class="collapsible-content">
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                AIモデルの知能は急速に向上し、もはや「頭が良いかどうか」では差がつきにくくなりました。<br>
+                                では、何が差を生むのか？ ― それが<strong class="text-white">コンテキスト（AIに渡す情報）</strong>です。
+                            </p>
+
+                            <!-- ステップ1: 前提 -->
+                            <h4>そもそもコンテキストとは？</h4>
+                            <p class="text-gray-300 mb-3">
+                                AIモデルは毎回「渡されたテキスト」だけを見て回答します。過去の会話、あなたのプロジェクト構成、コーディング規約 ― <strong class="text-white">渡されなければ、存在しないのと同じ</strong>です。
+                            </p>
+                            <div class="command-box mb-4" style="background: #1a1a2e; border-left: 3px solid #6366f1;">
+                                <div class="text-gray-400 text-sm" style="white-space: pre-line;">
+<strong class="text-red-400">コンテキストなし：</strong>「認証機能を作って」
+→ AIは一般的なログインフォームを作る（あなたのプロジェクトのことは何も知らない）
+
+<strong class="text-green-400">コンテキストあり：</strong>「認証機能を作って」＋ CLAUDE.md ＋ 既存コード ＋ 使用ライブラリ情報
+→ AIはあなたのプロジェクトに合った実装を作る</div>
+                            </div>
+                            <p class="text-gray-300 mb-3">
+                                この<strong class="text-white">「AIにどんな情報を、どのタイミングで、どう渡すか」を設計すること</strong>を<strong class="text-white">コンテキストエンジニアリング</strong>と呼びます。
+                            </p>
+
+                            <!-- ステップ2: 誰が言い始めたか -->
+                            <h4>業界のトップが全員同じことを言っている</h4>
+                            <p class="text-gray-300 mb-3">
+                                これは一部の人の意見ではありません。AI業界のキーパーソンたちが、それぞれ独立に同じ結論に至っています。
+                            </p>
+
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">Shopify CEO トビ・リュトケ（2025年6月） <a href="https://x.com/tobi/status/1935533422589399127" target="_blank" class="text-blue-400 text-xs hover:underline">出典</a></div>
+                                        <div class="text-gray-400 text-sm">「"プロンプトエンジニアリング" より "コンテキストエンジニアリング" という言葉が好きだ。こちらの方が本質を表している ― <strong class="text-white">LLMがタスクを解決できるように、すべてのコンテキストを提供する技術</strong>だ」</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">Andrej Karpathy ― OpenAI創業メンバー（2025年6月） <a href="https://x.com/karpathy/status/1937902205765607626" target="_blank" class="text-blue-400 text-xs hover:underline">出典</a></div>
+                                        <div class="text-gray-400 text-sm">「コンテキストエンジニアリングとは、<strong class="text-white">コンテキストウィンドウに次のステップに必要な"ちょうどいい情報"を詰め込む繊細な技術と科学</strong>だ。あらゆる本格的なLLMアプリにおいて、これが核心だ」</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">Anthropic 公式エンジニアリングブログ（2026年） <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" class="text-blue-400 text-xs hover:underline">出典</a></div>
+                                        <div class="text-gray-400 text-sm">「プロンプトの"ちょうどいい言葉"を探す段階は終わった。今は<strong class="text-white">どんなコンテキスト構成がモデルの望ましい振る舞いを引き出すか</strong>を設計する段階だ」</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">Box CEO アーロン・レヴィ（2026年） <a href="https://x.com/levie/status/1946693912984510767" target="_blank" class="text-blue-400 text-xs hover:underline">出典</a></div>
+                                        <div class="text-gray-400 text-sm">「コンテキストエンジニアリングは、今、<strong class="text-white">企業で効果的なAIエージェントを構築するための最も重要なコンポーネント</strong>になりつつある。企業がAIで勝つのはモデルの選択ではない。コンテキストレイヤーこそが鍵だ」</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">Anthropic Japan 吉田弘毅氏 <a href="https://xtech.nikkei.com/atcl/nxt/column/18/03500/021000001/" target="_blank" class="text-blue-400 text-xs hover:underline">日経クロステック</a></div>
+                                        <div class="text-gray-400 text-sm">「AIエージェントはコンテキストとインテリジェンス（モデルの知能）の掛け算で成り立っている」「コンテキストの汚染を防ぐことが重要で、<strong class="text-white">不要な情報を除き、重要な情報を含めること</strong>が設計原則」</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ステップ3: 具体的に何が起きているか -->
+                            <h4>各社のツールは全て「コンテキストを渡す競争」</h4>
+                            <p class="text-gray-300 mb-3">
+                                この考え方を理解すると、今のAIツールの動きが一本の線でつながります。
+                            </p>
+
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">Claude Code（Anthropic）</div>
+                                        <div class="text-gray-400 text-sm">CLAUDE.md、ツール定義、git状態、ファイル内容 ― ハーネスがこれらのコンテキストを自動で組み立ててAIに渡す</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">Cursor / Windsurf（コーディングAI）</div>
+                                        <div class="text-gray-400 text-sm">プロジェクト全体をインデックス化し、関連コードを自動でコンテキストに含める。.cursorrules でルールを注入</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">OpenClaw（オープンソースAIエージェント）</div>
+                                        <div class="text-gray-400 text-sm">ローカルにメモリを蓄積し、24時間365日コンテキストを持続。使えば使うほど「あなた専用」になる</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">MCP（Model Context Protocol）</div>
+                                        <div class="text-gray-400 text-sm">外部ツール（DB、API、ファイルシステム等）からのコンテキスト取得を標準化。各社が採用し月間9,700万DL超</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">RAG / メモリAPI（各社）</div>
+                                        <div class="text-gray-400 text-sm">Gemini、OpenAI、Anthropicが独自のメモリ機能を提供。過去の会話やデータをコンテキストとして蓄積・活用</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-gray-300 mb-3">
+                                見た目は違っても、やっていることの本質は同じです。<strong class="text-white">「AIモデルにどれだけ適切なコンテキストを渡せるか」</strong>を競っています。
+                            </p>
+
+                            <!-- ステップ4: なぜこれが重要か -->
+                            <h4>つまり「AIの能力」は掛け算で決まる</h4>
+                            <div class="visual-diagram mb-4">
+                                <div class="flex items-center justify-center gap-4 text-center">
+                                    <div class="loop-step" style="flex: 1;">
+                                        <div class="font-bold text-purple-400 text-lg mb-1">モデルの知能</div>
+                                        <div class="text-gray-400 text-sm">Claude, GPT, Gemini...<br>（各社が競争で向上中）</div>
+                                    </div>
+                                    <div class="text-3xl text-white font-bold">×</div>
+                                    <div class="loop-step" style="flex: 1;">
+                                        <div class="font-bold text-blue-400 text-lg mb-1">コンテキスト</div>
+                                        <div class="text-gray-400 text-sm">CLAUDE.md、コード、データ...<br>（<strong class="text-white">あなたが設計できる</strong>）</div>
+                                    </div>
+                                    <div class="text-3xl text-white font-bold">=</div>
+                                    <div class="loop-step" style="flex: 1;">
+                                        <div class="font-bold text-green-400 text-lg mb-1">AIの実際の能力</div>
+                                        <div class="text-gray-400 text-sm">タスクの成功率<br>アウトプットの質</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>あなたにとっての意味</h4>
+                                <p class="text-gray-300 mb-2">モデルの知能は各社が競争で上げてくれます。あなたがコントロールできるのは<strong class="text-white">コンテキスト側</strong>です。</p>
+                                <p class="text-gray-300 mb-2">CLAUDE.mdを丁寧に書く。プロジェクト構成を整理する。MCPで必要な外部データに接続する ― これらは全て<strong class="text-white">コンテキストエンジニアリング</strong>です。</p>
+                                <p class="text-gray-300">つまり、この講座で学ぶClaude Codeの使いこなしは、そのまま<strong class="text-white">コンテキストエンジニアリングの実践</strong>でもあります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: なぜデータを蓄積すべきか -->
+                    <div class="content-section">
+                        <h3>なぜ「データの蓄積」がこれからの最重要課題なのか</h3>
+                        <div class="collapsible-content">
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                コンテキストエンジニアリングが重要だとわかったところで、次の疑問が浮かびます。<br>
+                                <strong class="text-white">「渡すべきコンテキスト」は、どこから来るのか？</strong>
+                            </p>
+
+                            <h4>コンテキストの材料は「あなたのデータ」</h4>
+                            <p class="text-gray-300 mb-3">
+                                AIに渡すコンテキストは、空から降ってくるわけではありません。あなたが持っている<strong class="text-white">データそのもの</strong>です。
+                            </p>
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">個人の場合</div>
+                                        <div class="text-gray-400 text-sm">
+                                            ・過去に書いたコード、設計ドキュメント<br>
+                                            ・プロジェクトの構成やコーディング規約（CLAUDE.md）<br>
+                                            ・議事録、仕様書、やり取りの履歴<br>
+                                            ・自分の得意分野や好みの技術スタック
+                                        </div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">会社・チームの場合</div>
+                                        <div class="text-gray-400 text-sm">
+                                            ・社内ナレッジベース、マニュアル、FAQ<br>
+                                            ・顧客データ、問い合わせ履歴、対応ログ<br>
+                                            ・業務フロー、意思決定の記録<br>
+                                            ・過去のプロジェクトの成功・失敗事例
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>なぜ今すぐ始めるべきか？ ― 3つの理由</h4>
+
+                            <h4 class="text-blue-400">理由1：データがなければ、AIは「汎用」止まり</h4>
+                            <p class="text-gray-300 mb-3">
+                                どんなに賢いAIモデルでも、あなたの会社のことを知らなければ<strong class="text-white">誰にでも出せる一般的な回答</strong>しか返せません。
+                            </p>
+                            <div class="command-box mb-4" style="background: #1a1a2e; border-left: 3px solid #6366f1;">
+                                <div class="text-gray-400 text-sm" style="white-space: pre-line;">
+<strong class="text-red-400">データなし：</strong>「うちの売上が落ちている原因を分析して」
+→ 「一般的に売上低下の原因は、市場環境、競合、価格設定…」（教科書レベル）
+
+<strong class="text-green-400">データあり：</strong>同じ質問 ＋ 過去3年の売上データ ＋ 顧客アンケート ＋ 競合情報
+→ 「Q3に離脱した顧客の78%がこの機能の欠如を指摘。競合Xが同時期にこの機能をリリース…」（具体的で行動に直結）</div>
+                            </div>
+                            <p class="text-gray-300 mb-3">
+                                <strong class="text-white">データの差が、AIのアウトプットの差に直結する。</strong>モデルの知能が同じでも、渡すデータで結果は天と地ほど変わります。
+                            </p>
+
+                            <h4 class="text-blue-400">理由2：データは一朝一夕には作れない</h4>
+                            <p class="text-gray-300 mb-3">
+                                AIモデルは課金すれば誰でも使えます。しかし、<strong class="text-white">あなたの会社の10年分の業務データ</strong>や<strong class="text-white">あなた個人の経験から生まれたナレッジ</strong>は、今日始めても明日手に入るものではありません。
+                            </p>
+                            <p class="text-gray-300 mb-3">
+                                つまりデータは<strong class="text-white">時間をかけて蓄積するしかない</strong>ものです。だからこそ、早く始めた人・会社が有利になります。
+                            </p>
+
+                            <h4 class="text-blue-400">理由3：データが「競争優位」になる時代</h4>
+                            <p class="text-gray-300 mb-3">
+                                AIモデルの知能は、OpenAI・Anthropic・Googleが競争で上げてくれます。<strong class="text-white">モデルは全員が同じものを使える</strong>。差がつくのは「何を渡すか」です。
+                            </p>
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div class="loop-step" style="border-left: 3px solid #6366f1;">
+                                        <div class="font-bold text-purple-400 mb-1">モデルの知能</div>
+                                        <div class="text-gray-400 text-sm">全員同じ<br>（APIで誰でも使える）</div>
+                                    </div>
+                                    <div class="loop-step" style="border-left: 3px solid #f59e0b;">
+                                        <div class="font-bold text-yellow-400 mb-1">データ（コンテキスト）</div>
+                                        <div class="text-gray-400 text-sm"><strong class="text-white">ここが差になる</strong><br>（自分で蓄積するしかない）</div>
+                                    </div>
+                                    <div class="loop-step" style="border-left: 3px solid #22c55e;">
+                                        <div class="font-bold text-green-400 mb-1">AIのアウトプット</div>
+                                        <div class="text-gray-400 text-sm">データを持つ側が<br>圧倒的に有利</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>具体的に何をすればいいか</h4>
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">個人：AIに渡せる形でナレッジを残す</div>
+                                        <div class="text-gray-400 text-sm">CLAUDE.mdにプロジェクトのルールを書く。設計判断の理由をドキュメントに残す。「なぜそうしたか」を記録する習慣をつける</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">会社：社内データを構造化・蓄積する</div>
+                                        <div class="text-gray-400 text-sm">業務マニュアル、FAQ、対応履歴、ナレッジベースを整備する。暗黙知を言語化してデータにする。「頭の中にしかない情報」をなくす</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">共通：「AIに渡すつもり」でデータを作る</div>
+                                        <div class="text-gray-400 text-sm">議事録を取る、仕様書を書く、振り返りを記録する ― 今までは「人が読むため」だったが、これからは<strong class="text-white">「AIにコンテキストとして渡すため」</strong>にもデータを作る</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>まとめ</h4>
+                                <p class="text-gray-300">AIの知能はお金で買える。しかし<strong class="text-white">あなたのデータは、あなたしか持っていない</strong>。データを意識的に蓄積し、AIに渡せる形で整理すること ― それが個人にとっても会社にとっても、AI時代の最大の競争優位になります。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セクション: Agent Wrapperの時代 -->
+                    <div class="content-section">
+                        <h3>「Agent Wrapper」の時代 ― アプリの価値が変わる</h3>
+                        <div class="collapsible-content">
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                ここまでの話を開発者・ビジネスの視点で見ると、<strong class="text-white">アプリの作り方そのもの</strong>が変わりつつあることがわかります。
+                            </p>
+
+                            <h4>これまでのアプリ ― 「機能」が価値だった</h4>
+                            <p class="text-gray-300 mb-3">
+                                従来のアプリ開発では、<strong class="text-white">どんな機能を実装するか</strong>が差別化のポイントでした。UIの美しさ、操作性、独自の処理ロジック ― これらを作り込むことが価値でした。
+                            </p>
+
+                            <h4>これからのアプリ ― 「AIに何を渡すか」が価値になる</h4>
+                            <p class="text-gray-300 mb-3">
+                                AIが高度な処理をこなせるようになった今、アプリの役割は変わります。<strong class="text-white">AIモデルを適切なコンテキストで包み込む「ラッパー」</strong>としての役割が中心になるのです。これが<strong class="text-white">Agent Wrapper</strong>という考え方です。
+                            </p>
+
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="loop-step" style="border-left: 3px solid #6b7280;">
+                                        <div class="font-bold text-gray-400 mb-2">従来のアプリ</div>
+                                        <div class="text-gray-400 text-sm" style="white-space: pre-line;">ユーザー
+  ↓ 操作
+アプリ（機能・ロジック）
+  ↓ 処理
+結果を表示</div>
+                                    </div>
+                                    <div class="loop-step" style="border-left: 3px solid #6366f1;">
+                                        <div class="font-bold text-blue-400 mb-2">Agent Wrapper</div>
+                                        <div class="text-gray-400 text-sm" style="white-space: pre-line;">ユーザー
+  ↓ 指示
+<strong class="text-white">アプリ（コンテキストを組み立てる）</strong>
+  ↓ AIに渡す
+AIモデル（処理）
+  ↓ 結果
+アプリが整形して表示</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-gray-300 mb-3">
+                                Agent Wrapperの本質は、<strong class="text-white">AIモデルに「正しいコンテキスト」を渡すためのアプリ</strong>です。モデルの知能はAPIで呼ぶだけ。アプリの価値は「何を集めて、何を渡すか」に移ります。
+                            </p>
+
+                            <h4>すでに起きている具体例</h4>
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">Claude Code・Cursor・OpenClaw</div>
+                                        <div class="text-gray-400 text-sm">コーディングAIの本体は同じLLM。差別化しているのは<strong class="text-white">プロジェクト情報をどう集め、どうAIに渡すか</strong>というラッパー部分</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">AIカスタマーサポート</div>
+                                        <div class="text-gray-400 text-sm">AIモデルは汎用。しかし<strong class="text-white">その会社のFAQ・過去の対応履歴・製品情報</strong>をコンテキストとして渡すことで、その会社専用のサポートAIになる</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">AI営業・マーケティングツール</div>
+                                        <div class="text-gray-400 text-sm">顧客データ、商談履歴、市場データ ― <strong class="text-white">蓄積されたデータをAIに渡す</strong>ことで、汎用AIが「自社専属の分析チーム」になる</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>これが意味すること</h4>
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">開発者にとって</div>
+                                        <div class="text-gray-400 text-sm">「すごい機能を作る」より「<strong class="text-white">適切なデータを集めてAIに渡す仕組みを作る</strong>」スキルが重要になる。MCP、RAG、メモリ設計、データパイプライン ― これらがアプリの核心になる</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="font-bold text-white mb-1">ビジネスにとって</div>
+                                        <div class="text-gray-400 text-sm">「AIを導入する」だけでは差別化にならない（全員が同じモデルを使えるから）。<strong class="text-white">自社だけが持つデータを蓄積・整理し、AIに渡せる状態にすること</strong>が本質的な競争力になる</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>この講座との関係</h4>
+                                <p class="text-gray-300 mb-2">Claude Codeそのものが、Agent Wrapperの代表例です。ハーネス（TypeScriptプログラム）がコンテキストを組み立て、AIモデルに渡し、結果を実行する。</p>
+                                <p class="text-gray-300">この講座でCLAUDE.md、MCP、Hooks、メモリを学ぶことは、<strong class="text-white">Agent Wrapperの設計思想を体で理解すること</strong>でもあります。「AIに何を渡すか」を自分で設計できるようになれば、その考え方はあらゆるAIアプリ開発に応用できます。</p>
                             </div>
                         </div>
                     </div>
