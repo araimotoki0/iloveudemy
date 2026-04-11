@@ -152,6 +152,81 @@
                         </div>
                     </div>
 
+                    <!-- セクション: ハーネス戦争 -->
+                    <div class="content-section">
+                        <h3>🔥 ハーネス戦争 ― 各社が本当に獲りに行っているもの</h3>
+                        <div class="collapsible-content">
+
+                            <p class="text-lg leading-relaxed mb-6 text-gray-300">
+                                ここ、めちゃくちゃ大事な話です。<br>
+                                2025年〜2026年にかけて、AIの世界で<strong class="text-white">最も激しい競争が起きている場所</strong>がどこかわかりますか？<br>
+                                モデルの性能？ ― もちろん重要。でも、本当の主戦場はそこじゃない。<br>
+                                <strong class="text-white">「ハーネス」の覇権争い</strong>です。
+                            </p>
+
+                            <h4>なぜハーネスが主戦場なのか</h4>
+                            <p class="text-gray-300 mb-3">
+                                前のセクションで見たとおり、AIモデルは「テキストを返すだけ」です。同じClaudeモデル、同じGPTモデルを使っても、<strong class="text-white">ハーネスが違えば、まったく別の製品</strong>になります。
+                            </p>
+                            <p class="text-gray-300 mb-3">
+                                つまり、AIの世界で起きていることは ―<br>
+                                <strong class="text-white">「AIモデルの頭脳」は共有資源になりつつあり、「その頭脳をどう使うか」の設計で勝負が決まる</strong>ということ。<br>
+                                だから各社が死に物狂いでハーネスを作っています。
+                            </p>
+
+                            <h4>各社が何を狙っているのか</h4>
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-4">
+                                    <div class="loop-step" style="border-left: 3px solid #e8734a;">
+                                        <div class="font-bold text-white mb-2">Anthropic ― Claude Code</div>
+                                        <div class="text-gray-400 text-sm mb-2">狙い：<strong class="text-white">「開発者のワークフロー全体を握る」</strong></div>
+                                        <div class="text-gray-400 text-sm">ターミナル・VS Code・デスクトップアプリ・ブラウザ・Slack ― あらゆる場所にClaude Codeを埋め込む。自社モデル × 自社ハーネスで<strong class="text-white">垂直統合</strong>。CLAUDE.md・MCP・Hooks・サブエージェント・スキルと、ハーネスの機能を猛烈に拡張中。</div>
+                                    </div>
+                                    <div class="loop-step" style="border-left: 3px solid #10b981;">
+                                        <div class="font-bold text-white mb-2">OpenAI ― Codex + OpenClawの人材獲得</div>
+                                        <div class="text-gray-400 text-sm mb-2">狙い：<strong class="text-white">「汎用AIエージェント基盤を制する」</strong></div>
+                                        <div class="text-gray-400 text-sm">Codex（クラウド型コーディングエージェント）を投入しつつ、GitHub史上最速で24.7万スターを獲得したOpenClawの開発者Peter Steinbergerを採用。コーディング以外のあらゆる領域に広げようとしている。</div>
+                                    </div>
+                                    <div class="loop-step" style="border-left: 3px solid #6366f1;">
+                                        <div class="font-bold text-white mb-2">Cursor ― IDE統合型 + 自社モデル開発</div>
+                                        <div class="text-gray-400 text-sm mb-2">狙い：<strong class="text-white">「エディタそのものをAIエージェントにする」</strong></div>
+                                        <div class="text-gray-400 text-sm">VS Codeをフォークし、エディタ自体にハーネスを組み込んだ。当初は外部モデル（Claude・GPT等）を切り替えて使う「ハーネス専業」だったが、<strong class="text-white">Composer 2で自社モデル開発に踏み込んだ</strong>。OSSのKimi K2.5をベースに、Cursor環境での大規模強化学習を実施。ハーネス企業がモデルも手に入れた ― 戦局が変わりつつある。</div>
+                                    </div>
+                                    <div class="loop-step" style="border-left: 3px solid #ec4899;">
+                                        <div class="font-bold text-white mb-2">OpenClaw ― オープンソース・常時稼働エージェント</div>
+                                        <div class="text-gray-400 text-sm mb-2">狙い：<strong class="text-white">「24時間365日動き続けるパーソナルAI」</strong></div>
+                                        <div class="text-gray-400 text-sm">Peter Steinbergerが1時間で作ったプロトタイプ。LINEやWhatsAppなど既存のメッセージアプリをUIにし、メール管理・スケジュール管理を常時実行。<strong class="text-white">モデル非依存</strong>（Claude・GPT・DeepSeek何でもOK）。開発者はOpenAIに移り、プロジェクトは非営利財団でオープンソース継続中。</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>全員がやっていることは同じ</h4>
+                            <p class="text-gray-300 mb-3">
+                                見た目も操作方法もまるで違う。しかし、各社のハーネスがやっていることの<strong class="text-white">本質は全部同じ</strong>です。<br>
+                                <strong class="text-white">「AIモデルに、どれだけ適切なコンテキスト（情報）を渡せるか」</strong> ― これが勝負。
+                            </p>
+                            <div class="visual-diagram mb-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="loop-step">
+                                        <div class="text-gray-400 text-sm"><strong class="text-white">Claude Code</strong> → CLAUDE.md、git状態、ファイル内容をコンテキストとして自動で組み立てる</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="text-gray-400 text-sm"><strong class="text-white">Cursor</strong> → プロジェクト全体をインデックス化し、.cursorrules でルールをコンテキストに注入</div>
+                                    </div>
+                                    <div class="loop-step">
+                                        <div class="text-gray-400 text-sm"><strong class="text-white">OpenClaw</strong> → ローカルにメモリを蓄積し、24時間365日コンテキストを持続</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="success-box">
+                                <h4>この講座で学ぶことの意味</h4>
+                                <p class="text-gray-300">Claude Codeを学ぶということは、<strong class="text-white">各社が競争している「ハーネス」の設計思想を、手を動かしながら理解する</strong>ということです。ツールが変わっても「ハーネスがAIに何を渡しているか」を理解している人はすぐに適応できます。</p>
+                            </div>
+
+                        </div>
+                    </div>
+
                     <!-- セクション: ソースコード流出事件 -->
                     <div class="content-section">
                         <h3>💬 実話：ソースコード流出事件 ― ハーネスの中身が丸見えになった日</h3>
@@ -353,42 +428,7 @@
                                 </div>
                             </div>
 
-                            <!-- ステップ3: 具体的に何が起きているか -->
-                            <h4>各社のツールは全て「コンテキストを渡す競争」</h4>
-                            <p class="text-gray-300 mb-3">
-                                この考え方を理解すると、今のAIツールの動きが一本の線でつながります。
-                            </p>
-
-                            <div class="visual-diagram mb-4">
-                                <div class="grid grid-cols-1 gap-3">
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">Claude Code（Anthropic）</div>
-                                        <div class="text-gray-400 text-sm">CLAUDE.md、ツール定義、git状態、ファイル内容 ― ハーネスがこれらのコンテキストを自動で組み立ててAIに渡す</div>
-                                    </div>
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">Cursor / Windsurf（コーディングAI）</div>
-                                        <div class="text-gray-400 text-sm">プロジェクト全体をインデックス化し、関連コードを自動でコンテキストに含める。.cursorrules でルールを注入</div>
-                                    </div>
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">OpenClaw（オープンソースAIエージェント）</div>
-                                        <div class="text-gray-400 text-sm">ローカルにメモリを蓄積し、24時間365日コンテキストを持続。使えば使うほど「あなた専用」になる</div>
-                                    </div>
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">MCP（Model Context Protocol）</div>
-                                        <div class="text-gray-400 text-sm">外部ツール（DB、API、ファイルシステム等）からのコンテキスト取得を標準化。各社が採用し月間9,700万DL超</div>
-                                    </div>
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">RAG / メモリAPI（各社）</div>
-                                        <div class="text-gray-400 text-sm">Gemini、OpenAI、Anthropicが独自のメモリ機能を提供。過去の会話やデータをコンテキストとして蓄積・活用</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <p class="text-gray-300 mb-3">
-                                見た目は違っても、やっていることの本質は同じです。<strong class="text-white">「AIモデルにどれだけ適切なコンテキストを渡せるか」</strong>を競っています。
-                            </p>
-
-                            <!-- ステップ4: なぜこれが重要か -->
+                            <!-- ステップ3: なぜこれが重要か -->
                             <h4>つまり「AIの能力」は掛け算で決まる</h4>
                             <div class="visual-diagram mb-4">
                                 <div class="flex items-center justify-center gap-4 text-center">
@@ -529,23 +569,15 @@
 
                     <!-- セクション: Agent Wrapperの時代 -->
                     <div class="content-section">
-                        <h3>「Agent Wrapper」の時代 ― アプリの価値が変わる</h3>
+                        <h3>あなたのアプリも「Agent Wrapper」になる</h3>
                         <div class="collapsible-content">
 
                             <p class="text-lg leading-relaxed mb-6 text-gray-300">
-                                ここまでの話を開発者・ビジネスの視点で見ると、<strong class="text-white">アプリの作り方そのもの</strong>が変わりつつあることがわかります。
+                                ハーネス戦争はClaude CodeやCursorの話 ― 自分には関係ない？<br>
+                                いいえ。<strong class="text-white">あなたが作るアプリも同じ構造になっていく</strong>という話です。
                             </p>
 
-                            <h4>これまでのアプリ ― 「機能」が価値だった</h4>
-                            <p class="text-gray-300 mb-3">
-                                従来のアプリ開発では、<strong class="text-white">どんな機能を実装するか</strong>が差別化のポイントでした。UIの美しさ、操作性、独自の処理ロジック ― これらを作り込むことが価値でした。
-                            </p>
-
-                            <h4>これからのアプリ ― 「AIに何を渡すか」が価値になる</h4>
-                            <p class="text-gray-300 mb-3">
-                                AIが高度な処理をこなせるようになった今、アプリの役割は変わります。<strong class="text-white">AIモデルを適切なコンテキストで包み込む「ラッパー」</strong>としての役割が中心になるのです。これが<strong class="text-white">Agent Wrapper</strong>という考え方です。
-                            </p>
-
+                            <h4>アプリの役割が変わる</h4>
                             <div class="visual-diagram mb-4">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="loop-step" style="border-left: 3px solid #6b7280;">
@@ -557,7 +589,7 @@
 結果を表示</div>
                                     </div>
                                     <div class="loop-step" style="border-left: 3px solid #6366f1;">
-                                        <div class="font-bold text-blue-400 mb-2">Agent Wrapper</div>
+                                        <div class="font-bold text-blue-400 mb-2">Agent Wrapper（= ハーネス）</div>
                                         <div class="text-gray-400 text-sm" style="white-space: pre-line;">ユーザー
   ↓ 指示
 <strong class="text-white">アプリ（コンテキストを組み立てる）</strong>
@@ -570,45 +602,30 @@ AIモデル（処理）
                             </div>
 
                             <p class="text-gray-300 mb-3">
-                                Agent Wrapperの本質は、<strong class="text-white">AIモデルに「正しいコンテキスト」を渡すためのアプリ</strong>です。モデルの知能はAPIで呼ぶだけ。アプリの価値は「何を集めて、何を渡すか」に移ります。
+                                Claude Codeのハーネスがやっていたこと ― コンテキストを組み立ててAIに渡す ― と<strong class="text-white">まったく同じ構造</strong>です。アプリそのものが「ハーネス」になる。これを<strong class="text-white">Agent Wrapper</strong>と呼びます。
                             </p>
 
-                            <h4>すでに起きている具体例</h4>
+                            <h4>あらゆる業界で起きている</h4>
                             <div class="visual-diagram mb-4">
                                 <div class="grid grid-cols-1 gap-3">
                                     <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">Claude Code・Cursor・OpenClaw</div>
-                                        <div class="text-gray-400 text-sm">コーディングAIの本体は同じLLM。差別化しているのは<strong class="text-white">プロジェクト情報をどう集め、どうAIに渡すか</strong>というラッパー部分</div>
-                                    </div>
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">AIカスタマーサポート</div>
+                                        <div class="font-bold text-white mb-1">カスタマーサポート</div>
                                         <div class="text-gray-400 text-sm">AIモデルは汎用。しかし<strong class="text-white">その会社のFAQ・過去の対応履歴・製品情報</strong>をコンテキストとして渡すことで、その会社専用のサポートAIになる</div>
                                     </div>
                                     <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">AI営業・マーケティングツール</div>
-                                        <div class="text-gray-400 text-sm">顧客データ、商談履歴、市場データ ― <strong class="text-white">蓄積されたデータをAIに渡す</strong>ことで、汎用AIが「自社専属の分析チーム」になる</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <h4>これが意味すること</h4>
-                            <div class="visual-diagram mb-4">
-                                <div class="grid grid-cols-1 gap-3">
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">開発者にとって</div>
-                                        <div class="text-gray-400 text-sm">「すごい機能を作る」より「<strong class="text-white">適切なデータを集めてAIに渡す仕組みを作る</strong>」スキルが重要になる。MCP、RAG、メモリ設計、データパイプライン ― これらがアプリの核心になる</div>
+                                        <div class="font-bold text-white mb-1">営業・マーケティング</div>
+                                        <div class="text-gray-400 text-sm">顧客データ、商談履歴、市場データ ― <strong class="text-white">蓄積されたデータをコンテキストとして渡す</strong>ことで、汎用AIが「自社専属の分析チーム」になる</div>
                                     </div>
                                     <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">ビジネスにとって</div>
-                                        <div class="text-gray-400 text-sm">「AIを導入する」だけでは差別化にならない（全員が同じモデルを使えるから）。<strong class="text-white">自社だけが持つデータを蓄積・整理し、AIに渡せる状態にすること</strong>が本質的な競争力になる</div>
+                                        <div class="font-bold text-white mb-1">あなたが作るアプリ</div>
+                                        <div class="text-gray-400 text-sm">「すごい機能を実装する」時代から、<strong class="text-white">「適切なデータを集めてAIに渡す仕組みを作る」</strong>時代へ。MCP、RAG、メモリ設計 ― これらがアプリの核心になる</div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="success-box">
-                                <h4>この講座との関係</h4>
-                                <p class="text-gray-300 mb-2">Claude Codeそのものが、Agent Wrapperの代表例です。ハーネス（TypeScriptプログラム）がコンテキストを組み立て、AIモデルに渡し、結果を実行する。</p>
-                                <p class="text-gray-300">この講座でCLAUDE.md、MCP、Hooks、メモリを学ぶことは、<strong class="text-white">Agent Wrapperの設計思想を体で理解すること</strong>でもあります。「AIに何を渡すか」を自分で設計できるようになれば、その考え方はあらゆるAIアプリ開発に応用できます。</p>
+                                <h4>だからClaude Codeで学ぶことに意味がある</h4>
+                                <p class="text-gray-300">Claude Codeは、最も完成度の高いAgent Wrapperの一つです。この講座でCLAUDE.md・MCP・Hooksを設計する経験は、<strong class="text-white">自分のアプリをAgent Wrapperとして設計する力</strong>にそのままつながります。</p>
                             </div>
                         </div>
                     </div>
