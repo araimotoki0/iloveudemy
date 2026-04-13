@@ -237,7 +237,7 @@
                                 2026年3月31日、Anthropicがnpmパッケージ <code>@anthropic-ai/claude-code</code> v2.1.88 を公開した際、<strong class="text-white">ソースマップファイル（.map）を誤って同梱</strong>してしまいました。
                             </p>
                             <p class="text-gray-300 mb-3">
-                                ソースマップとは、本来開発者がデバッグ用に使う内部ファイルです。これがあると、圧縮・難読化されたコードから<strong class="text-white">元のTypeScriptソースコードを完全に復元</strong>できます。
+                                ソースマップとは、本来開発者がデバッグ用に使う内部ファイルです。圧縮・難読化されたコードと元のソースコードの対応関係を記録するためのもので、<strong class="text-white">その中身には元のTypeScriptソースコード本体が文字列として丸ごと埋め込まれています</strong>（<code>sourcesContent</code> フィールド）。つまり「復元した」のではなく、<strong class="text-white">ソースコードそのものがファイルの中にそのまま入っていた</strong>ということです。
                             </p>
                             <p class="text-gray-300 mb-3">
                                 数時間のうちにGitHubにミラーされ、<strong class="text-white">84,000スター・82,000フォーク</strong>に到達。韓国の開発者がPythonで全体を書き直すなど、世界中で解析が始まりました。
@@ -282,53 +282,98 @@
                             <div class="visual-diagram mb-4">
                                 <div class="grid grid-cols-1 gap-3">
                                     <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">ソースコード全体（フォーク）</div>
-                                        <div class="text-gray-400 text-sm mb-2">約51万行・1,900ファイルのTypeScriptコードが確認できます。</div>
-                                        <a href="https://github.com/yasasbanukaofficial/claude-code" target="_blank" class="text-blue-400 hover:underline text-sm">github.com/yasasbanukaofficial/claude-code</a>
+                                        <div class="font-bold text-white mb-1">ソースコード全体（主要ミラー）</div>
+                                        <div class="text-gray-400 text-sm mb-2">約51万行・1,900ファイルのTypeScriptコード全体が確認できます。約2,000スター・<code class="code-inline">backup</code>ブランチに改変なしのオリジナルを保存しているのが特徴です。DMCAで消えた場合は <code class="code-inline">claude code leaked github</code> で検索すれば代替ミラーが見つかります。</div>
+                                        <a href="https://github.com/codeaashu/claude-code" target="_blank" class="text-blue-400 hover:underline text-sm">github.com/codeaashu/claude-code</a>
                                     </div>
                                 </div>
                             </div>
 
+                            <h4>まず見るべきは「システムプロンプト」と「ツール定義」</h4>
                             <p class="text-gray-300 mb-3">
-                                特に注目すべきファイル・ディレクトリを紹介します。
+                                流出コードは51万行もあります。全部読むのは無理です。そこで、<strong class="text-white">ハーネスの正体が一番わかりやすく見える2箇所</strong>を紹介します。システムプロンプトとツール定義です。この2つを読むだけで「Claude Codeがモデルに何を渡しているか」が具体的にわかります。
                             </p>
 
-                            <div class="visual-diagram mb-4">
-                                <div class="grid grid-cols-1 gap-3">
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">システムプロンプト（AIへの指示書）</div>
-                                        <div class="text-gray-400 text-sm mb-2">
-                                            Claude Codeが毎回AIに渡している「指示書」の全文です。ツールの使い方、コードの書き方のルール、安全性の制約 ― ハーネスがこれを組み立ててAPIに送信しています。<br>
-                                            以下のリポジトリでは、バージョンごとのシステムプロンプトが整理されています：
-                                        </div>
-                                        <a href="https://github.com/Piebald-AI/claude-code-system-prompts" target="_blank" class="text-blue-400 hover:underline text-sm">github.com/Piebald-AI/claude-code-system-prompts</a>
-                                    </div>
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">ツール定義（AIが使える道具の一覧） ― 28種類以上</div>
-                                        <div class="text-gray-400 text-sm mb-2">
-                                            Claude Codeには<strong class="text-white">28種類以上の組み込みツール</strong>が定義されています（バージョンにより変動）。AIはこの定義を読んで「どのツールをどう使うか」を判断します。
-                                        </div>
-                                        <div class="text-gray-500 text-xs mb-2" style="line-height: 1.6;">
-                                            Agent / AskUserQuestion / Bash / Computer / Config / CronCreate / Edit / EnterPlanMode / EnterWorktree / ExitPlanMode / ExitWorktree / Glob / Grep / LSP / NotebookEdit / PowerShell / Read / RequestTeachAccess / SendMessage / Skill / TaskCreate / TaskList / TeamDelete / Teammate / TodoWrite / ToolSearch / WebFetch / WebSearch / Write
-                                        </div>
-                                        <div class="text-gray-400 text-sm mb-1">
-                                            各ツールのパラメータや説明文がそのまま定義されており、流出したソースから確認できます：
-                                        </div>
-                                        <a href="https://github.com/Piebald-AI/claude-code-system-prompts/tree/main/system-prompts" target="_blank" class="text-blue-400 hover:underline text-xs">github.com/Piebald-AI/claude-code-system-prompts（tool-description-*.md が各ツールの定義）</a>
-                                    </div>
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">エージェントループ（繰り返し処理の心臓部）</div>
-                                        <div class="text-gray-400 text-sm">
-                                            「ユーザーの入力を受け取る → AIにリクエスト → レスポンスを解析 → ツール呼び出しがあれば実行 → 結果をまたAIに渡す」という繰り返しのロジックです。ハーネスの最も重要な部分です。
-                                        </div>
-                                    </div>
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-1">権限チェック・サンドボックス</div>
-                                        <div class="text-gray-400 text-sm">
-                                            AIが危険な操作（ファイル削除、force push等）を要求したとき、ハーネスがブロックしたりユーザーに確認を求めたりするロジックです。AIモデル自体に「やっていいこと」を判断する機能はなく、ハーネスが制御しています。
-                                        </div>
-                                    </div>
+                            <div class="info-box mb-4">
+                                <h4>💡 便利なリポジトリ：Piebald-AI/claude-code-system-prompts</h4>
+                                <p class="text-gray-300 mb-2">システムプロンプトとツール定義だけを読みたい場合、<strong class="text-white">Piebald-AI</strong>という有志プロジェクトが便利です。流出コードではなく、<strong class="text-white">毎回のClaude Codeリリース（npm版）からスクリプトで自動抽出した内容</strong>を、読みやすいMarkdownファイルに整理して公開しています。</p>
+                                <p class="text-gray-300 mb-2">特徴：</p>
+                                <ul class="text-gray-300 list-disc list-inside space-y-1 text-sm">
+                                    <li>流出コードではなく公式npm版からの抽出なので<strong class="text-white">法的にクリーン</strong>（DMCAで消える心配なし）</li>
+                                    <li>v2.1.101まで147バージョン分の変更履歴つき</li>
+                                    <li>Claude Codeがリリースされてから<strong class="text-white">数分以内</strong>に更新される</li>
+                                </ul>
+                                <a href="https://github.com/Piebald-AI/claude-code-system-prompts" target="_blank" class="text-blue-400 hover:underline text-sm">github.com/Piebald-AI/claude-code-system-prompts</a>
+                            </div>
+
+                            <h4>①システムプロンプト ― Claude Codeが毎回AIに渡している「指示書」</h4>
+                            <p class="text-gray-300 mb-3">
+                                あなたが <code class="code-inline">claude</code> コマンドを打つ前に、ハーネスがすでにAIに渡している長大な指示書があります。「あなたはClaude Codeというツールです」「ツールはこう使ってください」「コードを書くときのルール」「禁止事項」など、<strong class="text-white">モデルの振る舞いを決めている文章の全文</strong>です。
+                            </p>
+                            <p class="text-gray-300 mb-3">
+                                Piebald-AIの <code class="code-inline">system-prompts/</code> ディレクトリには、システムプロンプトが<strong class="text-white">機能ごとに80個以上のMarkdownファイル</strong>に分割されて置かれています。代表的なものを開いてみてください：
+                            </p>
+                            <div class="visual-diagram mb-4" style="padding: 16px;">
+                                <div class="grid grid-cols-1 gap-3 text-sm text-gray-400">
+                                    <div>📄 <a href="https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/system-prompt-communication-style.md" target="_blank" class="text-blue-400 hover:underline"><code class="code-inline">system-prompt-communication-style.md</code></a><br>「Claudeはどうユーザーに話しかけるか」の指示。「ツール実行の前に1文で意図を述べよ」「コード内のコメントは原則書くな」など</div>
+                                    <div>📄 <a href="https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/system-prompt-doing-tasks.md" target="_blank" class="text-blue-400 hover:underline"><code class="code-inline">system-prompt-doing-tasks.md</code></a><br>タスク実行の基本方針。「既存ファイル編集を優先」「セキュリティ脆弱性に注意」「ドキュメントを勝手に作るな」など</div>
+                                    <div>📄 <a href="https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/system-prompt-tool-usage-policy.md" target="_blank" class="text-blue-400 hover:underline"><code class="code-inline">system-prompt-tool-usage-policy.md</code></a><br>どのツールをいつ使うべきかのポリシー</div>
+                                    <div>📄 <a href="https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/system-prompt-auto-mode.md" target="_blank" class="text-blue-400 hover:underline"><code class="code-inline">system-prompt-auto-mode.md</code></a><br>自動モード（ユーザー確認を省略するモード）の挙動</div>
                                 </div>
+                            </div>
+                            <p class="text-gray-300 mb-3">
+                                <strong class="text-white">なぜ読む価値がある？</strong> CLAUDE.mdを書くときの<strong class="text-white">お手本</strong>として使えます。「AnthropicはClaudeにどういう指示を与えているのか」を見ると、自分のプロジェクトにどう指示を書けば効くかがわかります。「なぜClaudeはこう返してくるのか」の謎もここで解けます。
+                            </p>
+
+                            <h4>②ツール定義 ― AIが使える「道具」の説明書</h4>
+                            <p class="text-gray-300 mb-3">
+                                Claude Codeは<strong class="text-white">50個以上の組み込みツール</strong>（Read・Write・Edit・Bash・Grep・Glob・WebFetch・Task等）を持っています。ハーネスは各ツールに対して「この道具はこう使え」という説明文をAIに渡しています。AIはその説明を読んで、どの道具をどう呼び出すかを判断しています。
+                            </p>
+                            <p class="text-gray-300 mb-3">
+                                例えば、ファイルを読むツール <code class="code-inline">Read</code>（内部名: ReadFile）の説明文は <a href="https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/tool-description-readfile.md" target="_blank" class="text-blue-400 hover:underline"><code class="code-inline">tool-description-readfile.md</code></a> に入っています。中身はこんな感じです（抜粋）：
+                            </p>
+                            <div class="code-block mb-4" style="font-size: 12px;">Reads a file from the local filesystem. You can access any file
+directly by using this tool.
+Assume this tool is able to read all files on the machine.
+
+Usage:
+- The file_path parameter must be an absolute path, not a relative path
+- By default, it reads up to ${MAX_READ_LINES} lines from the beginning
+- This tool allows Claude Code to read images (eg PNG, JPG, etc)
+- This tool can read PDF files (.pdf). For large PDFs (more than 10 pages),
+  you MUST provide the pages parameter to read specific page ranges
+- This tool can read Jupyter notebooks (.ipynb files)
+- This tool can only read files, not directories. To read a directory,
+  use an ls command via the Bash tool.
+- If you read a file that exists but has empty contents you will receive
+  a system reminder warning in place of file contents.</div>
+                            <p class="text-gray-300 mb-3">
+                                これを読むだけで、普段なんとなく体験していた挙動の理由がわかります：
+                            </p>
+                            <ul class="text-gray-300 list-disc list-inside space-y-1 text-sm mb-4">
+                                <li>なぜReadツールは<strong class="text-white">絶対パス必須</strong>なのか → 明文化されている</li>
+                                <li>PDFで<strong class="text-white">10ページを超えると pages 指定必須</strong> → ここに書かれている</li>
+                                <li>ディレクトリを読もうとすると<strong class="text-white">Bashのlsを案内される</strong> → この指示のため</li>
+                            </ul>
+                            <p class="text-gray-300 mb-3">
+                                他のツールも同じ形式で読めます：
+                            </p>
+                            <div class="visual-diagram mb-4" style="padding: 16px;">
+                                <div class="grid grid-cols-1 gap-3 text-sm text-gray-400">
+                                    <div>📄 <a href="https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/tool-description-edit.md" target="_blank" class="text-blue-400 hover:underline"><code class="code-inline">tool-description-edit.md</code></a><br>Editツール。「readしないとeditできない」「old_stringが一意でないと失敗する」などの制約の理由</div>
+                                    <div>📄 <a href="https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/tool-description-bash.md" target="_blank" class="text-blue-400 hover:underline"><code class="code-inline">tool-description-bash.md</code></a><br>Bashツール。「findではなくGlobを使え」「catではなくReadを使え」などツール選択の優先順位</div>
+                                    <div>📄 <a href="https://github.com/Piebald-AI/claude-code-system-prompts/blob/main/system-prompts/tool-description-webfetch.md" target="_blank" class="text-blue-400 hover:underline"><code class="code-inline">tool-description-webfetch.md</code></a><br>WebFetchツール。「GitHubのURLはgh CLIを優先」などの例外ルール</div>
+                                    <div>📄 <a href="https://github.com/Piebald-AI/claude-code-system-prompts/tree/main/system-prompts" target="_blank" class="text-blue-400 hover:underline">system-prompts/ ディレクトリ全体を見る</a><br>50個以上のツール定義が並んでいる</div>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 mb-3">
+                                <strong class="text-white">なぜ読む価値がある？</strong> 「普段なんとなく感じていたClaude Codeの挙動の理由」が全部明文化されています。さらに、自分でMCPツールやスキルを作るとき、<strong class="text-white">Anthropicのツール説明文の書き方そのものがお手本</strong>になります。
+                            </p>
+
+                            <div class="info-box mb-4">
+                                <h4>🔍 ハーネスのロジック（エージェントループ・権限チェック等）を見たい場合</h4>
+                                <p class="text-gray-300 mb-2">システムプロンプト以外の「実際に動く部分」 ― エージェントループ、権限チェック、サンドボックス、コンテキスト圧縮などの<strong class="text-white">実装コード</strong>を読みたい場合は、Piebald-AIでは見られません（こちらはプロンプトだけ抽出しているため）。</p>
+                                <p class="text-gray-300">前のセクションで紹介した<strong class="text-white">流出コードのミラー</strong>（<code class="code-inline">codeaashu/claude-code</code>）を clone して、後述の【ハンズオン】手順でClaude Code自身に探させるのが一番早いです。「エージェントループの実装を探して」と聞けば、該当ファイルを見つけて解説してくれます。</p>
                             </div>
 
                             <h4>解説記事で読む</h4>
@@ -639,86 +684,82 @@ AIモデル（処理）
                                 調べる方法は大きく<strong class="text-white">2つ</strong>あります。
                             </p>
 
-                            <!-- アプローチ1: ソースコードを読む -->
-                            <h4>アプローチ1：ソースコードを読む</h4>
+                            <!-- アプローチ1: 流出コードをClaude Codeに読ませる -->
+                            <h4>アプローチ1：流出したソースコードをClaude Codeに読ませる【ハンズオン】</h4>
                             <p class="text-gray-300 mb-3">
-                                Claude CodeはJavaScript（Node.js）で書かれたCLIツールです。インストール方法によって、ソースコードの読みやすさが変わります。
+                                前のセクションで紹介した<strong class="text-white">ソースコード流出事件</strong>のおかげで、今やClaude Codeの全TypeScriptソース（約51万行）がGitHub上に残っています。これを使わない手はありません。
+                            </p>
+                            <p class="text-gray-300 mb-3">
+                                やり方は単純です：<strong class="text-white">流出コードをcloneして、Claude Code自身に読ませて説明させる</strong>。すると「この機能は内部でどう実装されているのか？」という疑問に、<strong class="text-white">実際のソースコードを根拠にした回答</strong>が返ってきます。
                             </p>
 
-                            <div class="visual-diagram mb-6">
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-2">通常インストール（<code class="code-inline">claude</code>コマンド）</div>
-                                        <div class="text-gray-400 text-sm">
-                                            <strong class="text-white">ネイティブバイナリ</strong>が配布される。<br>
-                                            JavaScriptのソースコードがバイナリの中に埋め込まれているため、<code class="code-inline">strings</code> コマンドで文字列を抽出すれば読めるが、<strong class="text-yellow-400">周辺のコードを探すのが大変</strong>。
-                                        </div>
-                                    </div>
-                                    <div class="loop-step">
-                                        <div class="font-bold text-white mb-2">npm インストール</div>
-                                        <div class="text-gray-400 text-sm">
-                                            <strong class="text-white">ミニファイされたJSファイル</strong>がそのまま配置される。<br>
-                                            変数名は短縮されているが、テキストファイルなので <code class="code-inline">grep</code> で<strong class="text-green-400">簡単に検索・調査できる</strong>。
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="warning-box mb-4">
+                                <h4>⚠️ 必ず守るルール（ここだけ注意）</h4>
+                                <ul class="text-gray-300 list-disc list-inside space-y-1">
+                                    <li><strong class="text-red-400"><code class="code-inline">npm install</code> は絶対にしない</strong>。<code class="code-inline">package.json</code> の <code class="code-inline">postinstall</code> スクリプトが自動実行されて危険</li>
+                                    <li><strong class="text-red-400"><code class="code-inline">node cli.js</code> などで実行しない</strong>。読むだけにする</li>
+                                    <li>VS Codeで開く場合は「ワークスペースを信頼しますか？」で<strong class="text-white">「信頼しない」</strong>を選ぶ</li>
+                                </ul>
+                                <p class="text-gray-300 mt-2">この3つを守れば、cloneして読むだけ・Claude Codeに読ませるだけは<strong class="text-white">安全</strong>です（ファイルとして存在するだけで実行されることはありません）。</p>
                             </div>
 
-                            <div class="info-box">
-                                <h4>なぜネイティブバイナリだと読みにくい？</h4>
-                                <p class="text-gray-300">ネイティブバイナリは、JavaScriptのコードをCPUが直接実行できる機械語に変換（コンパイル）したものです。人間が読めるソースコードの構造は失われています。ただし、文字列リテラル（エラーメッセージやキーワードなど）はバイナリの中にそのまま残っているため、<code class="code-inline">strings</code> コマンドで抽出できます。</p>
-                            </div>
+                            <h4>ハンズオン手順</h4>
 
-                            <div class="warning-box">
-                                <h4>npm install は調査専用</h4>
-                                <p class="text-gray-300">npm経由のインストールは通常の利用方法としては非推奨です。あくまで内部実装を調査する目的で使います。</p>
-                            </div>
+                            <p class="text-gray-300 mb-2"><strong class="text-white">ステップ1：流出コードのミラーをcloneする</strong></p>
                             <div class="command-box">
-                                <div class="command">npm install -g @anthropic-ai/claude-code</div>
+                                <div class="command">git clone https://github.com/codeaashu/claude-code.git</div>
+                                <div class="command">cd claude-code</div>
                             </div>
-                            <p class="text-gray-300 mb-3">インストール後、ミニファイされたJSファイルの中を <code class="code-inline">grep</code> で検索できます。ネイティブバイナリの場合は <code class="code-inline">strings</code> コマンドで文字列を抽出してから検索します。</p>
+                            <div class="info-box mb-3">
+                                <h4>このリポジトリについて</h4>
+                                <p class="text-gray-300 mb-2">選んだのは <code class="code-inline">codeaashu/claude-code</code>（約2,000スター・2,900フォーク）。流出直後に作成されたミラーの1つで、今も生きている主要ミラーです。特徴：</p>
+                                <ul class="text-gray-300 list-disc list-inside space-y-1 text-sm">
+                                    <li><strong class="text-white"><code class="code-inline">backup</code> ブランチに改変なしのオリジナル流出コードを保存</strong>している（学習目的にはこちらを読む）</li>
+                                    <li>メインブランチにはREADMEや歩き方ドキュメントが整備されている</li>
+                                    <li>Anthropicは流出直後に8,100リポジトリ以上を一括でDMCA対象にしたものの、後に<strong class="text-white">1つの元リポジトリ + 96個の特定フォークに範囲を縮小</strong>しました。このリポジトリはその範囲外で生き残っています</li>
+                                </ul>
+                                <p class="text-gray-300 mt-2 text-sm">いつ消えてもおかしくないので、消えていたら <code class="code-inline">claude code leaked github</code> で検索し、<strong class="text-white">README に情報がちゃんと書かれていて、スター数が数百以上ついているもの</strong>を選んでください。</p>
+                                <p class="text-gray-300 mt-2 text-sm"><strong class="text-red-400">念のため繰り返します：npm install は絶対にしないこと</strong>（先ほどの警告ボックス参照）。これさえ守れば、万が一改変版を踏んでも実害はありません。</p>
+                            </div>
 
-                            <h4>具体例：CLAUDE.mdの注入メカニズムを発見する</h4>
-                            <p class="text-gray-300 mb-3">
-                                「CLAUDE.mdは本当に毎回のリクエストに載るのか？」を調べたケースです。<br>
-                                バイナリから文字列を抽出して、CLAUDE.mdの注入ロジックを特定しました。
+                            <p class="text-gray-300 mb-2 text-sm">
+                                💡 <strong class="text-white">backupブランチ（改変なしのオリジナル）を読みたい場合：</strong>
                             </p>
                             <div class="command-box">
-                                <div class="command">grep -boa "Codebase and user" /path/to/claude-binary</div>
-                                <div class="output">69833497:Codebase and user
-79063744:Codebase and user</div>
+                                <div class="command">git checkout backup</div>
                             </div>
-                            <p class="text-gray-300 mb-3">バイトオフセットを使って周辺のコードを抽出すると、注入ロジックが見えます。</p>
+
+                            <p class="text-gray-300 mb-2"><strong class="text-white">ステップ2：そのディレクトリでClaude Codeを起動</strong></p>
                             <div class="command-box">
-                                <div class="command">dd if=/path/to/claude-binary bs=1 skip=69833400 count=500 2>/dev/null | strings</div>
+                                <div class="command">claude</div>
                             </div>
-                            <p class="text-gray-300 mb-3">実際に見つかったソースコード（ミニファイ済み）：</p>
-                            <div class="code-block mb-4">
-<span class="comment">// CLAUDE.mdの内容をラップするテキスト</span>
-wBK = <span class="string">"Codebase and user instructions are shown below.
-Be sure to adhere to these instructions.
-IMPORTANT: These instructions OVERRIDE any default behavior
-and you MUST follow them exactly as written."</span>
 
-<span class="comment">// CLAUDE.md読み込み関数（メモ化されている = セッション中1回だけディスクから読む）</span>
-a3 = Oq(async () => { ... })
+                            <p class="text-gray-300 mb-2"><strong class="text-white">ステップ3：Claude Code自身に仕様を説明させる</strong></p>
+                            <p class="text-gray-300 mb-2">例えばこんな質問を投げます：</p>
+                            <div class="command-box" style="background: #1a1a2e; border-left: 3px solid #6366f1;">
+                                <div class="text-gray-400 text-sm" style="white-space: pre-line;">
+<strong class="text-blue-400">質問例1:</strong>
+「このリポジトリはClaude Code本体の流出ソースです。
+CLAUDE.md がどう読み込まれ、APIリクエストのどこに注入されるか、
+実際のコードを根拠に説明してください」
 
-<span class="comment">// 種類ごとのラベル付け</span>
-R.type === <span class="string">"Project"</span>
-  ? <span class="string">" (project instructions, checked into the codebase)"</span>
-  : R.type === <span class="string">"Local"</span>
-  ? <span class="string">" (user's private project instructions, not checked in)"</span>
-  : <span class="string">" (user's private global instructions for all projects)"</span>
+<strong class="text-blue-400">質問例2:</strong>
+「サブエージェント（Task tool）の実装を探して、
+親エージェントとのコンテキスト分離がどう実現されているか説明してください」
+
+<strong class="text-blue-400">質問例3:</strong>
+「コンテキスト圧縮（/compact）は内部で何をしているのか、
+該当箇所のコードを見せながら解説してください」</div>
                             </div>
+
+                            <p class="text-gray-300 mb-3">
+                                Claude Codeは自分自身のソースコードを、GrepやReadツールを使って読み取り、<strong class="text-white">該当行を引用しながら仕様を説明</strong>してくれます。公式ドキュメントには書かれていない実装の詳細まで、根拠付きで理解できます。
+                            </p>
 
                             <div class="success-box">
-                                <h4>ソースコードから判明した事実</h4>
-                                <ul class="text-gray-300 list-disc list-inside space-y-2">
-                                    <li>CLAUDE.mdの内容は <code class="code-inline">&lt;system-reminder&gt;</code> タグで囲まれてメッセージ配列の先頭に注入される</li>
-                                    <li>読み込み関数は<strong class="text-white">メモ化</strong>されている → ディスクから読むのはセッション開始時に1回だけ</li>
-                                    <li>一度コンテキストに入ったら、以降のすべてのAPIリクエストに含まれる（会話履歴の一部として）</li>
-                                    <li>ファイルの種類（Project / Local / User）によって異なるラベルが付与される</li>
-                                </ul>
+                                <h4>💡 なぜこれが強力なのか</h4>
+                                <p class="text-gray-300 mb-2">「Claude Code自身がClaude Codeの仕様書」になります。AIに質問すると、通常は訓練データに基づいた一般的な回答が返ってきますが、この方法では<strong class="text-white">実物のコードを読んだうえで</strong>答えてくれます。</p>
+                                <p class="text-gray-300">さらに面白いのは、Claude Code自身のハーネスが、Claude Code自身のハーネスのコードを読んでいる ― という入れ子構造です。ハーネスとは何か、コンテキストエンジニアリングとは何かを、文字通り<strong class="text-white">体験しながら</strong>理解できます。</p>
                             </div>
 
                             <!-- アプローチ2: 公式ドキュメント + AIに聞く -->
