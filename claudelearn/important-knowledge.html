@@ -650,6 +650,25 @@ AIモデル（処理）
                                 Claude Codeのハーネスがやっていたこと ― コンテキストを組み立ててAIに渡す ― と<strong class="text-white">まったく同じ構造</strong>です。アプリそのものが「ハーネス」になる。これを<strong class="text-white">Agent Wrapper</strong>と呼びます。
                             </p>
 
+                            <div class="info-box mb-4">
+                                <h4>用語について ― 「wrapper」の価値逆転ストーリー</h4>
+                                <p class="text-gray-300 mb-2">実は<strong class="text-white">「Agent Wrapper」は世界標準の用語ではありません</strong>。英語圏でよく使われるのは「<strong class="text-white">LLM wrapper</strong>」「<strong class="text-white">harness</strong>（ハーネス）」「<strong class="text-white">application layer</strong>（アプリケーション層）」などです。ただし意味はどれも同じ ― 「AIモデルを包んでコンテキストを渡す仕組み」のことです。</p>
+                                <p class="text-gray-300 mb-2">面白いのは、この「wrapper」という言葉の<strong class="text-white">価値が完全に逆転した</strong>ことです。</p>
+                                <div class="visual-diagram mb-2" style="padding: 14px;">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div class="loop-step" style="border-left: 3px solid #6b7280;">
+                                            <div class="font-bold text-gray-400 mb-1">2023〜2024年頃</div>
+                                            <div class="text-gray-400 text-sm">「<strong class="text-white">これ、ただのGPT wrapperじゃん</strong>」<br>＝ バカにする言葉だった。「APIを呼ぶだけなら誰でもできる、すぐOpenAIに潰される」と言われていた</div>
+                                        </div>
+                                        <div class="loop-step" style="border-left: 3px solid #22c55e;">
+                                            <div class="font-bold text-green-400 mb-1">2025〜2026年</div>
+                                            <div class="text-gray-400 text-sm">「<strong class="text-white">本気でwrapperを作ることこそ勝ち筋</strong>」<br>＝ Cursor（評価額90億ドル）、Perplexity（90億ドル）、Harvey（50億ドル）、Sierra（45億ドル）、Glean（70億ドル）が証明してしまった</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-gray-300">モデル企業（Anthropic・OpenAI）は全分野で最高の製品を作れません。その隙間で「<strong class="text-white">特定ドメインのコンテキストとUXを握った企業</strong>」が数千億円〜兆円規模の価値を作っています。<strong class="text-white">「ただのwrapper」と呼ばれていた設計パターンが、AI時代の主戦場そのもの</strong>になったということです。</p>
+                            </div>
+
                             <h4>あらゆる業界で起きている</h4>
                             <div class="visual-diagram mb-4">
                                 <div class="grid grid-cols-1 gap-3">
