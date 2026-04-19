@@ -206,7 +206,7 @@
                             </p>
                             <div class="command-box" style="background: #1a1a2e; border-left: 3px solid #6366f1;">
                                 <div class="text-gray-400 text-sm" style="white-space: pre-line;">
-<strong class="text-purple-400">【自動で含まれる - ~/CLAUDE.md】</strong>
+<strong class="text-purple-400">【自動で含まれる - ~/.claude/CLAUDE.md】</strong>
 日本語で返答して
 
 <strong class="text-purple-400">【自動で含まれる - プロジェクト/CLAUDE.md】</strong>
@@ -228,11 +228,11 @@
                             <div class="visual-diagram">
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div class="loop-step">
-                                        <div class="font-bold text-white mb-2"><code class="code-inline">~/CLAUDE.md</code></div>
+                                        <div class="font-bold text-white mb-2"><code class="code-inline">~/.claude/CLAUDE.md</code></div>
                                         <div class="text-gray-400 text-sm">
                                             <ul class="list-disc list-inside space-y-1">
                                                 <li><strong class="text-white">全プロジェクト共通</strong>の指示</li>
-                                                <li>ホームディレクトリに置く</li>
+                                                <li><code class="code-inline">~/.claude/</code> ディレクトリに置く</li>
                                                 <li>言語指定、作業スタイルなど</li>
                                             </ul>
                                         </div>
@@ -251,9 +251,9 @@
                             </div>
 
                             <h4>まずはこれを設定しよう</h4>
-                            <p class="text-gray-300 mb-2">ホームディレクトリに <code class="code-inline">CLAUDE.md</code> を作成して、日本語指定を書きます。</p>
+                            <p class="text-gray-300 mb-2"><code class="code-inline">~/.claude/</code> ディレクトリに <code class="code-inline">CLAUDE.md</code> を作成して、日本語指定を書きます。</p>
                             <div class="code-block">
-<span class="comment"># ~/CLAUDE.md</span>
+<span class="comment"># ~/.claude/CLAUDE.md</span>
 
 always respond in Japanese
                             </div>
@@ -1093,7 +1093,7 @@ always respond in Japanese
                                 <h4>このページで学んだこと</h4>
                                 <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
                                     <li>Claude Codeでプレゼン資料を作り、PowerPoint変換やVercelデプロイまでできる</li>
-                                    <li><code class="code-inline">~/CLAUDE.md</code> に「always respond in Japanese」を書いて日本語化</li>
+                                    <li><code class="code-inline">~/.claude/CLAUDE.md</code> に「always respond in Japanese」を書いて日本語化</li>
                                     <li><code class="code-inline">claude -c</code> で直前のセッション継続、<code class="code-inline">claude -r</code> で過去セッション一覧から復帰</li>
                                     <li><code class="code-inline">claude -p</code> でワンライナー実行、パイプとの組み合わせが強力</li>
                                     <li><code class="code-inline">@</code> でファイルやURLを指定 ― 即座にコンテキストに含まれ、CLAUDE.mdも自動読み込み</li>
