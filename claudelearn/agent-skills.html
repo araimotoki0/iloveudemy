@@ -380,56 +380,116 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                                     あいまいに書くと使われない、書きすぎるとコンテキストを食う。<strong>「いつ使うか」が一行で分かるように</strong>書くのがコツです。
                                 </p>
                             </div>
+
+                            <h4 class="mt-6">YAML ヘッダーで書ける項目（フロントマター）</h4>
+                            <p class="text-gray-300 mb-3">
+                                <code class="code-inline">name</code> / <code class="code-inline">description</code> 以外にも、Skill の挙動を細かく制御する項目があります。よく使うものを表にしました（すべて<strong>省略可</strong>。<code class="code-inline">description</code> だけは書いておくのが推奨）。
+                            </p>
+                            <div style="overflow-x: auto;">
+                                <table class="w-full text-sm mb-3" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #3a3a52;">
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">項目</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">何のため</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">name</code></td>
+                                            <td class="py-2">表示名。省略時はフォルダ名が使われる。小文字英数字 + ハイフン、64 文字以内</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">description</code></td>
+                                            <td class="py-2"><strong>何の Skill か / いつ使うか</strong>。AI はこれだけを見て自動発火を判断する（推奨）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">when_to_use</code></td>
+                                            <td class="py-2">発火させたい依頼例やキーワードの追加。description に追記される</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">argument-hint</code></td>
+                                            <td class="py-2">スラッシュコマンド補完時に出すヒント（例: <code class="code-inline">[PR番号]</code>）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">arguments</code></td>
+                                            <td class="py-2">名前付き引数。本文中に <code class="code-inline">$ARGUMENTS</code> や <code class="code-inline">$0</code> として埋め込める</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">disable-model-invocation</code></td>
+                                            <td class="py-2"><code class="code-inline">true</code> で AI 自動発火を止め、<code class="code-inline">/&lt;skill名&gt;</code> 手動呼び出しのみに。デプロイなど副作用のあるものに使う</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">user-invocable</code></td>
+                                            <td class="py-2"><code class="code-inline">false</code> で <code class="code-inline">/</code> メニューから隠す。AI にだけ見せたい背景知識用</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">allowed-tools</code></td>
+                                            <td class="py-2">この Skill 実行中だけ確認なしで使えるツール（例: <code class="code-inline">Bash(git *)</code>）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">model</code> / <code class="code-inline">effort</code></td>
+                                            <td class="py-2">この Skill の間だけモデル / 推論 effort を切替（重い解析を Opus 固定にするなど）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">context</code> / <code class="code-inline">agent</code></td>
+                                            <td class="py-2"><code class="code-inline">fork</code> でサブエージェント隔離実行。メイン会話の文脈を切り離す</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">paths</code></td>
+                                            <td class="py-2">glob パターン。マッチするファイルを触っている時だけ自動発火</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">hooks</code></td>
+                                            <td class="py-2">この Skill のライフサイクルにフック（実行前後の自動処理）</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 pr-4"><code class="code-inline">shell</code></td>
+                                            <td class="py-2">本文内の <code class="code-inline">!`コマンド`</code> 実行に使うシェル（<code class="code-inline">bash</code> / <code class="code-inline">powershell</code>）</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-gray-300 mb-3">
+                                正式仕様と各項目の細かい挙動は <a href="https://agentskills.io" class="text-orange-400 underline" target="_blank" rel="noopener">agentskills.io</a> で確認できます。
+                                Claude Code はこの標準をベースに、<code class="code-inline">disable-model-invocation</code> や <code class="code-inline">context: fork</code> など独自の拡張を加えています。
+                            </p>
                         </div>
                     </div>
 
-                    <!-- ハンズオン -->
+                    <!-- 標準化 -->
                     <div class="content-section">
-                        <h3>ハンズオン ── 一番シンプルな Skill を作る</h3>
+                        <h3>agentskills.io ── オープン標準とその背景</h3>
                         <div class="collapsible-content">
                             <p class="text-gray-300 mb-4">
-                                実際に作って動かしてみます。「コミットメッセージを規約に沿って書く」 Skill です。
+                                <a href="https://agentskills.io" class="text-orange-400 underline" target="_blank" rel="noopener">agentskills.io</a> は、Skill の書き方を統一するためのオープン標準です。
+                                Anthropic が発案し、後にオープン仕様として公開しました。
                             </p>
 
-                            <h4>1. フォルダを作る</h4>
-                            <div class="command-box">
-                                <div class="command">mkdir -p ~/.claude/skills/commit-message</div>
-                            </div>
-
-                            <h4>2. SKILL.md を書く</h4>
-                            <div class="command-box">
-                                <div class="command" style="display:block; white-space: pre;">---
-name: commit-message
-description: git commit メッセージを書くときに使う。Conventional Commits 形式
----
-
-# コミットメッセージのルール
-
-- 形式: `&lt;type&gt;: &lt;subject&gt;`
-- type は feat / fix / docs / refactor / test / chore のいずれか
-- subject は 50 文字以内、現在形、文末にピリオドなし
-- 日本語可</div>
-                            </div>
-
-                            <h4>3. Claude Code で使ってみる</h4>
-                            <p class="text-gray-300 mb-2">
-                                Claude Code を起動して、こう聞くだけです。
+                            <h4>なぜ標準化が必要だったか</h4>
+                            <p class="text-gray-300 mb-3">
+                                AI コーディングツールは 2024 年以降、爆発的に増えました。そして<strong>各社が独自フォーマット</strong>を持っていました。
                             </p>
-                            <div class="command-box">
-                                <div class="command" style="display:block;">この差分のコミットメッセージを考えて</div>
-                            </div>
+                            <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
+                                <li>Cursor は <code class="code-inline">.cursorrules</code> や Rules</li>
+                                <li>GitHub Copilot は <code class="code-inline">.github/copilot-instructions.md</code></li>
+                                <li>Claude は <code class="code-inline">CLAUDE.md</code></li>
+                                <li>その他にも各社独自…</li>
+                            </ul>
                             <p class="text-gray-300 mt-3">
-                                description に「git commit メッセージを書くとき」と書いたので、Claude が自動で commit-message Skill を読み込み、
-                                ルールどおりのメッセージを返してくれます。<strong>「Skill を使って」と指示する必要はありません</strong>。
+                                同じ「コーディング規約を AI に教える」だけのことに、ツールごとに別の書き方を覚える必要がありました。
+                                <strong>ツールを乗り換えるたびにルール資産が無駄になる</strong>のはユーザーにとっても会社にとっても損失です。
                             </p>
 
-                            <div class="success-box mt-4">
-                                <h4>応用 ── スクリプトを同梱する</h4>
-                                <p class="text-gray-300">
-                                    フォルダの中に <code class="code-inline">scripts/check.sh</code> を置き、
-                                    SKILL.md に「メッセージを決めたら scripts/check.sh で文字数チェック」と書いておけば、
-                                    AI はそのスクリプトを実行して検証してくれます。<strong>手順 + 検証ツールをセットで配れる</strong>のが Skills の強みです。
+                            <h4>標準化で何が変わったか</h4>
+                            <div class="success-box">
+                                <p class="text-gray-300 mb-2">
+                                    agentskills.io の SKILL.md 形式は、現在 <strong>Claude Code、Cursor、GitHub Copilot、OpenAI Codex、Gemini CLI、OpenCode、Goose、VS Code</strong> ほか数十のツールが対応しています。
                                 </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
+                                    <li>1 度書けば複数ツールで動く</li>
+                                    <li>OSS として GitHub で Skill を配布・共有できる</li>
+                                    <li>ベンダーロックインを避けられる</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -509,44 +569,6 @@ description: git commit メッセージを書くときに使う。Conventional C
                                     ただし<strong>ファイルの中身（SKILL.md 形式）は agentskills.io の標準に揃っている</strong>ので、
                                     フォルダの場所さえ違っても、書いたものは他ツールに移植できます。
                                 </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 標準化 -->
-                    <div class="content-section">
-                        <h3>agentskills.io ── オープン標準とその背景</h3>
-                        <div class="collapsible-content">
-                            <p class="text-gray-300 mb-4">
-                                <a href="https://agentskills.io" class="text-orange-400 underline">agentskills.io</a> は、Skill の書き方を統一するためのオープン標準です。
-                                Anthropic が発案し、後にオープン仕様として公開しました。
-                            </p>
-
-                            <h4>なぜ標準化が必要だったか</h4>
-                            <p class="text-gray-300 mb-3">
-                                AI コーディングツールは 2024 年以降、爆発的に増えました。そして<strong>各社が独自フォーマット</strong>を持っていました。
-                            </p>
-                            <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
-                                <li>Cursor は <code class="code-inline">.cursorrules</code> や Rules</li>
-                                <li>GitHub Copilot は <code class="code-inline">.github/copilot-instructions.md</code></li>
-                                <li>Claude は <code class="code-inline">CLAUDE.md</code></li>
-                                <li>その他にも各社独自…</li>
-                            </ul>
-                            <p class="text-gray-300 mt-3">
-                                同じ「コーディング規約を AI に教える」だけのことに、ツールごとに別の書き方を覚える必要がありました。
-                                <strong>ツールを乗り換えるたびにルール資産が無駄になる</strong>のはユーザーにとっても会社にとっても損失です。
-                            </p>
-
-                            <h4>標準化で何が変わったか</h4>
-                            <div class="success-box">
-                                <p class="text-gray-300 mb-2">
-                                    agentskills.io の SKILL.md 形式は、現在 <strong>Claude Code、Cursor、GitHub Copilot、OpenAI Codex、Gemini CLI、OpenCode、Goose、VS Code</strong> ほか数十のツールが対応しています。
-                                </p>
-                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
-                                    <li>1 度書けば複数ツールで動く</li>
-                                    <li>OSS として GitHub で Skill を配布・共有できる</li>
-                                    <li>ベンダーロックインを避けられる</li>
-                                </ul>
                             </div>
                         </div>
                     </div>
