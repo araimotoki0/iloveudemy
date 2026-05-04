@@ -376,18 +376,21 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                             <div class="info-box mt-4">
                                 <h4>description が一番大事 ── Progressive Disclosure（段階的開示）</h4>
                                 <p class="text-gray-300 mb-2">
-                                    Claude Code は、起動時に<strong>すべての Skill の <code class="code-inline">description</code> だけ</strong>を読み込みます。本文は読みません。
-                                    依頼が来た時、AI はその一覧を眺めて「この Skill が今の依頼に合いそうだ」と判断したものだけ、<strong>本文を全文ロード</strong>して実行に入ります。これを <strong>Progressive Disclosure（段階的開示）</strong> と呼びます。
+                                    Claude Code は、起動時に<strong>各 Skill の <code class="code-inline">name</code> と <code class="code-inline">description</code></strong>（あれば <code class="code-inline">when_to_use</code> も）<strong>を「スキル一覧」としてコンテキストに入れます</strong>。SKILL.md の本文は読み込みません。
+                                    依頼が来た時、AI はこの一覧を眺めて「今の依頼に合いそうだ」と判断したものだけ、<strong>本文を全文ロード</strong>して実行に入ります。これを <strong>Progressive Disclosure（段階的開示）</strong> と呼びます。
                                 </p>
                                 <ol class="list-decimal list-inside space-y-1 ml-4 text-gray-300 mb-2">
-                                    <li><strong>起動時</strong>: 全 Skill の <code class="code-inline">name</code> + <code class="code-inline">description</code> だけ（1 行 × N 個）</li>
-                                    <li><strong>マッチ時</strong>: 該当 Skill の本文を全部読み込む</li>
+                                    <li><strong>起動時</strong>: 全 Skill の <code class="code-inline">name</code> + <code class="code-inline">description</code> 一覧だけ（1 行 × N 個）</li>
+                                    <li><strong>マッチ時</strong>: 該当 Skill の本文（SKILL.md）を全部読み込む</li>
                                     <li><strong>実行時</strong>: 必要なら同梱スクリプトやファイルを呼ぶ</li>
                                 </ol>
-                                <p class="text-gray-300">
+                                <p class="text-gray-300 mb-2">
                                     つまり <strong><code class="code-inline">description</code> の出来でその Skill が使われるかが決まります</strong>。
                                     あいまいに書くと使われない、書きすぎるとコンテキストを食う。
                                     <strong>「いつ使うか」が一行で分かるように</strong>書くのがコツです。100 個 Skill があっても起動時に消費するのは「100 行のリスト」だけ、という設計になっています。
+                                </p>
+                                <p class="text-gray-300 text-sm">
+                                    補足: <code class="code-inline">description</code> は仕様上は<strong>必須ではなく「推奨」</strong>です。省略しても Skill 自体は動きますが、その場合は SKILL.md 本文の<strong>最初の段落</strong>が代用としてスキル一覧に表示されます。AI に自動発火させたいなら、ちゃんと <code class="code-inline">description</code> を書くべきです。
                                 </p>
                             </div>
 
@@ -410,7 +413,7 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                                         </tr>
                                         <tr style="border-bottom: 1px solid #2a2a3e;">
                                             <td class="py-2 pr-4"><code class="code-inline">description</code></td>
-                                            <td class="py-2"><strong>何の Skill か / いつ使うか</strong>。AI はこれだけを見て自動発火を判断する（推奨）</td>
+                                            <td class="py-2"><strong>何の Skill か / いつ使うか</strong>。スキル一覧として常時コンテキストに入り、AI の自動発火判断はここで決まる（推奨。省略時は本文の先頭段落で代用）</td>
                                         </tr>
                                         <tr style="border-bottom: 1px solid #2a2a3e;">
                                             <td class="py-2 pr-4"><code class="code-inline">when_to_use</code></td>
