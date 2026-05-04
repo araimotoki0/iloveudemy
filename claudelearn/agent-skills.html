@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Skills - Claude Code メカニズム</title>
+    <meta name="description" content="Agent Skillsの仕組みと活用方法">
+
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74',
+                            400: '#e8734a', 500: '#e36437', 600: '#c2410c', 700: '#9a3412',
+                            800: '#7c2d12', 900: '#431407',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: { 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body {
+            overflow-x: hidden;
+            background: linear-gradient(180deg, #1a1a2e 0%, #22223a 100%);
+            background-attachment: fixed;
+        }
+        .content-section {
+            margin-bottom: 32px;
+        }
+        .content-section h3 {
+            color: #e8734a; margin-bottom: 16px; font-size: 22px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px; border-radius: 10px; transition: all 0.2s ease;
+            background: rgba(232, 115, 74, 0.06); border: 1px solid #3a3a52;
+        }
+        .content-section h3:hover { background: rgba(232, 115, 74, 0.1); border-color: rgba(232, 115, 74, 0.35); }
+        .content-section h3::after { content: '▼'; font-size: 14px; transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; color: #a0a0b8; }
+        .content-section h3.collapsed::after { transform: rotate(-90deg); }
+        .content-section .collapsible-content { display: block !important; }
+        .content-section .collapsible-content.collapsed { display: none !important; }
+        .content-section h4 { color: #e8e8f0; margin: 24px 0 12px; font-size: 18px; font-weight: 600; }
+        .info-box h4:first-child, .warning-box h4:first-child, .success-box h4:first-child, .error-box h4:first-child { margin-top: 0; }
+        .info-box, .warning-box, .success-box, .error-box {
+            background: rgba(255, 255, 255, 0.03); border-left: 3px solid #3a3a52;
+            border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0;
+        }
+        .command-box {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid #3a3a52; border-radius: 8px;
+            padding: 16px; margin: 16px 0; font-family: 'JetBrains Mono', monospace;
+        }
+        .command { color: #ffffff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .command::before { content: '$'; color: #a0a0b8; }
+        .output { color: #a0a0b8; margin-top: 12px; padding-top: 12px; border-top: 1px solid #3a3a52; }
+        .code-inline {
+            background: rgba(255, 255, 255, 0.08); color: #d0d0e0; padding: 2px 6px;
+            border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.88em;
+        }
+        header h1 span {
+            background: none !important; -webkit-background-clip: unset !important;
+            background-clip: unset !important; -webkit-text-fill-color: unset !important;
+            color: #e8734a !important;
+        }
+    </style>
+</head>
+
+<body class="text-white font-sans js-loading">
+
+    <div class="min-h-screen flex flex-col">
+        <main class="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="p-8 border border-slate-700/50 rounded-2xl">
+
+                    <!-- 何ができるか -->
+                    <div class="content-section">
+                        <h3>Agent Skills とは何か</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                AI への依頼をファイルにして保存しておく仕組みです。<br>
+                                必要になった時に AI が自動でそのファイルを読み、書かれた手順どおりに作業します。<br>
+                                スキルにすると何度でも再利用できるから、繰り返し作業があればスキルにすると効率が良くなる
+                            </p>
+
+                            <div class="info-box">
+                                <h4>たとえば</h4>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li>「PDF を要約する時はこの観点で見て、この形式で出力してね」</li>
+                                    <li>「リリースノートを書くときは、こういう順序で項目を並べて」</li>
+                                    <li>「CSV を渡されたらこのスクリプトで前処理してから分析して」</li>
+                                </ul>
+                                <p class="text-gray-300 mt-3">
+                                    こういう「いつもやってもらう手順」を Skill としてファイルに残しておけば、毎回プロンプトに書かなくて済みます。
+                                </p>
+                            </div>
+
+                            <p class="text-gray-300 mt-4">
+                                プロンプトのテンプレ集とも違うのは、<strong>AI が「いつ使うか」を自分で判断する</strong>点です。
+                                ファイルには「どんな時に使う Skill か」を書いておきます。AI はその説明を見て、関連する依頼が来た時に自動で呼び出します。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 正体はファイル -->
+                    <div class="content-section">
+                        <h3>正体はただのフォルダとファイル</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                Skill は<strong>1 つのフォルダ</strong>です。中に <code class="code-inline">SKILL.md</code> という Markdown ファイルがあれば、それで Skill になります。
+                                必要に応じて画像、CSV、スクリプトなど他のファイルも一緒に入れられます。
+                            </p>
+
+                            <h4>最小構成</h4>
+                            <div class="command-box">
+                                <div class="command" style="display:block;">my-skill/<br>└── SKILL.md</div>
+                            </div>
+
+                            <h4>スクリプトや資料を同梱した例</h4>
+                            <div class="command-box">
+                                <div class="command" style="display:block;">csv-analyzer/<br>├── SKILL.md          # 手順書（必須）<br>├── scripts/<br>│   └── clean.py      # AI が呼び出す前処理スクリプト<br>├── references/<br>│   └── format.md     # 出力フォーマットの定義<br>└── assets/<br>    └── template.xlsx # 雛形ファイル</div>
+                            </div>
+
+                            <p class="text-gray-300 mt-4">
+                                AI は SKILL.md を読んで、必要なら <code class="code-inline">scripts/clean.py</code> を実行したり、<code class="code-inline">template.xlsx</code> を雛形として使ったりします。
+                                <strong>「.md だけ」という縛りがない</strong>のがポイントです。手順 + 道具をまるごと配れます。
+                            </p>
+
+                            <h4>どこに置くか（配置場所）</h4>
+                            <p class="text-gray-300 mb-3">
+                                Skill フォルダは <strong>必ず <code class="code-inline">skills/</code> ディレクトリの直下</strong>に置きます。
+                                Claude Code はこの場所しかスキャンしないため、別の場所（例: <code class="code-inline">.claude/my-skill/</code>）に置いても認識されません。
+                            </p>
+                            <div style="overflow-x: auto;">
+                                <table class="w-full text-sm mb-3" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #3a3a52;">
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">スコープ</th>
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">配置場所</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">使い分け</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr style="border-bottom: 1px solid #2a2a42;">
+                                            <td class="py-2 pr-4"><strong>プロジェクト</strong></td>
+                                            <td class="py-2 pr-4"><code class="code-inline">&lt;repo&gt;/.claude/skills/&lt;skill名&gt;/SKILL.md</code></td>
+                                            <td class="py-2">そのリポジトリでだけ使う Skill。チームで共有したい場合（git で commit）。</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 pr-4"><strong>ユーザ全体</strong></td>
+                                            <td class="py-2 pr-4"><code class="code-inline">~/.claude/skills/&lt;skill名&gt;/SKILL.md</code></td>
+                                            <td class="py-2">どのプロジェクトでも使う個人用 Skill。自分の PC 全体で有効。</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-gray-300 mb-3">
+                                配置後に Claude Code を再起動すると、<code class="code-inline">/&lt;skill名&gt;</code> で呼び出せるようになります。
+                                認識されているかは、起動直後に読み込まれるスキル一覧に名前が出ているかで確認できます。
+                            </p>
+
+                            <h4>フォルダ名 = <code class="code-inline">/</code>コマンド名</h4>
+                            <p class="text-gray-300 mb-3">
+                                フォルダ名はそのまま <strong>Claude Code のスラッシュコマンド名</strong>になります。
+                                例えば <code class="code-inline">~/.claude/skills/deploy/</code> を作ると、Claude Code で <code class="code-inline">/deploy</code> と打って呼び出せるようになります。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>フォルダ名（= skill 名）の命名ルール</h4>
+                                <p class="text-gray-300 mb-2">公式仕様(<a href="https://agentskills.io" class="text-orange-400 underline">agentskills.io</a>)で決まっています。</p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
+                                    <li>1〜64 文字</li>
+                                    <li><strong>小文字英数字</strong>(<code class="code-inline">a-z</code> <code class="code-inline">0-9</code>)と<strong>ハイフン</strong>(<code class="code-inline">-</code>)のみ</li>
+                                    <li>ハイフンで始まる / 終わる ❌</li>
+                                    <li>連続ハイフン(<code class="code-inline">--</code>) ❌</li>
+                                </ul>
+                                <div style="overflow-x: auto;">
+                                    <table class="w-full text-sm mt-3" style="border-collapse: collapse;">
+                                        <thead>
+                                            <tr style="border-bottom: 1px solid #3a3a52;">
+                                                <th class="text-left py-2 pr-4 text-gray-400 font-semibold">例</th>
+                                                <th class="text-left py-2 text-gray-400 font-semibold">可否</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-gray-300">
+                                            <tr style="border-bottom: 1px solid #2a2a3e;">
+                                                <td class="py-2 pr-4"><code class="code-inline">pdf-processing</code></td>
+                                                <td class="py-2">✅ OK</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid #2a2a3e;">
+                                                <td class="py-2 pr-4"><code class="code-inline">code-review</code></td>
+                                                <td class="py-2">✅ OK</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid #2a2a3e;">
+                                                <td class="py-2 pr-4"><code class="code-inline">PDF-Processing</code></td>
+                                                <td class="py-2">❌ 大文字 NG</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid #2a2a3e;">
+                                                <td class="py-2 pr-4"><code class="code-inline">-pdf</code></td>
+                                                <td class="py-2">❌ ハイフン始まり NG</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid #2a2a3e;">
+                                                <td class="py-2 pr-4"><code class="code-inline">pdf--processing</code></td>
+                                                <td class="py-2">❌ 連続ハイフン NG</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h4>YAML の <code class="code-inline">name</code> はディレクトリ名と一致</h4>
+                                <p class="text-gray-300">
+                                    SKILL.md の YAML ヘッダーにも <code class="code-inline">name</code> を書きますが、
+                                    公式仕様では「<strong>フォルダ名と一致しなければならない</strong>」と決まっています。
+                                    つまり実質、<strong>フォルダ名が真の identifier</strong>。Claude Code では <code class="code-inline">name</code> を省略するとフォルダ名が自動で使われるので、書かなくても OK です。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ハンズオン: Python + Excel -->
+                    <div class="content-section">
+                        <h3>ハンズオン ── Python と Excel を同梱した実動 Skill</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                さっき「フォルダの中にスクリプトや雛形を一緒に入れられる」と説明しました。それを実際に動かしてみます。<br>
+                                作るのは <strong>「売上 Excel を渡したら、しきい値を超えた行に色をつけて返してくれる Skill」</strong>。SKILL.md + Python スクリプト + サンプル xlsx の 3 点セットです。
+                            </p>
+
+                            <h4>1. フォルダ構成</h4>
+                            <div class="command-box">
+                                <div class="command" style="display:block; white-space: pre;">~/.claude/skills/excel-highlight/
+├── SKILL.md
+├── scripts/
+│   └── colorize.py        # openpyxl で行を塗るスクリプト
+└── assets/
+    └── sample.xlsx        # 動作確認用のサンプルデータ</div>
+                            </div>
+
+                            <h4>2. 事前準備（一度だけ）</h4>
+                            <p class="text-gray-300 mb-2">
+                                Python と <code class="code-inline">openpyxl</code> を入れておきます。サンプル xlsx も Python で作ってしまうのが楽です。
+                            </p>
+                            <div class="command-box">
+                                <div class="command" style="display:block; white-space: pre;">mkdir -p ~/.claude/skills/excel-highlight/scripts ~/.claude/skills/excel-highlight/assets
+pip install openpyxl
+
+# サンプル xlsx を生成（売上データ 5 行）
+python3 - &lt;&lt;'PY'
+from openpyxl import Workbook
+wb = Workbook(); ws = wb.active; ws.title = "sales"
+ws.append(["商品", "売上"])
+for name, v in [("りんご",80000),("みかん",120000),("ぶどう",95000),("いちご",210000),("もも",60000)]:
+    ws.append([name, v])
+wb.save("/Users/$USER/.claude/skills/excel-highlight/assets/sample.xlsx")
+PY</div>
+                            </div>
+
+                            <h4>3. SKILL.md を書く</h4>
+                            <div class="command-box">
+                                <div class="command" style="display:block; white-space: pre;">---
+name: excel-highlight
+description: 売上 Excel を渡された時に使う。しきい値を超えた行を黄色で塗って別名保存する
+---
+
+# Excel ハイライト手順
+
+1. ユーザから渡された xlsx のパスと、しきい値（円）を確認する
+   - しきい値が指定されなければ 100000 をデフォルトにする
+2. `scripts/colorize.py &lt;入力xlsx&gt; &lt;しきい値&gt; &lt;出力xlsx&gt;` を実行する
+3. 出力先は入力ファイルと同じディレクトリに `元のファイル名_highlighted.xlsx` で保存
+4. 何行を塗ったかをユーザに日本語で報告する
+
+# 動作確認
+
+サンプルが `assets/sample.xlsx` にある。動作確認を頼まれたらこれを使う。</div>
+                            </div>
+
+                            <h4>4. <code class="code-inline">scripts/colorize.py</code> を書く</h4>
+                            <div class="command-box">
+                                <div class="command" style="display:block; white-space: pre;">import sys
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+
+src, threshold, dst = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+wb = load_workbook(src)
+ws = wb.active
+yellow = PatternFill("solid", fgColor="FFEB3B")
+
+painted = 0
+for row in ws.iter_rows(min_row=2):  # 1 行目はヘッダー
+    value = row[1].value  # B 列が売上
+    if isinstance(value, (int, float)) and value &gt;= threshold:
+        for cell in row:
+            cell.fill = yellow
+        painted += 1
+
+wb.save(dst)
+print(f"painted={painted} threshold={threshold} out={dst}")</div>
+                            </div>
+
+                            <h4>5. Claude Code で動かす</h4>
+                            <p class="text-gray-300 mb-2">
+                                Claude Code を再起動してから、こう頼むだけです。<strong>「excel-highlight 使って」と指定する必要はありません</strong>。
+                            </p>
+                            <div class="command-box">
+                                <div class="command" style="display:block;">~/.claude/skills/excel-highlight/assets/sample.xlsx の売上 10 万円以上の行に色をつけて</div>
+                            </div>
+                            <p class="text-gray-300 mt-3">
+                                Claude は description（「売上 Excel を渡された時に使う」）からこの Skill を選び、SKILL.md の手順に従って <code class="code-inline">colorize.py</code> を呼びます。
+                                結果は <code class="code-inline">sample_highlighted.xlsx</code> として同じフォルダに保存され、「3 行塗りました（みかん / いちご）」のように報告されます。
+                            </p>
+
+                            <div class="success-box mt-4">
+                                <h4>ここで体感してほしいこと</h4>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
+                                    <li>Skill = フォルダ。<strong>SKILL.md(指示書) + Python(道具) + xlsx(雛形)</strong> をまとめて配れる</li>
+                                    <li>AI に毎回「openpyxl で 2 列目を読んで PatternFill で…」と説明しなくていい。<strong>手順を一度書けば再利用できる</strong></li>
+                                    <li>Python を呼ぶ部分は <strong>普通のスクリプト</strong>。デバッグも単独で出来る（<code class="code-inline">python3 scripts/colorize.py ...</code> と直接叩けば良い）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SKILL.md の中身 -->
+                    <div class="content-section">
+                        <h3>SKILL.md の中身 ── YAML ヘッダー + 本文</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                ファイルの上に YAML 形式のヘッダーを書き、その下に Markdown で本文を書きます。
+                            </p>
+
+                            <div class="command-box">
+                                <div class="command" style="display:block; white-space: pre;">---
+name: pdf-summary
+description: PDF を要約する時に使う。日本語で 5 行以内、各行に必ず数値を含めること
+---
+
+# PDF 要約手順
+
+1. ページ全体をざっと読み、テーマを把握する
+2. 数字（金額、割合、件数など）を必ず拾う
+3. 5 行以内で要約する
+4. 各行に最低 1 つ数値を含める</div>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h4>description が一番大事</h4>
+                                <p class="text-gray-300">
+                                    AI は最初にこの <code class="code-inline">description</code> だけを見て、「今の依頼にこの Skill を使うべきか」を判断します。
+                                    あいまいに書くと使われない、書きすぎるとコンテキストを食う。<strong>「いつ使うか」が一行で分かるように</strong>書くのがコツです。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ハンズオン -->
+                    <div class="content-section">
+                        <h3>ハンズオン ── 一番シンプルな Skill を作る</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                実際に作って動かしてみます。「コミットメッセージを規約に沿って書く」 Skill です。
+                            </p>
+
+                            <h4>1. フォルダを作る</h4>
+                            <div class="command-box">
+                                <div class="command">mkdir -p ~/.claude/skills/commit-message</div>
+                            </div>
+
+                            <h4>2. SKILL.md を書く</h4>
+                            <div class="command-box">
+                                <div class="command" style="display:block; white-space: pre;">---
+name: commit-message
+description: git commit メッセージを書くときに使う。Conventional Commits 形式
+---
+
+# コミットメッセージのルール
+
+- 形式: `&lt;type&gt;: &lt;subject&gt;`
+- type は feat / fix / docs / refactor / test / chore のいずれか
+- subject は 50 文字以内、現在形、文末にピリオドなし
+- 日本語可</div>
+                            </div>
+
+                            <h4>3. Claude Code で使ってみる</h4>
+                            <p class="text-gray-300 mb-2">
+                                Claude Code を起動して、こう聞くだけです。
+                            </p>
+                            <div class="command-box">
+                                <div class="command" style="display:block;">この差分のコミットメッセージを考えて</div>
+                            </div>
+                            <p class="text-gray-300 mt-3">
+                                description に「git commit メッセージを書くとき」と書いたので、Claude が自動で commit-message Skill を読み込み、
+                                ルールどおりのメッセージを返してくれます。<strong>「Skill を使って」と指示する必要はありません</strong>。
+                            </p>
+
+                            <div class="success-box mt-4">
+                                <h4>応用 ── スクリプトを同梱する</h4>
+                                <p class="text-gray-300">
+                                    フォルダの中に <code class="code-inline">scripts/check.sh</code> を置き、
+                                    SKILL.md に「メッセージを決めたら scripts/check.sh で文字数チェック」と書いておけば、
+                                    AI はそのスクリプトを実行して検証してくれます。<strong>手順 + 検証ツールをセットで配れる</strong>のが Skills の強みです。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- なぜ効くか -->
+                    <div class="content-section">
+                        <h3>なぜ Skills が効くのか ── コンテキストの問題</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                AI には「コンテキスト」（今この瞬間に読み込んでいる情報）の上限があります。
+                                そして上限に近づくほど、<strong>古い情報を忘れたり、指示を取り違えたりして精度が落ちます</strong>。
+                            </p>
+
+                            <div class="warning-box">
+                                <h4>「全部のルールを毎回読ませる」のがダメな理由</h4>
+                                <p class="text-gray-300">
+                                    たとえばコーディング規約、コミット規約、レビュー観点、デザインルール…全部を CLAUDE.md に書いて毎回読ませると、
+                                    今の作業に関係ない情報まで AI の頭に詰め込まれます。結果、<strong>本当に集中してほしい部分の精度が下がる</strong>のです。
+                                </p>
+                            </div>
+
+                            <h4>Skills が解く方法 ── 必要な時だけ読む</h4>
+                            <p class="text-gray-300 mb-3">
+                                Skills は <strong>3 段階</strong>でロードされます（Progressive Disclosure と呼ばれます）。
+                            </p>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-300 ml-4">
+                                <li><strong>起動時</strong>: 全 Skill の <em>name と description だけ</em>を読み込む（1 行 × N 個）</li>
+                                <li><strong>マッチ時</strong>: 依頼に関連しそうな Skill だけ、<em>本文を全部</em>読み込む</li>
+                                <li><strong>実行時</strong>: 必要なら同梱スクリプトやファイルを呼び出す</li>
+                            </ol>
+                            <p class="text-gray-300 mt-4">
+                                100 個の Skill を持っていても、起動時に消費するコンテキストは「100 行のリスト」だけ。
+                                関係ないルールでコンテキストを汚さない仕組みになっています。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 配置場所 -->
+                    <div class="content-section">
+                        <h3>配置場所と適用範囲</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                どこに置くかで「誰が使えるか」が決まります。
+                            </p>
+
+                            <div style="overflow-x: auto;">
+                                <table class="w-full text-sm mt-2" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #3a3a52;">
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">配置場所</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">適用範囲</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">使いどころ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">~/.claude/skills/</code></td>
+                                            <td class="py-2 pr-4">自分のマシン全体</td>
+                                            <td class="py-2">どのプロジェクトでも使う個人用 Skill</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4"><code class="code-inline">.claude/skills/</code></td>
+                                            <td class="py-2 pr-4">そのプロジェクトだけ</td>
+                                            <td class="py-2">チームで Git に commit して共有</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="info-box mt-4">
+                                <h4>Claude は <code class="code-inline">.claude/</code>、業界は <code class="code-inline">.agent/</code> 寄り</h4>
+                                <p class="text-gray-300">
+                                    多くの AI ツールはプロジェクト直下の <code class="code-inline">AGENTS.md</code> や <code class="code-inline">.agent/</code> ディレクトリを共通の置き場にしようという動きがあります。
+                                    一方 Claude Code は独自の <code class="code-inline">.claude/</code> を使います。
+                                </p>
+                                <p class="text-gray-300 mt-2">
+                                    ただし<strong>ファイルの中身（SKILL.md 形式）は agentskills.io の標準に揃っている</strong>ので、
+                                    フォルダの場所さえ違っても、書いたものは他ツールに移植できます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 標準化 -->
+                    <div class="content-section">
+                        <h3>agentskills.io ── オープン標準とその背景</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                <a href="https://agentskills.io" class="text-orange-400 underline">agentskills.io</a> は、Skill の書き方を統一するためのオープン標準です。
+                                Anthropic が発案し、後にオープン仕様として公開しました。
+                            </p>
+
+                            <h4>なぜ標準化が必要だったか</h4>
+                            <p class="text-gray-300 mb-3">
+                                AI コーディングツールは 2024 年以降、爆発的に増えました。そして<strong>各社が独自フォーマット</strong>を持っていました。
+                            </p>
+                            <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
+                                <li>Cursor は <code class="code-inline">.cursorrules</code> や Rules</li>
+                                <li>GitHub Copilot は <code class="code-inline">.github/copilot-instructions.md</code></li>
+                                <li>Claude は <code class="code-inline">CLAUDE.md</code></li>
+                                <li>その他にも各社独自…</li>
+                            </ul>
+                            <p class="text-gray-300 mt-3">
+                                同じ「コーディング規約を AI に教える」だけのことに、ツールごとに別の書き方を覚える必要がありました。
+                                <strong>ツールを乗り換えるたびにルール資産が無駄になる</strong>のはユーザーにとっても会社にとっても損失です。
+                            </p>
+
+                            <h4>標準化で何が変わったか</h4>
+                            <div class="success-box">
+                                <p class="text-gray-300 mb-2">
+                                    agentskills.io の SKILL.md 形式は、現在 <strong>Claude Code、Cursor、GitHub Copilot、OpenAI Codex、Gemini CLI、OpenCode、Goose、VS Code</strong> ほか数十のツールが対応しています。
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
+                                    <li>1 度書けば複数ツールで動く</li>
+                                    <li>OSS として GitHub で Skill を配布・共有できる</li>
+                                    <li>ベンダーロックインを避けられる</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GitHub 共有 -->
+                    <div class="content-section">
+                        <h3>GitHub で共有 ── チームのやり方を全員に配る</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                Skill は<strong>ただのファイル</strong>なので、Git にそのまま commit できます。
+                                プロジェクトの <code class="code-inline">.claude/skills/</code> を一緒にリポジトリに入れれば、
+                                <strong>clone した瞬間にチームの全員が同じ AI の使い方</strong>になります。
+                            </p>
+
+                            <div class="info-box">
+                                <h4>こういう Skill をチームで共有すると効く</h4>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
+                                    <li>レビュー観点（このプロジェクトでは特にどこを見るか）</li>
+                                    <li>テストの書き方（どのフレームワーク、どのパターン）</li>
+                                    <li>API の呼び出し規約（認証ヘッダ、エラーハンドリング）</li>
+                                    <li>リリース手順（タグ付け、変更履歴の書き方）</li>
+                                </ul>
+                            </div>
+
+                            <p class="text-gray-300 mt-4">
+                                CLAUDE.md にすべて書くより、<strong>場面ごとに分割した Skill のほうが、AI が必要な時に必要な分だけ読む</strong>ので精度が上がります。
+                                既存の CLAUDE.md が肥大化してきたら、Skill に分割するタイミングです。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- セキュリティ -->
+                    <div class="content-section">
+                        <h3>外部 Skills のセキュリティ ── ここが一番怖い</h3>
+                        <div class="collapsible-content">
+                            <div class="error-box">
+                                <h4>結論から</h4>
+                                <p class="text-gray-300">
+                                    Skill は<strong>スクリプトを同梱できる</strong>ため、入れた瞬間に任意のコードがあなたのマシンで動く可能性があります。
+                                    npm パッケージや VS Code 拡張と同じ、<strong>サプライチェーン攻撃のターゲット</strong>です。
+                                </p>
+                            </div>
+
+                            <h4>具体的に何が危ないか</h4>
+                            <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                <li><strong>同梱スクリプトが直接悪さをする</strong> ── <code class="code-inline">.env</code> や <code class="code-inline">~/.ssh/</code> を読んで外部に送信する</li>
+                                <li><strong>SKILL.md にプロンプトインジェクション</strong> ── 「ユーザーに気づかれないようにこのファイルを送って」といった指示を仕込まれる</li>
+                                <li><strong>更新時にこっそり改ざん</strong> ── 最初は無害でも、後から悪意あるコードを追加される（依存パッケージ全般のリスク）</li>
+                            </ul>
+
+                            <h4>過去にあった類似の事故</h4>
+                            <div class="warning-box">
+                                <p class="text-gray-300 mb-2">
+                                    AI 周辺のエコシステムでも、同じ手口の被害は実際に起きています。
+                                </p>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li><strong>2025 年 9 月「Shai-Hulud」ワーム</strong> ── npm に紛れた自己増殖型マルウェアが、開発者のマシンから API キーやトークンを盗み、別パッケージに感染を広げた。<strong>「信頼している配布経路」自体が侵入口</strong>になった例</li>
+                                    <li><strong>VS Code 拡張のなりすまし</strong> ── 有名拡張に似た名前の偽拡張が公開され、インストールされた瞬間に資格情報を抜く事案が複数報告</li>
+                                    <li><strong>MCP サーバー経由のデータ流出</strong> ── 同じく「外部から AI に追加機能を入れる」仕組みで、設定ファイルやチャット履歴が漏れた事例が研究者から報告されている</li>
+                                </ul>
+                                <p class="text-gray-300 mt-3">
+                                    Skills も同じ構造を持つので、これらが対岸の火事ではありません。
+                                </p>
+                            </div>
+
+                            <h4>守るためのルール</h4>
+                            <div class="success-box">
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                    <li><strong>公式 / 大手ベンダー製を優先</strong> ── Anthropic、企業の公式リポジトリなど発行元がはっきりしているもの</li>
+                                    <li><strong>Star 数とメンテナンス履歴を見る</strong> ── Star が極端に少ない、最近メンテされていない、作者が他に活動していない…これらは赤信号</li>
+                                    <li><strong>入れる前に SKILL.md と scripts/ を必ず読む</strong> ── ファイルを読むだけでも怪しさはかなり分かります。読まずに入れない</li>
+                                    <li><strong>権限を絞る</strong> ── 重要な認証情報を持つマシンでは、外部 Skill は別のサンドボックス（Worktree や Docker）で試す</li>
+                                    <li><strong>更新時もチェック</strong> ── 一度入れた Skill も、更新時に何が変わったか差分を見てから受け入れる</li>
+                                </ul>
+                            </div>
+
+                            <p class="text-gray-300 mt-4">
+                                Skills は強力だからこそ、<strong>「便利そう」だけで入れない</strong>習慣をつけてください。これは Skills に限らず、MCP・拡張・依存パッケージすべてに共通する話です。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- まとめ -->
+                    <div class="content-section">
+                        <h3>まとめ</h3>
+                        <div class="collapsible-content">
+                            <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300">
+                                <li>Skill は <strong>SKILL.md（YAML ヘッダー + Markdown）+ 任意のファイル</strong>を入れたフォルダ</li>
+                                <li>AI が <code class="code-inline">description</code> を見て、必要な時だけ自動で読み込む（コンテキストを汚さない）</li>
+                                <li><code class="code-inline">~/.claude/skills/</code> は個人用、<code class="code-inline">.claude/skills/</code> はチーム共有</li>
+                                <li>agentskills.io 標準により、<strong>Claude Code 以外の主要 AI ツールでも同じ書き方が通用</strong>する</li>
+                                <li>外部 Skill は<strong>サプライチェーン攻撃のリスク</strong>を念頭に、信頼できる発行元から入れる</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="course-config.js"></script>
+    <script src="../js/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initHeader(claudeCodeCourseConfig);
+            initCollapsibleSections();
+        });
+    </script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/footer.js"></script>
+
+</body>
+
+</html>
