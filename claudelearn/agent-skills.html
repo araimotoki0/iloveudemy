@@ -374,10 +374,20 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                             </div>
 
                             <div class="info-box mt-4">
-                                <h4>description が一番大事</h4>
+                                <h4>description が一番大事 ── Progressive Disclosure（段階的開示）</h4>
+                                <p class="text-gray-300 mb-2">
+                                    Claude Code は、起動時に<strong>すべての Skill の <code class="code-inline">description</code> だけ</strong>を読み込みます。本文は読みません。
+                                    依頼が来た時、AI はその一覧を眺めて「この Skill が今の依頼に合いそうだ」と判断したものだけ、<strong>本文を全文ロード</strong>して実行に入ります。これを <strong>Progressive Disclosure（段階的開示）</strong> と呼びます。
+                                </p>
+                                <ol class="list-decimal list-inside space-y-1 ml-4 text-gray-300 mb-2">
+                                    <li><strong>起動時</strong>: 全 Skill の <code class="code-inline">name</code> + <code class="code-inline">description</code> だけ（1 行 × N 個）</li>
+                                    <li><strong>マッチ時</strong>: 該当 Skill の本文を全部読み込む</li>
+                                    <li><strong>実行時</strong>: 必要なら同梱スクリプトやファイルを呼ぶ</li>
+                                </ol>
                                 <p class="text-gray-300">
-                                    AI は最初にこの <code class="code-inline">description</code> だけを見て、「今の依頼にこの Skill を使うべきか」を判断します。
-                                    あいまいに書くと使われない、書きすぎるとコンテキストを食う。<strong>「いつ使うか」が一行で分かるように</strong>書くのがコツです。
+                                    つまり <strong><code class="code-inline">description</code> の出来でその Skill が使われるかが決まります</strong>。
+                                    あいまいに書くと使われない、書きすぎるとコンテキストを食う。
+                                    <strong>「いつ使うか」が一行で分かるように</strong>書くのがコツです。100 個 Skill があっても起動時に消費するのは「100 行のリスト」だけ、という設計になっています。
                                 </p>
                             </div>
 
