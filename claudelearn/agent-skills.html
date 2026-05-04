@@ -172,9 +172,20 @@
                                 </table>
                             </div>
                             <p class="text-gray-300 mb-3">
-                                配置後に Claude Code を再起動すると、<code class="code-inline">/&lt;skill名&gt;</code> で呼び出せるようになります。
-                                認識されているかは、起動直後に読み込まれるスキル一覧に名前が出ているかで確認できます。
+                                配置するとすぐに <code class="code-inline">/&lt;skill名&gt;</code> で呼び出せるようになります。
+                                認識されているかは、Claude Code に「<strong>What skills are available?</strong>」と聞けば一覧が返ってきます。
                             </p>
+                            <div class="info-box mb-3">
+                                <h4>再起動は不要になりました（動画でも触れています）</h4>
+                                <p class="text-gray-300">
+                                    動画内で「再起動が必要なくなったのですね」と話しているとおり、
+                                    <strong>Claude Code 2.1 以降は hot reload に対応</strong>しており、
+                                    <code class="code-inline">~/.claude/skills/</code> や <code class="code-inline">.claude/skills/</code> 配下のファイルを足したり書き換えたりすると<strong>セッションを開いたまま即座に反映</strong>されます。
+                                </p>
+                                <p class="text-gray-300 mt-2">
+                                    ※ ただし <code class="code-inline">~/.claude/skills/</code> や <code class="code-inline">.claude/skills/</code> という<strong>最上位ディレクトリ自体</strong>がセッション開始時に存在しなかった場合だけは、新しく作った後に一度だけ再起動が必要です（監視対象として登録するため）。
+                                </p>
+                            </div>
 
                             <h4>フォルダ名 = <code class="code-inline">/</code>コマンド名</h4>
                             <p class="text-gray-300 mb-3">
