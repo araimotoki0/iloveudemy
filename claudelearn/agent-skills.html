@@ -480,18 +480,75 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
 
                             <h4>なぜ標準化が必要だったか</h4>
                             <p class="text-gray-300 mb-3">
-                                AI コーディングツールは 2024 年以降、爆発的に増えました。そして<strong>各社が独自フォーマット</strong>を持っていました。
+                                AI コーディングツールは 2024 年以降、爆発的に増えました。そして「AI に独自ルールや手順を教える」仕組みは<strong>各社が独自フォーマット</strong>を持っていました。
                             </p>
                             <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
-                                <li>Cursor は <code class="code-inline">.cursorrules</code> や Rules</li>
+                                <li>Cursor は <code class="code-inline">.cursorrules</code> / Rules</li>
                                 <li>GitHub Copilot は <code class="code-inline">.github/copilot-instructions.md</code></li>
                                 <li>Claude は <code class="code-inline">CLAUDE.md</code></li>
-                                <li>その他にも各社独自…</li>
+                                <li>その他各社独自…</li>
                             </ul>
                             <p class="text-gray-300 mt-3">
                                 同じ「コーディング規約を AI に教える」だけのことに、ツールごとに別の書き方を覚える必要がありました。
                                 <strong>ツールを乗り換えるたびにルール資産が無駄になる</strong>のはユーザーにとっても会社にとっても損失です。
                             </p>
+
+                            <h4>具体的に何が標準化されたのか</h4>
+                            <p class="text-gray-300 mb-3">
+                                agentskills.io が固定したのは「<strong>SKILL.md という 1 ファイルの書き方</strong>」と「<strong>そのファイルを取り巻くフォルダ構造</strong>」です。具体的にはこの 4 点：
+                            </p>
+                            <div style="overflow-x: auto;">
+                                <table class="w-full text-sm mb-3" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #3a3a52;">
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">標準化された項目</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">具体的な内容</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">①ファイル名</td>
+                                            <td class="py-2"><code class="code-inline">SKILL.md</code> （大文字固定。これが Skill の入口）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">②YAML ヘッダー</td>
+                                            <td class="py-2">必須は <code class="code-inline">name</code>（1〜64文字、小文字英数 + ハイフン、ディレクトリ名と一致）と <code class="code-inline">description</code>（1〜1024文字）。任意で <code class="code-inline">license</code> / <code class="code-inline">compatibility</code> / <code class="code-inline">metadata</code> / <code class="code-inline">allowed-tools</code></td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">③フォルダ構造</td>
+                                            <td class="py-2">Skill = ディレクトリ。任意で <code class="code-inline">scripts/</code>（実行可能コード）、<code class="code-inline">references/</code>（補足ドキュメント）、<code class="code-inline">assets/</code>（テンプレ・素材）を配置できる</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 pr-4">④読み込みモデル</td>
+                                            <td class="py-2">Progressive Disclosure 3 段階（Discovery → Activation → Execution）</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-gray-300 mb-3">
+                                <strong>本文（Markdown 部分）の書き方は標準化されていません</strong>。手順書でもチェックリストでも自由記述です。
+                                つまり「SKILL.md という 1 つの規格化されたファイルを作れば、対応ツールに移植できる」のが本質です。
+                            </p>
+
+                            <div class="warning-box mb-3">
+                                <h4>でも「フォルダの置き場所」は標準化されていない ── ここが <code class="code-inline">.claude/</code> だけ浮く理由</h4>
+                                <p class="text-gray-300 mb-2">
+                                    仕様が触れていない最大のポイントが「<strong>Skill フォルダをプロジェクト/ホームのどこに置くか</strong>」です。
+                                    各ツールが独自に決めています。
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300 mb-2">
+                                    <li><strong>Claude Code</strong>: <code class="code-inline">~/.claude/skills/</code> / <code class="code-inline">.claude/skills/</code></li>
+                                    <li><strong>Cursor</strong>: <code class="code-inline">.cursor/skills/</code></li>
+                                    <li><strong>GitHub Copilot</strong>: <code class="code-inline">.github/skills/</code> 系</li>
+                                    <li><strong>OpenCode / Goose / Gemini CLI</strong> など: それぞれ独自パス</li>
+                                </ul>
+                                <p class="text-gray-300">
+                                    <strong>SKILL.md の中身はそのまま使えるのに、フォルダだけ移動が必要</strong>という状態です。
+                                    Claude Code が <code class="code-inline">.claude/</code> を持つのも、各社が独自の場所を持っているのと同じ構図で、
+                                    「業界全体で <code class="code-inline">.agent/</code> 等に寄せていこう」という議論はあるものの<strong>まだ収束していません</strong>。
+                                    つまり <code class="code-inline">.claude/</code> だけが浮いて見えるというより、<strong>置き場所はまだ各ツールがバラバラ</strong>というのが正確です。
+                                </p>
+                            </div>
 
                             <h4>標準化で何が変わったか</h4>
                             <div class="success-box">
@@ -499,10 +556,19 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                                     agentskills.io の SKILL.md 形式は、現在 <strong>Claude Code、Cursor、GitHub Copilot、OpenAI Codex、Gemini CLI、OpenCode、Goose、VS Code</strong> ほか数十のツールが対応しています。
                                 </p>
                                 <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
-                                    <li>1 度書けば複数ツールで動く</li>
+                                    <li><strong>SKILL.md を 1 度書けば複数ツールで動く</strong>（中身は共通、置き場所だけツールに合わせる）</li>
                                     <li>OSS として GitHub で Skill を配布・共有できる</li>
                                     <li>ベンダーロックインを避けられる</li>
                                 </ul>
+                            </div>
+
+                            <div class="info-box mt-3">
+                                <h4>ちなみに: 仕様と Claude Code の細かいズレ</h4>
+                                <p class="text-gray-300">
+                                    agentskills.io 仕様では <code class="code-inline">name</code> と <code class="code-inline">description</code> はどちらも<strong>必須</strong>とされています。
+                                    一方 Claude Code は実装上の親切として、<code class="code-inline">name</code> 省略時はディレクトリ名、<code class="code-inline">description</code> 省略時は本文の先頭段落を代用します。
+                                    また <code class="code-inline">disable-model-invocation</code> / <code class="code-inline">context: fork</code> / <code class="code-inline">paths</code> などは Claude Code 独自の拡張で、他ツールに移植したら無視されます。
+                                </p>
                             </div>
                         </div>
                     </div>
