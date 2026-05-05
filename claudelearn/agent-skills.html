@@ -582,13 +582,78 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                                 そして上限に近づくほど、<strong>古い情報を忘れたり、指示を取り違えたりして精度が落ちます</strong>。
                             </p>
 
-                            <div class="warning-box">
-                                <h4>「全部のルールを毎回読ませる」のがダメな理由</h4>
+                            <div class="info-box mb-3">
+                                <h4>「Lost in the Middle」── 真ん中の情報ほど忘れられる</h4>
+                                <p class="text-gray-300 mb-2">
+                                    LLM が長いコンテキストを扱うときの代表的な癖がこれです。2023 年に Stanford の Liu らが発表した論文
+                                    「<a href="https://arxiv.org/abs/2307.03172" class="text-orange-400 underline" target="_blank" rel="noopener">Lost in the Middle: How Language Models Use Long Contexts</a>」で広く知られるようになりました。
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300 mb-2">
+                                    <li>プロンプト/コンテキストの<strong>先頭</strong>と<strong>末尾</strong>の情報はよく覚えている</li>
+                                    <li>真ん中に埋もれた情報は<strong>顕著に取り出せなくなる</strong>（精度が U 字型に落ちる）</li>
+                                </ul>
                                 <p class="text-gray-300">
-                                    たとえばコーディング規約、コミット規約、レビュー観点、デザインルール…全部を CLAUDE.md に書いて毎回読ませると、
-                                    今の作業に関係ない情報まで AI の頭に詰め込まれます。結果、<strong>本当に集中してほしい部分の精度が下がる</strong>のです。
+                                    関連語: <strong>Needle in a Haystack</strong>（長文に針を 1 本仕込んで取り出せるかをテストする手法）、
+                                    <strong>Context Rot</strong>（長いセッションを通じて全体精度が劣化していく現象）、
+                                    <strong>Recency / Primacy Bias</strong>（直近・最初の情報を優先する偏り）。
                                 </p>
                             </div>
+
+                            <div class="warning-box">
+                                <h4>「全部のルールを CLAUDE.md に詰める」のがダメな理由</h4>
+                                <p class="text-gray-300">
+                                    CLAUDE.md は<strong>セッション開始時に 1 度読み込まれ、以降そのセッション中ずっとコンテキストに常駐</strong>します（毎ターン再読込されるわけではありません）。
+                                    だから一度書いた内容は、<strong>今の作業に関係なくても会話の最後まで居座り続ける</strong>のです。
+                                </p>
+                                <p class="text-gray-300 mt-2">
+                                    ここにコーディング規約、コミット規約、レビュー観点、デザインルール…と全部を詰め込むと、上の <strong>Lost in the Middle</strong> が効いて、本当に集中してほしい部分が真ん中に押しやられ、<strong>精度が下がる</strong>のです。
+                                </p>
+                            </div>
+
+                            <h4>CLAUDE.md と Skills の使い分け</h4>
+                            <div style="overflow-x: auto;">
+                                <table class="w-full text-sm mb-3" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #3a3a52;">
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold"></th>
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">CLAUDE.md</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">Skill</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">読み込まれるタイミング</td>
+                                            <td class="py-2 pr-4">セッション開始時に<strong>常に全文</strong></td>
+                                            <td class="py-2">必要だと判断された時だけ本文を読む（description は常駐）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">コンテキスト消費</td>
+                                            <td class="py-2 pr-4">書いた分だけ<strong>常時</strong>消費</td>
+                                            <td class="py-2"><strong>1 行 × Skill 数</strong>のみ常時消費</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">向いている内容</td>
+                                            <td class="py-2 pr-4">プロジェクト全体の<strong>常識</strong>（言語、構成、用語、絶対ルール）</td>
+                                            <td class="py-2">特定の場面でだけ要る<strong>手順・規約</strong>（コミット規約、リリース手順、PDF 要約方針など）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">スクリプト同梱</td>
+                                            <td class="py-2 pr-4">不可（テキストのみ）</td>
+                                            <td class="py-2">可（<code class="code-inline">scripts/</code> ほか）</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 pr-4">起動方法</td>
+                                            <td class="py-2 pr-4">自動（あれば常に効く）</td>
+                                            <td class="py-2">AI が <code class="code-inline">description</code> でマッチ判定 / <code class="code-inline">/&lt;skill名&gt;</code> 手動</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <p class="text-gray-300 mb-3">
+                                ざっくり言うと「<strong>常に必要 → CLAUDE.md / 場面で必要 → Skill</strong>」。
+                                CLAUDE.md が肥大化してきたら、<strong>場面ごとに切り出して Skill 化する</strong>のがリファクタリングの定番です。
+                            </p>
 
                             <h4>Skills が解く方法 ── 必要な時だけ読む</h4>
                             <p class="text-gray-300 mb-3">
