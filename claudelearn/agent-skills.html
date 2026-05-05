@@ -671,52 +671,6 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                         </div>
                     </div>
 
-                    <!-- 配置場所 -->
-                    <div class="content-section">
-                        <h3>配置場所と適用範囲</h3>
-                        <div class="collapsible-content">
-                            <p class="text-gray-300 mb-4">
-                                どこに置くかで「誰が使えるか」が決まります。
-                            </p>
-
-                            <div style="overflow-x: auto;">
-                                <table class="w-full text-sm mt-2" style="border-collapse: collapse;">
-                                    <thead>
-                                        <tr style="border-bottom: 1px solid #3a3a52;">
-                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">配置場所</th>
-                                            <th class="text-left py-2 text-gray-400 font-semibold">適用範囲</th>
-                                            <th class="text-left py-2 text-gray-400 font-semibold">使いどころ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-gray-300">
-                                        <tr style="border-bottom: 1px solid #2a2a3e;">
-                                            <td class="py-2 pr-4"><code class="code-inline">~/.claude/skills/</code></td>
-                                            <td class="py-2 pr-4">自分のマシン全体</td>
-                                            <td class="py-2">どのプロジェクトでも使う個人用 Skill</td>
-                                        </tr>
-                                        <tr style="border-bottom: 1px solid #2a2a3e;">
-                                            <td class="py-2 pr-4"><code class="code-inline">.claude/skills/</code></td>
-                                            <td class="py-2 pr-4">そのプロジェクトだけ</td>
-                                            <td class="py-2">チームで Git に commit して共有</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="info-box mt-4">
-                                <h4>Claude は <code class="code-inline">.claude/</code>、業界は <code class="code-inline">.agent/</code> 寄り</h4>
-                                <p class="text-gray-300">
-                                    多くの AI ツールはプロジェクト直下の <code class="code-inline">AGENTS.md</code> や <code class="code-inline">.agent/</code> ディレクトリを共通の置き場にしようという動きがあります。
-                                    一方 Claude Code は独自の <code class="code-inline">.claude/</code> を使います。
-                                </p>
-                                <p class="text-gray-300 mt-2">
-                                    ただし<strong>ファイルの中身（SKILL.md 形式）は agentskills.io の標準に揃っている</strong>ので、
-                                    フォルダの場所さえ違っても、書いたものは他ツールに移植できます。
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- GitHub 共有 -->
                     <div class="content-section">
                         <h3>GitHub で共有 ── チームのやり方を全員に配る</h3>
