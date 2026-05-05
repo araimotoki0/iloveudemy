@@ -842,8 +842,13 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                                     <tbody class="text-gray-300">
                                         <tr style="border-bottom: 1px solid #2a2a3e;">
                                             <td class="py-2 pr-4">配置</td>
-                                            <td class="py-2 pr-4"><code class="code-inline">.claude/commands/deploy.md</code> 1 ファイル</td>
-                                            <td class="py-2"><code class="code-inline">.claude/skills/deploy/</code> ディレクトリ（中に SKILL.md +α）</td>
+                                            <td class="py-2 pr-4"><strong>単一の <code class="code-inline">.md</code> ファイル</strong>（<code class="code-inline">.claude/commands/deploy.md</code>）</td>
+                                            <td class="py-2"><strong>ディレクトリ</strong>（<code class="code-inline">.claude/skills/deploy/</code> 配下に SKILL.md と任意のサブフォルダ）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">サブフォルダ (<code class="code-inline">scripts/</code> / <code class="code-inline">assets/</code> / <code class="code-inline">references/</code>)</td>
+                                            <td class="py-2 pr-4">❌ 使えない（1 ファイルしか持てない構造）</td>
+                                            <td class="py-2">✅ 自由に同梱できる</td>
                                         </tr>
                                         <tr style="border-bottom: 1px solid #2a2a3e;">
                                             <td class="py-2 pr-4">手動呼び出し</td>
