@@ -810,6 +810,102 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                         </div>
                     </div>
 
+                    <!-- スラッシュコマンドとの関係 -->
+                    <div class="content-section">
+                        <h3>スラッシュコマンドと Skill の関係 ── 「コマンドは Skill に統合された」</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                Claude Code には昔から「カスタムスラッシュコマンド」(<code class="code-inline">.claude/commands/&lt;名前&gt;.md</code>) があり、<code class="code-inline">/&lt;名前&gt;</code> で呼び出せました。
+                                結論から言うと、現在この仕組みは <strong>Skills に統合（merge）</strong>されていて、
+                                公式ドキュメントにもこう明記されています：
+                            </p>
+
+                            <div class="info-box mb-3">
+                                <p class="text-gray-300 italic">
+                                    "Custom commands have been merged into skills. A file at <code class="code-inline">.claude/commands/deploy.md</code> and a skill at <code class="code-inline">.claude/skills/deploy/SKILL.md</code> both create <code class="code-inline">/deploy</code> and work the same way."
+                                </p>
+                                <p class="text-gray-400 text-sm mt-2">
+                                    （<a href="https://code.claude.com/docs/en/skills" class="text-orange-400 underline" target="_blank" rel="noopener">Claude Code 公式ドキュメント</a>より）
+                                </p>
+                            </div>
+
+                            <h4>機能比較 ── Skill が完全上位互換</h4>
+                            <div style="overflow-x: auto;">
+                                <table class="w-full text-sm mb-3" style="border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #3a3a52;">
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold"></th>
+                                            <th class="text-left py-2 pr-4 text-gray-400 font-semibold">旧: スラッシュコマンド</th>
+                                            <th class="text-left py-2 text-gray-400 font-semibold">新: Skill</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">配置</td>
+                                            <td class="py-2 pr-4"><code class="code-inline">.claude/commands/deploy.md</code> 1 ファイル</td>
+                                            <td class="py-2"><code class="code-inline">.claude/skills/deploy/</code> ディレクトリ（中に SKILL.md +α）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">手動呼び出し</td>
+                                            <td class="py-2 pr-4"><code class="code-inline">/deploy</code></td>
+                                            <td class="py-2"><code class="code-inline">/deploy</code>（同じ）</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">AI による自動発火</td>
+                                            <td class="py-2 pr-4">❌ 不可（必ず手動）</td>
+                                            <td class="py-2">✅ description にマッチしたら自動で呼ばれる</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">スクリプト/雛形同梱</td>
+                                            <td class="py-2 pr-4">❌ Markdown のみ</td>
+                                            <td class="py-2">✅ <code class="code-inline">scripts/</code> / <code class="code-inline">assets/</code> など自由</td>
+                                        </tr>
+                                        <tr style="border-bottom: 1px solid #2a2a3e;">
+                                            <td class="py-2 pr-4">YAML 制御項目</td>
+                                            <td class="py-2 pr-4">最小限</td>
+                                            <td class="py-2"><code class="code-inline">disable-model-invocation</code> / <code class="code-inline">allowed-tools</code> / <code class="code-inline">paths</code> / <code class="code-inline">context: fork</code> など</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 pr-4">ツール間互換</td>
+                                            <td class="py-2 pr-4">Claude Code 独自</td>
+                                            <td class="py-2">agentskills.io 標準（他ツールでも動く）</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4>なぜ統合されたのか</h4>
+                            <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300 mb-3">
+                                <li><strong>機能が完全に重複していた</strong> ── 「AI に名前付き手順を教えるファイル」という点で同じものを 2 つ持っていた</li>
+                                <li><strong>Skill の方が上位互換</strong> ── 自動発火・スクリプト同梱・サブエージェント実行など、コマンドにできないことを全部こなせる</li>
+                                <li><strong>外部標準ができた</strong> ── agentskills.io が普及したので、独自フォーマットを別建てで持つ意味が薄れた</li>
+                                <li><strong>後方互換を保ちつつ収束</strong> ── <code class="code-inline">.claude/commands/</code> はそのまま動かせるが、新規は <code class="code-inline">.claude/skills/</code> 推奨。同名なら Skill が優先</li>
+                            </ul>
+
+                            <h4>これは Claude Code 固有の話ではない</h4>
+                            <p class="text-gray-300 mb-3">
+                                <strong>同じ統合は他の主要ツールでも進んでいます</strong>。各社それぞれ「カスタムコマンド」と「スキル」を別建てで持っていたのが、agentskills.io 標準を採用する流れの中で<strong>スキルへ集約</strong>されました：
+                            </p>
+                            <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300 mb-3">
+                                <li><strong>Cursor</strong>: <code class="code-inline">.cursorrules</code> / Rules → agentskills.io 互換の Skills に統合</li>
+                                <li><strong>GitHub Copilot</strong>: 旧 <code class="code-inline">copilot-instructions.md</code> → Agent Skills フォーマットへ寄せる方向</li>
+                                <li><strong>OpenCode / Goose / Gemini CLI / OpenAI Codex</strong> なども agentskills.io 準拠の Skills を採用済み</li>
+                            </ul>
+                            <p class="text-gray-300 mb-3">
+                                つまり「AI に再利用可能な手順を教える仕組み」は、<strong>業界全体で「Skill」という形に収束しつつある</strong>と理解しておけば OK です。
+                                既存のコマンドファイルがあるからといって移行を急ぐ必要はないですが、<strong>新しく書くなら Skill 形式</strong>が正解です。
+                            </p>
+
+                            <div class="info-box mt-3">
+                                <h4>移行の目安</h4>
+                                <p class="text-gray-300">
+                                    <code class="code-inline">.claude/commands/&lt;name&gt;.md</code> を Skill にする時は、<code class="code-inline">.claude/skills/&lt;name&gt;/SKILL.md</code> としてフォルダ化し、ファイル冒頭に YAML フロントマター（最低 <code class="code-inline">description</code>）を足すだけで十分です。
+                                    AI に自動発火させたくないコマンド（デプロイなど副作用のあるもの）は、<code class="code-inline">disable-model-invocation: true</code> を付けておけば従来通り「手動でしか動かない」挙動を保てます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- まとめ -->
                     <div class="content-section">
                         <h3>まとめ</h3>
