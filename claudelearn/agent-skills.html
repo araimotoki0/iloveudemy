@@ -671,6 +671,68 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                         </div>
                     </div>
 
+                    <!-- ハンズオン: 外部 Skill を入れる -->
+                    <div class="content-section">
+                        <h3>ハンズオン ── 外部の Skill を取り込む</h3>
+                        <div class="collapsible-content">
+                            <p class="text-gray-300 mb-4">
+                                これまでは自分で Skill を書いてきました。今度は<strong>他人が公開している Skill を取り込んで使う</strong>体験です。
+                                エコシステムには <a href="https://skills.sh" class="text-orange-400 underline" target="_blank" rel="noopener">skills.sh</a>（レジストリ）と
+                                <a href="https://github.com/vercel-labs/skills" class="text-orange-400 underline" target="_blank" rel="noopener">vercel-labs/skills</a>（CLI）があり、<strong>npm のように Skill を配布・取り込める</strong>仕組みが整っています。
+                            </p>
+
+                            <div class="info-box mb-3">
+                                <h4>仕組みのざっくり理解</h4>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
+                                    <li><strong>レジストリ</strong>: <code class="code-inline">skills.sh</code>（npm の npmjs.com に相当する Web カタログ）</li>
+                                    <li><strong>CLI</strong>: <code class="code-inline">npx skills</code>（Vercel Labs 製。Node.js さえあれば動く）</li>
+                                    <li><strong>実体</strong>: GitHub リポジトリ（root に <code class="code-inline">SKILL.md</code> がある public repo はそのまま Skill として配布可）</li>
+                                    <li><strong>対応エージェント</strong>: Claude Code、Cursor、Codex、Gemini CLI、OpenCode ほか 50+ ツール</li>
+                                </ul>
+                            </div>
+
+                            <h4>1. skills.sh で Skill を選ぶ</h4>
+                            <p class="text-gray-300 mb-2">
+                                <a href="https://skills.sh" class="text-orange-400 underline" target="_blank" rel="noopener">skills.sh</a> を開いて気になる Skill をクリック。
+                                ページ上に <strong>そのまま実行できる <code class="code-inline">npx</code> コマンド</strong>が表示されるので、コピーして貼るだけです。
+                            </p>
+
+                            <h4>2. 認識されたか確認</h4>
+                            <p class="text-gray-300 mb-2">
+                                Claude Code はファイルを置いた瞬間に hot reload で読み込みます。聞いてみるだけ。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">What skills are available?</div>
+                            </div>
+                            <p class="text-gray-300 mt-2">
+                                一覧に <code class="code-inline">skill-creator</code> が現れていれば成功です。
+                            </p>
+
+                            <h4>3. 実際に使ってみる</h4>
+                            <p class="text-gray-300 mb-2">
+                                <code class="code-inline">skill-creator</code> は「Skill を作る Skill」── つまりこの Skill 自身が、新しい Skill の雛形作成を手伝ってくれます。
+                            </p>
+                            <div class="command-box">
+                                <div class="command">PR レビューの観点を Skill にしたい。雛形を作って</div>
+                            </div>
+                            <p class="text-gray-300 mt-2">
+                                description に「Skill 作成の補助」と書かれているので、Claude が自動でこの Skill を呼び出し、SKILL.md の構成や YAML ヘッダーまで一緒に組み立ててくれます。
+                            </p>
+
+                            <div class="success-box mt-4">
+                                <h4>体感ポイント</h4>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300">
+                                    <li><strong>「他人が書いた Skill」を 1 コマンドで自分の AI に取り込める</strong>（npm と同じ感覚）</li>
+                                    <li>レジストリは GitHub。<strong>気になる Skill のソース（SKILL.md と scripts/）は事前に読める</strong></li>
+                                    <li>Vercel Labs の公式コレクションは比較的安全だが、それ以外を入れる時は<strong>必ず中身を読んでから</strong></li>
+                                </ul>
+                                <p class="text-gray-300 mt-2">
+                                    ── そう、ここが次の章「外部 Skills のセキュリティ」につながります。便利な配布の仕組みは、同時に<strong>悪意ある Skill を取り込むリスク</strong>でもあるからです。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- セキュリティ -->
                     <div class="content-section">
                         <h3>外部 Skills のセキュリティ ── ここが一番怖い</h3>
@@ -680,6 +742,32 @@ description: PDF を要約する時に使う。日本語で 5 行以内、各行
                                 <p class="text-gray-300">
                                     Skill は<strong>スクリプトを同梱できる</strong>ため、入れた瞬間に任意のコードがあなたのマシンで動く可能性があります。
                                     npm パッケージや VS Code 拡張と同じ、<strong>サプライチェーン攻撃のターゲット</strong>です。
+                                </p>
+                            </div>
+
+                            <h4>実際どれくらい危ないのか ── 2026 年の実測データ</h4>
+                            <div class="error-box">
+                                <p class="text-gray-300 mb-2">
+                                    Snyk が <strong>2026 年 2 月 5 日</strong>に公開した「ToxicSkills」レポート（ClawHub + skills.sh から <strong>3,984 個の Skill を全数監査</strong>）の結果がこれです：
+                                </p>
+                                <ul class="list-disc list-inside space-y-2 ml-4 text-gray-300 mb-2">
+                                    <li><strong>36%（1,467 個）</strong>に何らかのセキュリティ問題（プロンプトインジェクション含む）</li>
+                                    <li><strong>13.4%（534 個）</strong>に <strong>Critical 級の脆弱性</strong>（マルウェア配布、認証情報窃取、バックドア）</li>
+                                    <li>うち <strong>76 個は明確な悪意ペイロード</strong>を確認（クレデンシャル盗難・データ持ち出し）</li>
+                                    <li>悪意 Skill のうち <strong>91%</strong> がプロンプトインジェクション + 従来型マルウェアの<strong>合わせ技</strong></li>
+                                </ul>
+                                <p class="text-gray-300 mb-2">
+                                    別の独立監査でも傾向は同じ：
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 ml-4 text-gray-300 mb-2">
+                                    <li><strong>grith</strong>: 2,857 個監査 → <strong>12% が悪意あり</strong></li>
+                                    <li><strong>ClawHavoc キャンペーン</strong>(2026 年 2 月): ClawHub 上で <strong>計 1,184 個の悪意 Skill</strong> が一斉発見された</li>
+                                    <li><strong>Skill-Inject ベンチマーク</strong>(学術): 仕込んだプロンプトインジェクションの<strong>成功率は最大 80%</strong>。データ持ち出し・破壊行動・ランサムウェア相当の挙動まで通る</li>
+                                    <li><strong>OWASP</strong>: 「<strong>Agentic Skills Top 10</strong>」が新設され、Skill 由来の脅威が正式分類入り</li>
+                                </ul>
+                                <p class="text-gray-300">
+                                    覚えやすい数字: <strong>ランダムに 8 個入れたら 1 個は Critical を踏む / 3 個に 1 個は何か問題あり</strong>。
+                                    npm 全体の悪性パッケージ率（1% 未満）と比べても<strong>桁違いに高い</strong>のが Skills エコシステムの現状です。
                                 </p>
                             </div>
 
