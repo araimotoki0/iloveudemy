@@ -2,7 +2,7 @@
 function initSidebar() {
     // 現在のパスから相対パスを計算
     const currentPath = window.location.pathname;
-    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/') || currentPath.includes('/miraichi-docker/') || currentPath.includes('/docker-intro/') || currentPath.includes('/vibe-coding/') || currentPath.includes('/udemy-special/') || currentPath.includes('/claudelearn/');
+    const isInSubfolder = currentPath.includes('/basic/') || currentPath.includes('/miraichi/') || currentPath.includes('/docker/') || currentPath.includes('/setup/') || currentPath.includes('/miraichi-db/') || currentPath.includes('/miraichi-docker/') || currentPath.includes('/miraichi-fukugyo/') || currentPath.includes('/docker-intro/') || currentPath.includes('/vibe-coding/') || currentPath.includes('/udemy-special/') || currentPath.includes('/claudelearn/');
     const rootPath = isInSubfolder ? '../' : './';
 
     // サイドバーHTML
@@ -127,6 +127,17 @@ function initSidebar() {
                     <div class="flex flex-col">
                         <span>バイブコーディング入門</span>
                         <span class="text-xs text-gray-400 mt-0.5">2026年2月28日</span>
+                    </div>
+                </a>
+                <a href="${rootPath}miraichi-fukugyo/index.html"
+                    class="flex items-center px-4 py-3 rounded-lg ${currentPath.includes('/miraichi-fukugyo/') ? 'bg-white/20' : 'hover:bg-white/10'} transition-colors duration-200 sidebar-link">
+                    <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <div class="flex flex-col">
+                        <span>Web開発を副業にする</span>
+                        <span class="text-xs text-gray-400 mt-0.5">2026年5月24日</span>
                     </div>
                 </a>
                 <div class="pt-4 pb-2">
